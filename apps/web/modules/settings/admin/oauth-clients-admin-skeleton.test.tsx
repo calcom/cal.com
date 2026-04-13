@@ -1,27 +1,22 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { render } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 
-vi.mock("@calcom/ui/components/skeleton", () => ({
-  SkeletonText: () => <div data-testid="skeleton-text" />,
-  SkeletonContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
+import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
 
-describe("OAuthClientsAdminSkeleton", async () => {
-  const { OAuthClientsAdminSkeleton } = await import("./oauth-clients-admin-skeleton");
+describe("OAuthClientsAdminSkeleton", () => {
   it("should render without crashing", () => {
-    render(<OAuthClientsAdminSkeleton />);
-    expect(screen.getAllByTestId("skeleton-text").length).toBeGreaterThan(0);
-  });
-
-  it("should render 3 sections with skeleton rows", () => {
     const { container } = render(<OAuthClientsAdminSkeleton />);
-    const sections = container.querySelectorAll(".space-y-3");
-    expect(sections.length).toBe(3);
+    expect(container.querySelector("[data-slot='skeleton']")).toBeTruthy();
   });
 
-  it("should render skeleton text elements in each section", () => {
-    render(<OAuthClientsAdminSkeleton />);
-    const skeletonTexts = screen.getAllByTestId("skeleton-text");
-    expect(skeletonTexts.length).toBeGreaterThanOrEqual(3);
+  it("should render skeleton list items", () => {
+    const { container } = render(<OAuthClientsAdminSkeleton />);
+    const listItems = container.querySelectorAll("[data-slot='list-item']");
+    expect(listItems.length).toBe(5);
+  });
+
+  it("should render a card container", () => {
+    const { container } = render(<OAuthClientsAdminSkeleton />);
+    expect(container.querySelector("[data-slot='card']")).toBeTruthy();
   });
 });

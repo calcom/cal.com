@@ -226,6 +226,42 @@ export class OAuthClientRepository {
     });
   }
 
+  async countByStatus(status?: OAuthClientStatus) {
+    return this.prisma.oAuthClient.count({
+      where: status ? { status } : undefined,
+    });
+  }
+
+  async findByStatusPaginated(page: number, pageSize: number, status?: OAuthClientStatus) {
+    return this.prisma.oAuthClient.findMany({
+      where: status ? { status } : undefined,
+      select: {
+        clientId: true,
+        redirectUris: true,
+        name: true,
+        purpose: true,
+        logo: true,
+        websiteUrl: true,
+        rejectionReason: true,
+        clientType: true,
+        status: true,
+        userId: true,
+        scopes: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+  }
+
   async create(data: {
     name: string;
     purpose: string;

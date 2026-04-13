@@ -11,13 +11,9 @@ type ListClientsOptions = {
 };
 
 export const listClientsHandler = async ({ ctx, input }: ListClientsOptions) => {
-  const { status } = input;
+  const { status, page, pageSize } = input;
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
 
-  if (status) {
-    return oAuthClientRepository.findByStatus(status);
-  }
-
-  return oAuthClientRepository.findAll();
+  return oAuthClientRepository.findByStatusPaginated(page, pageSize, status);
 };

@@ -4,8 +4,14 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@coss/ui/components/empty";
+import { KeyIcon } from "@coss/ui/icons";
 
 import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
+import { PaginationControls } from "./oauth/components/pagination-controls";
+import { StatusFilter } from "./oauth/components/status-filter";
+import { useClientListState } from "./oauth/hooks/use-client-list-state";
+import { usePagination } from "./oauth/hooks/use-pagination";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import { toastManager } from "@coss/ui/components/toast";
@@ -16,26 +22,30 @@ import { OAuthClientPreviewDialog } from "../oauth/create/OAuthClientPreviewDial
 import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/view/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
 
+const PAGE_SIZE = 25;
+
 export default function OAuthClientsAdminView() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const { statusFilter, page, setStatus, setPage } = useClientListState();
   const [isCreatingClient, setIsCreatingClient] = useState(false);
   const [createdClient, setCreatedClient] = useState<OAuthClientDetails | null>(null);
   const [selectedClient, setSelectedClient] = useState<OAuthClientDetails | null>(null);
 
-  const { data: pendingClients, isLoading: isPendingClientsLoading } = trpc.viewer.oAuth.listClients.useQuery(
-    {
-      status: "PENDING",
-    }
-  );
-  const { data: rejectedClients, isLoading: isRejectedClientsLoading } =
-    trpc.viewer.oAuth.listClients.useQuery({
-      status: "REJECTED",
-    });
-  const { data: approvedClients, isLoading: isApprovedClientsLoading } =
-    trpc.viewer.oAuth.listClients.useQuery({
-      status: "APPROVED",
-    });
+  const { data: totalCount } = trpc.viewer.oAuth.countClients.useQuery({ status: statusFilter });
+
+  const { totalPages, startItem, endItem } = usePagination({
+    totalCount,
+    pageSize: PAGE_SIZE,
+    page,
+    onClamp: setPage,
+  });
+
+  const { data: clients, isLoading: isClientsLoading } = trpc.viewer.oAuth.listClients.useQuery({
+    status: statusFilter,
+    page,
+    pageSize: PAGE_SIZE,
+  });
 
   const createMutation = trpc.viewer.oAuth.createClient.useMutation({
     onSuccess: async (data) => {
@@ -50,6 +60,7 @@ export default function OAuthClientsAdminView() {
       });
       toastManager.add({ title: t("oauth_client_created"), type: "success" });
       utils.viewer.oAuth.listClients.invalidate();
+      utils.viewer.oAuth.countClients.invalidate();
     },
     onError: (error) => {
       toastManager.add({ title: `${t("oauth_client_create_error")}: ${error.message}`, type: "error" });
@@ -74,6 +85,7 @@ export default function OAuthClientsAdminView() {
       });
 
       utils.viewer.oAuth.listClients.invalidate();
+      utils.viewer.oAuth.countClients.invalidate();
     },
     onError: (error) => {
       toastManager.add({ title: `${t("oauth_client_status_update_error")}: ${error.message}`, type: "error" });
@@ -113,40 +125,48 @@ export default function OAuthClientsAdminView() {
     });
   };
 
-  if (isPendingClientsLoading || isRejectedClientsLoading || isApprovedClientsLoading) {
-    return <OAuthClientsAdminSkeleton />;
-  }
-
   return (
-    <SettingsHeader title={t("oauth_clients_admin")} description={t("oauth_clients_admin_description")}>
-      <div className="space-y-10">
-        <div className="space-y-3" data-testid="oauth-client-admin-pending-section">
-          <h2 className="text-emphasis text-base font-semibold">{t("pending")}</h2>
-          <OAuthClientsList
-            clients={pendingClients ?? []}
-            onSelectClient={(client) => setSelectedClient(client)}
-            showStatus
-          />
+    <SettingsHeader
+      title={t("oauth_clients_admin")}
+      description={t("oauth_clients_admin_description")}
+      borderInShellHeader={false}>
+      {isClientsLoading ? (
+        <div className="mt-8">
+          <OAuthClientsAdminSkeleton />
         </div>
+      ) : (
+      <div className="mt-8 space-y-6">
+        <StatusFilter statusFilter={statusFilter} onStatusChange={setStatus} />
 
-        <div className="space-y-3" data-testid="oauth-client-admin-rejected-section">
-          <h2 className="text-emphasis text-base font-semibold">{t("rejected")}</h2>
-          <OAuthClientsList
-            clients={rejectedClients ?? []}
-            onSelectClient={(client) => setSelectedClient(client)}
-            showStatus
-          />
-        </div>
-
-        <div className="space-y-3" data-testid="oauth-client-admin-approved-section">
-          <h2 className="text-emphasis text-base font-semibold">{t("approved")}</h2>
-          <OAuthClientsList
-            clients={approvedClients ?? []}
-            onSelectClient={(client) => setSelectedClient(client)}
-            showStatus
-          />
-        </div>
+        {clients?.length || totalCount ? (
+          <>
+            <OAuthClientsList
+              clients={clients ?? []}
+              onSelectClient={(client) => setSelectedClient(client)}
+              showStatus
+            />
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              startItem={startItem}
+              endItem={endItem}
+              totalCount={totalCount ?? 0}
+              onPageChange={setPage}
+            />
+          </>
+        ) : (
+          <Empty className="rounded-xl border border-dashed">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <KeyIcon />
+              </EmptyMedia>
+              <EmptyTitle>{t("no_oauth_clients")}</EmptyTitle>
+              <EmptyDescription>{t("no_oauth_clients_matching_filter")}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )}
       </div>
+      )}
 
       {createdClient ? (
         <OAuthClientPreviewDialog

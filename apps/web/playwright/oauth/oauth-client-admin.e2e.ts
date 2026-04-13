@@ -25,28 +25,29 @@ async function expectClientStatusInDb(
     .toBe(status);
 }
 
-async function waitForAdminSection(page: Page, sectionTestId: string) {
-  const section = page.getByTestId(sectionTestId);
-  await expect(section).toBeVisible({ timeout: 60_000 });
-  return section;
+async function switchAdminTab(page: Page, status: "PENDING" | "APPROVED" | "REJECTED") {
+  const label = status === "PENDING" ? "Pending" : status === "APPROVED" ? "Approved" : "Rejected";
+  const tab = page.getByRole("tab", { name: label });
+  await tab.click();
+  await expect(tab).toHaveAttribute("aria-selected", "true", { timeout: 10_000 });
 }
 
-async function expectClientInAdminSection(
+async function expectClientInTab(
   page: Page,
-  sectionTestId: string,
+  status: "PENDING" | "APPROVED" | "REJECTED",
   clientId: string
 ): Promise<void> {
-  const section = await waitForAdminSection(page, sectionTestId);
-  await expect(section.getByTestId(`oauth-client-list-item-${clientId}`)).toBeVisible({ timeout: 60_000 });
+  await switchAdminTab(page, status);
+  await expect(page.getByTestId(`oauth-client-list-item-${clientId}`)).toBeVisible({ timeout: 60_000 });
 }
 
-async function expectClientNotInAdminSection(
+async function expectClientNotInTab(
   page: Page,
-  sectionTestId: string,
+  status: "PENDING" | "APPROVED" | "REJECTED",
   clientId: string
 ): Promise<void> {
-  const section = await waitForAdminSection(page, sectionTestId);
-  await expect(section.getByTestId(`oauth-client-list-item-${clientId}`)).toHaveCount(0, { timeout: 60_000 });
+  await switchAdminTab(page, status);
+  await expect(page.getByTestId(`oauth-client-list-item-${clientId}`)).toHaveCount(0, { timeout: 60_000 });
 }
 
 test.describe.configure({ mode: "parallel" });
@@ -95,9 +96,9 @@ test.describe("OAuth clients admin", () => {
 
     await goToAdminOAuthSettings(page);
 
-    await expectClientInAdminSection(page, "oauth-client-admin-pending-section", toBeApproved.clientId);
-    await expectClientInAdminSection(page, "oauth-client-admin-pending-section", toBeRejected.clientId);
-    await expectClientInAdminSection(page, "oauth-client-admin-pending-section", staysPending.clientId);
+    await expectClientInTab(page, "PENDING", toBeApproved.clientId);
+    await expectClientInTab(page, "PENDING", toBeRejected.clientId);
+    await expectClientInTab(page, "PENDING", staysPending.clientId);
 
     // Preview a pending client (readonly)
     const pendingDetails = await openOAuthClientDetailsFromList(page, toBeApproved.clientId);
@@ -117,9 +118,9 @@ test.describe("OAuth clients admin", () => {
 
     await expectClientStatusInDb(prisma, toBeApproved.clientId, "APPROVED");
 
-    await expectClientNotInAdminSection(page, "oauth-client-admin-pending-section", toBeApproved.clientId);
-    await expectClientInAdminSection(page, "oauth-client-admin-approved-section", toBeApproved.clientId);
-    await expectClientInAdminSection(page, "oauth-client-admin-pending-section", staysPending.clientId);
+    await expectClientNotInTab(page, "PENDING", toBeApproved.clientId);
+    await expectClientInTab(page, "APPROVED", toBeApproved.clientId);
+    await expectClientInTab(page, "PENDING", staysPending.clientId);
 
     // Reject pending2
     const rejectionReason = `Not acceptable (${testPrefix}reason-${Date.now()})`;
@@ -132,14 +133,10 @@ test.describe("OAuth clients admin", () => {
 
     await expectClientStatusInDb(prisma, toBeRejected.clientId, "REJECTED");
 
-    await expectClientNotInAdminSection(page, "oauth-client-admin-pending-section", toBeRejected.clientId);
-    await expectClientInAdminSection(page, "oauth-client-admin-rejected-section", toBeRejected.clientId);
-    await page.reload();
+    await expectClientNotInTab(page, "PENDING", toBeRejected.clientId);
+    await expectClientInTab(page, "REJECTED", toBeRejected.clientId);
 
-    await page
-      .getByTestId("oauth-client-admin-rejected-section")
-      .getByTestId(`oauth-client-list-item-${toBeRejected.clientId}`)
-      .click();
+    await page.getByTestId(`oauth-client-list-item-${toBeRejected.clientId}`).click();
 
     const rejectedDetails = page.getByTestId("oauth-client-details-form");
     await expect(rejectedDetails).toBeVisible();
@@ -147,13 +144,13 @@ test.describe("OAuth clients admin", () => {
       rejectionReason
     );
     await closeOAuthClientDetails(page);
-    await expectClientInAdminSection(page, "oauth-client-admin-pending-section", staysPending.clientId);
+    await expectClientInTab(page, "PENDING", staysPending.clientId);
 
     // Reload to ensure list queries show consistent counts
     await page.reload();
 
-    await expectClientInAdminSection(page, "oauth-client-admin-approved-section", toBeApproved.clientId);
-    await expectClientInAdminSection(page, "oauth-client-admin-rejected-section", toBeRejected.clientId);
-    await expectClientInAdminSection(page, "oauth-client-admin-pending-section", staysPending.clientId);
+    await expectClientInTab(page, "APPROVED", toBeApproved.clientId);
+    await expectClientInTab(page, "REJECTED", toBeRejected.clientId);
+    await expectClientInTab(page, "PENDING", staysPending.clientId);
   });
 });

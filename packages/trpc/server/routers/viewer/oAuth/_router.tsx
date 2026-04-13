@@ -1,5 +1,6 @@
 import authedProcedure, { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZCountClientsInputSchema } from "./count-clients.schema";
 import { ZCreateClientInputSchema } from "./createClient.schema";
 import { ZDeleteClientInputSchema } from "./deleteClient.schema";
 import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
@@ -59,6 +60,15 @@ export const oAuthRouter = router({
     const { listClientsHandler } = await import("./listClients.handler");
 
     return listClientsHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  countClients: authedAdminProcedure.input(ZCountClientsInputSchema).query(async ({ ctx, input }) => {
+    const { countClientsHandler } = await import("./count-clients.handler");
+
+    return countClientsHandler({
       ctx,
       input,
     });
