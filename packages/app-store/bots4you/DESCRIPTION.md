@@ -5,18 +5,18 @@ items:
   - image_2.png
 ---
 
-Unser KI-Helfer am Telefon ist eine Lösung für Unternehmen, die ihre telefonische Erreichbarkeit verbessern und telefonische Prozesse automatisieren möchten. Eingehende Anrufe werden automatisch angenommen, Anliegen strukturiert erfasst und alle relevanten Informationen an das Team übergeben. So lassen sich Serviceprozesse effizienter gestalten, ohne auf eine professionelle telefonische Betreuung zu verzichten.
+Our AI voice assistant for phone calls helps businesses improve call availability and automate their call workflows. Incoming calls are answered automatically, requests are captured and structured, and all relevant information is passed on to your team. This makes service processes more efficient—without sacrificing a professional phone experience.
 
-## Terminplanung
+## Appointment Scheduling
 
-Unser KI-Helfer vereinbart direkt im Gespräch passende Termine und trägt sie automatisch in Ihren Kalender ein – kompatibel mit allen Kalendern, die von Cal.com unterstützt werden. In Verbindung mit Cal.com wird die telefonische Terminorganisation besonders einfach: Termine können direkt im Gespräch koordiniert und sauber in bestehende Kalenderprozesse eingebunden werden.
+Our AI assistant schedules appointments directly during the call and automatically adds them to your calendar—fully compatible with all calendars supported by Cal.com. Combined with Cal.com, phone-based scheduling becomes seamless: appointments are coordinated in real time and smoothly integrated into your existing calendar workflows.
 
-## Sekretariat & Kundenservice
+## Reception & Customer Support
 
-Typische Anwendungsfälle sind das Sekretariat, der Kundenservice und die Terminplanung. Unser KI-Helfer am Telefon kann Anrufe vorsortieren, Rückrufwünsche aufnehmen, Standardfragen beantworten, Anliegen dokumentieren und bei Bedarf an Mitarbeitende weiterleiten. Unternehmen nutzen die Lösung außerdem, um telefonische Abläufe einheitlicher, schneller und entlastender für ihre Teams zu gestalten.
+Typical use cases include reception, customer support, and appointment scheduling. Our AI voice assistant can triage calls, capture call-back requests, answer common questions, document requests, and forward them to your team when needed. Businesses also use it to make their phone processes more consistent, faster, and less burdensome for their teams.
 
-## Für wen?
+## Who is it for?
 
-Unser KI-Helfer am Telefon eignet sich ideal für alle Organisationen, die Telefonie und Terminbuchung intelligent verbinden möchten — von Praxen über Dienstleister bis hin zu Service- und Vertriebsteams.
+Our AI voice assistant is ideal for organizations that want to intelligently combine phone communication and appointment booking—from medical practices and service providers to customer service and sales teams.
 
 {DESCRIPTION}
