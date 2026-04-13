@@ -9,8 +9,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      # TODO: Setup Terraform
 
       # TODO: Add Terraform init & apply step
 
