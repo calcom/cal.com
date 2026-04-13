@@ -23,7 +23,7 @@ export const attributeSyncRouter = router({
   updateAttributeSync: createAttributePbacProcedure("organization.attributes.update")
     .input(updateAttributeSyncSchema)
     .mutation(async (opts) => {
-      const { default: handler } = await import("./updateAttributeSync.handler");
+      const { default: handler } = await import("./update-attribute-sync.handler");
       return handler(opts);
     }),
 
