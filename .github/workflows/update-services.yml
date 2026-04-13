@@ -3,7 +3,7 @@ name: Update Services
 jobs:
   update:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6

@@ -3,13 +3,13 @@ name: Build Images
 jobs:
   build-calcom:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Blacksmith Builder
-        uses: useblacksmith/setup-docker-builder@v1
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -19,7 +19,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push calcom image
-        uses: useblacksmith/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile
@@ -31,16 +31,18 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}/calcom:latest
           platforms: linux/amd64
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/calcom:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/calcom:cache,mode=max
 
   build-calcom-api:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Blacksmith Builder
-        uses: useblacksmith/setup-docker-builder@v1
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -50,10 +52,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push calcom-api image
-        uses: useblacksmith/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: apps/api/v2/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/calcom-api:latest
           platforms: linux/amd64
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/calcom-api:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/calcom-api:cache,mode=max
