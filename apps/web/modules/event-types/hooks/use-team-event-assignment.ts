@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
@@ -13,9 +13,10 @@ type UseTeamEventAssignmentParams = Pick<EventTypeSetupProps, "teamMembers" | "e
 
 export function useTeamEventAssignment({ eventType, teamMembers }: UseTeamEventAssignmentParams) {
   const { t } = useLocale();
-  const { getValues, setValue, control } = useFormContext<FormValues>();
+  const { setValue, control } = useFormContext<FormValues>();
   const assignAllManagedWarning = useAssignAllManagedWarning();
   const eventTypeSlug = useWatch<FormValues>({ control, name: "slug" }) ?? eventType.slug;
+  const assignAllTeamMembers = useWatch<FormValues>({ control, name: "assignAllTeamMembers" }) ?? false;
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
 
   const pendingMembers = useCallback(
@@ -45,10 +46,6 @@ export function useTeamEventAssignment({ eventType, teamMembers }: UseTeamEventA
     [teamMembers, pendingMembers, t]
   );
 
-  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
-    getValues("assignAllTeamMembers") ?? false
-  );
-
   const setChildrenToAllTeamMembers = useCallback(() => {
     setValue("children", childrenEventTypeOptions, { shouldDirty: true });
   }, [setValue, childrenEventTypeOptions]);
@@ -56,7 +53,6 @@ export function useTeamEventAssignment({ eventType, teamMembers }: UseTeamEventA
   const updateAssignAllTeamMembers = useCallback(
     (newValue: boolean) => {
       setValue("assignAllTeamMembers", newValue, { shouldDirty: true });
-      setAssignAllTeamMembers(newValue);
     },
     [setValue]
   );
