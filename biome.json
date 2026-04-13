@@ -52,6 +52,8 @@
       "!!public",
       "!!apps/web/public/embed",
       "!!packages/prisma/zod",
+      "!!packages/kysely/types.ts",
+      "!!packages/prisma/generated",
       "!!packages/prisma/enums",
       "!!*.lock",
       "!!*.log",
