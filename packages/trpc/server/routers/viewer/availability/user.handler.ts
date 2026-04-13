@@ -23,12 +23,13 @@ export const userHandler = async ({ input }: UserOptions) => {
   const userAvailabilityService = getUserAvailabilityService();
   const user = await getUser(input.username);
   if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
-  const { dateFrom, dateTo, ...rest } = input;
+  const { dateFrom, dateTo, _calendarFetchMode, ...rest } = input;
   return userAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimits(
     {
       returnDateOverrides: true,
       bypassBusyCalendarTimes: false,
       ...rest,
+      mode: _calendarFetchMode ?? "slots",
       browsingWindowStart: dateFrom,
       browsingWindowEnd: dateTo,
     },

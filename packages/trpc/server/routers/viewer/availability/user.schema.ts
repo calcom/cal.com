@@ -8,6 +8,7 @@ export const ZUserInputSchema = z.object({
   dateTo: stringToDayjsZod,
   eventTypeId: stringOrNumber.optional(),
   withSource: z.boolean().optional(),
+  _calendarFetchMode: z.enum(["slots", "troubleshooter"]).optional(),
 });
 
 export type TUserInputSchema = z.infer<typeof ZUserInputSchema>;
