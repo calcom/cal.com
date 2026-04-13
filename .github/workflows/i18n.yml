@@ -10,6 +10,7 @@ concurrency:
 jobs:
   i18n:
     name: Run i18n
+    if: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY != '' }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       actions: write
@@ -29,7 +30,7 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-      - uses: lingodotdev/lingo.dev@main
+      - uses: lingodotdev/lingo.dev@cee3eb86550ca4905fc99fe90786fb7523288a61 # main
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         with:
