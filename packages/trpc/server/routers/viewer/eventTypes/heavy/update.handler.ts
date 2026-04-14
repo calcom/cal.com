@@ -1,4 +1,5 @@
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { sanitizeAnalyticsApps } from "@calcom/app-store/_utils/sanitize-analytics-value";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
@@ -246,7 +247,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isRRWeightsEnabled,
     rrSegmentQueryValue:
       rest.rrSegmentQueryValue === null ? Prisma.DbNull : (rest.rrSegmentQueryValue as Prisma.InputJsonValue),
-    metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
+    metadata: rest.metadata === null ? Prisma.DbNull : (sanitizeAnalyticsApps(rest.metadata) as Prisma.InputJsonObject),
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     // Only set disableGuests if bookingFields is explicitly provided to avoid overwriting existing value
     ...(bookingFields !== undefined && {

@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
+import { sanitizeAnalyticsApps } from "@calcom/app-store/_utils/sanitize-analytics-value";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -75,7 +76,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const data: Prisma.EventTypeCreateInput = {
     ...rest,
     owner: teamId ? undefined : { connect: { id: userId } },
-    metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
+    metadata: (sanitizeAnalyticsApps(metadata) as Prisma.InputJsonObject) ?? undefined,
     // Only connecting the current user for non-managed event types and non team event types
     users: isManagedEventType || schedulingType ? undefined : { connect: { id: userId } },
     locations,
