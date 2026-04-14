@@ -1,3 +1,4 @@
+import { sanitizeAnalyticsApps } from "@calcom/app-store/_utils/sanitize-analytics-value";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { checkSuccessRedirectUrlAllowed } from "@calcom/features/eventtypes/lib/successRedirectUrlAllowed";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -151,7 +152,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       successRedirectUrl: canUseSuccessRedirectUrl ? successRedirectUrl : null,
       successRedirectUrlUpdatedAt:
         canUseSuccessRedirectUrl && successRedirectUrl ? eventType.successRedirectUrlUpdatedAt : null,
-      metadata: metadata === null ? Prisma.DbNull : metadata,
+      metadata: metadata === null ? Prisma.DbNull : sanitizeAnalyticsApps(metadata),
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       rrSegmentQueryValue:
         eventType.rrSegmentQueryValue === null ? Prisma.DbNull : eventType.rrSegmentQueryValue,

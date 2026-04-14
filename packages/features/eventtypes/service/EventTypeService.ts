@@ -1,3 +1,4 @@
+import { sanitizeAnalyticsApps } from "@calcom/app-store/_utils/sanitize-analytics-value";
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { createSalesforceConnection } from "@calcom/app-store/salesforce/lib/create-salesforce-connection";
@@ -219,7 +220,7 @@ export class EventTypeService {
         rest.rrSegmentQueryValue === null
           ? Prisma.DbNull
           : (rest.rrSegmentQueryValue as Prisma.InputJsonValue),
-      metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
+      metadata: rest.metadata === null ? Prisma.DbNull : (sanitizeAnalyticsApps(rest.metadata) as Prisma.InputJsonObject),
       eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
       ...(bookingFields !== undefined && {
         disableGuests: guestsField?.hidden ?? false,
