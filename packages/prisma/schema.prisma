@@ -1301,6 +1301,7 @@ model Webhook {
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
   @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")
   @@index([active])
+  @@index([eventTypeId])
 }
 
 model Impersonations {
