@@ -110,11 +110,10 @@ const CheckedHostField = ({
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
             .reduce((acc, host) => {
               // Handle email invite hosts
-              if ((host as Host & { isEmailInvite?: boolean; email?: string }).isEmailInvite) {
-                const emailHost = host as Host & { isEmailInvite: boolean; email: string };
+              if (host.isEmailInvite && host.email) {
                 acc.push({
-                  value: `email-${emailHost.email}`,
-                  label: `${emailHost.email} (${t("invite")})`,
+                  value: `email-${host.email}`,
+                  label: `${host.email} (${t("invite")})`,
                   avatar: "",
                   priority: host.priority ?? 2,
                   isFixed,
@@ -122,7 +121,7 @@ const CheckedHostField = ({
                   groupId: host.groupId,
                   defaultScheduleId: null,
                   isEmailInvite: true,
-                  email: emailHost.email,
+                  email: host.email,
                 });
                 return acc;
               }

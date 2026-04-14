@@ -107,7 +107,7 @@ export const CheckedTeamSelect = ({
 
     const existingEmails = new Set(value.filter((v) => v.isEmailInvite).map((v) => v.email?.toLowerCase()));
     const existingMemberEmails = new Set(
-      options.map((o) => (o as CheckedSelectOption & { email?: string }).email?.toLowerCase()).filter(Boolean)
+      options.map((o) => o.email?.toLowerCase()).filter(Boolean)
     );
 
     const uniqueEmails = Array.from(new Set(emails));
