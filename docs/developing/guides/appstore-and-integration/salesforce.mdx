@@ -182,9 +182,35 @@ Cal.com resolves the attendee's Salesforce Account using a multi-step waterfall:
 3. **Contact email match** — Search for existing Contacts whose email domain matches, and use their linked Account
 4. **Fuzzy cross-TLD match** — Extract the base domain (for example, `acme` from `acme.co.uk`) and match it against all Account websites regardless of TLD
 
-Cal.com uses the first match found. If no Account is resolved at any step, the integration falls back to the behavior configured in your event type settings.
+Cal.com uses the first match found. If multiple Accounts match at any step, the [tiebreaker waterfall](#tiebreaker-waterfall) runs to select the best candidate. If no Account is resolved at any step, the integration falls back to the behavior configured in your event type settings.
 
-### When to use this
+### Tiebreaker waterfall
+
+When multiple Salesforce Accounts match a domain during account resolution, Cal.com runs a tiebreaker waterfall to select the best candidate. This is especially relevant for round-robin event types where the resolved Account owner determines which host receives the booking.
+
+The tiebreaker evaluates candidates in priority order. The first criterion that produces a single winner ends the waterfall:
+
+| Priority | Criterion | Description |
+|---|---|---|
+| P5 | Most child accounts | Account with the highest number of child Accounts in its hierarchy |
+| P6 | Most opportunities | Account with the highest number of related Opportunities |
+| P7 | Most contacts | Account with the most related Contact records |
+| P8 | Most recent activity | Account with the most recent `LastActivityDate` |
+| P9 | Earliest created | Account with the oldest `CreatedDate` (longest-standing relationship) |
+
+If all criteria result in a tie, the last-resort rule (P9) selects the Account that was created first.
+
+#### Host filtering
+
+For round-robin event types, candidates are filtered before the tiebreaker runs. Only Account owners who are hosts on the event type are eligible. If this filter removes all candidates, Cal.com falls back to standard round-robin assignment.
+
+### Record type filtering
+
+You can exclude specific Salesforce record types from account resolution. When record type filtering is enabled, Accounts with excluded record types are skipped during the resolution waterfall. This prevents Cal.com from matching against Accounts that are not relevant to booking routing, such as partner or vendor accounts.
+
+Configure record type filtering in the Salesforce section of your event type's **Apps** tab.
+
+### When to use fuzzy matching
 
 Fuzzy domain matching is useful when:
 
@@ -195,3 +221,18 @@ Fuzzy domain matching is useful when:
 <Note>
   Fuzzy matching only applies to the **Contact under Account** attendee record type. It does not affect Contact-only or Lead-only lookups.
 </Note>
+
+## Field mapping validation
+
+Cal.com validates your Salesforce field mappings when you save event type settings. If a field mapping has a type mismatch — for example, a non-boolean value mapped to a checkbox field, or an empty value for a required text field — Cal.com displays an inline error and prevents the save.
+
+If a sync error occurs at runtime (for example, a field was deleted in Salesforce after configuration), Cal.com stores the error and displays a diagnostic notification on the Salesforce settings tab. The notification includes the error code, message, any dropped fields, and a timestamp to help you troubleshoot.
+
+### Validated field types
+
+| Field type | Validation rule |
+|---|---|
+| Checkbox | Value must be a boolean (`true` or `false`) |
+| Date | Must reference a valid dynamic date value (e.g., `booking_start_date`) |
+| Text, phone, picklist, textarea | Value must be a non-empty string |
+| Custom | No automatic validation — values are passed through as-is |
