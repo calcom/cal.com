@@ -129,11 +129,18 @@ export const CheckedTeamSelect = ({
     }
   };
 
-  // Validate if input looks like an email
+  // Validate if input contains at least one new email not already added
   const isValidNewOption = (inputValue: string): boolean => {
     if (!allowEmailInvites) return false;
     const emails = parseEmails(inputValue);
-    return emails.length > 0;
+    if (emails.length === 0) return false;
+
+    const existingEmails = new Set(value.filter((v) => v.isEmailInvite).map((v) => v.email?.toLowerCase()));
+    const existingMemberEmails = new Set(
+      options.map((o) => o.email?.toLowerCase()).filter(Boolean)
+    );
+
+    return emails.some((email) => !existingEmails.has(email) && !existingMemberEmails.has(email));
   };
 
   // Format the create option label
