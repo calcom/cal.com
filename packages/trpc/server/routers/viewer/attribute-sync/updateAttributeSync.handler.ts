@@ -1,5 +1,9 @@
 import { getIntegrationAttributeSyncService } from "@calcom/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
 import {
+  AttributeSyncIntegrations,
+  type ISyncFormData,
+} from "@calcom/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
+import {
   DuplicateAttributeWithinSyncError,
   DuplicateAttributeAcrossSyncsError,
 } from "@calcom/ee/integration-attribute-sync/services/IntegrationAttributeSyncService";
@@ -37,8 +41,29 @@ const updateAttributeSyncHandler = async ({ ctx, input }: UpdateAttributeSyncOpt
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
+  // Never trust user-supplied organizationId — override with authenticated user's org
+  const safeInput: ISyncFormData = { ...input, organizationId: org.id };
+
+  // Validate credential belongs to the user's organization and derive integration type
+  if (input.credentialId !== undefined) {
+    const credential = await integrationAttributeSyncService.validateCredentialBelongsToOrg(
+      input.credentialId,
+      org.id
+    );
+    if (!credential) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Credential not found" });
+    }
+
+    const integrationValue = credential.app?.slug || credential.type;
+    if (!Object.values(AttributeSyncIntegrations).includes(integrationValue as AttributeSyncIntegrations)) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: `Unsupported integration type: ${integrationValue}` });
+    }
+
+    safeInput.integration = integrationValue as AttributeSyncIntegrations;
+  }
+
   try {
-    await integrationAttributeSyncService.updateIncludeRulesAndMappings(input);
+    await integrationAttributeSyncService.updateIncludeRulesAndMappings(safeInput);
   } catch (error) {
     if (error instanceof DuplicateAttributeWithinSyncError) {
       throw new TRPCError({

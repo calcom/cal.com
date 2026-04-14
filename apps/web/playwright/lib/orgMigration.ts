@@ -653,6 +653,7 @@ async function dbRemoveUserFromOrg({
 
   await ProfileRepository.deleteMany({
     userIds: [userToRemoveFromOrg.id],
+    organizationId: userToRemoveFromOrg.organizationId!,
   });
 }
 

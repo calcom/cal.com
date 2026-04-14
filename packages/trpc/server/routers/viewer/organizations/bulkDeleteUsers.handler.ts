@@ -82,6 +82,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
       id: {
         in: input.userIds,
       },
+      organizationId: currentUserOrgId,
     },
     data: {
       organizationId: null,
@@ -130,6 +131,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
 
   const removeProfiles = ProfileRepository.deleteMany({
     userIds: input.userIds,
+    organizationId: currentUserOrgId,
   });
 
   // We do this in a transaction to make sure that all memberships are removed before we remove the organization relation from the user
