@@ -8,6 +8,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import buildCalendarEvent from "./lib/buildCalendarEvent";
+import { getCrmEventLocationInfoForLogging } from "./lib/get-crm-event-location-info";
 import { createCRMEventSchema } from "./schema";
 
 const log = logger.getSubLogger({ prefix: [`[[tasker] createCRMEvent`] });
@@ -101,6 +102,16 @@ export async function createCRMEvent(payload: string): Promise<void> {
     }
 
     const calendarEvent = await buildCalendarEvent(bookingUid);
+
+    // Log when a video integration location didn't resolve to a proper URL.
+    // This catches the race condition where booking references aren't yet
+    // available and getLocation falls back to a provider name (e.g. "Google").
+    const locationInfo = getCrmEventLocationInfoForLogging(calendarEvent);
+    if (locationInfo.isVideoIntegrationLocation && !locationInfo.isProperUrl) {
+      log.warn(
+        `CRM event location is not a video URL ${safeStringify({ bookingUid, ...locationInfo })}`
+      );
+    }
 
     const bookingReferencesToCreate: Prisma.BookingReferenceUncheckedCreateInput[] = [];
     const existingBookingReferences = await prisma.bookingReference.findMany({
