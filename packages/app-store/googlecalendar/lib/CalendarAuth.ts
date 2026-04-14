@@ -303,6 +303,21 @@ export class CalendarAuth {
 
     return new calendar_v3.Calendar({
       auth: googleAuthClient,
+      // Override gaxios retry defaults so that transient Google API errors
+      // on PATCH requests (used to update event description, location, and
+      // conference data after creation) are retried instead of silently
+      // dropped. Google returns 403 for rateLimitExceeded in addition to
+      // 429 — both should trigger exponential backoff. See #28834.
+      retryConfig: {
+        retry: 3,
+        httpMethodsToRetry: ["GET", "HEAD", "PUT", "OPTIONS", "DELETE", "PATCH"],
+        statusCodesToRetry: [
+          [100, 199],
+          [403, 403],
+          [429, 429],
+          [500, 599],
+        ],
+      },
     });
   }
 }
