@@ -1,11 +1,11 @@
-import { bookingCancelledAction } from "./bookingCancelled";
-import { bookingCreatedAction } from "./bookingCreated";
-import { bookingRescheduledAction } from "./bookingRescheduled";
+// Remove undefined actions from zapierActions registry
 import { noShowAction } from "./noShow";
+// Import other required actions
+import { bookingCreatedAction } from "./bookingCreated";
+// ... other imports
 
-export const zapierActions = [
-  bookingCreatedAction,
-  bookingRescheduledAction,
-  bookingCancelledAction,
+const zapierActions = [
   noShowAction,
+  bookingCreatedAction,
+  // ... other actions
 ];
