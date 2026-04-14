@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -108,8 +109,15 @@ export const DatePicker = ({
     onMonthChange,
     isLoading: isLoading ?? true,
   });
-  // Disabled auto-jump to allow users to stay in current month
-  // moveToNextMonthOnNoAvailability();
+  const hasInitialJumpOccurred = useRef(false);
+
+  useEffect(() => {
+    // Only auto-jump on initial load when data is loaded
+    if (!isLoading && !hasInitialJumpOccurred.current) {
+      moveToNextMonthOnNoAvailability();
+      hasInitialJumpOccurred.current = true;
+    }
+  }, [isLoading]);
 
   // Determine if this is a compact sidebar view based on layout
   const isCompact = layout !== "month_view" && layout !== "mobile";
