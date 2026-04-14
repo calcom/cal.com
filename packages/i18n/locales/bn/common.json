@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "একটি অ্যাকাউন্টের অধীনে যোগাযোগ করুন",
   "salesforce_skip_entry_creation": "তৈরি করা এড়িয়ে যান {{entry}} যদি তারা বিক্রয়কেন্দ্রে বিদ্যমান না থাকে তবে রেকর্ড করুন",
   "salesforce_if_account_does_not_exist": "যদি কোনও অ্যাকাউন্টের অধীনে যোগাযোগের অস্তিত্ব না থাকে তবে অংশগ্রহণকারীদের কাছ থেকে নতুন লিড তৈরি করুন",
+  "salesforce_connection_failed_reauth": "Salesforce সংযোগ ব্যর্থ হয়েছে। অনুগ্রহ করে সেটিংস → অ্যাপস → Salesforce-এ পুনরায় প্রমাণীকরণ করুন।",
   "salesforce_create_new_contact_under_account": "অংশগ্রহণকারী এবং বিদ্যমান পরিচিতিগুলির ইমেল ডোমেনের উপর ভিত্তি করে একটি অ্যাকাউন্টের অধীনে একটি নতুন যোগাযোগ তৈরি করুন",
   "salesforce_change_record_owner_on_booking": "বুকিং এর সময় রেকর্ড মালিক পরিবর্তন করুন",
   "mass_assign_attributes": "গণ বৈশিষ্ট্য বরাদ্দ",

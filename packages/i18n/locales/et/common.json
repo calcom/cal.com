@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Kontakt konto all",
   "salesforce_skip_entry_creation": "Jäta {{entry}} kirje loomata, kui seda Salesforce'is ei eksisteeri",
   "salesforce_if_account_does_not_exist": "Kui kontakti ei eksisteeri konto all, loo osaleja andmetest uus müügivihje",
+  "salesforce_connection_failed_reauth": "Salesforce'i ühendus ebaõnnestus. Palun autentida uuesti menüüs Seaded → Rakendused → Salesforce.",
   "salesforce_create_new_contact_under_account": "Loo uus kontakt konto alla, põhinedes osaleja e-posti domeenile ja olemasolevatele kontaktidele",
   "salesforce_change_record_owner_on_booking": "Muuda broneeringu kirje omanikku",
   "mass_assign_attributes": "Massiline atribuutide määramine",

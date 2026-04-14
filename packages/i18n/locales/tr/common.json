@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Bir hesap altında İletişim",
   "salesforce_skip_entry_creation": "{{entry}} kaydı Salesforce'ta yoksa oluşturmayı atla",
   "salesforce_if_account_does_not_exist": "İletişim bir hesap altında yoksa, katılımcıdan yeni potansiyel müşteri oluştur",
+  "salesforce_connection_failed_reauth": "Salesforce bağlantısı başarısız oldu. Lütfen Ayarlar → Uygulamalar → Salesforce bölümünden yeniden kimlik doğrulaması yapın.",
   "salesforce_create_new_contact_under_account": "Katılımcının e-posta alanı ve mevcut iletişimler temelinde bir hesap altında yeni bir iletişim oluştur",
   "salesforce_change_record_owner_on_booking": "Rezervasyonda kayıt sahibini değiştir",
   "mass_assign_attributes": "Özellikleri toplu olarak atama",

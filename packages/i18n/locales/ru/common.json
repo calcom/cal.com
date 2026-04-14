@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Контакт в рамках организации",
   "salesforce_skip_entry_creation": "Пропустить создание записи {{entry}}, если она отсутствует в Salesforce",
   "salesforce_if_account_does_not_exist": "Если контакт не существует в рамках организации, создать новый лид из участника",
+  "salesforce_connection_failed_reauth": "Не удалось подключиться к Salesforce. Пожалуйста, повторно авторизуйтесь в Настройки → Приложения → Salesforce.",
   "salesforce_create_new_contact_under_account": "Создать новый контакт в организации на основе домена электронной почты участника и существующих контактов",
   "salesforce_change_record_owner_on_booking": "Изменить владельца записи при бронировании",
   "mass_assign_attributes": "Массовое назначение атрибутов",

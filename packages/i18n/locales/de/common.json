@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Kontakt unter einem Account",
   "salesforce_skip_entry_creation": "Überspringen Sie die Erstellung eines {{entry}}-Datensatzes, wenn dieser nicht in Salesforce existiert",
   "salesforce_if_account_does_not_exist": "Wenn der Kontakt nicht unter einem Account existiert, erstellen Sie einen neuen Lead aus dem Teilnehmer",
+  "salesforce_connection_failed_reauth": "Salesforce-Verbindung fehlgeschlagen. Bitte authentifizieren Sie sich erneut unter Einstellungen → Apps → Salesforce.",
   "salesforce_create_new_contact_under_account": "Erstellen Sie einen neuen Kontakt unter einem Account basierend auf der E-Mail-Domain des Teilnehmers und bestehenden Kontakten",
   "salesforce_change_record_owner_on_booking": "Datensatzinhaber bei Buchung ändern",
   "mass_assign_attributes": "Attribute massenweise zuweisen",

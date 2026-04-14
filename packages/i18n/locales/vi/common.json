@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Liên hệ dưới một tài khoản",
   "salesforce_skip_entry_creation": "Bỏ qua việc tạo bản ghi {{entry}} nếu chúng không tồn tại trong Salesforce",
   "salesforce_if_account_does_not_exist": "Nếu liên hệ không tồn tại dưới một tài khoản, tạo khách hàng tiềm năng mới từ người tham dự",
+  "salesforce_connection_failed_reauth": "Kết nối Salesforce thất bại. Vui lòng xác thực lại trong Cài đặt → Ứng dụng → Salesforce.",
   "salesforce_create_new_contact_under_account": "Tạo liên hệ mới dưới một tài khoản dựa trên tên miền email của người tham dự và các liên hệ hiện có",
   "salesforce_change_record_owner_on_booking": "Thay đổi chủ sở hữu bản ghi khi đặt lịch",
   "mass_assign_attributes": "Gán thuộc tính hàng loạt",

@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Kontaktua kontu baten azpian",
   "salesforce_skip_entry_creation": "Saltatu {{entry}} erregistroa sortzea Salesforce-n ez badago",
   "salesforce_if_account_does_not_exist": "Kontaktua ez badago kontu baten azpian, sortu lead berria parte-hartzailearekin",
+  "salesforce_connection_failed_reauth": "Salesforce konexioak huts egin du. Mesedez, berrautentifikatu Ezarpenak → Aplikazioak → Salesforce atalean.",
   "salesforce_create_new_contact_under_account": "Sortu kontaktu berria kontu baten azpian parte-hartzailearen email domeinuan eta existitzen diren kontaktuetan oinarrituta",
   "salesforce_change_record_owner_on_booking": "Aldatu erregistroaren jabea erreserban",
   "mass_assign_attributes": "Masiboki esleitu atributuak",

@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Kontakt pod účtom",
   "salesforce_skip_entry_creation": "Preskočiť vytvorenie záznamu {{entry}}, ak neexistuje v Salesforce",
   "salesforce_if_account_does_not_exist": "Ak kontakt neexistuje pod účtom, vytvoriť nový lead z účastníka",
+  "salesforce_connection_failed_reauth": "Pripojenie k Salesforce zlyhalo. Prosím, znovu sa prihláste v Nastavenia → Aplikácie → Salesforce.",
   "salesforce_create_new_contact_under_account": "Vytvoriť nový kontakt pod účtom na základe emailovej domény účastníka a existujúcich kontaktov",
   "salesforce_change_record_owner_on_booking": "Zmeniť vlastníka záznamu pri rezervácii",
   "mass_assign_attributes": "Hromadné priradenie atribútov",

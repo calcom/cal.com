@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Hesab altında əlaqə",
   "salesforce_skip_entry_creation": "Əgər {{entry}} Salesforce-da mövcud deyilsə, qeyd yaratmağı keçin",
   "salesforce_if_account_does_not_exist": "Əgər əlaqə hesab altında mövcud deyilsə, iştirakçıdan yeni potensial müştəri yaradın",
+  "salesforce_connection_failed_reauth": "Salesforce bağlantısı uğursuz oldu. Zəhmət olmasa Ayarlar → Tətbiqlər → Salesforce bölməsində yenidən autentifikasiya edin.",
   "salesforce_create_new_contact_under_account": "İştirakçının email domeni və mövcud əlaqələr əsasında hesab altında yeni əlaqə yaradın",
   "salesforce_change_record_owner_on_booking": "Rezervasiya zamanı qeyd sahibini dəyişdirin",
   "mass_assign_attributes": "Atributları kütləvi təyin et",

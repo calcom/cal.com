@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Контакт под акаунт",
   "salesforce_skip_entry_creation": "Пропусни създаването на запис {{entry}}, ако не съществува в Salesforce",
   "salesforce_if_account_does_not_exist": "Ако контактът не съществува под акаунт, създай нов лийд от участника",
+  "salesforce_connection_failed_reauth": "Връзката със Salesforce е неуспешна. Моля, удостоверете се отново в Настройки → Приложения → Salesforce.",
   "salesforce_create_new_contact_under_account": "Създай нов контакт под акаунт базиран на имейл домейна на участника и съществуващите контакти",
   "salesforce_change_record_owner_on_booking": "Промяна на собственика на записа при резервация",
   "mass_assign_attributes": "Масово задаване на атрибути",

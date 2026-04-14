@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Yhteyshenkilö tilin alla",
   "salesforce_skip_entry_creation": "Ohita {{entry}}-tietueen luominen, jos sitä ei ole Salesforcessa",
   "salesforce_if_account_does_not_exist": "Jos yhteyshenkilöä ei ole tilin alla, luo uusi liidi osallistujasta",
+  "salesforce_connection_failed_reauth": "Salesforce-yhteys epäonnistui. Kirjaudu uudelleen kohdassa Asetukset → Sovellukset → Salesforce.",
   "salesforce_create_new_contact_under_account": "Luo uusi yhteyshenkilö tilin alle osallistujan sähköpostin domainin ja olemassa olevien yhteyshenkilöiden perusteella",
   "salesforce_change_record_owner_on_booking": "Vaihda tietueen omistaja varauksessa",
   "mass_assign_attributes": "Määritä ominaisuudet massana",

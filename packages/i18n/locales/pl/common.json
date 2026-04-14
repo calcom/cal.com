@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Kontakt w ramach konta",
   "salesforce_skip_entry_creation": "Pomiń tworzenie rekordu {{entry}}, jeśli nie istnieje w Salesforce",
   "salesforce_if_account_does_not_exist": "Jeśli kontakt nie istnieje w ramach konta, utwórz nowy lead z uczestnika",
+  "salesforce_connection_failed_reauth": "Połączenie z Salesforce nie powiodło się. Uwierzytelnij się ponownie w Ustawienia → Aplikacje → Salesforce.",
   "salesforce_create_new_contact_under_account": "Utwórz nowy kontakt w ramach konta na podstawie domeny e-mail uczestnika i istniejących kontaktów",
   "salesforce_change_record_owner_on_booking": "Zmień właściciela rekordu przy rezerwacji",
   "mass_assign_attributes": "Masowe przypisywanie atrybutów",

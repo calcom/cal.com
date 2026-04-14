@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Contact sous un compte",
   "salesforce_skip_entry_creation": "Ne pas créer d'enregistrement {{entry}} s'il n'existe pas dans Salesforce",
   "salesforce_if_account_does_not_exist": "Si le contact n'existe pas sous un compte, créer un nouveau prospect à partir du participant",
+  "salesforce_connection_failed_reauth": "La connexion à Salesforce a échoué. Veuillez vous reconnecter dans Paramètres → Applications → Salesforce.",
   "salesforce_create_new_contact_under_account": "Créer un nouveau contact sous un compte basé sur le domaine e-mail du participant et les contacts existants",
   "salesforce_change_record_owner_on_booking": "Changer le propriétaire de l'enregistrement lors de la réservation",
   "mass_assign_attributes": "Attribuer des attributs en masse",

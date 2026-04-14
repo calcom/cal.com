@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Επαφή υπό λογαριασμό",
   "salesforce_skip_entry_creation": "Παράλειψη δημιουργίας εγγραφής {{entry}} εάν δεν υπάρχει στο Salesforce",
   "salesforce_if_account_does_not_exist": "Εάν η επαφή δεν υπάρχει υπό κάποιο λογαριασμό, δημιούργησε νέο lead από τον συμμετέχοντα",
+  "salesforce_connection_failed_reauth": "Η σύνδεση με το Salesforce απέτυχε. Παρακαλούμε πραγματοποιήστε εκ νέου έλεγχο ταυτότητας στις Ρυθμίσεις → Εφαρμογές → Salesforce.",
   "salesforce_create_new_contact_under_account": "Δημιούργησε νέα επαφή υπό λογαριασμό με βάση το domain email του συμμετέχοντα και τις υπάρχουσες επαφές",
   "salesforce_change_record_owner_on_booking": "Αλλαγή ιδιοκτήτη εγγραφής κατά την κράτηση",
   "mass_assign_attributes": "Μαζική εκχώρηση χαρακτηριστικών",

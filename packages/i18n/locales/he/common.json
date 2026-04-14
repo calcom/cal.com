@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "איש קשר תחת חשבון",
   "salesforce_skip_entry_creation": "דלג על יצירת רשומת {{entry}} אם הם לא קיימים ב-Salesforce",
   "salesforce_if_account_does_not_exist": "אם איש הקשר לא קיים תחת חשבון, צור ליד חדש מהמשתתף",
+  "salesforce_connection_failed_reauth": "החיבור ל-Salesforce נכשל. אנא התחבר מחדש דרך הגדרות ← אפליקציות ← Salesforce.",
   "salesforce_create_new_contact_under_account": "צור איש קשר חדש תחת חשבון בהתבסס על דומיין האימייל של המשתתף ואנשי קשר קיימים",
   "salesforce_change_record_owner_on_booking": "שנה בעלים של הרשומה בעת הזמנה",
   "mass_assign_attributes": "הקצאת מאפיינים באופן גורף",

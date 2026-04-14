@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "アカウント下の連絡先",
   "salesforce_skip_entry_creation": "{{entry}} レコードがSalesforceに存在しない場合、作成をスキップする",
   "salesforce_if_account_does_not_exist": "連絡先がアカウントに存在しない場合、参加者から新しいリードを作成する",
+  "salesforce_connection_failed_reauth": "Salesforceへの接続に失敗しました。設定 → アプリ → Salesforceで再認証してください。",
   "salesforce_create_new_contact_under_account": "参加者のメールドメインと既存の連絡先に基づいて、新しい連絡先をアカウント下に作成する",
   "salesforce_change_record_owner_on_booking": "予約時にレコード所有者を変更する",
   "mass_assign_attributes": "属性の一括割り当て",

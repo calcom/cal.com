@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Kontakt under en konto",
   "salesforce_skip_entry_creation": "Spring oprettelse af {{entry}}-post over, hvis de ikke findes i Salesforce",
   "salesforce_if_account_does_not_exist": "Hvis kontakten ikke findes under en konto, opret nyt lead fra deltager",
+  "salesforce_connection_failed_reauth": "Salesforce-forbindelsen mislykkedes. Genautentificer venligst under Indstillinger → Apps → Salesforce.",
   "salesforce_create_new_contact_under_account": "Opret en ny kontakt under en konto baseret på deltagerens e-maildomæne og eksisterende kontakter",
   "salesforce_change_record_owner_on_booking": "Skift ejer af post ved booking",
   "mass_assign_attributes": "Masse tildel attributter",

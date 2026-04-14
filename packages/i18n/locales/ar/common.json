@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "جهة اتصال تحت حساب",
   "salesforce_skip_entry_creation": "تخطي إنشاء سجل {{entry}} إذا لم يكن موجودًا في Salesforce",
   "salesforce_if_account_does_not_exist": "إذا لم تكن جهة الاتصال موجودة تحت حساب، قم بإنشاء عميل محتمل جديد من المشارك",
+  "salesforce_connection_failed_reauth": "فشل الاتصال بـ Salesforce. يرجى إعادة المصادقة في الإعدادات ← التطبيقات ← Salesforce.",
   "salesforce_create_new_contact_under_account": "إنشاء جهة اتصال جديدة تحت حساب بناءً على نطاق البريد الإلكتروني للمشارك وجهات الاتصال الموجودة",
   "salesforce_change_record_owner_on_booking": "تغيير مالك السجل عند الحجز",
   "mass_assign_attributes": "تعيين السمات بشكل جماعي",

@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "帳戶下的聯絡人",
   "salesforce_skip_entry_creation": "如果 {{entry}} 記錄不存在於 Salesforce 中，則跳過創建",
   "salesforce_if_account_does_not_exist": "如果聯絡人不存在於帳戶下，則從參加者創建新的潛在客戶",
+  "salesforce_connection_failed_reauth": "Salesforce 連線失敗。請在「設定」→「應用程式」→「Salesforce」中重新驗證。",
   "salesforce_create_new_contact_under_account": "根據參加者的電子郵件域和現有聯絡人，在帳戶下創建新的聯絡人",
   "salesforce_change_record_owner_on_booking": "在預訂時更改記錄擁有者",
   "mass_assign_attributes": "批量分配屬性",

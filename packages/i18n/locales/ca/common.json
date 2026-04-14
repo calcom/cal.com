@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Contacte sota un compte",
   "salesforce_skip_entry_creation": "Omet la creació del registre {{entry}} si no existeix a Salesforce",
   "salesforce_if_account_does_not_exist": "Si el contacte no existeix sota un compte, crea un nou lead de l'assistent",
+  "salesforce_connection_failed_reauth": "La connexió amb Salesforce ha fallat. Si us plau, torneu a autenticar-vos a Configuració → Aplicacions → Salesforce.",
   "salesforce_create_new_contact_under_account": "Crea un nou contacte sota un compte basat en el domini de correu de l'assistent i els contactes existents",
   "salesforce_change_record_owner_on_booking": "Canviar el propietari del registre en la reserva",
   "mass_assign_attributes": "Assignació massiva d'atributs",

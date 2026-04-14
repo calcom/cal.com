@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "ទំនាក់ទំនងក្រោមគណនី",
   "salesforce_skip_entry_creation": "រំលងការបង្កើតកំណត់ត្រា {{entry}} ប្រសិនបើពួកគេមិនមាននៅក្នុង Salesforce",
   "salesforce_if_account_does_not_exist": "ប្រសិនបើទំនាក់ទំនងមិនមានក្រោមគណនី សូមបង្កើតអ្នកដឹកនាំថ្មីពីអ្នកចូលរួម",
+  "salesforce_connection_failed_reauth": "ការតភ្ជាប់ Salesforce បានបរាជ័យ។ សូមផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវឡើងវិញនៅក្នុង ការកំណត់ → កម្មវិធី → Salesforce។",
   "salesforce_create_new_contact_under_account": "បង្កើតទំនាក់ទំនងថ្មីក្រោមគណនីដោយផ្អែកលើដែនអ៊ីមែលរបស់អ្នកចូលរួម និងទំនាក់ទំនងដែលមានស្រាប់",
   "salesforce_change_record_owner_on_booking": "ប្តូរម្ចាស់កំណត់ត្រានៅពេលកក់",
   "mass_assign_attributes": "ផ្ដល់គុណលក្ខណៈជាសាធារណៈ",

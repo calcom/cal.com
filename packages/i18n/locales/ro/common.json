@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Contact sub un cont",
   "salesforce_skip_entry_creation": "Sari peste crearea înregistrării {{entry}} dacă nu există în Salesforce",
   "salesforce_if_account_does_not_exist": "Dacă contactul nu există sub un cont, creează un lead nou din participant",
+  "salesforce_connection_failed_reauth": "Conexiunea Salesforce a eșuat. Vă rugăm să vă reautentificați în Setări → Aplicații → Salesforce.",
   "salesforce_create_new_contact_under_account": "Creează un contact nou sub un cont pe baza domeniului de email al participantului și a contactelor existente",
   "salesforce_change_record_owner_on_booking": "Schimbați proprietarul înregistrării la rezervare",
   "mass_assign_attributes": "Atribuire în masă a atributelor",

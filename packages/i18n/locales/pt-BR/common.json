@@ -3652,6 +3652,7 @@
   "salesforce_contact_under_account": "Contato em uma conta",
   "salesforce_skip_entry_creation": "Pular a criação do registro de {{entry}} se não existir no Salesforce",
   "salesforce_if_account_does_not_exist": "Se o contato não existir em uma conta, criar novo lead a partir do participante",
+  "salesforce_connection_failed_reauth": "Falha na conexão com o Salesforce. Por favor, autentique novamente em Configurações → Aplicativos → Salesforce.",
   "salesforce_create_new_contact_under_account": "Criar um novo contato em uma conta com base no domínio de e-mail do participante e contatos existentes",
   "salesforce_change_record_owner_on_booking": "Alterar proprietário do registro na reserva",
   "mass_assign_attributes": "Atribuir atributos em massa",
