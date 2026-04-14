@@ -1,13 +1,13 @@
 import { bookingCreatedAction } from "./bookingCreated";
-import { bookingRescheduledAction } from "./bookingRescheduled";
 import { bookingCancelledAction } from "./bookingCancelled";
+import { bookingRescheduledAction } from "./bookingRescheduled";
 import { meetingEndedAction } from "./meetingEnded";
 import { noShowAction } from "./noShow";
 
 export const zapierActions = [
   bookingCreatedAction,
-  bookingRescheduledAction,
   bookingCancelledAction,
+  bookingRescheduledAction,
   meetingEndedAction,
   noShowAction,
 ];
