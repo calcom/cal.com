@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { getReactSelectProps } from "@calcom/ui/components/form";
+import { getReactSelectProps } from "@calcom/ui/components/form/select/selectTheme";
 import { inputStyles } from "@calcom/ui/components/form/inputs/TextField";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -22,12 +22,10 @@ import type {
 } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
 
-// Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const isValidEmail = (email: string): boolean => EMAIL_REGEX.test(email.trim().toLowerCase());
 
-// Parse comma-separated emails
 const parseEmails = (input: string): string[] => {
   return input
     .split(/[,\s]+/)
@@ -100,7 +98,6 @@ export const CheckedTeamSelect = ({
     props.onChange(newValueAllGroups);
   };
 
-  // Get new emails that aren't already added as invites or existing members
   const getCreatableEmails = (inputValue: string): string[] => {
     const emails = parseEmails(inputValue);
     if (emails.length === 0) return [];
@@ -115,7 +112,6 @@ export const CheckedTeamSelect = ({
     );
   };
 
-  // Handle creating new options from typed emails
   const handleCreateOption = (inputValue: string) => {
     const creatableEmails = getCreatableEmails(inputValue);
     if (creatableEmails.length === 0) return;
@@ -133,13 +129,11 @@ export const CheckedTeamSelect = ({
     handleSelectChange([...valueFromGroup, ...newOptions]);
   };
 
-  // Validate if input contains at least one new email not already added
   const isValidNewOption = (inputValue: string): boolean => {
     if (!allowEmailInvites) return false;
     return getCreatableEmails(inputValue).length > 0;
   };
 
-  // Format the create option label using actual creatable count
   const formatCreateLabel = (inputValue: string) => {
     const creatableEmails = getCreatableEmails(inputValue);
     if (creatableEmails.length === 0) return inputValue;
