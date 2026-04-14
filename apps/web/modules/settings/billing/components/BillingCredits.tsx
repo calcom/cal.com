@@ -9,7 +9,7 @@ import dayjs from "@calcom/dayjs";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";

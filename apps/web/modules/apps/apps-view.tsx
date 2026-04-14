@@ -7,7 +7,7 @@ import { AllApps } from "@calcom/web/modules/apps/components/AllApps";
 import { AppStoreCategories } from "@calcom/web/modules/apps/components/Categories";
 import { PopularAppsSlider } from "@calcom/web/modules/apps/components/PopularAppsSlider";
 import { RecentAppsSlider } from "@calcom/web/modules/apps/components/RecentAppsSlider";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { AppFrontendPayload } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";

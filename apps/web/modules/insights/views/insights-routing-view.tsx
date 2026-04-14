@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnFilterType, ZSingleSelectFilterValue } from "@calcom/features/data-table";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonButton } from "@calcom/ui/components/skeleton";
 import { DataTableSkeleton } from "@calcom/web/modules/data-table/components";

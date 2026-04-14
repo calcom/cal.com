@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField } from "@calcom/ui/components/form";

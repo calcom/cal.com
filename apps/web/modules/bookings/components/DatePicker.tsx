@@ -7,7 +7,7 @@ import type { DatePickerClassNames } from "@calcom/features/bookings/Booker/type
 import type { Slots } from "@calcom/features/bookings/types";
 import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/components/DatePicker";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { User } from "@calcom/prisma/client";
 import type { PeriodData } from "@calcom/types/Event";
 import { shallow } from "zustand/shallow";

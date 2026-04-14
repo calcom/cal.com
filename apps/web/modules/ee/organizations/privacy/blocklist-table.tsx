@@ -12,7 +12,7 @@ import {
 } from "@calcom/web/modules/blocklist";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { DataTableToolbar } from "~/data-table/components";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import {

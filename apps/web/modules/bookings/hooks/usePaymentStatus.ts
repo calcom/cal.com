@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import { BookingStatus } from "@calcom/prisma/enums";
 

@@ -2,7 +2,7 @@
 
 import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/SettingsHeaderWithBackButton";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 export const SkeletonLoader = () => {

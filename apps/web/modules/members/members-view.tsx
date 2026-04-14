@@ -2,7 +2,7 @@
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { UserListTable } from "@calcom/web/modules/users/components/UserTable/UserListTable";
 import type { UserListTableProps } from "@calcom/web/modules/users/components/UserTable/UserListTable";
 import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";

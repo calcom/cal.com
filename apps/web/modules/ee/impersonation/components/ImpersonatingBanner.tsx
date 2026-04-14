@@ -1,7 +1,7 @@
 import type { SessionContextValue } from "next-auth/react";
 import { signIn } from "next-auth/react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { TopBanner } from "@calcom/ui/components/top-banner";
 
 export type ImpersonatingBannerProps = { data: SessionContextValue["data"] };

@@ -5,7 +5,7 @@ import {
   getWebhookVersionLabel,
   WEBHOOK_VERSION_OPTIONS,
 } from "@calcom/features/webhooks/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@coss/ui/components/button";
 import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "@coss/ui/components/select";
 import { Tooltip, TooltipPopup, TooltipProvider, TooltipTrigger } from "@coss/ui/components/tooltip";

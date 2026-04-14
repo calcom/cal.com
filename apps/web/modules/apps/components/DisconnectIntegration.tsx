@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { DisconnectIntegrationComponent } from "@calcom/ui/components/disconnect-calendar-integration";

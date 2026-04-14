@@ -5,7 +5,7 @@ import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import type { UserAdminTeams } from "@calcom/features/users/repositories/UserRepository";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";

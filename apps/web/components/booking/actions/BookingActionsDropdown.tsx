@@ -1,5 +1,5 @@
 import { isActionDisabledByScope } from "@calcom/features/bookings/lib/isActionDisabledByScope";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";

@@ -8,7 +8,7 @@ import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerT
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useCheckOverlapWithOverlay } from "@calcom/features/bookings/lib/useCheckOverlapWithOverlay";
 import type { BookerEvent, Slots } from "@calcom/features/bookings/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";

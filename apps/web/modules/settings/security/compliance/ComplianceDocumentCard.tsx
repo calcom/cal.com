@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@coss/ui/components/button";
 import { EmptyMedia } from "@coss/ui/components/empty";
 import { Skeleton } from "@coss/ui/components/skeleton";

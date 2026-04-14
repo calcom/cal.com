@@ -2,7 +2,7 @@ import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerSt
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { FromTime } from "@calcom/features/bookings/Booker/utils/dates";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import type { ReactNode } from "react";

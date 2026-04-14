@@ -6,7 +6,7 @@ import { Controller, type UseFormReturn } from "react-hook-form";
 import type { NewAccessScope } from "@calcom/features/oauth/constants";
 import { OAUTH_SCOPE_CATEGORIES } from "@calcom/features/oauth/constants";
 import { MAX_REDIRECT_URIS, validateRedirectUri } from "@calcom/features/oauth/utils/validateRedirectUris";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 

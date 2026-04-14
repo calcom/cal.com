@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import React from "react";
 import { Toaster } from "sonner";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { showToast } from "@calcom/ui/components/toast";
 

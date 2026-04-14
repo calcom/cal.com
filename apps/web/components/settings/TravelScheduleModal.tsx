@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@coss/ui/components/button";
 import { Calendar } from "@coss/ui/components/calendar";
 import {

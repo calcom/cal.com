@@ -3,7 +3,7 @@
 import { Controller } from "react-hook-form";
 import type { Control } from "react-hook-form";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Label, Select } from "@calcom/ui/components/form";
 
 import type { AgentFormValues } from "../../types/schemas";

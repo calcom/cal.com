@@ -1,7 +1,7 @@
 "use client";
 
 import { BILLING_PLANS, BILLING_PRICING } from "@calcom/features/ee/billing/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";

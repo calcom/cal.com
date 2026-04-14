@@ -5,7 +5,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { EventDetailBlocks } from "@calcom/features/bookings/types";
 import type { TimezoneSelectComponentProps } from "@calcom/features/timezone/components/TimezoneSelectComponent";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { Button } from "@calcom/ui/components/button";
 import { GlobeIcon } from "@coss/ui/icons";

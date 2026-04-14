@@ -1,4 +1,4 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { DailyCall } from "@daily-co/daily-js";
 import { useDaily, useDailyEvent, useRecording, useTranscription } from "@daily-co/daily-react";
 import React, { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";

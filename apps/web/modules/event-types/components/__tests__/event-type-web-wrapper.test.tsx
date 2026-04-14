@@ -145,7 +145,7 @@ vi.mock("@formkit/auto-animate/react", () => ({
   useAutoAnimate: () => [null],
 }));
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: vi.fn(() => ({
     t: (key: string, opts?: Record<string, unknown>) => key,
     i18n: { language: "en" },

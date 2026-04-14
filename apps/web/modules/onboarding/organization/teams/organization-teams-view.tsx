@@ -6,7 +6,7 @@ import posthog from "posthog-js";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";

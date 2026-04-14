@@ -5,7 +5,7 @@ import posthog from "posthog-js";
 import React, { useEffect } from "react";
 
 import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
 import { InviteOptions } from "../../components/InviteOptions";

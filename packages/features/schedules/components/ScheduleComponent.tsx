@@ -2,7 +2,7 @@ import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { scheduleClassNames } from "@calcom/features/schedules/types";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import type { TimeRange } from "@calcom/types/schedule";
 import cn from "@calcom/ui/classNames";

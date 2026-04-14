@@ -1,6 +1,21 @@
 import type { TFunction } from "i18next";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
+const { mockUseLocale } = vi.hoisted(() => ({
+  mockUseLocale: () => ({
+    t: (key: string, opts?: Record<string, unknown>) => {
+      if (key === "minute_one_short") return `${opts?.count}m`;
+      if (key === "hour_one_short") return `${opts?.count}h`;
+      if (key === "multiple_duration_timeUnit_short") {
+        const unit = opts?.unit as string;
+        if (unit === "minute") return `${opts?.count}m`;
+        if (unit === "hour") return `${opts?.count}h`;
+      }
+      return key;
+    },
+  }),
+}));
+
 // Mock embed-iframe before importing component
 vi.mock("@calcom/embed-core/embed-iframe", () => ({
   useIsEmbed: () => false,
@@ -17,19 +32,8 @@ vi.mock("@calcom/features/bookings/Booker/hooks/useShouldShowArrows", () => ({
 }));
 
 // Mock useLocale
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
-  useLocale: () => ({
-    t: (key: string, opts?: Record<string, unknown>) => {
-      if (key === "minute_one_short") return `${opts?.count}m`;
-      if (key === "hour_one_short") return `${opts?.count}h`;
-      if (key === "multiple_duration_timeUnit_short") {
-        const unit = opts?.unit as string;
-        if (unit === "minute") return `${opts?.count}m`;
-        if (unit === "hour") return `${opts?.count}h`;
-      }
-      return key;
-    },
-  }),
+vi.mock("@calcom/i18n/useLocale", () => ({
+  useLocale: mockUseLocale,
 }));
 
 import { render, screen } from "@calcom/features/bookings/Booker/__tests__/test-utils";

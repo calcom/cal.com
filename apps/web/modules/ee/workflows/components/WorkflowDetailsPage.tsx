@@ -8,7 +8,7 @@ import emailReminderTemplate from "@calcom/features/ee/workflows/lib/reminders/t
 import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { SCANNING_WORKFLOW_STEPS, SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { type RouterOutputs, trpc } from "@calcom/trpc/react";

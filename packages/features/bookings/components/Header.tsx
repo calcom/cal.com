@@ -7,7 +7,7 @@ import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerSt
 import { useInitializeWeekStart } from "@calcom/features/bookings/hooks/useInitializeWeekStart";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { formatDateTime } from "@calcom/lib/dateTimeFormatter";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";

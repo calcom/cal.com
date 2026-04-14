@@ -11,7 +11,7 @@ import { TextNode } from "lexical";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { VariableNode, $createVariableNode } from "../nodes/VariableNode";

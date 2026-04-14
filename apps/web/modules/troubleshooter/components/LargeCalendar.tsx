@@ -3,7 +3,7 @@ import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/us
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { Calendar } from "@calcom/features/calendars/weeklyview/components/Calendar";
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { useSession } from "next-auth/react";

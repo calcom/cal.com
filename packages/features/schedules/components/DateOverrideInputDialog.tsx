@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { yyyymmdd } from "@calcom/lib/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { WorkingHours } from "@calcom/types/schedule";
 import cs from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";

@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { useWrongAssignmentColumns } from "./useWrongAssignmentColumns";
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (text: string) => text,
   }),

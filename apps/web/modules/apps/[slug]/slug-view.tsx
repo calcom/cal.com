@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { showToast } from "@calcom/ui/components/toast";
 

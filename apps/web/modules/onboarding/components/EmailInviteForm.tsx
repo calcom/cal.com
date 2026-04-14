@@ -2,7 +2,7 @@
 
 import { useFormContext } from "react-hook-form";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, Select } from "@calcom/ui/components/form";
 import { XIcon } from "@coss/ui/icons";

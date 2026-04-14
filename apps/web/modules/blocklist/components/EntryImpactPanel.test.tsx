@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (key: string, opts?: Record<string, unknown>) => {
       if (opts) return `${key}:${JSON.stringify(opts)}`;

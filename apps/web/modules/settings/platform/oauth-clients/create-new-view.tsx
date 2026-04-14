@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui/components/toast";

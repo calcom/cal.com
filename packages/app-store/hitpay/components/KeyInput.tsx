@@ -4,7 +4,7 @@ import classNames from "classnames";
 import type { FormEvent } from "react";
 import React, { forwardRef, useState, useEffect, useId, useCallback } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Label } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 import type { InputFieldProps } from "@calcom/ui/components/form";

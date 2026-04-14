@@ -1,7 +1,7 @@
 import type { Dispatch } from "react";
 
 import type { CallDetailsAction, CallDetailsState } from "@calcom/features/ee/workflows/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {

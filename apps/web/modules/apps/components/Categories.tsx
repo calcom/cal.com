@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { ArrowRightIcon } from "@coss/ui/icons";
 

@@ -4,7 +4,7 @@ import { type Table } from "@tanstack/react-table";
 
 import { forwardRef, useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { type ButtonProps, Button, buttonClasses } from "@calcom/ui/components/button";
 import {

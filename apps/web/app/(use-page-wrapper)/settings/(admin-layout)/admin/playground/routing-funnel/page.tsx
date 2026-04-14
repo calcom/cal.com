@@ -5,7 +5,7 @@ import {
   RoutingFunnelContent,
   legend,
 } from "@calcom/web/modules/insights/components/routing/RoutingFunnelContent";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 // Random sample data for playground testing
 const sampleRoutingFunnelData = [

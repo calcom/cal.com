@@ -86,7 +86,7 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
         "@calcom/lib/markdownToSafeHTML": path.resolve(__dirname, "./lib/markdownToSafeHTML"),
-        "@calcom/lib/hooks/useLocale": path.resolve(__dirname, "./lib/useLocale"),
+        "@calcom/i18n/useLocale": path.resolve(__dirname, "./lib/useLocale"),
         "@radix-ui/react-tooltip": path.resolve(__dirname, "./src/components/ui/tooltip.tsx"),
         "@radix-ui/react-dialog": path.resolve(__dirname, "./src/components/ui/dialog.tsx"),
         "@calcom/prisma/client/runtime/library": resolve("./prisma-types/index.ts"),

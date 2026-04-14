@@ -5,7 +5,7 @@ import type {
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";
 import type { AddMembersWithSwitchCustomClassNames } from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";

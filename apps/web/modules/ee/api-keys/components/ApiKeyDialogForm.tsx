@@ -2,7 +2,7 @@
 
 import dayjs from "@calcom/dayjs";
 import { API_NAME_LENGTH_MAX_LIMIT, IS_CALCOM } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
 import { Alert, AlertDescription, AlertTitle } from "@coss/ui/components/alert";

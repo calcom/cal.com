@@ -6,7 +6,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";

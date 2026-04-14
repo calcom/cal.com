@@ -82,7 +82,7 @@ vi.mock(
 );
 
 // Mock the necessary dependencies
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: vi.fn(() => ({ t: (key: string) => key })),
 }));
 

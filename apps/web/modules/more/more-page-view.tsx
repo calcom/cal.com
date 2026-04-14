@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 import Shell from "~/shell/Shell";
 import { MobileNavigationMoreItems } from "~/shell/navigation/Navigation";

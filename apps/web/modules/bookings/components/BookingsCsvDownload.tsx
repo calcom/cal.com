@@ -2,7 +2,7 @@
 
 import dayjs from "@calcom/dayjs";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";

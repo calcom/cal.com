@@ -7,7 +7,7 @@ import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/re
 import kebabCase from "lodash/kebabCase";
 import { useEffect, useState, memo, useMemo } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Command, CommandList, CommandItem } from "@calcom/ui/components/command";
 import { ArrowDownIcon, ArrowUpIcon, CheckIcon, ChevronsUpDownIcon, EyeOffIcon } from "@coss/ui/icons";

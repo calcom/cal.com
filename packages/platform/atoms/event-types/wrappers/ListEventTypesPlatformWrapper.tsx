@@ -2,7 +2,7 @@ import { AtomsWrapper } from "@/components/atoms-wrapper";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import { EventTypeListItem } from "../components/EventTypeListItem";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../../hooks/use-atoms-locale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";

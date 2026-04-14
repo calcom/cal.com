@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Fragment, useState } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Badge } from "@calcom/ui/components/badge";

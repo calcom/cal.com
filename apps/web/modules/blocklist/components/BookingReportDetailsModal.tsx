@@ -1,7 +1,7 @@
 "use client";
 
 import type { BlocklistScope, GroupedBookingReport } from "@calcom/features/blocklist/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { WatchlistType } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";

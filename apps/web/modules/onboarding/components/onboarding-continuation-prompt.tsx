@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { useHasTeamMembership } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import { XIcon } from "@coss/ui/icons";

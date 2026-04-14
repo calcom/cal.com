@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { InfoBadge } from "@calcom/ui/components/badge";
 

@@ -9,7 +9,7 @@ import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-pe
 import type { State, User } from "./MemberList";
 
 // Mock dependencies
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (key: string) => key,
   }),

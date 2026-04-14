@@ -2,7 +2,7 @@
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";

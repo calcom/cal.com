@@ -12,7 +12,7 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { groupHostsByGroupId, getHostsFromOtherGroups, sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";

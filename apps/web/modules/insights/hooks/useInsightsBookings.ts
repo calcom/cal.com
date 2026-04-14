@@ -2,7 +2,7 @@ import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel }
 import { useMemo } from "react";
 
 import { ColumnFilterType } from "@calcom/features/data-table";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
 import { useInsightsBookingFacetedUniqueValues } from "./useInsightsBookingFacetedUniqueValues";

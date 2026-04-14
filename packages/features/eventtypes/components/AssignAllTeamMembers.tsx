@@ -1,7 +1,7 @@
 import { Controller } from "react-hook-form";
 
 import type { FormValues, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import classNames from "@calcom/ui/classNames";
 

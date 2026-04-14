@@ -1,7 +1,7 @@
 "use client";
 
 import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { useState } from "react";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";

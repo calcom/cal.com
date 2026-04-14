@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 
 import { APP_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 import { isOpenedByCalendarConnectWindow, notifyCalendarConnectWindowAndClose } from "~/auth/calendar-connect-window";
 import { Alert } from "@calcom/ui/components/alert";

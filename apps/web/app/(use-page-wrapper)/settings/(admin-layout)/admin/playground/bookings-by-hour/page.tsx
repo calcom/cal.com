@@ -2,7 +2,7 @@
 
 import { ChartCard } from "@calcom/web/modules/insights/components/ChartCard";
 import { BookingsByHourChartContent } from "@calcom/web/modules/insights/components/booking/BookingsByHourChart";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 // Sample data for playground testing
 const sampleBookingsByHourStats = [

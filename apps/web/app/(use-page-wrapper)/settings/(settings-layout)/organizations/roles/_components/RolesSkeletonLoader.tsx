@@ -1,10 +1,10 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export const SkeletonLoader = () => {
-  const { t } = useLocale();
+  const { t } = useLocale(["settings_organizations_roles", "common"]);
   return (
     <div className="mt-4">
       <div className="bg-cal-muted border-muted flex flex-col rounded-xl border p-px">

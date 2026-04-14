@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";

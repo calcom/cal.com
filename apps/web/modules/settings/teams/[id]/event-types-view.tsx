@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { useCreateEventType } from "~/event-types/hooks/useCreateEventType";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { WizardLayout } from "@calcom/ui/components/layout";

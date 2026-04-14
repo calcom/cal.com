@@ -1,7 +1,7 @@
 "use client";
 
 import { useWebPush } from "@calcom/web/modules/notifications/hooks/useWebPush";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@coss/ui/components/button";
 import { Card, CardFrameDescription, CardFrameHeader, CardFrameTitle, CardPanel } from "@coss/ui/components/card";
 

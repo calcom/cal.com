@@ -1,5 +1,5 @@
 import { ROADMAP } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { useUserAgentData } from "@calcom/lib/hooks/useUserAgentData";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { Label, Select } from "@calcom/ui/components/form";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";

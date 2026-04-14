@@ -3,7 +3,7 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 
 import { EventTypesSkeletonLoader } from "@calcom/web/modules/event-types/components/SkeletonLoader";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 export function EventTypesSkeleton() {
   const { t } = useLocale();

@@ -2,7 +2,7 @@
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useFillRemainingHeight } from "@calcom/lib/hooks/useFillRemainingHeight";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { OrgBadge, TeamBadge } from "@calcom/web/modules/billing/components/PlanBadge";
 import { UpgradePlanDialog } from "@calcom/web/modules/billing/components/UpgradePlanDialog";

@@ -2,7 +2,7 @@ import shuffle from "lodash/shuffle";
 import posthog from "posthog-js";
 import { useState, memo } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Card } from "@calcom/ui/components/card";
 

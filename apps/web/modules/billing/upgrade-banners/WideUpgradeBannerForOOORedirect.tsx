@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { WideUpgradeBanner } from "@calcom/web/modules/billing/components/wide-upgrade-banner";
 import { Button } from "@coss/ui/components/button";
 import { ArrowRightIcon } from "@coss/ui/icons";

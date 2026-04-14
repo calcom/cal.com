@@ -38,7 +38,7 @@ vi.mock("@calcom/features/bookings/lib/bookingSuccessRedirect", () => ({
   }),
 }));
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (text: string) => text,
   }),

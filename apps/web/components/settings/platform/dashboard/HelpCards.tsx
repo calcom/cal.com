@@ -1,4 +1,4 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Card } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
 

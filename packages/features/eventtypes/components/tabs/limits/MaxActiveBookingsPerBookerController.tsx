@@ -3,7 +3,7 @@ import { Controller, useFormContext } from "react-hook-form";
 
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { TextField, CheckboxField } from "@calcom/ui/components/form";

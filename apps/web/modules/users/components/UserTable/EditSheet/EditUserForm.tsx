@@ -1,6 +1,6 @@
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { type RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";

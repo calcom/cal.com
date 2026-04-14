@@ -4,7 +4,7 @@ import { useRef } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { DYNAMIC_TEXT_VARIABLES } from "@calcom/features/ee/workflows/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { Input, Label, TextArea } from "@calcom/ui/components/form";
 

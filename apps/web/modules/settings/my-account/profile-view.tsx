@@ -2,8 +2,8 @@
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -12,11 +12,7 @@ import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfi
 import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 import { toastManager } from "@coss/ui/components/toast";
-import {
-  AppHeader,
-  AppHeaderContent,
-  AppHeaderDescription,
-} from "@coss/ui/shared/app-header";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 import type { TRPCClientErrorLike } from "@trpc/client";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 import { signOut, useSession } from "next-auth/react";
@@ -30,11 +26,8 @@ import { CreatePasswordDialog } from "./components/create-password-dialog";
 import { DeleteAccountDialog } from "./components/delete-account-dialog";
 import { DisconnectAccountDialog } from "./components/disconnect-account-dialog";
 import { ProfileDangerZone } from "./components/profile-danger-zone";
+import type { ProfileFormValues, ProfileSubmitValues } from "./components/profile-form-card";
 import { ProfileFormCard } from "./components/profile-form-card";
-import type {
-  ProfileFormValues,
-  ProfileSubmitValues,
-} from "./components/profile-form-card";
 
 interface DeleteAccountValues {
   totpCode: string;
@@ -50,8 +43,7 @@ const ProfileView = ({ user }: Props) => {
   const session = useSession();
   const { update } = session;
 
-  const [tempFormValues, setTempFormValues] =
-    useState<ProfileSubmitValues | null>(null);
+  const [tempFormValues, setTempFormValues] = useState<ProfileSubmitValues | null>(null);
 
   const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
@@ -88,33 +80,30 @@ const ProfileView = ({ user }: Props) => {
     },
   });
 
-  const unlinkConnectedAccountMutation =
-    trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
-      onSuccess: async (res) => {
-        toastManager.add({ title: t(res.message), type: "success" });
-        utils.viewer.me.invalidate();
-        revalidateSettingsProfile();
-      },
-      onError: (e) => {
-        toastManager.add({ title: t(e.message), type: "error" });
-      },
-    });
+  const unlinkConnectedAccountMutation = trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
+    onSuccess: async (res) => {
+      toastManager.add({ title: t(res.message), type: "success" });
+      utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
+    },
+    onError: (e) => {
+      toastManager.add({ title: t(e.message), type: "error" });
+    },
+  });
 
-  const addSecondaryEmailMutation =
-    trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
-      onSuccess: (res) => {
-        setShowSecondaryEmailModal(false);
-        setNewlyAddedSecondaryEmail(res?.data?.email);
-        utils.viewer.me.invalidate();
-        revalidateSettingsProfile();
-      },
-      onError: (error) => {
-        setSecondaryEmailAddErrorMessage(error?.message || "");
-      },
-    });
+  const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
+    onSuccess: (res) => {
+      setShowSecondaryEmailModal(false);
+      setNewlyAddedSecondaryEmail(res?.data?.email);
+      utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
+    },
+    onError: (error) => {
+      setSecondaryEmailAddErrorMessage(error?.message || "");
+    },
+  });
 
-  const resendVerifyEmailMutation =
-    trpc.viewer.auth.resendVerifyEmail.useMutation();
+  const resendVerifyEmailMutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
 
   const confirmPasswordMutation = trpc.viewer.auth.verifyPassword.useMutation({
     onSuccess() {
@@ -152,33 +141,26 @@ const ProfileView = ({ user }: Props) => {
     },
   });
 
-  const deleteMeWithoutPasswordMutation =
-    trpc.viewer.me.deleteMeWithoutPassword.useMutation({
-      onSuccess: onDeleteMeSuccess,
-      onError: onDeleteMeError,
-      async onSettled() {
-        await utils.viewer.me.invalidate();
-        revalidateSettingsProfile();
-      },
-    });
+  const deleteMeWithoutPasswordMutation = trpc.viewer.me.deleteMeWithoutPassword.useMutation({
+    onSuccess: onDeleteMeSuccess,
+    onError: onDeleteMeError,
+    async onSettled() {
+      await utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
+    },
+  });
 
   const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
-  const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] =
-    useState("");
-  const [showCreatePasswordDialog, setShowCreatePasswordDialog] =
-    useState(false);
+  const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = useState("");
+  const [showCreatePasswordDialog, setShowCreatePasswordDialog] = useState(false);
   const [showDisconnectWarning, setShowDisconnectWarning] = useState(false);
   const [showSecondaryEmailModal, setShowSecondaryEmailModal] = useState(false);
-  const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] =
-    useState("");
-  const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<
-    string | undefined
-  >(undefined);
+  const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] = useState("");
+  const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<string | undefined>(undefined);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
-  const [isCompanyEmailAlertDismissed, setIsCompanyEmailAlertDismissed] =
-    useState(false);
+  const [isCompanyEmailAlertDismissed, setIsCompanyEmailAlertDismissed] = useState(false);
 
   const deleteForm = useForm<DeleteAccountValues>();
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -188,26 +170,16 @@ const ProfileView = ({ user }: Props) => {
 
   const errorMessages: { [key: string]: string } = {
     [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
-    [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t(
-      "please_try_again"
-    )}`,
+    [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t("please_try_again")}`,
     [ErrorCode.UserNotFound]: t("no_account_exists"),
-    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t(
-      "please_try_again"
-    )}`,
-    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t(
-      "please_try_again_and_contact_us"
-    )}`,
-    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t(
-      "account_created_with_identity_provider"
-    ),
+    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
+    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  const { data: usersAttributes } = trpc.viewer.attributes.getByUserId.useQuery(
-    {
-      userId: user.id,
-    }
-  );
+  const { data: usersAttributes } = trpc.viewer.attributes.getByUserId.useQuery({
+    userId: user.id,
+  });
 
   const userEmail = user.email || "";
 
@@ -239,8 +211,7 @@ const ProfileView = ({ user }: Props) => {
     userEmail &&
     isCompanyEmail(userEmail);
 
-  const showConnectedAccounts =
-    !isCALIdentityProvider && user.email !== user.identityProviderEmail;
+  const showConnectedAccounts = !isCALIdentityProvider && user.email !== user.identityProviderEmail;
 
   const handleProfileSubmit = (values: ProfileSubmitValues) => {
     if (values.email !== user.email && isCALIdentityProvider) {
@@ -251,18 +222,14 @@ const ProfileView = ({ user }: Props) => {
     }
   };
 
-  const handleConfirmPassword = (
-    e: Event | React.MouseEvent<HTMLElement, MouseEvent>
-  ) => {
+  const handleConfirmPassword = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
     confirmPasswordMutation.mutate({
       passwordInput: passwordRef.current.value,
     });
   };
 
-  const handleDeleteConfirm = (
-    e: Event | React.MouseEvent<HTMLElement, MouseEvent>
-  ) => {
+  const handleDeleteConfirm = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
     if (isCALIdentityProvider) {
       const totpCode = deleteForm.getValues("totpCode");
@@ -306,9 +273,7 @@ const ProfileView = ({ user }: Props) => {
     <>
       <AppHeader>
         <AppHeaderContent title={t("profile")}>
-          <AppHeaderDescription>
-            {t("profile_description", { appName: APP_NAME })}
-          </AppHeaderDescription>
+          <AppHeaderDescription>{t("profile_description", { appName: APP_NAME })}</AppHeaderDescription>
         </AppHeaderContent>
       </AppHeader>
 
@@ -348,9 +313,7 @@ const ProfileView = ({ user }: Props) => {
         />
 
         {shouldShowCompanyEmailAlert && (
-          <CompanyEmailOrganizationBanner
-            onDismissAction={() => setIsCompanyEmailAlertDismissed(true)}
-          />
+          <CompanyEmailOrganizationBanner onDismissAction={() => setIsCompanyEmailAlertDismissed(true)} />
         )}
 
         <ProfileDangerZone onDeleteAccount={() => setDeleteAccountOpen(true)} />
@@ -381,10 +344,7 @@ const ProfileView = ({ user }: Props) => {
         errorMessage={confirmPasswordErrorMessage || undefined}
       />
 
-      <CreatePasswordDialog
-        open={showCreatePasswordDialog}
-        onOpenChange={setShowCreatePasswordDialog}
-      />
+      <CreatePasswordDialog open={showCreatePasswordDialog} onOpenChange={setShowCreatePasswordDialog} />
 
       <DisconnectAccountDialog
         open={showDisconnectWarning}

@@ -74,6 +74,7 @@
     "build:icons": "node ./scripts/build-icons.mjs"
   },
   "dependencies": {
+    "@calcom/i18n": "workspace:*",
     "@calcom/lib": "workspace:*",
     "@formkit/auto-animate": "1.0.0-beta.5",
     "@lexical/code": "0.9.0",

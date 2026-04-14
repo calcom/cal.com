@@ -4,7 +4,7 @@ import type {
   LocationObject,
 } from "@calcom/app-store/locations";
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import classNames from "@calcom/ui/classNames";
 import { Tooltip } from "@calcom/ui/components/tooltip";

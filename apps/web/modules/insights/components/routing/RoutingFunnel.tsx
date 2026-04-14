@@ -1,7 +1,7 @@
 "use client";
 
 import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 import { useToggleableLegend } from "@calcom/web/modules/insights/hooks/useToggleableLegend";

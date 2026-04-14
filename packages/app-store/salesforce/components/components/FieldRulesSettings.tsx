@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { InputField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";

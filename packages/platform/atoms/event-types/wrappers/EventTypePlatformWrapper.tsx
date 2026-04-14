@@ -13,7 +13,7 @@ import type {
   EventTypeSetupProps,
   FormValues,
 } from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../../hooks/use-atoms-locale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Shell as PlatformShell } from "../../src/components/ui/shell";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation

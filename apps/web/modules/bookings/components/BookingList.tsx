@@ -3,7 +3,7 @@
 import type { Table as ReactTable } from "@tanstack/react-table";
 
 import { DataTableWrapper } from "~/data-table/components";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import SkeletonLoader from "@components/booking/SkeletonLoader";

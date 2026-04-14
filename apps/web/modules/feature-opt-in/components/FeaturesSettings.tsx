@@ -1,7 +1,7 @@
 "use client";
 
 import type { FeatureState } from "@calcom/features/flags/config";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Alert, AlertDescription } from "@coss/ui/components/alert";
 import {

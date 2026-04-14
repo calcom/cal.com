@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm, Controller, useFormContext } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { ServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";

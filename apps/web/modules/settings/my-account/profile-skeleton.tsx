@@ -1,7 +1,7 @@
 "use client";
 
+import { useLocale } from "@calcom/i18n/useLocale";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Card, CardFrame, CardFrameFooter, CardPanel } from "@coss/ui/components/card";
 import { Skeleton } from "@coss/ui/components/skeleton";
 import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
@@ -13,9 +13,7 @@ export const SkeletonLoader = () => {
     <>
       <AppHeader>
         <AppHeaderContent title={t("profile")}>
-          <AppHeaderDescription>
-            {t("profile_description", { appName: APP_NAME })}
-          </AppHeaderDescription>
+          <AppHeaderDescription>{t("profile_description", { appName: APP_NAME })}</AppHeaderDescription>
         </AppHeaderContent>
       </AppHeader>
 

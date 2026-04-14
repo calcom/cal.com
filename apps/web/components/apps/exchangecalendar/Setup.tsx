@@ -7,7 +7,7 @@ import z from "zod";
 
 import { ExchangeAuthentication, ExchangeVersion } from "@calcom/app-store/exchangecalendar/enums";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 
 import { isOpenedByCalendarConnectWindow, notifyCalendarConnectWindowAndClose } from "~/auth/calendar-connect-window";

@@ -6,7 +6,7 @@ import type { ParsedUrlQuery } from "node:querystring";
 import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { CheckIcon } from "@coss/ui/icons";
 

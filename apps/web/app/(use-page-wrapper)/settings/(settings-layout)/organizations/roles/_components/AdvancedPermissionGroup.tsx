@@ -9,7 +9,7 @@ import {
   type CustomAction,
   getPermissionsForScope,
 } from "@calcom/features/pbac/domain/types/permission-registry";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Checkbox, Label } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -36,7 +36,7 @@ export function AdvancedPermissionGroup({
   scope = Scope.Organization,
   isPrivate = false,
 }: AdvancedPermissionGroupProps) {
-  const { t } = useLocale();
+  const { t } = useLocale(["settings_organizations_roles", "common"]);
   const { toggleSinglePermission, toggleResourcePermissionLevel } = usePermissions(scope);
   const scopedRegistry = getPermissionsForScope(scope, isPrivate);
   const resourceConfig = scopedRegistry[resource];

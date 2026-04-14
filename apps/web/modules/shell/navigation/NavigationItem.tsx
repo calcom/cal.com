@@ -3,7 +3,7 @@ import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import React, { Fragment, useState, useEffect } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { sessionStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";

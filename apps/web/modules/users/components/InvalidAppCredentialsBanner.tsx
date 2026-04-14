@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 
 import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/types/invalidAppCredentials";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { type RouterOutputs } from "@calcom/trpc/react";
 import { TopBanner } from "@calcom/ui/components/top-banner";
 

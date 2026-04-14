@@ -3,7 +3,7 @@ import { useFormContext, Controller } from "react-hook-form";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import PhoneInput from "@calcom/web/components/phone-input";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { TextField } from "@calcom/ui/components/form";
 

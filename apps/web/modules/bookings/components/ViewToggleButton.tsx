@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { CalendarIcon, MenuIcon } from "@coss/ui/icons";

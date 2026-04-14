@@ -1,7 +1,7 @@
 "use client";
 
 import { APP_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { WideUpgradeBanner } from "@calcom/web/modules/billing/components/wide-upgrade-banner";
 
 export function WideUpgradeBannerForBranding() {

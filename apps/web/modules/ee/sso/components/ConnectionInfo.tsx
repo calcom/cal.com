@@ -2,7 +2,7 @@
 
 import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@coss/ui/components/button";
 import {

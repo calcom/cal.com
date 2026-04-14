@@ -2,7 +2,7 @@ import { noop } from "@tanstack/react-table";
 import { formatInTimeZone } from "date-fns-tz";
 
 import dayjs from "@calcom/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger } from "@calcom/ui/components/dialog";

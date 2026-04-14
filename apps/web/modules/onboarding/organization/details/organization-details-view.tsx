@@ -5,7 +5,7 @@ import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 
 import { getSafeReturnTo } from "@calcom/lib/getSafeReturnTo";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 

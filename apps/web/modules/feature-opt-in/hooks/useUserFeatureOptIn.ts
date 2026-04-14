@@ -3,7 +3,7 @@
 import type { EffectiveStateReason } from "@calcom/features/feature-opt-in/lib/computeEffectiveState";
 import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
 import type { FeatureState } from "@calcom/features/flags/config";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { toastManager } from "@coss/ui/components/toast";
 import type { TFunction } from "i18next";

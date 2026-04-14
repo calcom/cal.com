@@ -7,7 +7,7 @@ import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../../hooks/use-atoms-locale";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { LinkIcon, MailIcon, UploadIcon } from "@coss/ui/icons";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import Image from "next/image";
 import type { ReactElement } from "react";

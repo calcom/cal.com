@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@coss/ui/components/button";
 import type { InputProps } from "@coss/ui/components/input";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@coss/ui/components/input-group";

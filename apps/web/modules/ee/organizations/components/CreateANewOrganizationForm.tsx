@@ -4,7 +4,7 @@ import { BILLING_PLANS, BILLING_PRICING } from "@calcom/features/ee/billing/cons
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { BillingMode, BillingPeriod, CreationSource, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";

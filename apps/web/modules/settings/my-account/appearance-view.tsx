@@ -8,7 +8,7 @@ import {
 import useGetBrandingColours, {
   checkWCAGContrastColor,
 } from "@calcom/lib/getBrandColours";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import {
   bookingThemePreviewOptions,

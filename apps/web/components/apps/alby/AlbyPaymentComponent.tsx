@@ -5,7 +5,7 @@ import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/booking
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Spinner } from "@calcom/ui/components/icon";

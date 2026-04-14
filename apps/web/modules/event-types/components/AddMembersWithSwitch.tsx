@@ -12,7 +12,7 @@ import type {
   SettingsToggleClassNames,
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";
 import { type ComponentProps, useMemo } from "react";

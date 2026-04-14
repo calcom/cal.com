@@ -1,7 +1,7 @@
 "use client";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { CredentialOwner } from "@calcom/types/CredentialOwner";
 import classNames from "@calcom/ui/classNames";
 import { CircleAlertIcon } from "@coss/ui/icons";

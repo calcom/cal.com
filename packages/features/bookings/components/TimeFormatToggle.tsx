@@ -1,4 +1,4 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { ToggleGroup } from "@calcom/ui/components/form";
 

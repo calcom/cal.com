@@ -1,5 +1,5 @@
+import { useLocale } from "@calcom/i18n/useLocale";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@coss/ui/components/button";
 import {
   Dialog,
@@ -94,10 +94,7 @@ const SecondaryEmailModal = ({
             <DialogClose render={<Button variant="ghost" />} onClick={onCancel}>
               {t("cancel")}
             </DialogClose>
-            <Button
-              type="submit"
-              data-testid="add-secondary-email-button"
-              loading={isLoading}>
+            <Button type="submit" data-testid="add-secondary-email-button" loading={isLoading}>
               {t("add_email")}
             </Button>
           </DialogFooter>

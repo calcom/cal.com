@@ -17,7 +17,7 @@ import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { getUrlSearchParamsToForward } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";

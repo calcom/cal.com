@@ -2,7 +2,7 @@ import type { Table } from "@tanstack/react-table";
 import { useQueryState, parseAsBoolean } from "nuqs";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
 export function DynamicLink<T extends { username: string | null }>({

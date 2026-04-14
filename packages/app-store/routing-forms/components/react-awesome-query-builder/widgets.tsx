@@ -10,7 +10,7 @@ import type {
   ProviderProps,
 } from "react-awesome-query-builder";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";

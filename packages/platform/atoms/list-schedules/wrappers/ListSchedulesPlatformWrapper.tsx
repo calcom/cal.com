@@ -2,7 +2,7 @@ import { AtomsWrapper } from "@/components/atoms-wrapper";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../../hooks/use-atoms-locale";
 import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 

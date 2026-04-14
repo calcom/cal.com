@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { DEFAULT_PRESET, getDateRangeFromPreset } from "@calcom/features/data-table/lib/dateRange";
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 export function useBookingStatusTab() {
   const { t } = useLocale();

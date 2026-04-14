@@ -11,7 +11,7 @@ import {
   deriveOrgNameFromEmail,
   deriveSlugFromEmail,
 } from "~/ee/organizations/components/CreateANewOrganizationForm";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";

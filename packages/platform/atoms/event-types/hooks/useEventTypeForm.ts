@@ -12,7 +12,7 @@ import type {
   HostInput,
 } from "@calcom/features/eventtypes/lib/types";
 import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../../hooks/use-atoms-locale";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { DisableCancelRescheduleScope } from "@calcom/prisma/enums";

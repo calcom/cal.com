@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import { DataTableSelectionBar } from "~/data-table/components";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";

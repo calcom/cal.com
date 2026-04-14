@@ -4,7 +4,7 @@ import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";

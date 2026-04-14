@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import { showToast } from "@calcom/ui/components/toast";
 

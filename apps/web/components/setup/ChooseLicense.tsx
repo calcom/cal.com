@@ -3,7 +3,7 @@ import classNames from "classnames";
 import Link from "next/link";
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 const ChooseLicense = (
   props: {

@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
 import classNames from "../../../classNames";

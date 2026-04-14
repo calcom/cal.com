@@ -41,7 +41,7 @@ vi.mock("@calcom/features/insights/lib/bookingStatusToText", () => ({
   bookingStatusToText: (status: string) => status.toLowerCase(),
 }));
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (text: string) => text,
   }),

@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 
 import { DataTableSelectionBar, DataTableWrapper } from "@calcom/web/modules/data-table/components";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { WatchlistType } from "@calcom/prisma/enums";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 

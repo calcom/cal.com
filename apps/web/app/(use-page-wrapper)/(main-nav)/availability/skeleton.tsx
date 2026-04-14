@@ -3,7 +3,7 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 
 import SkeletonLoader from "@calcom/features/availability/components/SkeletonLoader";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 import { AvailabilityCTA } from "~/availability/availability-view";
 

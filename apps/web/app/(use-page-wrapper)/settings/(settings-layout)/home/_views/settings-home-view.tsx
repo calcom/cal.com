@@ -2,7 +2,7 @@
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { TextField } from "@calcom/ui/components/form";
 import { ExternalLinkIcon, SearchIcon } from "@coss/ui/icons";
 import Link from "next/link";

@@ -8,7 +8,7 @@ import { z } from "zod";
 import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailField, Label, TextField, PasswordField } from "@calcom/ui/components/form";

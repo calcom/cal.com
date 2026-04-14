@@ -1,6 +1,6 @@
 import type { FC } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../../hooks/use-atoms-locale";
 import { Button } from "@calcom/ui/components/button";
 import type { ButtonColor } from "@calcom/ui/components/button";
 import type { IconName } from "@calcom/ui/components/icon";

@@ -3,7 +3,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import type { GroupedBookingReport } from "@calcom/features/blocklist/types";
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({ t: (key: string) => key }),
 }));
 

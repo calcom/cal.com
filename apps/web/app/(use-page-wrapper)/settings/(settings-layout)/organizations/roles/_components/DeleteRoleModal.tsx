@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog } from "@calcom/ui/components/dialog";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
@@ -20,7 +20,7 @@ interface DeleteRoleModalProps {
 }
 
 export function DeleteRoleModal({ roleId, roleName, teamId, onDeleted }: DeleteRoleModalProps) {
-  const { t } = useLocale();
+  const { t } = useLocale(["settings_organizations_roles", "common"]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 

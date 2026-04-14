@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { calculatePeriodLimits, isTimeViolatingFutureLimit } from "@calcom/lib/isOutOfBounds";
 import type { PeriodData } from "@calcom/types/Event";
 import { Button } from "@calcom/ui/components/button";

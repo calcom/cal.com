@@ -34,7 +34,7 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({ t: (key: string) => key }),
 }));
 

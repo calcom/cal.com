@@ -3,7 +3,7 @@ import type {
   CalVideoSettings as CalVideoSettingsType,
   FormValues,
 } from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { SettingsToggle, TextField } from "@calcom/ui/components/form";

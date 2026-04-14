@@ -7,7 +7,7 @@ import type {
   NonRouterRoute,
   RoutingFormWithResponseCount,
 } from "@calcom/app-store/routing-forms/types/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";

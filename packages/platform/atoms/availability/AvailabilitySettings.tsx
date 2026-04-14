@@ -12,7 +12,7 @@ import DateOverrideInputDialog from "@calcom/features/schedules/components/DateO
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import type { TravelScheduleRepository } from "@calcom/features/travelSchedule/repositories/TravelScheduleRepository";
 import { availabilityAsString } from "@calcom/lib/availability";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../hooks/use-atoms-locale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";

@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 
 import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { DataTable, DataTableToolbar } from "~/data-table/components";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 import CreateTeamDialog from "./CreateTeamDialog";

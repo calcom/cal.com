@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Switch } from "@calcom/ui/components/form";
 import { ArrowLeftIcon } from "@coss/ui/icons";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { Team } from "@calcom/prisma/client";
 import type { orgSettingsSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";

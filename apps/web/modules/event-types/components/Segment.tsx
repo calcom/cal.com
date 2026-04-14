@@ -6,7 +6,7 @@ import {
   withRaqbSettingsAndWidgets,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { isEqual } from "@calcom/lib/isEqual";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { type RouterOutputs, trpc } from "@calcom/trpc/react";

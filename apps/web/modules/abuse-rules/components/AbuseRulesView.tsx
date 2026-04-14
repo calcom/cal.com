@@ -7,7 +7,7 @@ import { useCallback, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import type { AbuseRuleField, AbuseRuleOperator } from "@calcom/features/abuse-scoring/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";

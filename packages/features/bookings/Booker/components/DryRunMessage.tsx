@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { InfoIcon } from "@coss/ui/icons";
 
 export const DryRunMessage = ({ isEmbed }: { isEmbed?: boolean }) => {

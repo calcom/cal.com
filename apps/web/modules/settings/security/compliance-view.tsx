@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Card, CardFrame, CardFrameHeader, CardFrameTitle, CardPanel } from "@coss/ui/components/card";
 
 import { ComplianceDocumentCard } from "./compliance/ComplianceDocumentCard";

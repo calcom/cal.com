@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../hooks/use-atoms-locale";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { ReminderMinutes } from "@calcom/trpc/server/routers/viewer/calendars/setDestinationReminder.schema";
 import { Select } from "@calcom/ui/components/form";

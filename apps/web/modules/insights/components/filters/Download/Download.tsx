@@ -3,7 +3,7 @@ import posthog from "posthog-js";
 
 import dayjs from "@calcom/dayjs";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";

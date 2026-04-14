@@ -9,7 +9,7 @@ import { Button } from "@calcom/ui/components/button";
 
 import { AttributeForm } from "../AttributesForm";
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (key: string) => key,
   }),

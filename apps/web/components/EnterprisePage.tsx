@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ChartBarIcon, CreditCardIcon, GlobeIcon, LockIcon, PaintbrushIcon, UsersIcon } from "@coss/ui/icons";

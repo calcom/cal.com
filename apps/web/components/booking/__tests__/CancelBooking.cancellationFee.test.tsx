@@ -67,7 +67,7 @@ vi.mock("next-i18next", () => ({
   }),
 }));
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (key: string, options?: Record<string, unknown>) => {
       if (key === "cancel_booking_acknowledge_no_show_fee") {

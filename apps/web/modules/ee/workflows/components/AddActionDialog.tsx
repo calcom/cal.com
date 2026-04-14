@@ -10,7 +10,7 @@ import PhoneInput from "@calcom/web/components/phone-input";
 import { WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
 import { onlyLettersNumbersSpaces } from "@calcom/features/ee/workflows/lib/schema";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";

@@ -2,7 +2,7 @@
 
 import type { FC } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../../hooks/use-atoms-locale";
 import { OFFICE_365_CALENDAR } from "@calcom/platform-constants";
 
 import type { OAuthConnectProps } from "../OAuthConnect";

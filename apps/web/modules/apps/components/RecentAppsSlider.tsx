@@ -1,4 +1,4 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 
 import { AppCard } from "./AppCard";

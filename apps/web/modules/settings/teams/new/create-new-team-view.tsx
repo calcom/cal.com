@@ -2,7 +2,7 @@
 
 import { getSafeReturnTo } from "@calcom/lib/getSafeReturnTo";
 import { useOnMount } from "@calcom/lib/hooks/use-on-mount";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";

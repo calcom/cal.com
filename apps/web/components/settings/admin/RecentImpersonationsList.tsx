@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { getRecentImpersonations, type RecentImpersonation } from "@calcom/lib/recentImpersonations";
 
 import { Button } from "@coss/ui/components/button";

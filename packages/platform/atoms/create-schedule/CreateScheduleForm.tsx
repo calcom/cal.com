@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../hooks/use-atoms-locale";
 import type { ApiErrorResponse } from "@calcom/platform-types";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";

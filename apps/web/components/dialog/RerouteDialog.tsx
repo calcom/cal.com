@@ -19,7 +19,7 @@ import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getUrlSearchParamsToForwardForReroute } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { EventType, User, Team, Attendee, Booking as PrismaBooking } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";

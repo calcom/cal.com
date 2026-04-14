@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 
 import { WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { InputField } from "@calcom/ui/components/form";

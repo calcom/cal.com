@@ -5,7 +5,7 @@ import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-for
 import { FilterResults } from "~/filters/components/FilterResults";
 import { TeamsFilter } from "~/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";

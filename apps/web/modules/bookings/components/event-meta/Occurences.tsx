@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";

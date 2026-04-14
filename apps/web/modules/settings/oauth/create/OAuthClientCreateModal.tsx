@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
 
 import { OAuthClientFormFields } from "../view/OAuthClientFormFields";

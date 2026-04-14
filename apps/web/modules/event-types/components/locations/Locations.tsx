@@ -14,7 +14,7 @@ import type { SingleValueLocationOption } from "@calcom/features/form/components
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { CheckIcon, CornerDownRightIcon, XIcon } from "@coss/ui/icons";

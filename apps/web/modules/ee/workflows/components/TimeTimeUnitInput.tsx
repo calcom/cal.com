@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
 import { TextField } from "@calcom/ui/components/form";
 import { ChevronDownIcon, ChevronUpIcon } from "@coss/ui/icons";

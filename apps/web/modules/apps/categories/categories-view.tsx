@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ArrowLeftIcon, ArrowRightIcon } from "@coss/ui/icons";
 import { SkeletonText } from "@calcom/ui/components/skeleton";

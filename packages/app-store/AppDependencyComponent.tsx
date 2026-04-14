@@ -1,7 +1,7 @@
 "use client";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { ArrowRightIcon, CheckIcon, CircleXIcon } from "@coss/ui/icons";
 import Link from "next/link";

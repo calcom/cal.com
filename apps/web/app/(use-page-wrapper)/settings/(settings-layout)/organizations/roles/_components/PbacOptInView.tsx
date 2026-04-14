@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 import { PbacOptInModal } from "./PbacOptInModal";
 import { RolesList } from "./RolesList";
@@ -32,7 +32,7 @@ interface PbacOptInViewProps {
 
 export function PbacOptInView({ revalidateRolesPath, systemRoles, teamId }: PbacOptInViewProps) {
   const [open, setOpen] = useState(true);
-  const { t } = useLocale();
+  const { t } = useLocale(["settings_organizations_roles", "common"]);
 
   return (
     <>

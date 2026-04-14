@@ -10,7 +10,7 @@ type MockDependency = {
 };
 
 // Mock the useLocale hook
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (key: string, values?: Record<string, unknown>) => {
       if (key === "app_is_connected") {

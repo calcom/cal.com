@@ -1,7 +1,7 @@
 "use client";
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
 
 import { ChartCardItem } from "./ChartCard";

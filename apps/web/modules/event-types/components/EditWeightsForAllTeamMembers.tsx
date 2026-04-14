@@ -5,7 +5,7 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button, buttonClasses } from "@calcom/ui/components/button";

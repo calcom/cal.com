@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
@@ -20,7 +20,7 @@ interface PbacOptInModalProps {
 
 export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: PbacOptInModalProps) {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t } = useLocale(["settings_organizations_roles", "common"]);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
 
   const enablePbacMutation = trpc.viewer.pbac.enablePbac.useMutation({

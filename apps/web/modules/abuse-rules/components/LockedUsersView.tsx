@@ -5,7 +5,7 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";

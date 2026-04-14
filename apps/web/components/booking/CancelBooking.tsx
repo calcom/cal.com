@@ -3,7 +3,7 @@
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { isCancellationReasonRequired } from "@calcom/features/bookings/lib/cancellationReason";
 import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import type { CancellationReasonRequirement } from "@calcom/prisma/enums";
 import type { RecurringEvent } from "@calcom/types/Calendar";

@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "react";
 import { useState } from "react";
 
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@coss/ui/components/button";

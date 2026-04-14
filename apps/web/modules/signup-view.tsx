@@ -26,7 +26,7 @@ import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { INVALID_CLOUDFLARE_TOKEN_ERROR } from "@calcom/lib/server/checkCfTurnstileToken";
 import { openGoogleAuthWindow, useGoogleAuthWindowListener } from "@calcom/web/modules/auth/google-auth-window";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";

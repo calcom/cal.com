@@ -13,7 +13,7 @@ import { btcpayCredentialKeysSchema } from "@calcom/app-store/btcpayserver/lib/b
 import type { IBTCPaySetupProps } from "@calcom/app-store/btcpayserver/pages/setup/_getServerSideProps";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";

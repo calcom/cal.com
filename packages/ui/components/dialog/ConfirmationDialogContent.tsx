@@ -1,4 +1,4 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { CheckIcon, CircleAlertIcon } from "@coss/ui/icons";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import type React from "react";

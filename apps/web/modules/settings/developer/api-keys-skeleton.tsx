@@ -1,7 +1,7 @@
 "use client";
 
 import { APP_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Card, CardPanel } from "@coss/ui/components/card";
 import { Skeleton } from "@coss/ui/components/skeleton";
 import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";

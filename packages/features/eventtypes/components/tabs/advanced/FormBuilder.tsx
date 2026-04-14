@@ -13,7 +13,7 @@ import type { fieldsSchema } from "@calcom/features/form-builder/schema";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "@calcom/features/form-builder/utils/variantsConfig";
 import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";

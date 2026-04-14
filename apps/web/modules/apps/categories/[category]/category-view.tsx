@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import { AppCard } from "@calcom/web/modules/apps/components/AppCard";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { CategoryDataProps } from "@lib/apps/categories/[category]/getStaticProps";

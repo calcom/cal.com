@@ -2,7 +2,7 @@ import type { Table } from "@tanstack/react-table";
 import { useCallback } from "react";
 
 import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 

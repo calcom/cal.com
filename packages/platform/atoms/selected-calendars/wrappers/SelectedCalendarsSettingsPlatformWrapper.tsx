@@ -1,4 +1,4 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../../hooks/use-atoms-locale";
 import type { CALENDARS } from "@calcom/platform-constants";
 import cn from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";

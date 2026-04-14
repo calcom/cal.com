@@ -4,7 +4,7 @@ import { isLegacyClient, isLegacyScope, parseScopeParam, SCOPE_EXCEEDS_CLIENT_RE
 import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Avatar } from "@calcom/ui/components/avatar";

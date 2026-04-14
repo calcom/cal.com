@@ -1,5 +1,5 @@
 import { useOnMount } from "@calcom/lib/hooks/use-on-mount";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { useEffect, useState } from "react";

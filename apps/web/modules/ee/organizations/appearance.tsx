@@ -6,7 +6,7 @@ import {
   DEFAULT_LIGHT_BRAND_COLOR,
 } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { bookingThemePreviewOptions } from "@calcom/lib/theme/themeItems";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";

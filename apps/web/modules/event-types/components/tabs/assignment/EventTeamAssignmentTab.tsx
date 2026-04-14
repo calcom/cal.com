@@ -3,7 +3,7 @@ import type {
   FormValues,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";

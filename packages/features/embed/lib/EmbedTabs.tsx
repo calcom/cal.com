@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { useEmbedBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { TextArea } from "@calcom/ui/components/form";
 
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";

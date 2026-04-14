@@ -10,7 +10,7 @@ import type {
 import { components } from "react-select";
 import type { Props } from "react-select";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { Select } from "../select";

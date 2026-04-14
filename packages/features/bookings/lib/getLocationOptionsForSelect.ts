@@ -2,7 +2,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { DefaultEventLocationTypeEnum, locationKeyToString } from "@calcom/app-store/locations";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { getTranslatedLocation } from "@calcom/app-store/locations";
-import type { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { useLocale } from "@calcom/i18n/useLocale";
 import notEmpty from "@calcom/lib/notEmpty";
 
 export default function getLocationsOptionsForSelect(

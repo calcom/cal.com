@@ -1,7 +1,7 @@
 "use client";
 
 import type { Scope } from "@calcom/features/pbac/domain/types/permission-registry";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -60,7 +60,7 @@ export function RolesList({
   scope,
   isPrivate,
 }: RolesListProps) {
-  const { t } = useLocale();
+  const { t } = useLocale(["settings_organizations_roles", "common"]);
   const { isOpen, setIsOpen, selectedRoleId, setSelectedRoleId, handleSheetOpenChange } = useRoleStates(
     initialSheetOpen,
     initialSelectedRole?.id
@@ -134,7 +134,7 @@ function RoleItem({
   permissions: Permissions;
   teamId: number;
 }) {
-  const { t } = useLocale();
+  const { t } = useLocale(["settings_organizations_roles", "common"]);
   const showDropdown = role.type !== "SYSTEM" && (permissions.canUpdate || permissions.canDelete);
 
   return (

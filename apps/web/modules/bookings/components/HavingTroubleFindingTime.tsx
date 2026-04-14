@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { ArrowRightIcon, InfoIcon } from "@coss/ui/icons";
 
 type Props = {

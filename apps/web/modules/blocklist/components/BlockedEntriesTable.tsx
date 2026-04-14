@@ -2,7 +2,7 @@
 
 import type { BlocklistEntry, BlocklistPermissions, BlocklistScope } from "@calcom/features/blocklist/types";
 import { IS_CALCOM } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";

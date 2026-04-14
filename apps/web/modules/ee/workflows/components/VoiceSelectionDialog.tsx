@@ -6,7 +6,7 @@ import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { DataTableWrapper } from "~/data-table/components";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import { useVoicePreview } from "@calcom/features/ee/workflows/hooks/useVoicePreview";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogHeader } from "@calcom/ui/components/dialog";

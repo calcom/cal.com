@@ -1,4 +1,4 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { APP_NAME } from "@calcom/lib/constants";
 import { Alert, AlertTitle } from "@coss/ui/components/alert";
 import { Button } from "@coss/ui/components/button";

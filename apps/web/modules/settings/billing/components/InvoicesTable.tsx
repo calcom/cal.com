@@ -19,7 +19,7 @@ import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { useFilterValue } from "~/data-table/hooks/useFilterValue";
 import { useSegments } from "~/data-table/hooks/useSegments";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@coss/ui/components/badge";
 import { Button } from "@coss/ui/components/button";

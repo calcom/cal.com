@@ -10,7 +10,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import "@calcom/dayjs/locales";
 import { formatTime } from "@calcom/lib/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";

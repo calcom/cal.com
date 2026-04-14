@@ -59,7 +59,7 @@ vi.mock("@calcom/lib/OgImages", async () => {
   return {};
 });
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => {
     return {
       t: (str: string) => str,

@@ -7,7 +7,7 @@ import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../use-atoms-locale";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import { showToast } from "@calcom/ui/components/toast";
 

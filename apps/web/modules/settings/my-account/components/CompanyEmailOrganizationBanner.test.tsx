@@ -13,7 +13,7 @@ vi.mock("posthog-js", () => ({
   default: { capture: (event: string) => mockCapture(event) },
 }));
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({ t: (key: string) => key }),
 }));
 

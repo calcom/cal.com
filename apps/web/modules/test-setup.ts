@@ -106,7 +106,7 @@ vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => {
   };
 });
 
-vi.mock("@calcom/lib/hooks/useLocale", () => {
+vi.mock("@calcom/i18n/useLocale", () => {
   return {
     useLocale: () => ({
       t: (text: string) => text,

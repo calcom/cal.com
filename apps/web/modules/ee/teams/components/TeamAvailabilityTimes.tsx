@@ -10,7 +10,7 @@ import type { ITimezone } from "react-timezone-select";
 
 import type { Dayjs } from "@calcom/dayjs";
 import getSlots from "@calcom/features/schedules/lib/slots";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 import SkeletonLoader from "./SkeletonLoaderAvailabilityTimes";

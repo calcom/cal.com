@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 
 import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 import SSOConfiguration from "../components/SSOConfiguration";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { EmailType } from "@calcom/emails/email-types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, AlertDescription } from "@coss/ui/components/alert";
 import {

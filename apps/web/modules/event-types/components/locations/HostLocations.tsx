@@ -12,7 +12,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { FormValues, Host, HostLocation } from "@calcom/features/eventtypes/lib/types";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";

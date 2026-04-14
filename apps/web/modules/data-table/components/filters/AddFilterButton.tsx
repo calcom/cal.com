@@ -4,7 +4,7 @@ import { type Table } from "@tanstack/react-table";
 import startCase from "lodash/startCase";
 import { forwardRef, useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@calcom/ui/components/command";
 import { EyeOffIcon, PlusIcon } from "@coss/ui/icons";

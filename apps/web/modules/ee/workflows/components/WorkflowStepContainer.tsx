@@ -30,7 +30,7 @@ import PhoneInput from "@calcom/web/components/phone-input";
 import "@calcom/features/ee/workflows/style/styles.css";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";

@@ -10,7 +10,7 @@ import {
   MAX_NB_INVITES,
 } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -55,8 +55,8 @@ import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { formatCents } from "~/billing/lib/plan-data";
 import TeamInviteFromOrg from "~/ee/organizations/components/TeamInviteFromOrg";
-import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
+import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
@@ -137,9 +137,7 @@ export default function MemberInvitationModal(
     );
   const billingPeriodKey =
     subscriptionStatus?.billingPeriod === "ANNUALLY" ? "annual" : "monthly";
-  const seatPrice = `${formatCents(
-    BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriodKey]
-  )}/mo`;
+  const seatPrice = `${formatCents(BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriodKey])}/mo`;
 
   // Check current org role and not team role
   const isOrgAdminOrOwner =

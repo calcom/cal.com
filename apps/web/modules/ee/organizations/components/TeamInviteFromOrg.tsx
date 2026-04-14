@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "react";
 import { useState } from "react";
 
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar, AvatarImage } from "@coss/ui/components/avatar";
 import { Checkbox } from "@coss/ui/components/checkbox";

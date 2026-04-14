@@ -1,6 +1,6 @@
 import type { OutOfOfficeRenderProps } from "@calcom/features/calendars/weeklyview/types/state";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 export function DefaultOutOfOfficeSlot(props: OutOfOfficeRenderProps) {

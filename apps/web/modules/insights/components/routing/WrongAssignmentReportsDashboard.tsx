@@ -1,7 +1,7 @@
 "use client";
 
 import { ZSingleSelectFilterValue } from "@calcom/features/data-table";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { WrongAssignmentReportStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";

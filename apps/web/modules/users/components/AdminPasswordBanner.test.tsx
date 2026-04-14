@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import AdminPasswordBanner from "./AdminPasswordBanner";
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (key: string) => key,
   }),

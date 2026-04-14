@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import type { Resource, PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { Scope, getPermissionsForScope } from "@calcom/features/pbac/domain/types/permission-registry";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Form, TextField, Checkbox, Label } from "@calcom/ui/components/form";
@@ -64,7 +64,7 @@ export function RoleSheet({
   scope = Scope.Organization,
   isPrivate = false,
 }: RoleSheetProps) {
-  const { t } = useLocale();
+  const { t } = useLocale(["settings_organizations_roles", "common"]);
   const router = useRouter();
   const isEditing = Boolean(role);
   const isSystemRole = role?.type === "SYSTEM";

@@ -3,7 +3,7 @@ import { vi, describe, it, expect } from "vitest";
 
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (key: string) => key,
   }),

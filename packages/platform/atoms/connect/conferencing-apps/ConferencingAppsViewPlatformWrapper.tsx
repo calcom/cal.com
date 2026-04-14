@@ -3,7 +3,7 @@
 import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../../hooks/use-atoms-locale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui/components/button";

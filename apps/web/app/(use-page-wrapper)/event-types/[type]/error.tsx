@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 
 import Shell from "~/shell/Shell";

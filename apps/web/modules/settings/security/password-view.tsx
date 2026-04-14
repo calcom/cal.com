@@ -25,7 +25,7 @@ import { Form } from "@coss/ui/components/form";
 import { Skeleton } from "@coss/ui/components/skeleton";
 import { Switch } from "@coss/ui/components/switch";
 import { PasswordField } from "@coss/ui/shared/password-field";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";

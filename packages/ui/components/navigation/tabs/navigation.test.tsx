@@ -13,7 +13,7 @@ vi.mock("@calcom/lib/hooks/useUrlMatchesCurrentUrl", () => ({
   useUrlMatchesCurrentUrl: () => useUrlMatchesCurrentUrlMock(),
 }));
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({
     t: (str: string) => str,
     isLocaleReady: true,

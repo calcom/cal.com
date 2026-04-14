@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button, buttonVariants } from "@coss/ui/components/button";
 import {
   Dialog,

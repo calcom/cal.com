@@ -7,7 +7,7 @@ import type { Props, States } from "@calcom/features/ee/payments/components/Paym
 import { PaymentFormComponent } from "@calcom/features/ee/payments/components/Payment";
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useAtomsLocale as useLocale } from "../../hooks/use-atoms-locale";
 
 const StripePaymentComponent = (
   props: Props & {

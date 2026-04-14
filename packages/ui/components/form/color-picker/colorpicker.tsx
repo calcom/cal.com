@@ -1,7 +1,7 @@
 "use client";
 
 import { fallBackHex, isValidHexCode } from "@calcom/lib/getBrandColours";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@coss/ui/components/button";
 import { Group, GroupSeparator } from "@coss/ui/components/group";
 import { Popover, PopoverPopup, PopoverTrigger } from "@coss/ui/components/popover";

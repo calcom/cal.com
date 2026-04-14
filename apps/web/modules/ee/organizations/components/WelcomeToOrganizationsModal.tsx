@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Icon, type IconName } from "@calcom/ui/components/icon";

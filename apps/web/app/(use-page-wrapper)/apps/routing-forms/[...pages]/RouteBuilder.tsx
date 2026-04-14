@@ -34,7 +34,7 @@ import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";

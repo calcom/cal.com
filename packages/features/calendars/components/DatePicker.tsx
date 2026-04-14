@@ -9,7 +9,7 @@ import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvai
 import type { Slots } from "@calcom/features/calendars/lib/types";
 import { formatDateTime } from "@calcom/lib/dateTimeFormatter";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import type { PeriodData } from "@calcom/types/Event";
 import classNames from "@calcom/ui/classNames";

@@ -1,5 +1,5 @@
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { App } from "@calcom/types/App";
 import type { IntegrationCalendar } from "@calcom/types/Calendar";
 import { Badge } from "@calcom/ui/components/badge";

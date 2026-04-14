@@ -5,7 +5,7 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/web/components/phone-input";
 import { getEventTypeIdForCalAiTest } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";

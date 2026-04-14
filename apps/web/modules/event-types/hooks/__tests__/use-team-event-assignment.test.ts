@@ -11,7 +11,7 @@ import { useTeamEventAssignment } from "../use-team-event-assignment";
 
 // --- Mocks ---
 
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
+vi.mock("@calcom/i18n/useLocale", () => ({
   useLocale: () => ({ t: (key: string) => key }),
 }));
 

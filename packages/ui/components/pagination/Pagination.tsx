@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 import { Button } from "../button";
 import { ButtonGroup } from "../buttonGroup";

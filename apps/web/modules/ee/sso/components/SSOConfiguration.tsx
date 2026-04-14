@@ -13,7 +13,7 @@ import ConnectionInfo from "./ConnectionInfo";
 import OIDCConnection from "./OIDCConnection";
 import SAMLConnection from "./SAMLConnection";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, AlertDescription } from "@coss/ui/components/alert";
 import { Skeleton } from "@coss/ui/components/skeleton";

@@ -12,7 +12,7 @@ import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/Bul
 import { NewScheduleButton } from "@calcom/web/modules/schedules/components/NewScheduleButton";
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";

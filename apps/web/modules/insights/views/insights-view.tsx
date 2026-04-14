@@ -35,7 +35,7 @@ import { Download } from "../components/filters/Download/Download";
 import { OrgTeamsFilter } from "../components/filters/OrgTeamsFilter";
 import { useInsightsBookings } from "@calcom/web/modules/insights/hooks/useInsightsBookings";
 import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 export default function InsightsPage({ timeZone }: { timeZone: string }) {

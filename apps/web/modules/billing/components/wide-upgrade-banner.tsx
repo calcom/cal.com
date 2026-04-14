@@ -2,7 +2,7 @@
 
 import classNames from "@calcom/ui/classNames";
 import { useClientOnly } from "@calcom/lib/hooks/useClientOnly";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Icon } from "@calcom/ui/components/icon";
 import { OrgBadge, TeamBadge } from "@calcom/web/modules/billing/components/PlanBadge";

@@ -4,7 +4,7 @@ import type { UseFormReturn } from "react-hook-form";
 import type { Language } from "@calcom/features/calAIPhone/providers/retellAI/types";
 import { restorePromptComplexity } from "@calcom/features/calAIPhone/providers/retellAI/utils/promptUtils";
 import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";

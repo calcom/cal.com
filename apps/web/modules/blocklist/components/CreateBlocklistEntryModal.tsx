@@ -2,7 +2,7 @@
 
 import type { BlocklistScope, CreateBlocklistEntryFormData } from "@calcom/features/blocklist/types";
 import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { WatchlistType } from "@calcom/prisma/enums";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";

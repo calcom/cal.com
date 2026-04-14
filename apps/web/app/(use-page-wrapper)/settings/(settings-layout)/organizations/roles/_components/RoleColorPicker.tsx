@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 
 export interface RoleColorPickerProps {
   value: string;
@@ -11,7 +11,7 @@ export interface RoleColorPickerProps {
 }
 
 export default function RoleColorPicker({ value, onChange, disabled }: RoleColorPickerProps) {
-  const { t } = useLocale();
+  const { t } = useLocale(["settings_organizations_roles", "common"]);
   const [, setCustomColor] = useState(value);
   const colorInputRef = useRef<HTMLInputElement>(null);
 

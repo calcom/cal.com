@@ -3,7 +3,7 @@
 import { signOut } from "next-auth/react";
 import type { ReactNode } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Logo } from "@calcom/ui/components/logo";
 

@@ -2,7 +2,7 @@
 
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { Scope } from "@calcom/features/pbac/domain/types/permission-registry";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
 import { getResourceLabel } from "./permission-labels";
@@ -24,7 +24,7 @@ export function SimplePermissionItem({
   disabled,
   scope = Scope.Organization,
 }: SimplePermissionItemProps) {
-  const { t } = useLocale();
+  const { t } = useLocale(["settings_organizations_roles", "common"]);
   const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions(scope);
 
   const isAllResources = resource === "*";

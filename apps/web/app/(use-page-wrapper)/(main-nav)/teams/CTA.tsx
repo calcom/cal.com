@@ -2,7 +2,7 @@
 import posthog from "posthog-js";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
 export const TeamsCTA = () => {

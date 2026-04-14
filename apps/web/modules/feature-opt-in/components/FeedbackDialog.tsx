@@ -1,7 +1,7 @@
 "use client";
 
 import { RATING_OPTIONS } from "@calcom/features/bookings/lib/rating";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@coss/ui/components/button";
 import { Textarea } from "@coss/ui/components/textarea";

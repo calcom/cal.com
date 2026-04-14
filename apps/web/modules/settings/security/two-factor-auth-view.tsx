@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, AlertDescription } from "@coss/ui/components/alert";
 import { InfoIcon } from "@coss/ui/icons";

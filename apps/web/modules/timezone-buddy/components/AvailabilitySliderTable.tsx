@@ -12,7 +12,7 @@ import { DataTable, DataTableToolbar } from "~/data-table/components";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
 import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";

@@ -12,7 +12,7 @@ import {
   VELOCITY_UNITS,
 } from "@calcom/features/abuse-scoring/lib/constants";
 import type { AbuseRuleField, AbuseRuleOperator, VelocityUnit } from "@calcom/features/abuse-scoring/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import {

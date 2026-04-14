@@ -3,7 +3,7 @@ import type { FC } from "react";
 import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/i18n/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar } from "@calcom/ui/components/avatar";
