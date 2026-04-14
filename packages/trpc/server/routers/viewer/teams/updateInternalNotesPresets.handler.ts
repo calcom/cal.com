@@ -6,6 +6,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import type { TUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
+import { Prisma } from "@calcom/prisma/client";
 
 type UpdateInternalNotesPresetsOptions = {
   ctx: {
@@ -63,32 +64,41 @@ export const updateInternalNotesPresetsHandler = async ({
   }
 
   // Update or create presets
-  const updatedPresets = await Promise.all(
-    input.presets.map((preset) => {
-      if (preset.id && preset.id !== -1) {
-        // Update existing preset
-        return prisma.internalNotePreset.update({
-          where: {
-            id: preset.id,
-            teamId: input.teamId,
-          },
-          data: {
-            name: preset.name,
-            cancellationReason: preset.cancellationReason,
-          },
-        });
-      } else {
-        // Create new preset
-        return prisma.internalNotePreset.create({
-          data: {
-            name: preset.name,
-            cancellationReason: preset.cancellationReason,
-            teamId: input.teamId,
-          },
-        });
-      }
-    })
-  );
+const updatedPresets = await Promise.all(
+  input.presets.map((preset) => {
+    if (preset.id && preset.id !== -1) {
+      // Update existing preset
+      return prisma.internalNotePreset.update({
+        where: {
+          id: preset.id,
+          teamId: input.teamId,
+        },
+        data: {
+          name: preset.name,
+          cancellationReason: preset.cancellationReason,
+        },
+      });
+    } else {
+      // Create new preset
+      return prisma.internalNotePreset.create({
+        data: {
+          name: preset.name,
+          cancellationReason: preset.cancellationReason,
+          teamId: input.teamId,
+        },
+      });
+    }
+  })
+).catch((error) => {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    throw new TRPCError({
+      code: "CONFLICT",
+      message: "A preset with this name already exists. Please try a different name.",
+    });
+  }
+
+  throw error;
+});
 
   return updatedPresets;
 };
