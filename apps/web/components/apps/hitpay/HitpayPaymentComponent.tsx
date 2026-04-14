@@ -41,7 +41,8 @@ export const HitpayPaymentComponent = (props: IPaymentComponentProps) => {
     if (parsedData.success) {
       if (window.self !== window.top && window.top) {
         if (!isInitialized) {
-          const subUrl = parsedData.data.url.substring("https://securecheckout.".length);
+          const isCheckoutV1 = parsedData.data.url.includes("https://securecheckout.");
+          const subUrl = isCheckoutV1 ?parsedData.data.url.substring("https://securecheckout.".length) : parsedData.data.url.substring("https://checkout.".length);
           const arr = subUrl.split("/");
           const domain = arr[0];
 
