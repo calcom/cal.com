@@ -164,7 +164,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
         "group flex w-[calc(100%-1px)] items-center justify-center",
         isDisabled && "pointer-events-none",
         !isDisabled && "bg-default dark:bg-cal-muted",
-        topOffsetMinutes && "absolute"
+        topOffsetMinutes !== undefined && "absolute"
       )}
       data-disabled={isDisabled}
       data-slot={timeSlot.toISOString()}
@@ -172,7 +172,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       style={{
         height: `calc(${hoverEventDuration}*var(--one-minute-height))`,
         overflow: "visible",
-        top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
+        top: topOffsetMinutes !== undefined ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
       }}
       onClick={() => {
         onEmptyCellClick?.(timeSlot.toDate());
@@ -211,7 +211,7 @@ function CustomCell({
       )}
       data-slot={timeSlot.toISOString()}
       style={{
-        top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
+        top: topOffsetMinutes !== undefined ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
         overflow: "visible",
       }}>
       <div
