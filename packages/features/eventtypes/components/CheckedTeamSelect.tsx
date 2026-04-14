@@ -100,55 +100,51 @@ export const CheckedTeamSelect = ({
     props.onChange(newValueAllGroups);
   };
 
-  // Handle creating new options from typed emails
-  const handleCreateOption = (inputValue: string) => {
+  // Get new emails that aren't already added as invites or existing members
+  const getCreatableEmails = (inputValue: string): string[] => {
     const emails = parseEmails(inputValue);
-    if (emails.length === 0) return;
+    if (emails.length === 0) return [];
 
     const existingEmails = new Set(value.filter((v) => v.isEmailInvite).map((v) => v.email?.toLowerCase()));
     const existingMemberEmails = new Set(
       options.map((o) => o.email?.toLowerCase()).filter(Boolean)
     );
 
-    const uniqueEmails = Array.from(new Set(emails));
+    return Array.from(new Set(emails)).filter(
+      (email) => !existingEmails.has(email) && !existingMemberEmails.has(email)
+    );
+  };
 
-    const newOptions: CheckedSelectOption[] = uniqueEmails
-      .filter((email) => !existingEmails.has(email) && !existingMemberEmails.has(email))
-      .map((email) => ({
-        value: `email-${email}`,
-        label: `${email} (${t("invite")})`,
-        avatar: "",
-        groupId,
-        isEmailInvite: true,
-        email,
-        defaultScheduleId: null,
-      }));
+  // Handle creating new options from typed emails
+  const handleCreateOption = (inputValue: string) => {
+    const creatableEmails = getCreatableEmails(inputValue);
+    if (creatableEmails.length === 0) return;
 
-    if (newOptions.length > 0) {
-      handleSelectChange([...valueFromGroup, ...newOptions]);
-    }
+    const newOptions: CheckedSelectOption[] = creatableEmails.map((email) => ({
+      value: `email-${email}`,
+      label: `${email} (${t("invite")})`,
+      avatar: "",
+      groupId,
+      isEmailInvite: true,
+      email,
+      defaultScheduleId: null,
+    }));
+
+    handleSelectChange([...valueFromGroup, ...newOptions]);
   };
 
   // Validate if input contains at least one new email not already added
   const isValidNewOption = (inputValue: string): boolean => {
     if (!allowEmailInvites) return false;
-    const emails = parseEmails(inputValue);
-    if (emails.length === 0) return false;
-
-    const existingEmails = new Set(value.filter((v) => v.isEmailInvite).map((v) => v.email?.toLowerCase()));
-    const existingMemberEmails = new Set(
-      options.map((o) => o.email?.toLowerCase()).filter(Boolean)
-    );
-
-    return emails.some((email) => !existingEmails.has(email) && !existingMemberEmails.has(email));
+    return getCreatableEmails(inputValue).length > 0;
   };
 
-  // Format the create option label
+  // Format the create option label using actual creatable count
   const formatCreateLabel = (inputValue: string) => {
-    const emails = parseEmails(inputValue);
-    if (emails.length === 0) return inputValue;
-    if (emails.length === 1) return `${t("invite")} ${emails[0]}`;
-    return `${t("invite")} ${emails.length} ${t("members").toLowerCase()}`;
+    const creatableEmails = getCreatableEmails(inputValue);
+    if (creatableEmails.length === 0) return inputValue;
+    if (creatableEmails.length === 1) return `${t("invite")} ${creatableEmails[0]}`;
+    return `${t("invite")} ${creatableEmails.length} ${t("members").toLowerCase()}`;
   };
 
   const reactSelectProps = getReactSelectProps<CheckedSelectOption, true>({
