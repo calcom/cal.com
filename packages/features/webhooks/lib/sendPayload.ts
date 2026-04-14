@@ -100,6 +100,7 @@ export type EventPayloadType = Omit<CalendarEvent, "assignmentReason"> &
     cancelledBy?: string;
     paymentData?: PaymentData;
     requestReschedule?: boolean;
+    rescheduleRequested?: boolean;
     assignmentReason?: string | { reasonEnum: string; reasonString: string }[] | null;
   };
 
