@@ -21,7 +21,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getPublicVideoCallUrl, getVideoCallUrlFromCalEvent, isDailyVideoCall } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -276,8 +276,15 @@ export async function handleConfirmation(args: {
       uid: booking.uid,
     }));
 
-    const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) =>
-      prisma.booking.update({
+    const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) => {
+      // For Cal Video (Daily), each occurrence must use its own booking uid as the room
+      // identifier — the public URL is /video/<uid>. Other providers create a single
+      // meeting for the whole series, so they share meetingUrl.
+      const bookingVideoCallUrl = isDailyVideoCall(evt.videoCallData)
+        ? getPublicVideoCallUrl(recurringBooking.uid)
+        : meetingUrl;
+
+      return prisma.booking.update({
         where: {
           id: recurringBooking.id,
         },
@@ -289,7 +296,7 @@ export async function handleConfirmation(args: {
           paid,
           metadata: {
             ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
-            videoCallUrl: meetingUrl,
+            videoCallUrl: bookingVideoCallUrl,
           },
         },
         select: {
@@ -334,8 +341,8 @@ export async function handleConfirmation(args: {
           customInputs: true,
           id: true,
         },
-      })
-    );
+      });
+    });
 
     const updatedBookingsResult = await Promise.all(updateBookingsPromise);
     updatedBookings = updatedBookings.concat(updatedBookingsResult);
@@ -442,10 +449,15 @@ export async function handleConfirmation(args: {
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
       const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
+      const bookingUid = updatedBookings[index].uid;
       const evtOfBooking = {
         ...evt,
         rescheduleReason: updatedBookings[index].cancellationReason || null,
-        metadata: { videoCallUrl: meetingUrl },
+        metadata: {
+          videoCallUrl: isDailyVideoCall(evt.videoCallData)
+            ? getPublicVideoCallUrl(bookingUid)
+            : meetingUrl,
+        },
         eventType: {
           slug: eventTypeSlug,
           schedulingType: updatedBookings[index].eventType?.schedulingType,
@@ -455,7 +467,7 @@ export async function handleConfirmation(args: {
       };
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
-      evtOfBooking.uid = updatedBookings[index].uid;
+      evtOfBooking.uid = bookingUid;
       const isFirstBooking = index === 0;
 
       if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
