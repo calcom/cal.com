@@ -1,11 +1,12 @@
 "use client";
 
-import superjson from "superjson";
-
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
-
+import { metrics } from "@sentry/nextjs";
+import type { TRPCLink } from "@trpc/client";
 import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
-
+import type { AnyRouter } from "@trpc/server";
+import { observable } from "@trpc/server/observable";
+import superjson from "superjson";
 import { trpc } from "./trpc";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,8 +39,47 @@ const url =
       ? `https://${process.env.VERCEL_URL}/api/trpc`
       : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
 
+/**
+ * Lightweight tRPC metrics link that reports client-side latency
+ * as Sentry metrics (counters + distributions) instead of spans.
+ * This avoids consuming span quota while providing full visibility
+ * into tRPC round-trip times per operation path and type.
+ */
+const metricsLink: TRPCLink<AnyRouter> = () => {
+  return ({ next, op }) => {
+    const startTime = performance.now();
+    return observable((observer) => {
+      const unsub = next(op).subscribe({
+        next(value) {
+          observer.next(value);
+        },
+        error(err) {
+          const duration = performance.now() - startTime;
+          metrics.distribution("trpc.client.duration_ms", duration, {
+            attributes: { path: op.path, type: op.type, status: "error" },
+          });
+          metrics.count("trpc.client.error", 1, {
+            attributes: { path: op.path, type: op.type },
+          });
+          observer.error(err);
+        },
+        complete() {
+          const duration = performance.now() - startTime;
+          metrics.distribution("trpc.client.duration_ms", duration, {
+            attributes: { path: op.path, type: op.type, status: "ok" },
+          });
+          observer.complete();
+        },
+      });
+      return unsub;
+    });
+  };
+};
+
 export const trpcClient = trpc.createClient({
   links: [
+    // Reports tRPC latency as Sentry metrics — zero span overhead
+    metricsLink,
     // adds pretty logs to your console in development and logs errors in production
     loggerLink({
       enabled: (opts) =>

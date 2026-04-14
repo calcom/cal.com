@@ -2,7 +2,9 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 import * as Sentry from "@sentry/nextjs";
+import { metrics } from "@sentry/nextjs";
 import { initBotId } from "botid/client/core";
+import { onCLS, onINP, onLCP, onTTFB } from "web-vitals";
 
 if (process.env.NODE_ENV === "production") {
   Sentry.init({
@@ -42,6 +44,13 @@ if (process.env.NODE_ENV === "production") {
       return event;
     },
   });
+
+  // Report Core Web Vitals as lightweight Sentry metrics (no spans).
+  // These are aggregated server-side and don't count against span quota.
+  onLCP((m) => metrics.distribution("web_vital.lcp", m.value, { attributes: { rating: m.rating } }));
+  onCLS((m) => metrics.distribution("web_vital.cls", m.value, { attributes: { rating: m.rating } }));
+  onTTFB((m) => metrics.distribution("web_vital.ttfb", m.value, { attributes: { rating: m.rating } }));
+  onINP((m) => metrics.distribution("web_vital.inp", m.value, { attributes: { rating: m.rating } }));
 }
 
 export function onRouterTransitionStart(url: string, navigationType: "push" | "replace" | "traverse") {

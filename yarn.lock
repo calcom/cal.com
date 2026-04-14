@@ -2743,16 +2743,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/kysely@workspace:packages/kysely":
-  version: 0.0.0-use.local
-  resolution: "@calcom/kysely@workspace:packages/kysely"
-  dependencies:
-    "@types/pg": "npm:8.11.14"
-    kysely: "npm:0.28.14"
-    pg: "npm:8.16.0"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/larkcalendar@workspace:packages/app-store/larkcalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/larkcalendar@workspace:packages/app-store/larkcalendar"
@@ -3515,6 +3505,7 @@ __metadata:
     turndown: "npm:7.2.0"
     typescript: "npm:5.9.3"
     uuid: "npm:11.1.0"
+    web-vitals: "npm:^5.2.0"
     zod: "npm:3.25.76"
   languageName: unknown
   linkType: soft
@@ -16017,7 +16008,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pg@npm:*, @types/pg@npm:8.11.14":
+"@types/pg@npm:*":
   version: 8.11.14
   resolution: "@types/pg@npm:8.11.14"
   dependencies:
@@ -27190,13 +27181,6 @@ __metadata:
   version: 2.0.0
   resolution: "kuler@npm:2.0.0"
   checksum: 10/9e10b5a1659f9ed8761d38df3c35effabffbd19fc6107324095238e4ef0ff044392cae9ac64a1c2dda26e532426485342226b93806bd97504b174b0dcf04ed81
-  languageName: node
-  linkType: hard
-
-"kysely@npm:0.28.14":
-  version: 0.28.14
-  resolution: "kysely@npm:0.28.14"
-  checksum: 10/d76ff120c4c295091e0c8ecf9f2fb920547247d0cf6f0cf0098cb6d85fd77f18da09ddd18345477a527b82eddc087a145783772fc0e09e9280239fb87df83be9
   languageName: node
   linkType: hard
 
@@ -39286,6 +39270,13 @@ __metadata:
   version: 4.2.4
   resolution: "web-vitals@npm:4.2.4"
   checksum: 10/68cd1c2625a04b26e7eab67110623396afc6c9ef8c3a76f4e780aefe5b7d4ca1691737a0b99119e1d1ca9a463c4d468c0f0090b1875b6d784589d3a4a8503313
+  languageName: node
+  linkType: hard
+
+"web-vitals@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "web-vitals@npm:5.2.0"
+  checksum: 10/7ef329aa6398b3b8202ef8a3ce024fbd7a7edd795b5a1a51d6b7b4199bf1d922e67f850accef1e3cc7aa3a700ecb8116192030a4b29f422666714c361d9c509d
   languageName: node
   linkType: hard
 
