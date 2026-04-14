@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockTrpc, mockParams } = vi.hoisted(() => ({
   mockTrpc: {
@@ -48,7 +48,20 @@ vi.mock("@calcom/lib/csvUtils", () => ({
 import { RoutedToPerPeriod } from "./RoutedToPerPeriod";
 
 describe("RoutedToPerPeriod", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Make requestAnimationFrame synchronous to prevent jsdom cleanup race.
+    // jsdom polyfills rAF via setTimeout; if the callback fires after the
+    // window is torn down, accessing window._location throws.
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb: FrameRequestCallback) => {
+      cb(0);
+      return 0;
+    });
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
 
   it("should show loading state when isPending", () => {
     mockTrpc.viewer.insights.routedToPerPeriod.useQuery.mockReturnValue({
