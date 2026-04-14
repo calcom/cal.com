@@ -14,6 +14,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import config from "../config.json";
+import { getValidZohoDomain } from "../lib/zoho-domains";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
@@ -53,15 +54,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     code,
   };
 
-  let server_location;
-
-  if (location === "us") {
-    server_location = "com";
-  } else if (location === "au") {
-    server_location = "com.au";
-  } else {
-    server_location = location;
-  }
+  const server_location = getValidZohoDomain(location);
 
   const query = stringify(params);
 
