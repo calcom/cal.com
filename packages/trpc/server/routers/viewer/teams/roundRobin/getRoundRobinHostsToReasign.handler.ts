@@ -2,6 +2,7 @@ import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegati
 import dayjs from "@calcom/dayjs";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { getBookingAccessService } from "@calcom/features/di/containers/BookingAccessService";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
@@ -9,6 +10,8 @@ import type { PrismaClient } from "@calcom/prisma";
 import { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TGetRoundRobinHostsToReassignInputSchema } from "./getRoundRobinHostsToReasign.schema";
 
@@ -110,6 +113,16 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
   const gettingRoundRobinHostsToReassignLogger = logger.getSubLogger({
     prefix: ["gettingRoundRobinHostsToReassign", `${bookingId}`],
   });
+
+  const bookingAccessService = getBookingAccessService();
+  const isAllowed = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId: user.id,
+    bookingId,
+  });
+
+  if (!isAllowed) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "You do not have permission" });
+  }
 
   const booking = await prisma.booking.findUniqueOrThrow({
     where: { id: bookingId },
