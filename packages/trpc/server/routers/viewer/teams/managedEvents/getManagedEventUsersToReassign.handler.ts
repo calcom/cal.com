@@ -4,6 +4,7 @@ import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBoo
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getBookingAccessService } from "@calcom/features/di/containers/BookingAccessService";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -11,6 +12,8 @@ import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TGetManagedEventUsersToReassignInputSchema } from "./getManagedEventUsersToReassign.schema";
 
@@ -73,6 +76,16 @@ export const getManagedEventUsersToReassign = async ({
   const gettingManagedEventUsersToReassignLogger = logger.getSubLogger({
     prefix: ["gettingManagedEventUsersToReassign", `${bookingId}`],
   });
+
+  const bookingAccessService = getBookingAccessService();
+  const isAllowed = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId: user.id,
+    bookingId,
+  });
+
+  if (!isAllowed) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "You do not have permission" });
+  }
 
   const bookingRepository = new BookingRepository(prisma);
   const eventTypeRepository = new EventTypeRepository(prisma);
