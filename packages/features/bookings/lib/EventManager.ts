@@ -442,10 +442,21 @@ export default class EventManager {
       results.push(result);
     }
 
-    // Update the calendar event with the proper video call data
+    // Update the calendar event with the proper video call data (or create when no valid uid - declarative)
     const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
-    if (calendarReference) {
+    let createdNewCalendarEvents = false;
+    if (calendarReference?.uid) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+      if (evt.location === MSTeamsLocationType) {
+        this.updateMSTeamsVideoCallData(evt, results);
+      }
+    } else if (calendarReference) {
+      const missingCalendarEventsResult = await this.handleMissingCalendarEvents(evt, booking, []);
+      results.push(
+        ...(missingCalendarEventsResult.results as Array<EventResult<Exclude<Event, AdditionalInformation>>>)
+      );
+      createdNewCalendarEvents = missingCalendarEventsResult.createdNewCalendarEvents;
 
       if (evt.location === MSTeamsLocationType) {
         this.updateMSTeamsVideoCallData(evt, results);
@@ -489,6 +500,7 @@ export default class EventManager {
     return {
       results,
       referencesToCreate,
+      ...(createdNewCalendarEvents && { createdNewCalendarEvents }),
     };
   }
 
@@ -607,6 +619,45 @@ export default class EventManager {
   }
 
   /**
+   * Handles the creation of new calendar events when no valid calendar event exists for a booking.
+   * This method encapsulates logging, event creation, and reference management.
+   *
+   * @param evt - The calendar event to create
+   * @param booking - The existing booking
+   * @param updatedBookingReferences - Array to update with new calendar references
+   * @returns Promise<{ results: EventResult<Event>[], createdNewCalendarEvents: boolean }>
+   */
+  private async handleMissingCalendarEvents(
+    evt: CalendarEvent,
+    booking: any,
+    updatedBookingReferences: Array<PartialReference>
+  ): Promise<{ results: Array<EventResult<Event>>; createdNewCalendarEvents: boolean }> {
+    log.debug("No valid calendar event found for booking, creating new calendar events");
+    const createdEventsResults = await this.createAllCalendarEvents(evt);
+    const results = [...createdEventsResults];
+
+    const calendarReferences = createdEventsResults
+      .filter((r) => r.type.includes("_calendar") && r.success)
+      .map((result) => ({
+        type: result.type,
+        uid: result.uid,
+        meetingId: result.uid,
+        meetingPassword: result.originalEvent.attendees?.[0]?.timeZone || "",
+        meetingUrl: result.originalEvent.videoCallData?.url || "",
+        externalCalendarId: result.externalId || null,
+        credentialId: result.credentialId || null,
+      }));
+
+    const existingNonCalendarReferences = booking.references.filter(
+      (ref: PartialReference) => !ref.type.includes("_calendar")
+    );
+    updatedBookingReferences.push(...existingNonCalendarReferences, ...calendarReferences);
+    const createdNewCalendarEvents = calendarReferences.length > 0;
+
+    return { results, createdNewCalendarEvents };
+  }
+
+  /**
    * Takes a calendarEvent and a rescheduleUid and updates the event that has the
    * given uid using the data delivered in the given CalendarEvent.
    *
@@ -675,6 +726,7 @@ export default class EventManager {
     const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
 
     let isDailyVideoRoomExpired = false;
+    let createdNewCalendarEvents = false;
 
     if (evt.location === "integrations:daily") {
       const originalBookingEndTime = new Date(booking.endTime);
@@ -682,9 +734,6 @@ export default class EventManager {
       const now = new Date();
       isDailyVideoRoomExpired = now > roomExpiryTime;
     }
-
-    const shouldUpdateBookingReferences =
-      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
 
     if (evt.requiresConfirmation) {
       if (!skipDeleteEventsAndMeetings) {
@@ -722,6 +771,7 @@ export default class EventManager {
           const updatedLocation = await this.updateLocation(evt, booking);
           results.push(...updatedLocation.results);
           updatedBookingReferences.push(...updatedLocation.referencesToCreate);
+          createdNewCalendarEvents = updatedLocation.createdNewCalendarEvents ?? createdNewCalendarEvents;
         } else {
           const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
           // If and only if event type is a dedicated meeting, update the dedicated video meeting.
@@ -741,10 +791,18 @@ export default class EventManager {
           const bookingCalendarReference = booking.references.find((reference) =>
             reference.type.includes("_calendar")
           );
-          // There was a case that booking didn't had any reference and we don't want to throw error on function
-          if (bookingCalendarReference) {
-            // Update all calendar events.
+
+          if (bookingCalendarReference?.uid) {
+            // Update existing calendar events
             results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          } else {
+            const missingCalendarEventsResult = await this.handleMissingCalendarEvents(
+              evt,
+              booking,
+              updatedBookingReferences
+            );
+            results.push(...missingCalendarEventsResult.results);
+            createdNewCalendarEvents = missingCalendarEventsResult.createdNewCalendarEvents;
           }
         }
 
@@ -768,9 +826,18 @@ export default class EventManager {
       });
     }
 
+    const shouldUpdateBookingReferences =
+      !!changedOrganizer ||
+      isLocationChanged ||
+      !!isBookingRequestedReschedule ||
+      isDailyVideoRoomExpired ||
+      createdNewCalendarEvents;
+
     return {
       results,
-      referencesToCreate: shouldUpdateBookingReferences ? updatedBookingReferences : [...booking.references],
+      referencesToCreate: shouldUpdateBookingReferences
+        ? updatedBookingReferences
+        : [...booking.references],
     };
   }
 

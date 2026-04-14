@@ -80,7 +80,7 @@ function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntentId: str
 }
 
 async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
-  let webhookResponse = null;
+  let webhookResponse: HttpError | null = null;
   try {
     const traceContext = distributedTracing.createTrace("test_stripe_webhook");
     await handleStripePaymentSuccess(

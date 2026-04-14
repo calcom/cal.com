@@ -32,6 +32,7 @@ export interface EventResult<T> {
 export interface CreateUpdateResult {
   results: Array<EventResult>;
   referencesToCreate: Array<PartialReference>;
+  createdNewCalendarEvents?: boolean;
 }
 
 export interface PartialBooking {
