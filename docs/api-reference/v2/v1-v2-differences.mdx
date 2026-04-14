@@ -39,12 +39,12 @@ curl https://api.cal.com/v2/bookings \
 
 #### Create a booking
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 POST /v1/bookings
 ```
 
-**V1 request body:**
+**v1 request body:**
 ```json
 {
   "eventTypeId": 123,
@@ -64,12 +64,12 @@ POST /v1/bookings
 }
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 POST /v2/bookings
 ```
 
-**V2 request body:**
+**v2 request body:**
 ```json
 {
   "eventTypeId": 123,
@@ -94,7 +94,7 @@ POST /v2/bookings
 - Must include `cal-api-version: 2024-08-13` header
 - Response structure is more detailed with `status` and `data` wrapper
 
-**V1 response:**
+**v1 response:**
 ```json
 {
   "booking": {
@@ -108,7 +108,7 @@ POST /v2/bookings
 }
 ```
 
-**V2 response:**
+**v2 response:**
 ```json
 {
   "status": "success",
@@ -131,14 +131,14 @@ POST /v2/bookings
 
 #### Get all bookings
 
-**V1:** Not available as a dedicated endpoint
+**v1:** Not available as a dedicated endpoint
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 GET /v2/bookings
 ```
 
-**V2 query parameters:**
+**v2 query parameters:**
 - `status`: Filter by booking status (accepted, pending, cancelled, rejected)
 - `attendeeEmail`: Filter by attendee email
 - `eventTypeId`: Filter by event type
@@ -146,7 +146,7 @@ GET /v2/bookings
 - `take`, `skip`: Pagination
 - `sortStart`, `sortEnd`, `sortCreated`: Sorting options
 
-**V2 response includes pagination:**
+**v2 response includes pagination:**
 ```json
 {
   "status": "success",
@@ -162,17 +162,17 @@ GET /v2/bookings
 
 #### Cancel a booking
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 DELETE /v1/bookings?id={id}&allRemainingBookings=false&cancellationReason=reason
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 POST /v2/bookings/{uid}/cancel
 ```
 
-**V2 request body:**
+**v2 request body:**
 ```json
 {
   "cancellationReason": "User requested cancellation"
@@ -186,14 +186,14 @@ POST /v2/bookings/{uid}/cancel
 
 #### Reschedule a booking
 
-**V1:** Required creating a new booking with `rescheduleUid`
+**v1:** Required creating a new booking with `rescheduleUid`
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 POST /v2/bookings/{uid}/reschedule
 ```
 
-**V2 request body:**
+**v2 request body:**
 ```json
 {
   "start": "2024-08-14T10:00:00Z",
@@ -210,29 +210,29 @@ POST /v2/bookings/{uid}/reschedule
 
 #### Get all event types
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 GET /v1/event-types
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 GET /v2/event-types
 ```
 
 **Key differences:**
-- V2 response includes more detailed information about each event type
-- V2 includes pagination support
-- V2 response wrapped in `{status, data}` structure
+- v2 response includes more detailed information about each event type
+- v2 includes pagination support
+- v2 response wrapped in `{status, data}` structure
 
 #### Create an event type
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 POST /v1/event-types
 ```
 
-**V1 request body:**
+**v1 request body:**
 ```json
 {
   "title": "30 Min Meeting",
@@ -242,12 +242,12 @@ POST /v1/event-types
 }
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 POST /v2/event-types
 ```
 
-**V2 request body:**
+**v2 request body:**
 ```json
 {
   "title": "30 Min Meeting",
@@ -264,12 +264,12 @@ POST /v2/event-types
 
 #### Update an event type
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 PATCH /v1/event-types/{id}
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 PATCH /v2/event-types/{id}
 ```
@@ -277,35 +277,35 @@ PATCH /v2/event-types/{id}
 **Key differences:**
 - Same HTTP method and path structure
 - Request/response body structure differences match create endpoint
-- V2 provides more granular control over event type settings
+- v2 provides more granular control over event type settings
 
 ### Schedules
 
 #### Get all schedules
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 GET /v1/schedules
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 GET /v2/schedules
 ```
 
 **Key differences:**
-- V2 includes default schedule indicator
-- V2 response includes more detailed availability information
-- V2 supports filtering and pagination
+- v2 includes default schedule indicator
+- v2 response includes more detailed availability information
+- v2 supports filtering and pagination
 
 #### Create a schedule
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 POST /v1/schedules
 ```
 
-**V1 request body:**
+**v1 request body:**
 ```json
 {
   "name": "Working Hours",
@@ -314,12 +314,12 @@ POST /v1/schedules
 }
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 POST /v2/schedules
 ```
 
-**V2 request body:**
+**v2 request body:**
 ```json
 {
   "name": "Working Hours",
@@ -338,24 +338,24 @@ POST /v2/schedules
 
 #### Get all webhooks
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 GET /v1/webhooks
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 GET /v2/webhooks
 ```
 
 #### Create a webhook
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 POST /v1/webhooks
 ```
 
-**V1 request body:**
+**v1 request body:**
 ```json
 {
   "subscriberUrl": "https://example.com/webhook",
@@ -364,12 +364,12 @@ POST /v1/webhooks
 }
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 POST /v2/webhooks
 ```
 
-**V2 request body:**
+**v2 request body:**
 ```json
 {
   "payloadTemplate": null,
@@ -388,69 +388,69 @@ POST /v2/webhooks
 
 #### Get available slots
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 GET /v1/slots/available?eventTypeId=123&startTime=2024-01-01&endTime=2024-01-31
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 GET /v2/slots/available?eventTypeId=123&startTime=2024-01-01T00:00:00Z&endTime=2024-01-31T23:59:59Z
 ```
 
 **Key differences:**
-- V2 requires full ISO 8601 timestamps
-- V2 response includes more metadata about slot availability
-- V2 supports additional filtering options (username, teamSlug, etc.)
+- v2 requires full ISO 8601 timestamps
+- v2 response includes more metadata about slot availability
+- v2 supports additional filtering options (username, teamSlug, etc.)
 
 ### Teams
 
 #### Get all teams
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 GET /v1/teams
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 GET /v2/teams
 ```
 
 **Key differences:**
-- V2 includes organization context if team is part of an org
-- V2 response includes more team metadata
-- V2 supports pagination
+- v2 includes organization context if team is part of an org
+- v2 response includes more team metadata
+- v2 supports pagination
 
 ### Users
 
 #### Get user profile
 
-**V1 endpoint:**
+**v1 endpoint:**
 ```
 GET /v1/users/{id}
 ```
 
-**V2 endpoint:**
+**v2 endpoint:**
 ```
 GET /v2/me
 ```
 
 **Key differences:**
-- V2 uses `/me` endpoint for current user
-- V2 returns more detailed profile information
-- V2 includes organization and team memberships
+- v2 uses `/me` endpoint for current user
+- v2 returns more detailed profile information
+- v2 includes organization and team memberships
 
 ## Response structure changes
 
-### V1 response format
+### v1 response format
 ```json
 {
   "booking": {...}
 }
 ```
 
-### V2 response format
+### v2 response format
 ```json
 {
   "status": "success",
@@ -465,14 +465,14 @@ All v2 responses follow this consistent structure with:
 
 ## Error handling
 
-### V1 errors
+### v1 errors
 ```json
 {
   "message": "Event type not found"
 }
 ```
 
-### V2 errors
+### v2 errors
 ```json
 {
   "status": "error",
@@ -483,7 +483,7 @@ All v2 responses follow this consistent structure with:
 }
 ```
 
-V2 provides more structured error responses with error codes for better error handling.
+v2 provides more structured error responses with error codes for better error handling.
 
 ## Migration checklist
 
