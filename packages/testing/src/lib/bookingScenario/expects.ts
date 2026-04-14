@@ -273,6 +273,8 @@ export function expectWebhookToHaveBeenCalledWith(
   data: {
     triggerEvent: WebhookTriggerEvents;
     payload: Record<string, unknown> | null;
+    /** When provided, only the webhook whose payload.uid matches this value is checked. */
+    uid?: string;
   }
 ) {
   const fetchCalls = fetchMock.mock.calls;
@@ -283,7 +285,9 @@ export function expectWebhookToHaveBeenCalledWith(
   const webhookFetchCall = webhooksToSubscriberUrl.find((call) => {
     const body = call[1]?.body;
     const parsedBody = JSON.parse((body as string) || "{}");
-    return parsedBody.triggerEvent === data.triggerEvent;
+    if (parsedBody.triggerEvent !== data.triggerEvent) return false;
+    if (data.uid !== undefined && parsedBody.payload?.uid !== data.uid) return false;
+    return true;
   });
 
   if (!webhookFetchCall) {
@@ -1032,6 +1036,7 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   subscriberUrl,
   paidEvent,
   videoCallUrl,
+  uid,
   isEmailHidden = false,
   isAttendeePhoneNumberHidden = false,
 }: {
@@ -1041,6 +1046,8 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   location: string;
   paidEvent?: boolean;
   videoCallUrl?: string | null;
+  /** When provided, only the webhook whose payload.uid matches this value is checked. */
+  uid?: string;
   isEmailHidden?: boolean;
   isAttendeePhoneNumberHidden?: boolean;
 }) {
@@ -1052,6 +1059,7 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   if (!paidEvent) {
     expectWebhookToHaveBeenCalledWith(subscriberUrl, {
       triggerEvent: "BOOKING_CREATED",
+      uid,
       payload: {
         metadata: {
           ...(videoCallUrl ? { videoCallUrl } : null),
@@ -1080,6 +1088,7 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   } else {
     expectWebhookToHaveBeenCalledWith(subscriberUrl, {
       triggerEvent: "BOOKING_CREATED",
+      uid,
       payload: {
         // FIXME: File this bug and link ticket here. This is a bug in the code. metadata must be sent here like other BOOKING_CREATED webhook
         metadata: null,
