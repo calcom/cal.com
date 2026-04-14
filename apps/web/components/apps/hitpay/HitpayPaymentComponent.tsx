@@ -44,7 +44,7 @@ export const HitpayPaymentComponent = (props: IPaymentComponentProps) => {
           init(
             parsedData.data.defaultLink || "",
             {
-              'hit-pay.com'
+              domain : 'hit-pay.com',
             },
             {
               paymentRequest: parsedData.data.id,
