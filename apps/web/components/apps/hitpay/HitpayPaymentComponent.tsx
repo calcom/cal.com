@@ -37,14 +37,20 @@ export const HitpayPaymentComponent = (props: IPaymentComponentProps) => {
 
   const parsedData = PaymentHitpayDataSchema.safeParse(data);
 
+  const getDomainFromCheckoutUrl = (urlString: string) => {
+      const { hostname } = new URL(urlString);
+
+      return hostname
+        .replace(/^securecheckout\./, "")
+        .replace(/^checkout\./, "");
+  };
+    
   useEffect(() => {
     if (parsedData.success) {
       if (window.self !== window.top && window.top) {
         if (!isInitialized) {
-          const isCheckoutV1 = parsedData.data.url.includes("https://securecheckout.");
-          const subUrl = isCheckoutV1 ? parsedData.data.url.substring("https://securecheckout.".length) : parsedData.data.url.substring("https://checkout.".length);
-          const arr = subUrl.split("/");
-          const domain = arr[0];
+          
+         const domain = getDomainFromCheckoutUrl(parsedData.data.url);
 
           init(
             parsedData.data.defaultLink || "",
