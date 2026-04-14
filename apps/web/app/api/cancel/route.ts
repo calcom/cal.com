@@ -22,6 +22,14 @@ async function handler(req: NextRequest) {
   }
   const bookingData = bookingCancelWithCsrfSchema.parse(appDirRequestBody);
 
+  // Integer IDs are sequential/guessable — only accept high-entropy UIDs on this route
+  if (!bookingData.uid) {
+    return NextResponse.json(
+      { success: false, message: "uid is required for booking cancellation" },
+      { status: 400 }
+    );
+  }
+
   const csrfError = await validateCsrfToken(bookingData.csrfToken);
   if (csrfError) {
     return csrfError;
@@ -38,8 +46,11 @@ async function handler(req: NextRequest) {
     identifier,
   });
 
+  // Strip integer id to ensure lookup is always by uid
+  const { id: _id, ...safeBookingData } = bookingData;
+
   const result = await handleCancelBooking({
-    bookingData,
+    bookingData: safeBookingData,
     userId: session?.user?.id || -1,
     userUuid: session?.user?.uuid,
     actionSource: "WEBAPP",
