@@ -1,8 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
-
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { MembershipRepository } from "./MembershipRepository";
 
 const createdMembershipIds: number[] = [];
@@ -158,6 +156,171 @@ describe("MembershipRepository (Integration Tests)", () => {
       expect(result).toBe(team2 ? true : false);
 
       await clearTestMemberships();
+      await prisma.user.delete({ where: { id: newUser.id } });
+    });
+  });
+
+  describe("findTeamIdsWhereUserIsAdminOrOwner", () => {
+    let nonOrgTeamId: number;
+    let createdNonOrgTeamId: number | null = null;
+
+    beforeAll(async () => {
+      let nonOrgTeam = await prisma.team.findFirst({
+        where: { slug: { not: null }, isOrganization: false },
+      });
+
+      if (!nonOrgTeam) {
+        nonOrgTeam = await prisma.team.create({
+          data: {
+            name: "Test Non-Org Team for MembershipRepository",
+            slug: `test-non-org-team-${Date.now()}`,
+            isOrganization: false,
+          },
+        });
+        createdNonOrgTeamId = nonOrgTeam.id;
+      }
+      nonOrgTeamId = nonOrgTeam.id;
+    });
+
+    afterAll(async () => {
+      if (createdNonOrgTeamId) {
+        await prisma.team.delete({ where: { id: createdNonOrgTeamId } });
+      }
+    });
+
+    it("should return teams where user is admin", async () => {
+      const newUser = await prisma.user.create({
+        data: {
+          email: `test-admin-${Date.now()}@example.com`,
+          username: `test-admin-${Date.now()}`,
+        },
+      });
+
+      const membership = await prisma.membership.create({
+        data: {
+          userId: newUser.id,
+          teamId: nonOrgTeamId,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+        },
+      });
+      createdMembershipIds.push(membership.id);
+
+      const membershipRepository = new MembershipRepository(prisma);
+      const result = await membershipRepository.findTeamIdsWhereUserIsAdminOrOwner({
+        userId: newUser.id,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].teamId).toBe(nonOrgTeamId);
+
+      await clearTestMemberships();
+      await prisma.user.delete({ where: { id: newUser.id } });
+    });
+
+    it("should return teams where user is owner", async () => {
+      const newUser = await prisma.user.create({
+        data: {
+          email: `test-owner-${Date.now()}@example.com`,
+          username: `test-owner-${Date.now()}`,
+        },
+      });
+
+      const membership = await prisma.membership.create({
+        data: {
+          userId: newUser.id,
+          teamId: nonOrgTeamId,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+      createdMembershipIds.push(membership.id);
+
+      const membershipRepository = new MembershipRepository(prisma);
+      const result = await membershipRepository.findTeamIdsWhereUserIsAdminOrOwner({
+        userId: newUser.id,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].teamId).toBe(nonOrgTeamId);
+
+      await clearTestMemberships();
+      await prisma.user.delete({ where: { id: newUser.id } });
+    });
+
+    it("should NOT return teams where user is only a member", async () => {
+      const newUser = await prisma.user.create({
+        data: {
+          email: `test-member-${Date.now()}@example.com`,
+          username: `test-member-${Date.now()}`,
+        },
+      });
+
+      const membership = await prisma.membership.create({
+        data: {
+          userId: newUser.id,
+          teamId: nonOrgTeamId,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+      });
+      createdMembershipIds.push(membership.id);
+
+      const membershipRepository = new MembershipRepository(prisma);
+      const result = await membershipRepository.findTeamIdsWhereUserIsAdminOrOwner({
+        userId: newUser.id,
+      });
+
+      expect(result).toHaveLength(0);
+
+      await clearTestMemberships();
+      await prisma.user.delete({ where: { id: newUser.id } });
+    });
+
+    it("should NOT return pending (not accepted) memberships", async () => {
+      const newUser = await prisma.user.create({
+        data: {
+          email: `test-pending-admin-${Date.now()}@example.com`,
+          username: `test-pending-admin-${Date.now()}`,
+        },
+      });
+
+      const membership = await prisma.membership.create({
+        data: {
+          userId: newUser.id,
+          teamId: nonOrgTeamId,
+          role: MembershipRole.ADMIN,
+          accepted: false,
+        },
+      });
+      createdMembershipIds.push(membership.id);
+
+      const membershipRepository = new MembershipRepository(prisma);
+      const result = await membershipRepository.findTeamIdsWhereUserIsAdminOrOwner({
+        userId: newUser.id,
+      });
+
+      expect(result).toHaveLength(0);
+
+      await clearTestMemberships();
+      await prisma.user.delete({ where: { id: newUser.id } });
+    });
+
+    it("should return empty array when user has no admin/owner memberships", async () => {
+      const newUser = await prisma.user.create({
+        data: {
+          email: `test-no-admin-${Date.now()}@example.com`,
+          username: `test-no-admin-${Date.now()}`,
+        },
+      });
+
+      const membershipRepository = new MembershipRepository(prisma);
+      const result = await membershipRepository.findTeamIdsWhereUserIsAdminOrOwner({
+        userId: newUser.id,
+      });
+
+      expect(result).toHaveLength(0);
+
       await prisma.user.delete({ where: { id: newUser.id } });
     });
   });

@@ -137,6 +137,8 @@ export function useBookingListColumns({
                 userTimeZone: user?.timeZone,
                 userTimeFormat: user?.timeFormat,
                 userEmail: user?.email,
+                teamsWhereUserIsAdminOrOwner: user?.teamsWhereUserIsAdminOrOwner,
+                userIsOrgAdminOrOwner: user?.organization?.isOrgAdmin,
               }}
               listingStatus={status}
               recurringInfo={recurringInfo}

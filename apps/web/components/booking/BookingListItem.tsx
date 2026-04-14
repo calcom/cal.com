@@ -72,10 +72,10 @@ function buildParsedBooking(booking: BookingItemProps) {
   // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
   const bookingEventType = booking.eventType.id
     ? (booking.eventType as Ensure<
-        typeof booking.eventType,
-        // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
-        "id" | "length" | "title" | "slug" | "schedulingType" | "team"
-      >)
+      typeof booking.eventType,
+      // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
+      "id" | "length" | "title" | "slug" | "schedulingType" | "team"
+    >)
     : null;
 
   const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
@@ -300,7 +300,7 @@ function BookingListItem(booking: BookingItemProps) {
         "group relative w-full transition-all duration-100 ease-out",
         "hover:bg-cal-muted",
         isSelected &&
-          "bg-cal-muted before:bg-brand-default rounded-r-md before:absolute before:left-0 before:top-0 before:h-full before:w-1"
+        "bg-cal-muted before:bg-brand-default rounded-r-md before:absolute before:left-0 before:top-0 before:h-full before:w-1"
       )}>
       <div className="flex flex-col sm:flex-row">
         <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">
@@ -717,13 +717,13 @@ const RecurringBookingsTooltip = ({
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
                     ? `${t("event_remaining_other", {
-                        count: recurringCount,
-                      })}`
+                      count: recurringCount,
+                    })}`
                     : getEveryFreqFor({
-                        t,
-                        recurringEvent: booking.eventType.recurringEvent,
-                        recurringCount: booking.recurringInfo.count,
-                      })}
+                      t,
+                      recurringEvent: booking.eventType.recurringEvent,
+                      recurringCount: booking.recurringInfo.count,
+                    })}
                 </p>
               </div>
             </Tooltip>

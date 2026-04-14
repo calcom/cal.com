@@ -35,6 +35,34 @@ export interface BookingActionContext {
   t: (key: string) => string;
 }
 
+function checkIfUserIsHost(booking: BookingItemProps, userId?: number | null): boolean {
+  if (!userId) return false;
+
+  return !!(
+    booking.user?.id === userId ||
+    booking.eventType.hosts?.some(
+      (host) =>
+        host.user?.id === userId &&
+        booking.attendees.some((attendee) => attendee.email === host.user?.email)
+    )
+  );
+}
+
+export function checkIfUserIsAuthorizedToConfirmBooking(booking: BookingItemProps): boolean {
+  const isUserOwner = booking.user?.id === booking.loggedInUser.userId;
+  const isUserTeamEventHost = checkIfUserIsHost(booking, booking.loggedInUser.userId);
+  const isUserTeamAdminOrOwner = booking.loggedInUser.teamsWhereUserIsAdminOrOwner?.some(
+    (team) =>
+      team.teamId === booking.eventType?.team?.id || team.teamId === booking.eventType?.parent?.teamId
+  );
+  return !!(
+    isUserOwner ||
+    isUserTeamEventHost ||
+    booking.loggedInUser.userIsOrgAdminOrOwner ||
+    isUserTeamAdminOrOwner
+  );
+}
+
 export function getPendingActions(context: BookingActionContext): ActionType[] {
   const { booking, isPending, isTabRecurring, isTabUnconfirmed, isRecurring, showPendingPayment, t } =
     context;
@@ -216,8 +244,8 @@ export function getAfterEventActions(context: BookingActionContext): ActionType[
 }
 
 export function shouldShowPendingActions(context: BookingActionContext): boolean {
-  const { isPending, isUpcoming, isCancelled } = context;
-  return isPending && isUpcoming && !isCancelled;
+  const { booking, isPending, isUpcoming, isCancelled } = context;
+  return isPending && isUpcoming && !isCancelled && checkIfUserIsAuthorizedToConfirmBooking(booking);
 }
 
 export function shouldShowEditActions(context: BookingActionContext): boolean {

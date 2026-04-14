@@ -1,3 +1,4 @@
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -95,6 +96,11 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
         organizationSettings: user?.profile?.organization?.organizationSettings,
       };
 
+  const membershipRepository = new MembershipRepository(prisma);
+  const teamsWhereUserIsAdminOrOwner = await membershipRepository.findTeamIdsWhereUserIsAdminOrOwner({
+    userId: user.id,
+  });
+
   const permissionCheckService = new PermissionCheckService();
   const teamsWithWritePermission = await permissionCheckService.getTeamIdsWithPermission({
     userId: user.id,
@@ -140,6 +146,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),
+    teamsWhereUserIsAdminOrOwner,
     canUpdateTeams,
   };
 };
