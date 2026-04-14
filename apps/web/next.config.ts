@@ -119,6 +119,8 @@ function validJson(jsonString: string): object | false {
   return false;
 }
 
+// Optional server-only: ANTHROPIC_API_KEY (Booking Brief). Read via process.env in @calcom/features; not exposed to the client.
+
 if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CREDENTIALS)) {
   console.warn(
     "\x1b[33mwarn",

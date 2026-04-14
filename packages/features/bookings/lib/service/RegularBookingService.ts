@@ -27,6 +27,7 @@ import type {
   CreateBookingMeta,
   CreateRegularBookingData,
 } from "@calcom/features/bookings/lib/dto/types";
+import { mapCalEventResponsesForBriefing } from "@calcom/features/bookings/lib/generateBriefing";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
@@ -44,6 +45,7 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
+import { scheduleBookingBrief } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import {
@@ -2781,6 +2783,23 @@ async function handler(
     });
   } catch (error) {
     tracingLogger.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+  }
+
+  if (!isDryRun && process.env.ANTHROPIC_API_KEY) {
+    const bookingBriefAttendee = evt.attendees[0];
+    if (bookingBriefAttendee?.email) {
+      void scheduleBookingBrief({
+        bookingUid: booking.uid,
+        organizerName: evt.organizer.name,
+        organizerEmail: evt.organizer.email,
+        attendeeName: bookingBriefAttendee.name || "Guest",
+        attendeeEmail: bookingBriefAttendee.email,
+        eventTitle: evt.title,
+        startTime: booking.startTime,
+        timeZone: evt.organizer.timeZone,
+        responses: mapCalEventResponsesForBriefing(evt.responses),
+      });
+    }
   }
 
   try {
