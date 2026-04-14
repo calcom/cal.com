@@ -108,7 +108,8 @@ export const DatePicker = ({
     onMonthChange,
     isLoading: isLoading ?? true,
   });
-  moveToNextMonthOnNoAvailability();
+  // Disabled auto-jump to allow users to stay in current month
+  // moveToNextMonthOnNoAvailability();
 
   // Determine if this is a compact sidebar view based on layout
   const isCompact = layout !== "month_view" && layout !== "mobile";
