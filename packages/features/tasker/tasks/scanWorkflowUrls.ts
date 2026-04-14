@@ -6,7 +6,7 @@ import {
   getScanResult,
   isUrlScanningEnabled,
   submitUrlForScanning,
-} from "@calcom/features/ee/workflows/lib/urlScanner";
+} from "@calcom/features/ee/workflows/lib/url-scanner";
 import tasker from "@calcom/features/tasker";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";

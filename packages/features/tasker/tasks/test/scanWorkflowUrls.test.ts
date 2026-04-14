@@ -8,7 +8,7 @@ import {
 } from "../scanWorkflowUrls";
 
 // Mock the urlScanner module
-vi.mock("@calcom/features/ee/workflows/lib/urlScanner", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/url-scanner", () => ({
   extractUrlsFromHtml: vi.fn((html: string) => {
     // Simple mock implementation
     const urls: string[] = [];
@@ -49,7 +49,7 @@ vi.mock("@calcom/features/ee/api-keys/lib/autoLock", () => ({
 
 import { lockUser } from "@calcom/features/ee/api-keys/lib/autoLock";
 // Import mocked modules for assertions
-import * as urlScanner from "@calcom/features/ee/workflows/lib/urlScanner";
+import * as urlScanner from "@calcom/features/ee/workflows/lib/url-scanner";
 
 describe("scanWorkflowUrls", () => {
   beforeEach(() => {
