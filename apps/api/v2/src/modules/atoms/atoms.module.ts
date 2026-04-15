@@ -13,9 +13,6 @@ import { CredentialsRepository } from "@/modules/credentials/credentials.reposit
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisService } from "@/modules/redis/redis.service";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
@@ -34,9 +31,6 @@ import { Module } from "@nestjs/common";
     SchedulesAtomsService,
     VerificationAtomsService,
     RedisService,
-    TeamsRepository,
-    TeamsEventTypesRepository,
-    TeamsEventTypesService,
   ],
   exports: [EventTypesAtomService],
   controllers: [

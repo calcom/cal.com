@@ -1,10 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-atom.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, Get, Param, ParseIntPipe, UseGuards, Version, VERSION_NEUTRAL } from "@nestjs/common";
+import { Controller, Get, UseGuards, Version, VERSION_NEUTRAL } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -24,21 +23,6 @@ These endpoints should not be recommended for use by third party and are exclude
 @DocsExcludeController(true)
 export class AtomsConferencingAppsController {
   constructor(private readonly conferencingService: ConferencingAtomsService) {}
-
-  @Get("/organizations/:orgId/teams/:teamId/conferencing")
-  @Roles("TEAM_ADMIN")
-  @UseGuards(ApiAuthGuard)
-  @Version(VERSION_NEUTRAL)
-  async listTeamInstalledConferencingApps(
-    @GetUser() user: UserWithProfile,
-    @Param("teamId", ParseIntPipe) teamId: number
-  ): Promise<ApiResponse<ConnectedApps>> {
-    const conferencingApps = await this.conferencingService.getTeamConferencingApps(user, teamId);
-    return {
-      status: SUCCESS_STATUS,
-      data: conferencingApps,
-    };
-  }
 
   @Get("/conferencing")
   @Version(VERSION_NEUTRAL)

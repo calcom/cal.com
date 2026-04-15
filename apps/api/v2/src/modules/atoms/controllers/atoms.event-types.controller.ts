@@ -24,7 +24,6 @@ import {
 import { GetAtomPublicEventTypeQueryParams } from "@/modules/atoms/inputs/get-atom-public-event-type-query-params.input";
 import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 
@@ -88,18 +87,6 @@ export class AtomsEventTypesController {
     };
   }
 
-  @Get("/organizations/:orgId/teams/:teamId/event-types")
-  @Roles("TEAM_ADMIN")
-  @UseGuards(ApiAuthGuard)
-  @Version(VERSION_NEUTRAL)
-  async listTeamEventTypes(@Param("teamId", ParseIntPipe) teamId: number): Promise<ApiResponse<unknown>> {
-    const eventTypes = await this.eventTypesService.getTeamEventTypes(teamId);
-    return {
-      status: SUCCESS_STATUS,
-      data: eventTypes,
-    };
-  }
-
   @Get("/event-types")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
@@ -153,21 +140,6 @@ export class AtomsEventTypesController {
     };
   }
 
-  @Patch("/organizations/:orgId/teams/:teamId/event-types/bulk-update-to-default-location")
-  @Version(VERSION_NEUTRAL)
-  @Roles("TEAM_ADMIN")
-  @UseGuards(ApiAuthGuard)
-  async bulkUpdateAtomTeamEventTypes(
-    @GetUser() user: UserWithProfile,
-    @Body() body: BulkUpdateEventTypeToDefaultLocationDto,
-    @Param("teamId", ParseIntPipe) teamId: number
-  ): Promise<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> {
-    await this.eventTypesService.bulkUpdateTeamEventTypesDefaultLocation(body.eventTypeIds, teamId);
-    return {
-      status: SUCCESS_STATUS,
-    };
-  }
-
   @Patch("event-types/:eventTypeId")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
@@ -187,25 +159,4 @@ export class AtomsEventTypesController {
     };
   }
 
-  @Patch("/organizations/:orgId/teams/:teamId/event-types/:eventTypeId")
-  @Version(VERSION_NEUTRAL)
-  @Roles("TEAM_ADMIN")
-  @UseGuards(ApiAuthGuard)
-  async updateAtomTeamEventType(
-    @GetUser() user: UserWithProfile,
-    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @Param("teamId", ParseIntPipe) teamId: number,
-    @Body() body: UpdateEventTypeReturn
-  ): Promise<ApiResponse<UpdateEventTypeReturn>> {
-    const eventType = await this.eventTypesService.updateTeamEventType(
-      eventTypeId,
-      { ...body, id: eventTypeId },
-      user,
-      teamId
-    );
-    return {
-      status: SUCCESS_STATUS,
-      data: eventType,
-    };
-  }
 }

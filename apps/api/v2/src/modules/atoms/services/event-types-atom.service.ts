@@ -15,9 +15,7 @@ import {
 } from "@calcom/platform-libraries/app-store";
 import {
   bulkUpdateEventsToDefaultLocation,
-  bulkUpdateTeamEventsToDefaultLocation,
   EventTypeMetaDataSchema,
-  getBulkTeamEventTypes,
   getBulkUserEventTypes,
   getEventTypeById,
   getPublicEvent,
@@ -34,7 +32,6 @@ import { CredentialsRepository } from "@/modules/credentials/credentials.reposit
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 
@@ -73,7 +70,6 @@ export class EventTypesAtomService {
     private readonly dbWrite: PrismaWriteService,
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
-    private readonly teamEventTypeService: TeamsEventTypesService,
     private readonly usersRepository: UsersRepository
   ) {}
 
@@ -129,57 +125,6 @@ export class EventTypesAtomService {
     return getBulkUserEventTypes(userId);
   }
 
-  async getTeamEventTypes(teamId: number) {
-    return getBulkTeamEventTypes(teamId);
-  }
-
-  async updateTeamEventType(
-    eventTypeId: number,
-    body: TUpdateEventTypeInputSchema,
-    user: UserWithProfile,
-    teamId: number
-  ) {
-    await this.checkCanUpdateTeamEventType(user, eventTypeId, teamId, body.scheduleId);
-
-    const eventTypeUser = await this.eventTypeService.getUserToUpdateEvent(user);
-    const bookingFields = body.bookingFields ? [...body.bookingFields] : undefined;
-
-    if (
-      bookingFields?.length &&
-      !bookingFields.find((field) => field.type === "email") &&
-      !bookingFields.find((field) => field.type === "phone")
-    ) {
-      bookingFields.push(systemBeforeFieldEmail);
-    }
-
-    // Normalize period dates to UTC midnight (only if provided)
-    const periodDates =
-      body.periodStartDate !== undefined || body.periodEndDate !== undefined
-        ? {
-            ...(body.periodStartDate !== undefined
-              ? { periodStartDate: normalizePeriodDate(body.periodStartDate) }
-              : {}),
-            ...(body.periodEndDate !== undefined
-              ? { periodEndDate: normalizePeriodDate(body.periodEndDate) }
-              : {}),
-          }
-        : {};
-
-    const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields, ...periodDates },
-      ctx: {
-        user: eventTypeUser,
-        prisma: this.dbWrite.prisma,
-      },
-    });
-
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
-    }
-
-    return eventType;
-  }
-
   async updateEventType(eventTypeId: number, body: TUpdateEventTypeInputSchema, user: UserWithProfile) {
     await this.eventTypeService.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.eventTypeService.getUserToUpdateEvent(user);
@@ -219,17 +164,6 @@ export class EventTypesAtomService {
     }
 
     return eventType;
-  }
-
-  async checkCanUpdateTeamEventType(
-    user: UserWithProfile,
-    eventTypeId: number,
-    teamId: number,
-    scheduleId: number | null | undefined
-  ) {
-    await this.checkTeamOwnsEventType(user.id, eventTypeId, teamId);
-    await this.teamEventTypeService.validateEventTypeExists(teamId, eventTypeId);
-    await this.eventTypeService.checkUserOwnsSchedule(user.id, scheduleId);
   }
 
   async checkTeamOwnsEventType(userId: number, eventTypeId: number, teamId: number) {
@@ -423,13 +357,6 @@ export class EventTypesAtomService {
     });
   }
 
-  async bulkUpdateTeamEventTypesDefaultLocation(eventTypeIds: number[], teamId: number) {
-    return bulkUpdateTeamEventsToDefaultLocation({
-      eventTypeIds,
-      prisma: this.dbWrite.prisma as unknown as PrismaClient,
-      teamId,
-    });
-  }
   /**
    * Returns the public event type for atoms, handling both team and user events.
    */
