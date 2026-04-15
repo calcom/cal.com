@@ -30,6 +30,7 @@ export class BookingsRepository_2024_08_13 {
         attendees: true,
         user: true,
         eventType: true,
+        references: true,
       },
     });
   }
@@ -49,6 +50,7 @@ export class BookingsRepository_2024_08_13 {
         },
         user: true,
         eventType: true,
+        references: true,
       },
     });
   }
@@ -125,6 +127,7 @@ export class BookingsRepository_2024_08_13 {
         attendees: true,
         user: true,
         eventType: true,
+        references: true,
       },
     });
   }
@@ -142,6 +145,7 @@ export class BookingsRepository_2024_08_13 {
         },
         user: true,
         eventType: true,
+        references: true,
       },
     });
   }
@@ -155,6 +159,7 @@ export class BookingsRepository_2024_08_13 {
         attendees: true,
         user: true,
         eventType: true,
+        references: true,
       },
     });
     if (!booking) {
@@ -181,6 +186,7 @@ export class BookingsRepository_2024_08_13 {
         },
         user: true,
         eventType: true,
+        references: true,
       },
     });
   }
@@ -216,6 +222,7 @@ export class BookingsRepository_2024_08_13 {
         attendees: true,
         user: true,
         eventType: true,
+        references: true,
       },
     });
   }

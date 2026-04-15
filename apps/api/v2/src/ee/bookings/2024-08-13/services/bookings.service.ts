@@ -622,17 +622,17 @@ export class BookingsService_2024_08_13 {
       const isSeated = !!booking.eventType?.seatsPerTimeSlot;
 
       if (isRecurring && !isSeated) {
-        return this.outputService.getOutputRecurringBooking(booking);
+        return this.outputService.getOutputRecurringBooking(booking, userIsEventTypeAdminOrOwner);
       }
       if (isRecurring && isSeated) {
         const showAttendees = userIsEventTypeAdminOrOwner || !!booking.eventType?.seatsShowAttendees;
-        return this.outputService.getOutputRecurringSeatedBooking(booking, showAttendees);
+        return this.outputService.getOutputRecurringSeatedBooking(booking, showAttendees, userIsEventTypeAdminOrOwner);
       }
       if (isSeated) {
         const showAttendees = userIsEventTypeAdminOrOwner || !!booking.eventType?.seatsShowAttendees;
-        return this.outputService.getOutputSeatedBooking(booking, showAttendees);
+        return this.outputService.getOutputSeatedBooking(booking, showAttendees, userIsEventTypeAdminOrOwner);
       }
-      return this.outputService.getOutputBooking(booking);
+      return this.outputService.getOutputBooking(booking, userIsEventTypeAdminOrOwner);
     }
 
     const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(uid);
@@ -644,10 +644,10 @@ export class BookingsService_2024_08_13 {
     if (isRecurringSeated) {
       const showAttendees =
         userIsEventTypeAdminOrOwner || !!recurringBooking[0].eventType?.seatsShowAttendees;
-      return this.outputService.getOutputRecurringSeatedBookings(ids, showAttendees);
+      return this.outputService.getOutputRecurringSeatedBookings(ids, showAttendees, userIsEventTypeAdminOrOwner);
     }
 
-    return this.outputService.getOutputRecurringBookings(ids);
+    return this.outputService.getOutputRecurringBookings(ids, userIsEventTypeAdminOrOwner);
   }
 
   async getBookingBySeatUid(seatUid: string, authUser: AuthOptionalUser) {
@@ -662,7 +662,7 @@ export class BookingsService_2024_08_13 {
     const userIsEventTypeAdminOrOwner =
       authUser && booking.eventType
         ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
-            authUser,
+            { ...authUser, isSystemAdmin: authUser.isSystemAdmin ?? false },
             booking.eventType as EventType
           )
         : false;
@@ -682,16 +682,16 @@ export class BookingsService_2024_08_13 {
       };
 
       if (isRecurring) {
-        return this.outputService.getOutputRecurringSeatedBooking(bookingWithFilteredAttendees, true);
+        return this.outputService.getOutputRecurringSeatedBooking(bookingWithFilteredAttendees, true, userIsEventTypeAdminOrOwner);
       }
-      return this.outputService.getOutputSeatedBooking(bookingWithFilteredAttendees, true);
+      return this.outputService.getOutputSeatedBooking(bookingWithFilteredAttendees, true, userIsEventTypeAdminOrOwner);
     }
 
     if (isRecurring) {
-      return this.outputService.getOutputRecurringSeatedBooking(booking, true);
+      return this.outputService.getOutputRecurringSeatedBooking(booking, true, userIsEventTypeAdminOrOwner);
     }
 
-    return this.outputService.getOutputSeatedBooking(booking, true);
+    return this.outputService.getOutputSeatedBooking(booking, true, userIsEventTypeAdminOrOwner);
   }
 
   async getBookings(
@@ -749,16 +749,21 @@ export class BookingsService_2024_08_13 {
         absentHost: !!booking.noShowHost,
       };
 
+      const userIsEventTypeAdminOrOwner =
+        user && formatted.eventType
+          ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner({ ...user, isSystemAdmin: false } as ApiAuthGuardUser, formatted.eventType)
+          : false;
+
       const isRecurring = !!formatted.recurringEventId;
       const isSeated = !!formatted.eventType?.seatsPerTimeSlot;
       if (isRecurring && !isSeated) {
-        formattedBookings.push(this.outputService.getOutputRecurringBooking(formatted));
+        formattedBookings.push(this.outputService.getOutputRecurringBooking(formatted, userIsEventTypeAdminOrOwner));
       } else if (isRecurring && isSeated) {
-        formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted, true));
+        formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted, true, userIsEventTypeAdminOrOwner));
       } else if (isSeated) {
-        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted, true));
+        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted, true, userIsEventTypeAdminOrOwner));
       } else {
-        formattedBookings.push(await this.outputService.getOutputBooking(formatted));
+        formattedBookings.push(await this.outputService.getOutputBooking(formatted, userIsEventTypeAdminOrOwner));
       }
     }
 
@@ -855,7 +860,7 @@ export class BookingsService_2024_08_13 {
       const isPlatformManagedUserBooking = !!(booking.userId && booking.user?.isPlatformManaged);
 
       if (isRecurring && !isSeated) {
-        const outputBooking = await this.outputService.getOutputRecurringBooking(databaseBooking);
+        const outputBooking = await this.outputService.getOutputRecurringBooking(databaseBooking, userIsEventTypeAdminOrOwner);
         return Object.assign(outputBooking, { isPlatformManagedUserBooking });
       }
       if (isRecurring && isSeated) {
@@ -874,7 +879,7 @@ export class BookingsService_2024_08_13 {
         );
         return Object.assign(outputBooking, { isPlatformManagedUserBooking });
       }
-      const outputBooking = await this.outputService.getOutputBooking(databaseBooking);
+      const outputBooking = await this.outputService.getOutputBooking(databaseBooking, userIsEventTypeAdminOrOwner);
       return Object.assign(outputBooking, { isPlatformManagedUserBooking });
     } catch (error) {
       this.errorsBookingsService.handleBookingError(error, false);

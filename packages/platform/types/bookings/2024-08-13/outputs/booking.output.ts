@@ -288,6 +288,16 @@ class BaseBookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   icsUid?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    description: "Daily.co host token to join with administrative privileges.",
+  })
+  @IsString()
+  @IsOptional()
+  @Expose()
+  hostToken?: string;
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {

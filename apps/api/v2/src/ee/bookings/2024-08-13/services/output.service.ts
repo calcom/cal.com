@@ -83,6 +83,7 @@ type DatabaseBooking = Booking & {
   }[];
   user: DatabaseUser | null;
   createdAt: Date;
+  references: { type: string; meetingPassword: string | null }[];
 };
 
 type BookingWithUser = Booking & { user: DatabaseUser | null };
@@ -97,7 +98,7 @@ export class OutputBookingsService_2024_08_13 {
     return email.replace(/\+[a-zA-Z0-9]{25}/, "");
   }
 
-  async getOutputBooking(databaseBooking: DatabaseBooking) {
+  async getOutputBooking(databaseBooking: DatabaseBooking, isHostOrAdmin: boolean = false) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -110,6 +111,8 @@ export class OutputBookingsService_2024_08_13 {
     const location = metadata?.videoCallUrl || databaseBooking.location;
     const rescheduledToUid = await this.getRescheduledToUid(databaseBooking);
     const rescheduledByEmail = await this.getRescheduledByEmail(databaseBooking);
+
+    const hostToken = isHostOrAdmin ? databaseBooking.references?.find(ref => ref.type === "daily_video")?.meetingPassword : undefined;
 
     const booking = {
       id: databaseBooking.id,
@@ -139,6 +142,7 @@ export class OutputBookingsService_2024_08_13 {
       })),
       guests: bookingResponses.guests,
       location,
+      hostToken: hostToken || undefined,
       // note(Lauris): meetingUrl is deprecated
       meetingUrl: location,
       absentHost: !!databaseBooking.noShowHost,
@@ -228,7 +232,7 @@ export class OutputBookingsService_2024_08_13 {
     };
   }
 
-  async getOutputRecurringBookings(bookingsIds: number[]) {
+  async getOutputRecurringBookings(bookingsIds: number[], isHostOrAdmin: boolean = false) {
     const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(bookingsIds);
     
     const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
@@ -238,12 +242,12 @@ export class OutputBookingsService_2024_08_13 {
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
       }
-      return this.getOutputRecurringBooking(databaseBooking);
+      return this.getOutputRecurringBooking(databaseBooking, isHostOrAdmin);
     });
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
-  getOutputRecurringBooking(databaseBooking: DatabaseBooking) {
+  getOutputRecurringBooking(databaseBooking: DatabaseBooking, isHostOrAdmin: boolean = false) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -254,6 +258,8 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
+
+    const hostToken = isHostOrAdmin ? databaseBooking.references?.find(ref => ref.type === "daily_video")?.meetingPassword : undefined;
 
     const booking = {
       id: databaseBooking.id,
@@ -282,6 +288,7 @@ export class OutputBookingsService_2024_08_13 {
       })),
       guests: bookingResponses.guests,
       location,
+      hostToken: hostToken || undefined,
       // note(Lauris): meetingUrl is deprecated
       meetingUrl: location,
       recurringBookingUid: databaseBooking.recurringEventId,
@@ -327,11 +334,11 @@ export class OutputBookingsService_2024_08_13 {
     userIsEventTypeAdminOrOwner: boolean
   ): Promise<CreateSeatedBookingOutput_2024_08_13> {
     const showAttendees = userIsEventTypeAdminOrOwner || !!databaseBooking.eventType?.seatsShowAttendees;
-    const getSeatedBookingOutput = await this.getOutputSeatedBooking(databaseBooking, showAttendees);
+    const getSeatedBookingOutput = await this.getOutputSeatedBooking(databaseBooking, showAttendees, userIsEventTypeAdminOrOwner);
     return { ...getSeatedBookingOutput, seatUid };
   }
 
-  async getOutputSeatedBooking(databaseBooking: DatabaseBooking, showAttendees: boolean) {
+  async getOutputSeatedBooking(databaseBooking: DatabaseBooking, showAttendees: boolean, isHostOrAdmin: boolean = false) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -339,6 +346,8 @@ export class OutputBookingsService_2024_08_13 {
     const location = metadata?.videoCallUrl || databaseBooking.location;
     const rescheduledToUid = await this.getRescheduledToUid(databaseBooking);
     const rescheduledByEmail = await this.getRescheduledByEmail(databaseBooking);
+
+    const hostToken = isHostOrAdmin ? databaseBooking.references?.find(ref => ref.type === "daily_video")?.meetingPassword : undefined;
 
     const booking = {
       id: databaseBooking.id,
@@ -357,6 +366,7 @@ export class OutputBookingsService_2024_08_13 {
       eventTypeId: databaseBooking.eventTypeId,
       attendees: [],
       location,
+      hostToken: hostToken || undefined,
       // note(Lauris): meetingUrl is deprecated
       meetingUrl: location,
       absentHost: !!databaseBooking.noShowHost,
@@ -408,7 +418,7 @@ export class OutputBookingsService_2024_08_13 {
     return parsed;
   }
 
-  async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean) {
+  async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean, isHostOrAdmin: boolean = false) {
     const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
     
     const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
@@ -418,7 +428,7 @@ export class OutputBookingsService_2024_08_13 {
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
       }
-      return this.getOutputRecurringSeatedBooking(databaseBooking, showAttendees);
+      return this.getOutputRecurringSeatedBooking(databaseBooking, showAttendees, isHostOrAdmin);
     });
 
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
@@ -456,17 +466,20 @@ export class OutputBookingsService_2024_08_13 {
     const showAttendees = userIsEventTypeAdminOrOwner || !!databaseBooking.eventType?.seatsShowAttendees;
     const getRecurringSeatedBookingOutput = this.getOutputRecurringSeatedBooking(
       databaseBooking,
-      showAttendees
+      showAttendees,
+      userIsEventTypeAdminOrOwner
     );
     return { ...getRecurringSeatedBookingOutput, seatUid };
   }
 
-  getOutputRecurringSeatedBooking(databaseBooking: DatabaseBooking, showAttendees: boolean) {
+  getOutputRecurringSeatedBooking(databaseBooking: DatabaseBooking, showAttendees: boolean, isHostOrAdmin: boolean = false) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
+
+    const hostToken = isHostOrAdmin ? databaseBooking.references?.find(ref => ref.type === "daily_video")?.meetingPassword : undefined;
 
     const booking = {
       id: databaseBooking.id,
@@ -485,6 +498,7 @@ export class OutputBookingsService_2024_08_13 {
       eventTypeId: databaseBooking.eventTypeId,
       attendees: [],
       location,
+      hostToken: hostToken || undefined,
       // note(Lauris): meetingUrl is deprecated
       meetingUrl: location,
       recurringBookingUid: databaseBooking.recurringEventId,
