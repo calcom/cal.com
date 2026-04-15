@@ -28,6 +28,7 @@ export type CheckedSelectOption = {
   priority?: number;
   weight?: number;
   isFixed?: boolean;
+  isOrganizer?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
@@ -132,6 +133,9 @@ export const CheckedTeamSelect = ({
                   customClassNames?.selectedHostList?.listItem?.name
                 )}>
                 {option.label}
+                {option.isOrganizer && (
+                  <span className="text-subtle ml-1 text-xs">({t("default_organizer")})</span>
+                )}
               </p>
               <div className="ml-auto flex items-center">
                 {option && !option.isFixed ? (

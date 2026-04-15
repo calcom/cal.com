@@ -139,6 +139,7 @@ const getEventTypesFromDBSelect = {
   hosts: {
     select: {
       isFixed: true,
+      isOrganizer: true,
       priority: true,
       weight: true,
       createdAt: true,

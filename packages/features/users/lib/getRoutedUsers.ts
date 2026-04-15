@@ -75,6 +75,7 @@ type BaseUser = {
 
 type BaseHost<User extends BaseUser> = {
   isFixed: boolean;
+  isOrganizer?: boolean;
   createdAt: Date;
   priority?: number | null;
   weight?: number | null;
@@ -108,6 +109,7 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
     return {
       hosts: eventType.hosts.map((host) => ({
         isFixed: host.isFixed,
+        isOrganizer: host.isOrganizer,
         user: host.user,
         priority: host.priority,
         weight: host.weight,
@@ -119,9 +121,10 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
   } else {
     return {
       hosts: null,
-      fallbackHosts: eventType.users.map((user) => {
+      fallbackHosts: eventType.users.map((user, index) => {
         return {
           isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+          isOrganizer: index === 0,
           email: user.email,
           user: user,
           createdAt: null,
@@ -148,6 +151,7 @@ export async function getNormalizedHostsWithDelegationCredentials<
   if (eventType.hosts?.length && eventType.schedulingType) {
     const hostsWithoutDelegationCredential = eventType.hosts.map((host) => ({
       isFixed: host.isFixed,
+      isOrganizer: host.isOrganizer,
       user: host.user,
       priority: host.priority,
       weight: host.weight,
@@ -168,9 +172,10 @@ export async function getNormalizedHostsWithDelegationCredentials<
       fallbackHosts: null,
     };
   } else {
-    const hostsWithoutDelegationCredential = eventType.users.map((user) => {
+    const hostsWithoutDelegationCredential = eventType.users.map((user, index) => {
       return {
         isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+        isOrganizer: index === 0,
         email: user.email,
         user: user,
         createdAt: null,
@@ -201,6 +206,7 @@ export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
   eventType: EventType;
   hosts: {
     isFixed: boolean;
+    isOrganizer?: boolean;
     user: User;
     priority?: number | null;
     weight?: number | null;

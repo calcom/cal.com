@@ -109,6 +109,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       title: true,
       locations: true,
       description: true,
+      schedulingType: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
       maxActiveBookingsPerBooker: true,
@@ -124,6 +125,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           priority: true,
           weight: true,
           isFixed: true,
+          isOrganizer: true,
+          createdAt: true,
         },
       },
       aiPhoneCallConfig: {
@@ -494,6 +497,33 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
     const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
 
+    const effectiveSchedulingType = data.schedulingType ?? eventType.schedulingType;
+    const hasFixedHosts = hosts.some((host) => host.isFixed);
+    const supportsOrganizer =
+      effectiveSchedulingType === SchedulingType.COLLECTIVE ||
+      (effectiveSchedulingType === SchedulingType.ROUND_ROBIN && hasFixedHosts);
+
+    const isOrganizerRemoved = supportsOrganizer && removedHosts.some((host) => host.isOrganizer);
+    const existingOrganizer = supportsOrganizer
+      ? eventType.hosts.find((host) => host.isOrganizer && newHostsSet.has(host.userId))
+      : undefined;
+
+    const shouldRecalculateOrganizer = supportsOrganizer && (isOrganizerRemoved || !existingOrganizer);
+
+    // earliest member is the fallback default organizer
+    let newOrganizerUserId: number | null = null;
+    if (shouldRecalculateOrganizer) {
+      const remainingHosts = eventType.hosts
+        .filter((host) => newHostsSet.has(host.userId))
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+      if (remainingHosts.length > 0) {
+        newOrganizerUserId = remainingHosts[0].userId;
+      } else if (newHosts.length > 0) {
+        newOrganizerUserId = newHosts[0].userId;
+      }
+    }
+
     data.hosts = {
       deleteMany: {
         OR: removedHosts.map((host) => ({
@@ -501,10 +531,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           eventTypeId: id,
         })),
       },
-      create: newHosts.map((host) => {
+      create: newHosts.map((host, index) => {
         const hostData: {
           userId: number;
           isFixed: boolean;
+          isOrganizer: boolean;
           priority: number;
           weight: number;
           groupId: string | null | undefined;
@@ -521,6 +552,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         } = {
           userId: host.userId,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
+          isOrganizer: shouldRecalculateOrganizer
+            ? newOrganizerUserId === host.userId || (!newOrganizerUserId && index === 0)
+            : false,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
           groupId: host.groupId,
@@ -542,6 +576,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       update: existingHosts.map((host) => {
         const updateData: {
           isFixed: boolean | undefined;
+          isOrganizer: boolean | undefined;
           priority: number;
           weight: number;
           scheduleId: number | null | undefined;
@@ -566,6 +601,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           };
         } = {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          isOrganizer: shouldRecalculateOrganizer ? newOrganizerUserId === host.userId : undefined,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
           scheduleId: host.scheduleId === undefined ? undefined : host.scheduleId,
