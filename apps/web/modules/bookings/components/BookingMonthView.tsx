@@ -79,8 +79,8 @@ export function BookingMonthView({ bookings, currentMonth, userWeekStart }: Book
         ))}
       </div>
 
-      {/* 6-row × 7-col date grid — gridAutoRows enforces a consistent row height */}
-      <div className="grid grid-cols-7" style={{ gridAutoRows: "175px" }}>
+      {/* 6-row × 7-col date grid — clamp keeps rows between 100px and 175px based on viewport */}
+      <div className="grid grid-cols-7" style={{ gridAutoRows: "clamp(100px, calc((100vh - 300px) / 6), 175px)" }}>
         {cells.map((day, idx) => {
           const dateKey = day.format("YYYY-MM-DD");
           const dayBookings = bookingsByDate.get(dateKey) ?? [];

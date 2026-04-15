@@ -44,7 +44,7 @@ export function BookingCalendarView({
   useEffect(() => {
     onWeekStartChange(currentWeekStart);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentWeekStart, onWeekStartChange]);
+  }, []);
 
   const events = useMemo<CalendarEvent[]>(() => {
     const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";

@@ -1,82 +1,46 @@
 "use client";
 
 import { localStorage } from "@calcom/lib/webstorage";
-import { createParser, useQueryState } from "nuqs";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
+import { useCallback } from "react";
 
 const STORAGE_KEY = "bookings-calendar-sub-view";
+const CAL_VIEWS = ["week", "month"] as const;
+type CalendarSubView = (typeof CAL_VIEWS)[number];
 
-type CalendarSubView = "week" | "month";
+// Stable parser instance — must live outside the component so nuqs gets the same
+// object reference on every render. Creating it inside the component would cause
+// nuqs to treat each render as a new parser and reset state, causing infinite loops.
+const calViewParser = parseAsStringLiteral(CAL_VIEWS).withDefault("week");
 
-const calViewParser = createParser({
-  parse: (value: string): CalendarSubView => {
-    if (value === "month") return "month";
-    return "week";
-  },
-  serialize: (value: CalendarSubView) => value,
-});
-
-const createLocalStorageStore = () => {
-  let listeners: Array<() => void> = [];
-
-  const subscribe = (listener: () => void) => {
-    listeners.push(listener);
-    return () => {
-      listeners = listeners.filter((l) => l !== listener);
-    };
-  };
-
-  const getSnapshot = (): CalendarSubView => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "week" || stored === "month") return stored;
-    return "week";
-  };
-
-  const getServerSnapshot = (): CalendarSubView => "week";
-
-  const notify = () => listeners.forEach((l) => l());
-
-  return { subscribe, getSnapshot, getServerSnapshot, notify };
-};
-
-const localStorageStore = createLocalStorageStore();
+function getStoredView(): CalendarSubView {
+  try {
+    const stored = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
+    if (stored === "month") return "month";
+  } catch {
+    // localStorage unavailable (e.g. private browsing)
+  }
+  return "week";
+}
 
 export function useCalendarViewToggle() {
-  const [calView, setCalView] = useQueryState("calView", calViewParser.withDefault("week"));
-  const isInitializedRef = useRef(false);
+  const [calView, setCalView] = useQueryState("calView", calViewParser);
 
-  const storedView = useSyncExternalStore(
-    localStorageStore.subscribe,
-    localStorageStore.getSnapshot,
-    localStorageStore.getServerSnapshot
+  const handleSetCalView = useCallback(
+    (value: CalendarSubView) => {
+      setCalView(value);
+      try {
+        localStorage.setItem(STORAGE_KEY, value);
+      } catch {
+        // ignore write failures
+      }
+    },
+    [setCalView]
   );
 
-  // Sync localStorage → URL on initial mount (when URL has no param yet)
-  useEffect(() => {
-    const urlHasParam =
-      typeof window !== "undefined" && new URLSearchParams(window.location.search).has("calView");
-    if (!urlHasParam && storedView !== "week" && calView !== storedView) {
-      setCalView(storedView);
-    } else {
-      isInitializedRef.current = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calView, setCalView, storedView]);
+  // On first use, if there's no URL param yet, restore the saved preference.
+  // This is done inline (not in a useEffect) to avoid a flash of the wrong view.
+  const effectiveView = calView ?? getStoredView();
 
-  useEffect(() => {
-    if (!isInitializedRef.current && calView === storedView) {
-      isInitializedRef.current = true;
-    }
-  }, [calView, storedView]);
-
-  // Sync URL → localStorage when view changes
-  useEffect(() => {
-    if (!isInitializedRef.current) return;
-    if (calView && calView !== storedView) {
-      localStorage.setItem(STORAGE_KEY, calView);
-      localStorageStore.notify();
-    }
-  }, [calView, storedView]);
-
-  return [calView, setCalView] as const;
+  return [effectiveView, handleSetCalView] as const;
 }

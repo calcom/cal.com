@@ -9,7 +9,7 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { ChevronLeftIcon, ChevronRightIcon } from "@coss/ui/icons";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useCalendarViewToggle } from "~/bookings/hooks/useCalendarViewToggle";
 import { getWeekStart } from "../lib/weekUtils";
@@ -48,8 +48,18 @@ function BookingCalendarSectionInner({
   const { t } = useLocale();
   const user = useMeQuery().data;
 
-  const currentWeekStart = getWeekStart(referenceDate, userWeekStart);
-  const currentMonth = referenceDate.startOf("month");
+  // Stabilize with format strings so new dayjs instances for the same date
+  // don't produce new object references and re-trigger Calendar's useEffect.
+  const currentWeekStart = useMemo(
+    () => getWeekStart(referenceDate, userWeekStart),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [userWeekStart, referenceDate]
+  );
+  const currentMonth = useMemo(
+    () => referenceDate.startOf("month"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [referenceDate.startOf]
+  );
 
   let headerLabel: string;
   if (calView === "week") {
@@ -79,6 +89,13 @@ function BookingCalendarSectionInner({
   };
 
   const goToToday = () => setReferenceDate(dayjs());
+
+  // Stable callback so BookingCalendarView's useEffect([currentWeekStart, onWeekStartChange])
+  // doesn't re-fire on every render and create an infinite update loop.
+  const handleWeekStartChange = useCallback(
+    (weekStart: dayjs.Dayjs) => setReferenceDate(weekStart),
+    [setReferenceDate]
+  );
 
   return (
     <div className="mt-6">
@@ -125,10 +142,10 @@ function BookingCalendarSectionInner({
         <BookingCalendarView
           bookings={bookings}
           currentWeekStart={currentWeekStart}
-          onWeekStartChange={(weekStart) => setReferenceDate(weekStart)}
+          onWeekStartChange={handleWeekStartChange}
           startHour={6}
           endHour={23}
-          containerStyle={{ height: "800px" }}
+          containerStyle={{ height: "min(800px, calc(100vh - 320px))" }}
         />
       ) : (
         <BookingMonthView bookings={bookings} currentMonth={currentMonth} userWeekStart={userWeekStart} />
@@ -156,8 +173,18 @@ export function BookingCalendarSection({ bookingAuditEnabled }: BookingCalendarS
   // Lifting it here ensures navigating months/weeks always re-fetches the correct data.
   const [referenceDate, setReferenceDate] = useState(dayjs());
 
-  const currentWeekStart = getWeekStart(referenceDate, userWeekStart);
-  const currentMonth = referenceDate.startOf("month");
+  // Stabilize with format strings to prevent new dayjs objects for the same date
+  // from causing unnecessary re-renders and tRPC query key changes.
+  const currentWeekStart = useMemo(
+    () => getWeekStart(referenceDate, userWeekStart),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [userWeekStart, referenceDate]
+  );
+  const currentMonth = useMemo(
+    () => referenceDate.startOf("month"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [referenceDate.startOf]
+  );
 
   const afterStartDate =
     calView === "week"
