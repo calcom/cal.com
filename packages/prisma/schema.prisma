@@ -412,6 +412,9 @@ model User {
   /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   email               String
   emailVerified       DateTime?
+  /// Timestamp of last password change. Used to invalidate JWT sessions
+  /// issued before the password was changed (security: session revocation).
+  passwordChangedAt   DateTime?
   password            UserPassword?
   bio                 String?
   avatarUrl           String?

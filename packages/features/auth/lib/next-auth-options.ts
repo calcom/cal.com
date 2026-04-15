@@ -629,6 +629,10 @@ export const getOptions = ({
         } as JWT;
       }
       const autoMergeIdentities = async () => {
+        // Session was explicitly invalidated (e.g. password changed). Skip DB lookup
+        // and propagate the error flag so the session callback can surface it to the client.
+        if (token.error === "SessionInvalidated") return token;
+
         const existingUser = await prisma.user.findFirst({
           where: { email: token.email! },
           select: {
@@ -639,6 +643,7 @@ export const getOptions = ({
             email: true,
             role: true,
             locale: true,
+            passwordChangedAt: true,
             movedToProfileId: true,
             teams: {
               include: {
@@ -655,6 +660,16 @@ export const getOptions = ({
 
         if (!existingUser) {
           return token;
+        }
+
+        if (existingUser.passwordChangedAt && token.iat) {
+          const changedAtSeconds = Math.floor(existingUser.passwordChangedAt.getTime() / 1000);
+          if (token.iat <= changedAtSeconds) {
+            // Mark the token as invalidated. The early-exit at the top of autoMergeIdentities
+            // prevents any further DB lookups on subsequent JWT refreshes, and the session
+            // callback propagates the error to the client so it can redirect to sign-in.
+            return { ...token, error: "SessionInvalidated" } as JWT;
+          }
         }
 
         // Check if the existingUser has any active teams
@@ -954,6 +969,11 @@ export const getOptions = ({
     },
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
+      // If the JWT was invalidated (e.g. password changed), surface the error to the client
+      // so it can redirect to sign-in rather than serving a stale session.
+      if (token.error === "SessionInvalidated") {
+        return { ...session, error: "SessionInvalidated" };
+      }
       const deploymentRepo = new DeploymentRepository(prisma);
       const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
       const hasValidLicense = await licenseKeyService.checkLicense();
