@@ -711,7 +711,13 @@ export class AvailableSlotsService {
 
       return guestBookings.map((b) => ({ start: b.startTime, end: b.endTime }));
     } catch (error) {
-      // Graceful degradation: never block rescheduling if guest lookup fails
+      // Graceful degradation: never block rescheduling if guest lookup fails.
+      // Log at warn (not error) so operators can detect upstream regressions
+      // without paging on a non-blocking code path.
+      log.warn(
+        "[getGuestBusyTimesForReschedule] degraded to empty result",
+        safeStringify({ rescheduleUid, error })
+      );
       return [];
     }
   }
