@@ -307,6 +307,10 @@ describe("Assign all team members", () => {
           const dataSecondHost = data.hosts.find((host) => host.userId === secondManagedUser.user.id);
           evaluateHost({ userId: firstManagedUser.user.id }, dataFirstHost);
           evaluateHost({ userId: secondManagedUser.user.id }, dataSecondHost);
+          expect(dataFirstHost).toHaveProperty("scheduleId");
+          expect(dataFirstHost?.scheduleId).toBeDefined();
+          expect(dataSecondHost).toHaveProperty("scheduleId");
+          expect(dataSecondHost?.scheduleId).toBeDefined();
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
           expect(eventTypeHosts.length).toEqual(2);
@@ -352,6 +356,10 @@ describe("Assign all team members", () => {
             { userId: secondManagedUser.user.id, mandatory: false, priority: "medium" },
             dataSecondHost
           );
+          expect(dataFirstHost).toHaveProperty("scheduleId");
+          expect(dataFirstHost?.scheduleId).toBeDefined();
+          expect(dataSecondHost).toHaveProperty("scheduleId");
+          expect(dataSecondHost?.scheduleId).toBeDefined();
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
           expect(eventTypeHosts.length).toEqual(2);
@@ -416,6 +424,10 @@ describe("Assign all team members", () => {
             { userId: secondManagedUser.user.id, mandatory: false, priority: "medium" },
             dataSecondHost
           );
+          expect(dataFirstHost).toHaveProperty("scheduleId");
+          expect(dataFirstHost?.scheduleId).toBeDefined();
+          expect(dataSecondHost).toHaveProperty("scheduleId");
+          expect(dataSecondHost?.scheduleId).toBeDefined();
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
           expect(eventTypeHosts.length).toEqual(2);
