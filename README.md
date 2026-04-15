@@ -1,3 +1,42 @@
+# feat/calendar-view
+
+> **Branch:** [`feat/calendar-view`](https://github.com/ssikder2/cal.com/tree/feat/calendar-view) — forked from [calcom/cal.diy](https://github.com/calcom/cal.diy)
+
+## What's new in this branch
+
+This branch adds a **calendar view** section directly below the existing bookings list on the `/bookings` page. It is a community contribution open for review against the upstream `cal.diy` main branch.
+
+### Features
+
+- **Week view** — a 7-day timetable (6 AM – 11 PM) with booking events rendered as chips. Click any event to open the booking detail sheet.
+- **Month view** — a 6×7 month grid showing booking chips per day, with "+N more" overflow for busy days. Click any chip to open the booking detail sheet.
+- **Week / Month toggle** — a `ToggleGroup` in the top-right of the calendar header. Your preference is persisted to `localStorage` and synced to the URL via `nuqs`.
+- **Navigation** — back/forward chevron buttons to move week-by-week or month-by-month, plus a "Today" button to jump back to the current period.
+- **Respects user preferences** — week start day is read from the user's profile settings.
+- **Filter-aware** — the calendar reflects the active bookings filter (upcoming, unconfirmed, recurring, past).
+- **Booking detail sheet** — clicking any calendar event opens the same `BookingDetailsSheet` used in the list view, with full booking info.
+
+### Files changed
+
+| File | Description |
+|------|-------------|
+| `apps/web/modules/bookings/components/BookingCalendarSection.tsx` | New — main calendar container: navigation, toggle, tRPC query, conditional view rendering |
+| `apps/web/modules/bookings/components/BookingMonthView.tsx` | New — month grid with booking chips and click handler |
+| `apps/web/modules/bookings/hooks/useCalendarViewToggle.ts` | New — hook for week/month state, persisted to URL + localStorage |
+| `apps/web/modules/bookings/lib/weekUtils.ts` | New — `getWeekStart` utility |
+| `apps/web/modules/bookings/components/BookingCalendarView.tsx` | Updated — added `containerStyle`, `startHour`, `endHour` props |
+| `apps/web/modules/bookings/views/bookings-view.tsx` | Updated — renders `BookingCalendarSection` below the list |
+| `packages/i18n/locales/en/common.json` | Updated — added `week_view`, `month_view`, `view_previous_week`, `view_next_week`, `view_previous_month`, `view_next_month` |
+
+### Key implementation notes
+
+- `currentWeekStart` and `currentMonth` are wrapped in `useMemo` using format strings (`"YYYY-MM-DD"`, `"YYYY-MM"`) as dependencies. This prevents new dayjs object references for the same date from triggering `Calendar`'s internal `useEffect`, which was the root cause of a "Maximum update depth exceeded" infinite loop.
+- `onWeekStartChange` is wrapped in `useCallback` so its reference is stable across renders — same reason as above.
+- The `calViewParser` in `useCalendarViewToggle` is defined at **module level** (outside the hook). `nuqs` uses object reference equality to detect parser changes; creating it inside the hook on every render caused it to continuously reset state and infinite-loop.
+- The calendar section makes its own scoped tRPC `bookings.get` query for the visible date range and auto-paginates to ensure complete data for the period.
+
+---
+
 > [!WARNING]  
 > Use at your own risk. Cal.diy is the open source community edition of Cal.com and it is intended for users who want to self-host their own Cal.diy instance. It is strictly recommended for personal, non-production use. Please review all installation and configuration steps carefully. Self-hosting requires advanced knowledge of server administration, database management, and securing sensitive data. Proceed only if you are comfortable with these responsibilities.
 
