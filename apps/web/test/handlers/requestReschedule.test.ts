@@ -11,7 +11,10 @@ import {
   getDate,
   mockCalendar,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import { expectBookingRequestRescheduledEmails } from "@calcom/testing/lib/bookingScenario/expects";
+import {
+  expectBookingRequestRescheduledEmails,
+  expectWebhookToHaveBeenCalledWith,
+} from "@calcom/testing/lib/bookingScenario/expects";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -132,6 +135,101 @@ describe("Handler: requestReschedule", () => {
         loggedInUser,
         emails,
         bookNewTimePath: `/${organizer.username}/${eventTypeSlug}`,
+      });
+    });
+
+    test(`should include requestReschedule: true in BOOKING_CANCELLED webhook payload`, async () => {
+      const { requestRescheduleHandler } = await import(
+        "@calcom/trpc/server/routers/viewer/bookings/requestReschedule.handler"
+      );
+
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const bookingUid = "MOCKED_BOOKING_UID_WEBHOOK";
+      const subscriberUrl = "http://my-webhook.example.com/cancelled";
+
+      await createBookingScenario(
+        getScenarioData({
+          webhooks: [
+            {
+              userId: organizer.id,
+              eventTriggers: ["BOOKING_CANCELLED"],
+              subscriberUrl,
+              active: true,
+              eventTypeId: 1,
+              appId: null,
+            },
+          ],
+          eventTypes: [
+            {
+              id: 1,
+              slug: "event-type-1",
+              slotInterval: 45,
+              length: 45,
+              users: [{ id: 101 }],
+            },
+          ],
+          bookings: [
+            {
+              uid: bookingUid,
+              eventTypeId: 1,
+              userId: 101,
+              status: BookingStatus.ACCEPTED,
+              startTime: `${plus1DateString}T05:00:00.000Z`,
+              endTime: `${plus1DateString}T05:15:00.000Z`,
+              attendees: [
+                getMockBookingAttendee({
+                  id: 2,
+                  name: booker.name,
+                  email: booker.email,
+                  locale: "en",
+                  timeZone: "America/New_York",
+                  noShow: false,
+                }),
+              ],
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+        })
+      );
+
+      mockCalendar("googlecalendar", { create: true, delete: true });
+
+      await requestRescheduleHandler(
+        getTrpcHandlerData({
+          user: {
+            id: organizer.id,
+            username: organizer.username,
+            email: organizer.email,
+          },
+          input: {
+            bookingUid,
+            rescheduleReason: "Host requested reschedule",
+          },
+        })
+      );
+
+      expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+        triggerEvent: "BOOKING_CANCELLED",
+        payload: {
+          uid: bookingUid,
+          status: "CANCELLED",
+          requestReschedule: true,
+        },
       });
     });
   });
