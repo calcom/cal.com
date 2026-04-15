@@ -1,19 +1,36 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
-import {
-  TransformedCreateTeamEventTypeInput,
-  TransformedUpdateTeamEventTypeInput,
-} from "@/modules/organizations/event-types/services/input.service";
-import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
+import { EventTypesRepository_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/event-types.repository";
+import { EventTypesService_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/services/event-types.service";
+import { InputEventTypesService_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/services/input-event-types.service";
+import type { CustomField, SystemField } from "@/platform/event-types/event-types_2024_06_14/transformers";
+import { DatabaseTeamEventType } from "@/modules/teams/event-types/services/output-team-event-types.service";
+
+type BaseTransformedEventType = ReturnType<
+  InstanceType<typeof InputEventTypesService_2024_06_14>["transformInputCreateEventType"]
+>;
+
+type TransformedCreateTeamEventTypeInput = BaseTransformedEventType & {
+  bookingFields?: (SystemField | CustomField)[];
+  hosts?: { userId: number; isFixed?: boolean; priority?: number }[];
+  children?: {
+    hidden: boolean;
+    owner: { id: number; name: string; email: string; eventTypeSlugs: string[] };
+  }[];
+  destinationCalendar?: { integration: string; externalId: string };
+  assignAllTeamMembers?: boolean;
+};
+
+type TransformedUpdateTeamEventTypeInput = Partial<BaseTransformedEventType> & {
+  bookingFields?: (SystemField | CustomField)[];
+  id?: number;
+};
+
+import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
+import type { SortOrderType } from "@calcom/platform-types";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException, Logger } from "@nestjs/common";
-
-import type { SortOrderType } from "@calcom/platform-types";
-
-import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
 
 @Injectable()
 export class TeamsEventTypesService {
@@ -44,8 +61,7 @@ export class TeamsEventTypesService {
       input: { teamId: teamId, ...rest },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-ignore - prisma type mismatch between PrismaClient versions
         prisma: this.dbWrite.prisma,
       },
     });
@@ -128,8 +144,7 @@ export class TeamsEventTypesService {
       },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-ignore - prisma type mismatch between PrismaClient versions
         prisma: this.dbWrite.prisma,
       },
     });

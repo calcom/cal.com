@@ -1,4 +1,3 @@
-import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 // --- Response DTOs ---
@@ -125,8 +124,5 @@ export interface IEventTypeHostService {
   exportHostsForWeights(input: {
     eventTypeId: number;
     assignAllTeamMembers: boolean;
-    assignRRMembersUsingSegment?: boolean;
-    attributesQueryValue?: AttributesQueryValue | null;
-    organizationId: number | null;
   }): Promise<ExportWeightsResponse>;
 }

@@ -2,8 +2,8 @@
  * These integration tests aim to cover difficult-to-test edge cases
  * Standard cases are currently handled in e2e tests only
  *
- * see: https://github.com/calcom/cal.com/pull/10480
- *      https://github.com/calcom/cal.com/pull/10968
+ * see: https://github.com/calcom/cal.diy/pull/10480
+ *      https://github.com/calcom/cal.diy/pull/10968
  */
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
 

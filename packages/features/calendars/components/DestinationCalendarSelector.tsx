@@ -44,7 +44,6 @@ interface DestinationCalendar {
   eventTypeId?: number | null;
   customCalendarReminder?: number | null;
   delegationCredentialId?: string | null;
-  domainWideDelegationCredentialId?: string | null;
   createdAt?: Date | string | null;
   updatedAt?: Date | string | null;
 }

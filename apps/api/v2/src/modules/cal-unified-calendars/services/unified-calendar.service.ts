@@ -8,7 +8,7 @@ import {
 } from "@calcom/platform-constants";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsService } from "@/platform/calendars/services/calendars.service";
 import type { CreateUnifiedCalendarEventInput } from "@/modules/cal-unified-calendars/inputs/create-unified-calendar-event.input";
 import type { UpdateUnifiedCalendarEventInput } from "@/modules/cal-unified-calendars/inputs/update-unified-calendar-event.input";
 import {

@@ -116,7 +116,6 @@ const commons = {
   parentId: null,
   parent: null,
   owner: null,
-  workflows: [],
   users: [user],
   hosts: [],
   subsetOfHosts: [],
@@ -156,7 +155,6 @@ const commons = {
   updatedAt: null,
   rrHostSubsetEnabled: false,
   enablePerHostLocations: false,
-  redirectUrlOnNoRoutingFormResponse: null,
 };
 
 export const dynamicEvent = {

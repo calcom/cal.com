@@ -1,28 +1,26 @@
 "use client";
 
-import { useMemo } from "react";
-
+import type {
+  FilterableColumn as _FilterableColumn,
+  FacetedValue,
+  FilterValueSchema,
+} from "@calcom/features/data-table/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { FilterType } from "@calcom/types/data-table";
 import classNames from "@calcom/ui/classNames";
 import { buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
-  CommandInput,
-  CommandList,
   CommandEmpty,
-  CommandItem,
-  CommandSeparator,
   CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
 } from "@calcom/ui/components/command";
 import { CheckIcon } from "@coss/ui/icons";
-
+import { useMemo } from "react";
 import { useDataTable, useFilterValue } from "~/data-table/hooks";
-import type {
-  FacetedValue,
-  FilterableColumn as _FilterableColumn,
-  FilterValueSchema,
-} from "@calcom/features/data-table/lib/types";
-import type { FilterType } from "@calcom/types/data-table";
 
 type FilterableColumn = Extract<_FilterableColumn, { type: Extract<FilterType, "ms" | "ss"> }>;
 

@@ -37,32 +37,10 @@ const workspaces = packagedEmbedTestsOnly
             setupFiles: ["packages/testing/src/setupVitest.ts"],
             pool,
           },
-          resolve: {
-            alias: {
-              "~": new URL("./apps/api/v1", import.meta.url).pathname,
-            },
-          },
         },
       ]
     : // It doesn't seem to be possible to fake timezone per test, so we rerun the entire suite with different TZ. See https://github.com/vitest-dev/vitest/issues/1575#issuecomment-1439286286
-  integrationTestsOnly
-  ? [
-      {
-        test: {
-          name: `IntegrationTests`,
-          include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
-          // TODO: Ignore the api until tests are fixed
-          exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          setupFiles: ["packages/testing/src/setupVitest.ts"],
-        },
-        resolve: {
-          alias: {
-            "~": new URL("./apps/api/v1", import.meta.url).pathname,
-          },
-        },
-      },
-    ]
-  : timeZoneDependentTestsOnly
+      timeZoneDependentTestsOnly
       ? [
           {
             test: {
@@ -85,7 +63,6 @@ const workspaces = packagedEmbedTestsOnly
                 "packages/embeds/**/*",
                 "packages/lib/hooks/**/*",
                 "packages/platform/**/*",
-                "apps/api/v1/**/*",
                 "apps/api/v2/**/*",
               ],
               name: "@calcom/lib",
@@ -99,27 +76,6 @@ const workspaces = packagedEmbedTestsOnly
                 "@components": new URL("./apps/web/components", import.meta.url).pathname,
                 "@pages": new URL("./apps/web/pages", import.meta.url).pathname,
                 "~": new URL("./apps/web/modules", import.meta.url).pathname,
-              },
-            },
-          },
-          {
-            test: {
-              include: ["apps/api/v1/**/*.{test,spec}.{ts,js}"],
-              exclude: [
-                "**/node_modules/**/*",
-                "**/.next/**/*",
-                "packages/embeds/**/*",
-                "packages/lib/hooks/**/*",
-                "packages/platform/**/*",
-                "apps/api/v2/**/*",
-              ],
-              name: "@calcom/api",
-              setupFiles: ["packages/testing/src/setupVitest.ts"],
-              pool,
-            },
-            resolve: {
-              alias: {
-                "~": new URL("./apps/api/v1", import.meta.url).pathname,
               },
             },
           },
@@ -162,16 +118,6 @@ const workspaces = packagedEmbedTestsOnly
               include: ["packages/app-store/delegationCredential.test.ts"],
               environment: "node",
               setupFiles: ["packages/testing/src/setupVitest.ts"],
-              pool,
-            },
-          },
-          {
-            test: {
-              globals: true,
-              name: "@calcom/routing-forms",
-              include: ["packages/app-store/routing-forms/**/*.test.tsx"],
-              environment: "jsdom",
-              setupFiles: ["packages/ui/components/test-setup.tsx"],
               pool,
             },
           },

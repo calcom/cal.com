@@ -463,7 +463,7 @@ describe("generateAuthCodeHandler", () => {
       expect(prismaMock.accessCode.create).not.toHaveBeenCalled();
     });
 
-    it("should allow PENDING client when user is the owner", async () => {
+    it("should allow PENDING client when user is the owner (developer testing bypass)", async () => {
       const mockPendingClientOwnedByUser = {
         clientId: "pending_client_owned",
         redirectUri: "https://app.example.com/callback",

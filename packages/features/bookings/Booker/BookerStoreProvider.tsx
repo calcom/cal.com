@@ -1,10 +1,9 @@
 "use client";
 
-import { createContext, useContext, useRef, type ReactNode, useEffect } from "react";
-import { useStore } from "zustand";
+import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import type { StoreApi } from "zustand";
-
-import { createBookerStore, type BookerStore, type StoreInitializeType } from "./store";
+import { useStore } from "zustand";
+import { type BookerStore, createBookerStore, type StoreInitializeType } from "./store";
 
 export const BookerStoreContext = createContext<StoreApi<BookerStore> | null>(null);
 
@@ -47,7 +46,6 @@ export const useInitializeBookerStoreContext = ({
   isTeamEvent,
   durationConfig,
   org,
-  isInstantMeeting,
   timezone = null,
   teamMemberEmail,
   crmOwnerRecordType,
@@ -78,7 +76,6 @@ export const useInitializeBookerStoreContext = ({
       org,
       verifiedEmail,
       durationConfig,
-      isInstantMeeting,
       timezone,
       teamMemberEmail,
       crmOwnerRecordType,
@@ -101,7 +98,6 @@ export const useInitializeBookerStoreContext = ({
     isTeamEvent,
     verifiedEmail,
     durationConfig,
-    isInstantMeeting,
     timezone,
     teamMemberEmail,
     crmOwnerRecordType,

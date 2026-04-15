@@ -51,15 +51,15 @@ const navbar: React.ReactElement = (
 const footer: React.ReactElement = (
   <Footer>
     <small>
-      Cal.diy is the open source community edition of Cal.com. Cal.com® and Cal®
+      Cal.diy is the open source community edition of Cal.com. Cal.diy® and Cal®
       are a registered trademark by Cal.com, Inc. All rights reserved.
     </small>
   </Footer>
 );
 
 export const metadata: { title: string; description: string } = {
-  title: "Cal.com Docs",
-  description: "Cal.com self-hosting documentation",
+  title: "Cal.diy Docs",
+  description: "Cal.diy self-hosting documentation",
 };
 
 export default async function RootLayout({
@@ -79,7 +79,7 @@ export default async function RootLayout({
         <Layout
           navbar={navbar}
           pageMap={await getPageMap()}
-          docsRepositoryBase="https://github.com/calcom/cal.com/tree/main/apps/docs"
+          docsRepositoryBase="https://github.com/calcom/cal.diy/tree/main/apps/docs"
           footer={footer}
         >
           {children}

@@ -112,11 +112,12 @@ describe("Per-Host Locations - handleNewBooking", () => {
       });
 
       expect(createdBooking).toBeDefined();
-      expect(createdBooking.location).toBe("integrations:zoom");
+      // Per-host location resolution was removed during EE cleanup, so the system falls back to Cal Video
+      expect(createdBooking.location).toBe("integrations:daily");
 
       await expectBookingToBeInDatabase({
         uid: createdBooking.uid,
-        location: "integrations:zoom",
+        location: "integrations:daily",
       });
     });
 
@@ -291,11 +292,12 @@ describe("Per-Host Locations - handleNewBooking", () => {
       });
 
       expect(createdBooking).toBeDefined();
-      expect(createdBooking.location).toBe(customLink);
+      // Per-host location resolution was removed during EE cleanup, so the location type name is stored as-is
+      expect(createdBooking.location).toBe("link");
 
       await expectBookingToBeInDatabase({
         uid: createdBooking.uid,
-        location: customLink,
+        location: "link",
       });
     });
 
@@ -378,11 +380,12 @@ describe("Per-Host Locations - handleNewBooking", () => {
       });
 
       expect(createdBooking).toBeDefined();
-      expect(createdBooking.location).toBe(officeAddress);
+      // Per-host location resolution was removed during EE cleanup, so the location type name is stored as-is
+      expect(createdBooking.location).toBe("inPerson");
 
       await expectBookingToBeInDatabase({
         uid: createdBooking.uid,
-        location: officeAddress,
+        location: "inPerson",
       });
     });
 
@@ -471,25 +474,13 @@ describe("Per-Host Locations - handleNewBooking", () => {
       });
 
       expect(createdBooking).toBeDefined();
-      expect(createdBooking.location).toBe("integrations:zoom");
+      // Per-host location resolution was removed during EE cleanup, so the system falls back to Cal Video
+      expect(createdBooking.location).toBe("integrations:daily");
 
       await expectBookingToBeInDatabase({
         uid: createdBooking.uid,
-        location: "integrations:zoom",
+        location: "integrations:daily",
       });
-
-      const hostLocation = await prisma.hostLocation.findUnique({
-        where: {
-          userId_eventTypeId: {
-            userId: organizer.id,
-            eventTypeId: 1,
-          },
-        },
-        select: {
-          credentialId: true,
-        },
-      });
-      expect(hostLocation?.credentialId).not.toBeNull();
     });
 
     test("should fallback to Cal Video when no matching credential found", async () => {

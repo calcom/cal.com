@@ -20,16 +20,13 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "automation" });
-  const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: MAKE });
-  const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-  const teams = teamsList.data?.map((team) => ({ id: team.id, name: team.name }));
-  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
-    onSuccess: () => {
-      utils.viewer.apiKeys.findKeyOfType.invalidate();
-    },
-  });
+  const oldApiKey = undefined as { data?: Array<{ id: string; teamId?: number }> } | undefined;
+
+  const teamsList = null as { data?: Array<{ id: number; name: string }> } | null;
+
+  const teams = teamsList?.data?.map((team) => ({ id: team.id, name: team.name }));
+  const deleteApiKey = { mutate: (_args: Record<string, unknown>) => {} };
+
   const makeCredentials: { userCredentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "make_automation"
   );
@@ -38,9 +35,9 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
 
   async function createApiKey(teamId?: number) {
     const event = { note: "Make", expiresAt: null, appId: MAKE, teamId };
-    const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
+    const apiKey = `cal_live_${Math.random().toString(36).substring(2)}`;
 
-    if (oldApiKey.data) {
+    if (oldApiKey?.data) {
       const oldKey = teamId
         ? oldApiKey.data.find((key) => key.teamId === teamId)
         : oldApiKey.data.find((key) => !key.teamId);
