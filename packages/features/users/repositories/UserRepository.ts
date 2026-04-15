@@ -1506,4 +1506,34 @@ export class UserRepository {
 
     return { email: user.email, username: user.username };
   }
+
+  async findByEmails({ emails }: { emails: string[] }) {
+    if (!emails.length) return [];
+
+    const normalized = Array.from(new Set(emails.map((e) => e.toLowerCase())));
+
+    const [byPrimary, bySecondary] = await Promise.all([
+      this.prismaClient.user.findMany({
+        where: { email: { in: normalized, mode: "insensitive" } },
+        select: { id: true, email: true },
+      }),
+      this.prismaClient.user.findMany({
+        where: {
+          secondaryEmails: {
+            some: {
+              email: { in: normalized, mode: "insensitive" },
+              emailVerified: { not: null },
+            },
+          },
+        },
+        select: { id: true, email: true },
+      }),
+    ]);
+
+    const seen = new Map<number, { id: number; email: string }>();
+    for (const u of [...byPrimary, ...bySecondary]) {
+      if (!seen.has(u.id)) seen.set(u.id, u);
+    }
+    return Array.from(seen.values());
+  }
 }
