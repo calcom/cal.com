@@ -4,18 +4,16 @@ import { ColumnFilterType, type SystemFilterSegment } from "@calcom/features/dat
 import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { BookingListContainer } from "../components/BookingListContainer";
 import { useActiveFiltersValidator } from "../hooks/useActiveFiltersValidator";
-import { useBookingsView } from "../hooks/useBookingsView";
 import type { validStatuses } from "../lib/validStatuses";
 
-const BookingCalendarContainer = dynamic(() =>
-  import("../components/BookingCalendarContainer").then((mod) => ({
-    default: mod.BookingCalendarContainer,
+const BookingCalendarSection = dynamic(() =>
+  import("../components/BookingCalendarSection").then((mod) => ({
+    default: mod.BookingCalendarSection,
   }))
 );
 
@@ -76,7 +74,6 @@ export default function Bookings(props: BookingsProps) {
 }
 
 function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditEnabled }: BookingsProps) {
-  const [view] = useBookingsView({ bookingsV3Enabled });
   const router = useRouter();
   const handleOptInSuccess = useCallback(() => {
     router.refresh();
@@ -84,22 +81,14 @@ function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditE
   const optInBanner = null;
 
   return (
-    <div className={classNames(view === "calendar" && "-mb-8")}>
-      {view === "list" && (
-        <BookingListContainer
-          status={status}
-          permissions={permissions}
-          bookingsV3Enabled={bookingsV3Enabled}
-          bookingAuditEnabled={bookingAuditEnabled}
-        />
-      )}
-      {bookingsV3Enabled && view === "calendar" && (
-        <BookingCalendarContainer
-          status={status}
-          permissions={permissions}
-          bookingsV3Enabled={bookingsV3Enabled}
-        />
-      )}
-          </div>
+    <div>
+      <BookingListContainer
+        status={status}
+        permissions={permissions}
+        bookingsV3Enabled={bookingsV3Enabled}
+        bookingAuditEnabled={bookingAuditEnabled}
+      />
+      <BookingCalendarSection bookingAuditEnabled={bookingAuditEnabled} />
+    </div>
   );
 }

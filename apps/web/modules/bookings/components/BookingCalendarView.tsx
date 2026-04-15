@@ -6,6 +6,7 @@ import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
 import { useBanners } from "@calcom/web/modules/shell/banners/useBanners";
+import type { CSSProperties } from "react";
 import { useEffect, useMemo } from "react";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
@@ -14,12 +15,21 @@ type BookingCalendarViewProps = {
   bookings: BookingOutput[];
   currentWeekStart: dayjs.Dayjs;
   onWeekStartChange: (weekStart: dayjs.Dayjs) => void;
+  /** Override the default full-viewport height when embedding the calendar inside a page section. */
+  containerStyle?: CSSProperties;
+  /** First hour to render (0–23). Defaults to 0 (midnight). */
+  startHour?: number;
+  /** Last hour to render (0–23). Defaults to 23 (11 pm). */
+  endHour?: number;
 };
 
 export function BookingCalendarView({
   bookings,
   currentWeekStart,
   onWeekStartChange,
+  containerStyle,
+  startHour = 0,
+  endHour = 23,
 }: BookingCalendarViewProps) {
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
   const selectedBookingUid = useBookingDetailsSheetStore((state) => state.selectedBookingUid);
@@ -76,12 +86,12 @@ export function BookingCalendarView({
     <>
       <div
         className="border-subtle flex flex-1 flex-col overflow-y-auto overflow-x-hidden rounded-2xl border"
-        style={{ height: `calc(100vh - 6rem - ${bannersHeight}px)` }}>
+        style={containerStyle ?? { height: `calc(100vh - 6rem - ${bannersHeight}px)` }}>
         <Calendar
           timezone={timezone}
           sortEvents
-          startHour={0}
-          endHour={23}
+          startHour={startHour}
+          endHour={endHour}
           events={events}
           startDate={startDate}
           endDate={endDate}
