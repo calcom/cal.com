@@ -7,7 +7,6 @@ import type { InstallAppButtonProps } from "./types";
 
 export const InstallAppButton = (
   props: {
-    teamsPlanRequired?: App["teamsPlanRequired"];
     type: App["type"];
     wrapperClassName?: string;
     disableInstall?: boolean;

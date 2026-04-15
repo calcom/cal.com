@@ -1,17 +1,14 @@
-import React, { Suspense } from "react";
-
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
-
+import React, { Suspense } from "react";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { cn } from "../../src/lib/utils";
 import { useAtomsEventTypePaymentInfo } from "../hooks/useAtomEventTypePaymentInfo";
@@ -56,29 +53,29 @@ export const PaymentForm = ({
         <Suspense fallback={<></>}>
           <main className="mx-auto">
             <div>
-              <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+              <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
                 <div className="inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
                   <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                     &#8203;
                   </span>
                   <div
                     className={cn(
-                      "main bg-default border-subtle inline-block transform overflow-hidden rounded-lg border px-8 pb-4 pt-5 text-left align-bottom transition-all  sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
+                      "main inline-block transform overflow-hidden rounded-lg border border-subtle bg-default px-8 pt-5 pb-4 text-left align-bottom transition-all sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
                     )}
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="modal-headline">
                     <div>
-                      <div className="bg-cal-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-cal-success">
                         <PayIcon currency={paymentAppData.currency} className="h-8 w-8 text-green-600" />
                       </div>
                       <div className="mt-3 text-center sm:mt-5">
-                        <h3 className="text-emphasis text-2xl font-semibold leading-6" id="modal-headline">
+                        <h3 className="font-semibold text-2xl text-emphasis leading-6" id="modal-headline">
                           {paymentAppData.paymentOption === "HOLD"
                             ? t("complete_your_booking")
                             : t("payment")}
                         </h3>
-                        <div className="text-default mt-4 grid grid-cols-3 border-b border-t py-4 text-left dark:border-gray-900 dark:text-gray-300">
+                        <div className="mt-4 grid grid-cols-3 border-t border-b py-4 text-left text-default dark:border-gray-900 dark:text-gray-300">
                           <div className="font-medium">{t("what")}</div>
                           <div className="col-span-2 mb-6">{eventName}</div>
                           <div className="font-medium">{t("when")}</div>
@@ -111,7 +108,7 @@ export const PaymentForm = ({
                     </div>
                     <div>
                       {paymentInfo.payment.success && !paymentInfo.payment.refunded && (
-                        <div className="text-default mt-4 text-center dark:text-gray-300">{t("paid")}</div>
+                        <div className="mt-4 text-center text-default dark:text-gray-300">{t("paid")}</div>
                       )}
                       {paymentInfo.payment.appId === "stripe" && !paymentInfo.payment.success && (
                         <StripePaymentForm
@@ -127,13 +124,13 @@ export const PaymentForm = ({
                         />
                       )}
                       {paymentInfo.payment.refunded && (
-                        <div className="text-default mt-4 text-center dark:text-gray-300">
+                        <div className="mt-4 text-center text-default dark:text-gray-300">
                           {t("refunded")}
                         </div>
                       )}
                     </div>
                     {!paymentInfo.profile.hideBranding && (
-                      <div className="text-muted dark:text-inverted mt-4 border-t pt-4 text-center text-xs dark:border-gray-900">
+                      <div className="mt-4 border-t pt-4 text-center text-muted text-xs dark:border-gray-900 dark:text-inverted">
                         <a href={`${WEBSITE_URL}/signup`}>
                           {t("create_booking_link_with_calcom", { appName: APP_NAME })}
                         </a>

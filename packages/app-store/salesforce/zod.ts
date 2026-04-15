@@ -1,7 +1,6 @@
 import { z } from "zod";
-
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
-import { SalesforceRecordEnum, WhenToWriteToRecord, SalesforceFieldType } from "./lib/enums";
+import { SalesforceFieldType, SalesforceRecordEnum, WhenToWriteToRecord } from "./lib/enums";
 
 export const writeToBookingEntry = z.object({
   value: z.union([z.string(), z.boolean()]),
@@ -30,17 +29,6 @@ export const rrSkipFieldRuleSchema = z.object({
 });
 
 export type RRSkipFieldRule = z.infer<typeof rrSkipFieldRuleSchema>;
-
-export const routingFormOptions = z
-  .object({
-    rrSkipToAccountLookupField: z.boolean().optional(),
-    rrSKipToAccountLookupFieldName: z.string().optional(),
-  })
-  .optional();
-
-export const routingFormIncompleteBookingDataSchema = z.object({
-  writeToRecordObject: writeToRecordDataSchema.optional(),
-});
 
 const optionalBooleanOnlyRunTimeValidation = z
   .any()
