@@ -1557,6 +1557,8 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
+    const eventTimeZone = eventType.timeZone ?? eventType.schedule?.timeZone ?? "UTC";
+
     // Use "slots" mode to enable cache when available for getting calendar availability
     const mode: CalendarFetchMode = "slots";
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {

@@ -316,7 +316,7 @@ const toUtcMidnight = (date: Date | undefined | null) => {
     return null;
   }
 
-  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 };
 
 const buildLimitOverrideDefaults = (option: CheckedSelectOption): Partial<FormValues> => ({
