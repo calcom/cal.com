@@ -1399,8 +1399,106 @@ async function handler(
         : "booking_limit_reached";
     };
 
+    const isRecurringRetryCandidateEligible = async (candidate: IsFixedAwareUser) => {
+      const shouldCheckRecurringAvailability =
+        input.bookingData.isFirstRecurringSlot &&
+        eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+        input.bookingData.numSlotsToCheckForAvailability &&
+        input.bookingData.allRecurringDates;
+
+      if (!shouldCheckRecurringAvailability || skipAvailabilityCheck) {
+        return true;
+      }
+
+      try {
+        for (
+          let i = 0;
+          i < input.bookingData.allRecurringDates.length &&
+          i < input.bookingData.numSlotsToCheckForAvailability;
+          i++
+        ) {
+          const start = input.bookingData.allRecurringDates[i].start;
+          const end = input.bookingData.allRecurringDates[i].end;
+
+          await ensureAvailableUsers(
+            {
+              ...eventType,
+              users: [candidate],
+            },
+            {
+              dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+              dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+              timeZone: reqBody.timeZone,
+              originalRescheduledBooking,
+            },
+            tracingLogger,
+            calendarFetchMode
+          );
+        }
+
+        return true;
+      } catch {
+        tracingLogger.info(
+          `Round robin host ${candidate.name} rejected in retry path because recurring-slot availability check failed.`
+        );
+        return false;
+      }
+    };
+
     if (luckyUserPoolsForRetry && selectedLuckyUsersByGroupId.size > 0) {
       const fixedUsers = users.filter((user) => user.isFixed);
+
+      for (const fixedUser of fixedUsers) {
+        const fixedEffectiveLimits = resolveRoundRobinHostEffectiveLimits({
+          schedulingType: eventType.schedulingType,
+          eventLimits: eventLevelLimits,
+          hostOverrides: getRoundRobinHostLimitOverrides(fixedUser),
+        });
+        const fixedEffectiveEventType = buildEventTypeWithEffectiveLimits({
+          eventType,
+          effectiveLimits: fixedEffectiveLimits,
+        });
+
+        try {
+          await validateBookingTimeIsNotOutOfBounds<typeof fixedEffectiveEventType>(
+            reqBody.start,
+            reqBody.timeZone,
+            fixedEffectiveEventType,
+            eventTimeZone,
+            tracingLogger
+          );
+        } catch {
+          let conflictMessage: "duration_limit_reached" | "booking_limit_reached" | null = null;
+          try {
+            conflictMessage = await getLimitConflictMessageForUser(fixedUser);
+          } catch {
+            // Ignore secondary validation errors and use fallback message.
+          }
+
+          throw new HttpError({
+            statusCode: 403,
+            message: conflictMessage ?? "booking_limit_reached",
+          });
+        }
+
+        let conflictMessage: "duration_limit_reached" | "booking_limit_reached" | null = null;
+        try {
+          conflictMessage = await getLimitConflictMessageForUser(fixedUser);
+        } catch {
+          throw new HttpError({
+            statusCode: 403,
+            message: "booking_limit_reached",
+          });
+        }
+
+        if (conflictMessage) {
+          throw new HttpError({
+            statusCode: 403,
+            message: conflictMessage ?? "booking_limit_reached",
+          });
+        }
+      }
+
       const usedUserIds = new Set(fixedUsers.map((user) => user.id));
       const resolvedLuckyUsers: IsFixedAwareUser[] = [];
 
@@ -1415,6 +1513,10 @@ async function handler(
 
         for (const candidate of orderedCandidates) {
           if (usedUserIds.has(candidate.id)) {
+            continue;
+          }
+
+          if (!(await isRecurringRetryCandidateEligible(candidate))) {
             continue;
           }
 
