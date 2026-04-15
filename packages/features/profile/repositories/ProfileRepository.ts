@@ -400,10 +400,10 @@ export class ProfileRepository implements IProfileRepository {
     });
   }
 
-  static deleteMany({ userIds }: { userIds: number[] }) {
+  static deleteMany({ userIds, organizationId }: { userIds: number[]; organizationId: number }) {
     // Even though there can be just one profile matching a userId and organizationId, we are using deleteMany as it won't error if the profile doesn't exist
     return prisma.profile.deleteMany({
-      where: { userId: { in: userIds } },
+      where: { userId: { in: userIds }, organizationId },
     });
   }
 
