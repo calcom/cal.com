@@ -1,9 +1,9 @@
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizations-webhooks.repository";
 import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { validateWebhookUrl, validateWebhookUrlIfChanged } from "@/modules/webhooks/utils/validate-webhook-url";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsWebhooksService {
@@ -20,7 +20,9 @@ export class OrganizationsWebhooksService {
       body.subscriberUrl
     );
     if (existingWebhook) {
-      throw new ConflictException("Webhook with this subscriber url already exists for this user");
+      throw new ConflictException(
+        `Webhook with subscriber url ${body.subscriberUrl} already exists for this organization. Existing webhook ID: ${existingWebhook.id}`
+      );
     }
 
     return this.organizationsWebhooksRepository.createWebhook(orgId, {
