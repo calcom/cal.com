@@ -1,21 +1,44 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
+import type { NextApiRequest } from "next";
+import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { schemaMembershipPublic } from "~/lib/validations/membership";
 import {
   schemaQuerySingleOrMultipleTeamIds,
   schemaQuerySingleOrMultipleUserIds,
 } from "~/lib/validations/shared/queryUserId";
 
+const MAX_TAKE = 250;
+
 /**
  * @swagger
  * /memberships:
  *   get:
  *     summary: Find all memberships
+ *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
+ *      - in: query
+ *        name: take
+ *        required: false
+ *        schema:
+ *          type: integer
+ *          minimum: 1
+ *          maximum: 250
+ *        description: Number of memberships to return (max 250)
+ *      - in: query
+ *        name: page
+ *        required: false
+ *        schema:
+ *          type: integer
+ *          minimum: 1
+ *        description: Page number for pagination
  *     tags:
  *     - memberships
  *     responses:
@@ -27,6 +50,10 @@ import {
  *         description: No memberships were found
  */
 async function getHandler(req: NextApiRequest) {
+  const { pagination } = req;
+  const take = Math.min(pagination.take, MAX_TAKE);
+  const skip = pagination.skip;
+
   const args: Prisma.MembershipFindManyArgs = {
     where: {
       /** Admins can query multiple users */
@@ -34,6 +61,9 @@ async function getHandler(req: NextApiRequest) {
       /** Admins can query multiple teams as well */
       teamId: { in: getTeamIds(req) },
     },
+    take,
+    skip,
+    orderBy: { id: "asc" },
   };
   // Just in case the user want to get more info about the team itself
   if (req.query.include === "team") args.include = { team: true };
@@ -75,4 +105,4 @@ function getTeamIds(req: NextApiRequest) {
   return undefined;
 }
 
-export default defaultResponder(getHandler);
+export default withMiddleware("pagination")(defaultResponder(getHandler));
