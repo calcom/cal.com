@@ -4,6 +4,7 @@ import { APP_NAME, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { test } from "./lib/fixtures";
 import { getEmailsReceivedByUser } from "./lib/testUtils";
 
@@ -27,6 +28,8 @@ test.describe("Signup Main Page Test", async () => {
   });
 
   test("Continue with google button must exist / work", async ({ page }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!IS_GOOGLE_LOGIN_ENABLED, "It should only run if Google Login is installed");
     const button = page.getByTestId("continue-with-google-button");
     await expect(button).toBeVisible();
     await expect(button).toBeEnabled();
