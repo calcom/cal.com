@@ -393,6 +393,31 @@ export async function getBookings({
       fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
     }
 
+    // 8. Filter by UTM tracking parameters (if provided)
+    const utmFieldMap = [
+      { filterKey: "utmSource" as const, column: "utm_source" as const },
+      { filterKey: "utmMedium" as const, column: "utm_medium" as const },
+      { filterKey: "utmCampaign" as const, column: "utm_campaign" as const },
+      { filterKey: "utmTerm" as const, column: "utm_term" as const },
+      { filterKey: "utmContent" as const, column: "utm_content" as const },
+    ];
+
+    for (const { filterKey, column } of utmFieldMap) {
+      const filterValue = filters?.[filterKey];
+      if (filterValue) {
+        if (typeof filterValue === "string") {
+          fullQuery = addUtmTrackingWhereClause(fullQuery, column, "contains", filterValue);
+        } else if (isTextFilterValue(filterValue)) {
+          fullQuery = addUtmTrackingWhereClause(
+            fullQuery,
+            column,
+            filterValue.data.operator,
+            filterValue.data.operand
+          );
+        }
+      }
+    }
+
     // 7. Booking Start/End Time Range Filters
     if (filters?.afterStartDate) {
       fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
@@ -1113,6 +1138,97 @@ function addAdvancedAttendeeWhereClause(
   }
 
   return fullQuery;
+}
+
+function addUtmTrackingWhereClause(
+  query: BookingsUnionQuery,
+  column: "utm_source" | "utm_medium" | "utm_campaign" | "utm_term" | "utm_content",
+  operator:
+    | "endsWith"
+    | "startsWith"
+    | "equals"
+    | "notEquals"
+    | "contains"
+    | "notContains"
+    | "isEmpty"
+    | "isNotEmpty",
+  operand: string
+): BookingsUnionQuery {
+  switch (operator) {
+    case "contains":
+      return query.where("Booking.id", "in", (eb) =>
+        eb
+          .selectFrom("Tracking")
+          .select("Tracking.bookingId")
+          .where(`Tracking.${column}`, "ilike", `%${operand}%`)
+      ) as BookingsUnionQuery;
+
+    case "notContains":
+      return query.where("Booking.id", "in", (eb) =>
+        eb
+          .selectFrom("Tracking")
+          .select("Tracking.bookingId")
+          .where(`Tracking.${column}`, "not ilike", `%${operand}%`)
+      ) as BookingsUnionQuery;
+
+    case "startsWith":
+      return query.where("Booking.id", "in", (eb) =>
+        eb
+          .selectFrom("Tracking")
+          .select("Tracking.bookingId")
+          .where(`Tracking.${column}`, "ilike", `${operand}%`)
+      ) as BookingsUnionQuery;
+
+    case "endsWith":
+      return query.where("Booking.id", "in", (eb) =>
+        eb
+          .selectFrom("Tracking")
+          .select("Tracking.bookingId")
+          .where(`Tracking.${column}`, "ilike", `%${operand}`)
+      ) as BookingsUnionQuery;
+
+    case "equals":
+      return query.where("Booking.id", "in", (eb) =>
+        eb
+          .selectFrom("Tracking")
+          .select("Tracking.bookingId")
+          .where((subEb) =>
+            subEb(subEb.fn<string>("lower", [`Tracking.${column}`]), "=", operand.toLowerCase())
+          )
+      ) as BookingsUnionQuery;
+
+    case "notEquals":
+      return query.where("Booking.id", "in", (eb) =>
+        eb
+          .selectFrom("Tracking")
+          .select("Tracking.bookingId")
+          .where((subEb) =>
+            subEb(subEb.fn<string>("lower", [`Tracking.${column}`]), "!=", operand.toLowerCase())
+          )
+      ) as BookingsUnionQuery;
+
+    case "isEmpty":
+      // Covers bookings with no Tracking row OR with a null/empty UTM value
+      return query.where("Booking.id", "not in", (eb) =>
+        eb
+          .selectFrom("Tracking")
+          .select("Tracking.bookingId")
+          .where(`Tracking.${column}`, "is not", null)
+          .where(`Tracking.${column}`, "!=", "")
+      ) as BookingsUnionQuery;
+
+    case "isNotEmpty":
+      return query.where("Booking.id", "in", (eb) =>
+        eb
+          .selectFrom("Tracking")
+          .select("Tracking.bookingId")
+          .where(`Tracking.${column}`, "is not", null)
+          .where(`Tracking.${column}`, "!=", "")
+      ) as BookingsUnionQuery;
+
+    default:
+      return query;
+  }
 }
 
 function getOrderBy(
