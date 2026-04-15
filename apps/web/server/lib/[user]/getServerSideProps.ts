@@ -1,6 +1,5 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
-import { encode } from "node:querystring";
 import type { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -109,7 +108,17 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
     // EXAMPLE - context.params: { orgSlug: 'acme', user: 'member0+owner1' }
     // EXAMPLE - context.query: { redirect: 'undefined', orgRedirection: 'undefined', user: 'member0+owner1' }
-    const originalQueryString = new URLSearchParams(context.query as Record<string, string>).toString();
+    const params = new URLSearchParams();
+
+    Object.entries(context.query).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((v) => params.append(key, v));
+      } else if (value !== undefined) {
+        params.append(key, value);
+      }
+    });
+
+    const originalQueryString = params.toString();
     const destinationWithQuery = `${destinationUrl}?${originalQueryString}`;
     log.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
     return {
@@ -161,8 +170,18 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   if (eventTypes.length === 1 && context.query.redirect !== "false") {
     // Redirect but don't change the URL
     const urlDestination = `/${user.profile.username}/${eventTypes[0].slug}`;
+    const params = new URLSearchParams();
     const { query } = context;
-    const urlQuery = new URLSearchParams(encode(query));
+
+    Object.entries(query).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((v) => params.append(key, v));
+      } else if (value !== undefined) {
+        params.append(key, value as string);
+      }
+    });
+
+    const urlQuery = params.toString();
 
     return {
       redirect: {
