@@ -3,7 +3,7 @@
   "sideEffects": false,
   "private": true,
   "description": "Cal.diy's main collocation of features",
-  "authors": "Cal.diy, Inc.",
+  "authors": "Cal.com, Inc.",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {

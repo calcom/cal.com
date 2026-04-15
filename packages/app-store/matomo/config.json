@@ -6,7 +6,7 @@
   "url": "https://cal.com/",
   "variant": "analytics",
   "categories": ["analytics"],
-  "publisher": "Cal.diy, Inc.",
+  "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",
   "description": "Google Analytics alternative that protects your data and your customers' privacy",
   "extendsFeature": "EventType",

@@ -4,7 +4,7 @@
  * Plugin URI:        https://cal.com/apps/wordpress
  * Description:       Embed your Cal.diy in Wordpress
  * Version:           0.1
- * Author:            Cal.diy, Inc.
+ * Author:            Cal.com, Inc.
  * Author URI:        https://cal.com
  * License:           MIT
  * License URI:       https://opensource.org/license/mit
