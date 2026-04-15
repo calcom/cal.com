@@ -3,7 +3,6 @@ import { AuthMethods } from "@/lib/enums/auth-methods";
 import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
-import { DeploymentsService } from "@/modules/deployments/deployments.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
@@ -40,7 +39,6 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
   private readonly logger = new Logger("ApiAuthStrategy");
 
   constructor(
-    private readonly deploymentsService: DeploymentsService,
     private readonly config: ConfigService,
     private readonly oauthFlowService: OAuthFlowService,
     private readonly tokensRepository: TokensRepository,
@@ -236,12 +234,6 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
   }
 
   async apiKeyStrategy(apiKey: string, request: ApiAuthGuardRequest) {
-    const isLicenseValid = await this.deploymentsService.checkLicense();
-    if (!isLicenseValid) {
-      throw new UnauthorizedException(
-        "ApiAuthStrategy - api key - Invalid or missing CALCOM_LICENSE_KEY environment variable"
-      );
-    }
     const strippedApiKey = stripApiKey(apiKey, this.config.get<string>("api.keyPrefix"));
     const apiKeyHash = sha256Hash(strippedApiKey);
     const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);

@@ -13,7 +13,7 @@ import {
 import { createMockNextJsRequest } from "@calcom/testing/lib/bookingScenario/createMockNextJsRequest";
 import {
   expectBookingCreatedWebhookToHaveBeenFired,
-  expectBookingToBeInDatabase, // expectWorkflowToBeTriggered,
+  expectBookingToBeInDatabase,
   expectSuccessfulBookingCreationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
 } from "@calcom/testing/lib/bookingScenario/expects";
@@ -202,19 +202,17 @@ describe("handleNewBooking", () => {
               organizer,
               location: "integrations:daily",
               subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: All recurring bookings seem to have the same URL. https://github.com/calcom/cal.com/issues/11955
+              //FIXME: All recurring bookings seem to have the same URL. https://github.com/calcom/cal.diy/issues/11955
               videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
             });
           }
-
-          // expectWorkflowToBeTriggered();
 
           expectSuccessfulBookingCreationEmails({
             booker,
             booking: {
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBookings[0].uid!,
-              urlOrigin: WEBSITE_URL,
+              urlOrigin: WEBAPP_URL,
             },
             organizer,
             emails,
@@ -556,14 +554,12 @@ describe("handleNewBooking", () => {
             });
           }
 
-          // expectWorkflowToBeTriggered();
-
           expectSuccessfulBookingCreationEmails({
             booker,
             booking: {
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBookings[0].uid!,
-              urlOrigin: WEBSITE_URL,
+              urlOrigin: WEBAPP_URL,
             },
             organizer,
             emails,
@@ -774,13 +770,11 @@ describe("handleNewBooking", () => {
             });
           }
 
-          // expectWorkflowToBeTriggered();
-
           expectSuccessfulBookingCreationEmails({
             booking: {
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBookings[0].uid!,
-              urlOrigin: WEBSITE_URL,
+              urlOrigin: WEBAPP_URL,
             },
             booker,
             organizer,

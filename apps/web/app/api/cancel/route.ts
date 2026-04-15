@@ -52,9 +52,6 @@ async function handler(req: NextRequest) {
   const result = await handleCancelBooking({
     bookingData: safeBookingData,
     userId: session?.user?.id || -1,
-    userUuid: session?.user?.uuid,
-    actionSource: "WEBAPP",
-    impersonatedByUserUuid: session?.user?.impersonatedBy?.uuid ?? null,
   });
 
   // const bookingCancelService = getBookingCancelService();

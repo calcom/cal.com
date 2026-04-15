@@ -16,7 +16,7 @@ const initialConstants = {
   SEO_IMG_DEFAULT: "https://cal.com/og-image.png",
   SEO_IMG_OGIMG: "https://cal.com/og-image-wide.png",
   CURRENT_TIMEZONE: "Europe/London",
-  APP_NAME: "Cal.com",
+  APP_NAME: "Cal.diy",
   BOOKER_NUMBER_OF_DAYS_TO_LOAD: 14,
   PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
   SINGLE_ORG_SLUG: "",

@@ -27,18 +27,16 @@ import {
 } from "@calcom/platform-libraries/event-types";
 import type { PrismaClient } from "@calcom/prisma";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
-import { systemBeforeFieldEmail } from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { EventTypesService_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/services/event-types.service";
+import { systemBeforeFieldEmail } from "@/platform/event-types/event-types_2024_06_14/transformers";
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
@@ -76,8 +74,7 @@ export class EventTypesAtomService {
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
     private readonly teamEventTypeService: TeamsEventTypesService,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   private async getTeamSlug(teamId: number): Promise<string> {
@@ -230,23 +227,6 @@ export class EventTypesAtomService {
     teamId: number,
     scheduleId: number | null | undefined
   ) {
-    const organizationId = this.usersService.getUserMainOrgId(user);
-
-    if (organizationId) {
-      const isUserOrganizationAdmin = await this.membershipsRepository.isUserOrganizationAdmin(
-        user.id,
-        organizationId
-      );
-
-      if (isUserOrganizationAdmin) {
-        const orgTeam = await this.organizationsTeamsRepository.findOrgTeam(organizationId, teamId);
-        if (orgTeam) {
-          await this.teamEventTypeService.validateEventTypeExists(teamId, eventTypeId);
-          return;
-        }
-      }
-    }
-
     await this.checkTeamOwnsEventType(user.id, eventTypeId, teamId);
     await this.teamEventTypeService.validateEventTypeExists(teamId, eventTypeId);
     await this.eventTypeService.checkUserOwnsSchedule(user.id, scheduleId);
@@ -316,7 +296,7 @@ export class EventTypesAtomService {
               credentials,
             },
           });
-        credentials = allCredentials;
+        credentials = allCredentials as typeof credentials;
       }
     }
 

@@ -3,7 +3,6 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { RowData, Table } from "@tanstack/react-table";
 import { useCallback } from "react";
-
 import { useEventTypes } from "./useEventTypes";
 
 interface UseFacetedUniqueValuesOptions {
@@ -17,10 +16,8 @@ export function useFacetedUniqueValues({
   columnId: string
 ) => () => Map<FacetedValue, number> {
   const eventTypes = useEventTypes();
-  const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery(undefined, {
-    enabled: canReadOthersBookings,
-  });
+  const teams = undefined as { id: number; name: string }[] | undefined;
+  const members = undefined as { id: number; name: string | null }[] | undefined;
   const { data: currentUser } = useMeQuery();
 
   return useCallback(

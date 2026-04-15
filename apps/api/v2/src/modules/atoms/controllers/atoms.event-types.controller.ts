@@ -15,7 +15,7 @@ import {
   Version,
 } from "@nestjs/common";
 import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
-import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
+import { GetEventTypePublicOutput } from "@/platform/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   BulkUpdateEventTypeToDefaultLocationDto,
@@ -23,15 +23,9 @@ import {
 } from "@/modules/atoms/inputs/event-types-app.input";
 import { GetAtomPublicEventTypeQueryParams } from "@/modules/atoms/inputs/get-atom-public-event-type-query-params.input";
 import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 
 /*
@@ -96,8 +90,7 @@ export class AtomsEventTypesController {
 
   @Get("/organizations/:orgId/teams/:teamId/event-types")
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard)
   @Version(VERSION_NEUTRAL)
   async listTeamEventTypes(@Param("teamId", ParseIntPipe) teamId: number): Promise<ApiResponse<unknown>> {
     const eventTypes = await this.eventTypesService.getTeamEventTypes(teamId);
@@ -163,8 +156,7 @@ export class AtomsEventTypesController {
   @Patch("/organizations/:orgId/teams/:teamId/event-types/bulk-update-to-default-location")
   @Version(VERSION_NEUTRAL)
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard)
   async bulkUpdateAtomTeamEventTypes(
     @GetUser() user: UserWithProfile,
     @Body() body: BulkUpdateEventTypeToDefaultLocationDto,
@@ -198,8 +190,7 @@ export class AtomsEventTypesController {
   @Patch("/organizations/:orgId/teams/:teamId/event-types/:eventTypeId")
   @Version(VERSION_NEUTRAL)
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard)
   async updateAtomTeamEventType(
     @GetUser() user: UserWithProfile,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,

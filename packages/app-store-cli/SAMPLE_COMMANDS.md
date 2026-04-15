@@ -22,7 +22,7 @@ yarn app-store create \
   --description "Redirects users to an external service" \
   --template link-as-an-app \
   --category other \
-  --publisher "Cal.com, Inc." \
+  --publisher "Cal.diy, Inc." \
   --email "support@cal.com" \
   --external-link-url "https://example.com/signup"
 ```
@@ -37,7 +37,7 @@ yarn app-store create \
   --description "A simple installable app" \
   --template basic \
   --category other \
-  --publisher "Cal.com, Inc." \
+  --publisher "Cal.diy, Inc." \
   --email "support@cal.com"
 ```
 
@@ -51,7 +51,7 @@ yarn app-store create \
   --description "Tracks booking page analytics" \
   --template booking-pages-tag \
   --category analytics \
-  --publisher "Cal.com, Inc." \
+  --publisher "Cal.diy, Inc." \
   --email "support@cal.com"
 ```
 
@@ -65,7 +65,7 @@ yarn app-store create \
   --description "Adds a custom card to event type settings" \
   --template event-type-app-card \
   --category other \
-  --publisher "Cal.com, Inc." \
+  --publisher "Cal.diy, Inc." \
   --email "support@cal.com"
 ```
 
@@ -79,7 +79,7 @@ yarn app-store create \
   --description "Adds a video conferencing location to event types" \
   --template event-type-location-video-static \
   --category conferencing \
-  --publisher "Cal.com, Inc." \
+  --publisher "Cal.diy, Inc." \
   --email "support@cal.com"
 ```
 
@@ -93,7 +93,7 @@ yarn app-store create \
   --description "An app with global configuration settings" \
   --template general-app-settings \
   --category other \
-  --publisher "Cal.com, Inc." \
+  --publisher "Cal.diy, Inc." \
   --email "support@cal.com"
 ```
 

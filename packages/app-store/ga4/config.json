@@ -7,7 +7,7 @@
   "url": "https://marketingplatform.google.com",
   "variant": "analytics",
   "categories": ["analytics"],
-  "publisher": "Cal.com, Inc.",
+  "publisher": "Cal.diy, Inc.",
   "email": "support@cal.com",
   "description": "Google Analytics is a web analytics service offered by Google that tracks and reports website traffic, currently as a platform inside the Google Marketing Platform brand.",
   "extendsFeature": "EventType",

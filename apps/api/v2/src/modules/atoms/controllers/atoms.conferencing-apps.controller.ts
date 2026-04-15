@@ -1,14 +1,8 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-atom.service";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, Get, Param, ParseIntPipe, UseGuards, Version, VERSION_NEUTRAL } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
@@ -33,8 +27,7 @@ export class AtomsConferencingAppsController {
 
   @Get("/organizations/:orgId/teams/:teamId/conferencing")
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard)
   @Version(VERSION_NEUTRAL)
   async listTeamInstalledConferencingApps(
     @GetUser() user: UserWithProfile,

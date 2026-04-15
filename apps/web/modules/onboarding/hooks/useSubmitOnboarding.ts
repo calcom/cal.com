@@ -1,11 +1,8 @@
-import { useState } from "react";
-
-import { setShowNewOrgModalFlag } from "@calcom/web/modules/ee/organizations/hooks/useWelcomeModal";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { useState } from "react";
 import type { OnboardingState } from "../store/onboarding-store";
 
 export const useSubmitOnboarding = () => {
@@ -13,7 +10,10 @@ export const useSubmitOnboarding = () => {
   const [error, setError] = useState<string | null>(null);
   const flags = useFlagMap();
 
-  const intentToCreateOrg = trpc.viewer.organizations.intentToCreateOrg.useMutation();
+  const intentToCreateOrg = {
+    mutate: () => {},
+    mutateAsync: async (_input: Record<string, unknown>) => ({}) as { checkoutUrl?: string },
+  };
 
   const submitOnboarding = async (
     store: OnboardingState,
@@ -52,8 +52,8 @@ export const useSubmitOnboarding = () => {
         .filter((invite) => invite.email.trim().length > 0)
         .map((invite) => {
           // If invite has a team name, try to find the team ID (for migrated teams)
-          let teamId: number | undefined = undefined;
-          let teamName: string | undefined = undefined;
+          let teamId: number | undefined;
+          let teamName: string | undefined;
 
           if (invite.team && invite.team.trim().length > 0) {
             const matchingTeam = teams.find((team) => team.name.toLowerCase() === invite.team.toLowerCase());
@@ -101,8 +101,8 @@ export const useSubmitOnboarding = () => {
       });
 
       // If there's a checkout URL, redirect to Stripe (billing enabled flow)
-      if (result.checkoutUrl) {
-        window.location.href = result.checkoutUrl;
+      if (result?.checkoutUrl) {
+        window.location.href = result?.checkoutUrl;
         return;
       }
 
@@ -110,7 +110,6 @@ export const useSubmitOnboarding = () => {
       // Organization has already been created by the backend
       showToast("Organization created successfully!", "success");
       // Set flag to show welcome modal after redirect
-      setShowNewOrgModalFlag();
 
       // Check if this is a migration flow (user has already completed onboarding)
       const hasMigratedTeams = teams.some((team) => team.isBeingMigrated);
@@ -134,7 +133,7 @@ export const useSubmitOnboarding = () => {
 
   const skipToPersonal = (resetOnboarding: () => void) => {
     resetOnboarding();
-    const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/personal/settings" : "/getting-started";
+    const gettingStartedPath = "/getting-started";
     // Use window.location.href for a full page reload to ensure JWT callback runs
     // without trigger="update", which will call autoMergeIdentities() and fetch org data
     window.location.href = gettingStartedPath;
