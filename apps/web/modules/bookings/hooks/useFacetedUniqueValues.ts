@@ -5,6 +5,7 @@ import type { RowData, Table } from "@tanstack/react-table";
 import { useCallback } from "react";
 
 import { useEventTypes } from "./useEventTypes";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 interface UseFacetedUniqueValuesOptions {
   canReadOthersBookings: boolean;
@@ -22,6 +23,7 @@ export function useFacetedUniqueValues({
     enabled: canReadOthersBookings,
   });
   const { data: currentUser } = useMeQuery();
+  const { t } = useLocale();
 
   return useCallback(
     <TData extends RowData>(_: Table<TData>, columnId: string) =>
@@ -55,9 +57,12 @@ export function useFacetedUniqueValues({
               }))
               .filter((option): option is { label: string; value: number } => Boolean(option.label))
           );
+        } else if (columnId === 'noShow'){
+          // noShow is a boolean filter, does not require any selection option
+          return convertFacetedValuesToMap([])
         }
         return new Map<FacetedValue, number>();
       },
-    [eventTypes, teams, members, canReadOthersBookings, currentUser]
+    [eventTypes, teams, members, canReadOthersBookings, currentUser, t]
   );
 }

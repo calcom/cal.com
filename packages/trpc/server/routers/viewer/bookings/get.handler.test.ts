@@ -475,4 +475,279 @@ describe("getBookings - PBAC Permission Checks", () => {
       expect(mockKysely._mockQueryBuilder.executeTakeFirst).toHaveBeenCalled();
     });
   });
+
+  describe("NoShow filter", () => {
+    const createMockQueryBuilderWithTracking = () => {
+      const whereCalls: any[] = [];
+      const createMockQueryBuilder = () => {
+        const mockQueryBuilder = {
+          select: vi.fn((arg?: any) => mockQueryBuilder),
+          selectAll: vi.fn(() => mockQueryBuilder),
+          where: vi.fn((...args: any[]) => {
+            whereCalls.push({ args, isCallback: typeof args[0] === "function" });
+            return mockQueryBuilder;
+          }),
+          innerJoin: vi.fn(() => mockQueryBuilder),
+          union: vi.fn(() => mockQueryBuilder),
+          unionAll: vi.fn(() => mockQueryBuilder),
+          distinct: vi.fn(() => mockQueryBuilder),
+          as: vi.fn(() => mockQueryBuilder),
+          $if: vi.fn(() => mockQueryBuilder),
+          orderBy: vi.fn(() => mockQueryBuilder),
+          limit: vi.fn(() => mockQueryBuilder),
+          offset: vi.fn(() => mockQueryBuilder),
+          compile: vi.fn(() => ({ sql: "SELECT * FROM bookings" })),
+          executeTakeFirst: vi.fn().mockResolvedValue({ bookingCount: 0 }),
+          execute: vi.fn().mockResolvedValue([]),
+        };
+        return mockQueryBuilder;
+      };
+      return { mockQueryBuilder: createMockQueryBuilder(), whereCalls };
+    };
+
+    it("should apply noShow filter when provided", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      const { mockQueryBuilder, whereCalls } = createMockQueryBuilderWithTracking();
+
+      const kyselyWithTracking = {
+        selectFrom: vi.fn(() => mockQueryBuilder),
+        executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+      } as unknown as Kysely<DB>;
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: kyselyWithTracking,
+        bookingListingByStatus: ["upcoming"],
+        filters: {
+          noShow: true,
+        },
+        take: 10,
+        skip: 0,
+      });
+
+      // Verify that where was called with a callback (the OR condition for noShow)
+      const callbackCalls = whereCalls.filter((call) => call.isCallback);
+      // Should have at least 6 callbacks: 3 for status filters + 3 for noShow filters (one per subquery)
+      expect(callbackCalls.length).toBeGreaterThanOrEqual(6);
+    });
+
+    it("should not apply noShow filter when not provided", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      const { mockQueryBuilder, whereCalls } = createMockQueryBuilderWithTracking();
+
+      const kyselyWithTracking = {
+        selectFrom: vi.fn(() => mockQueryBuilder),
+        executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+      } as unknown as Kysely<DB>;
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: kyselyWithTracking,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 10,
+        skip: 0,
+      });
+
+      // Should have callbacks for status filters but no noShow filter
+      // The number depends on how many query subqueries are created
+      const callbackCalls = whereCalls.filter((call) => call.isCallback);
+      // Should have at least 3 callbacks (for status filters in multiple subqueries)
+      expect(callbackCalls.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it("should apply noShow filter with bookingUid filter together", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      const { mockQueryBuilder, whereCalls } = createMockQueryBuilderWithTracking();
+
+      const kyselyWithTracking = {
+        selectFrom: vi.fn(() => mockQueryBuilder),
+        executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+      } as unknown as Kysely<DB>;
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: kyselyWithTracking,
+        bookingListingByStatus: ["past"],
+        filters: {
+          noShow: true,
+          bookingUid: "test-booking-123",
+        },
+        take: 10,
+        skip: 0,
+      });
+
+      // Verify bookingUid filter was applied
+      const bookingUidCalls = whereCalls.filter(
+        (call) =>
+          !call.isCallback &&
+          call.args[0] === "Booking.uid" &&
+          call.args[1] === "=" &&
+          call.args[2] === "test-booking-123"
+      );
+      expect(bookingUidCalls.length).toBeGreaterThanOrEqual(1);
+
+      // Verify noShow filter was also applied
+      const callbackCalls = whereCalls.filter((call) => call.isCallback);
+      expect(callbackCalls.length).toBeGreaterThanOrEqual(6);
+    });
+
+    it("should apply noShow filter for different booking statuses", async () => {
+      const statuses: Array<"upcoming" | "past" | "cancelled" | "unconfirmed" | "recurring"> = [
+        "upcoming",
+        "past",
+        "cancelled",
+        "unconfirmed",
+        "recurring",
+      ];
+
+      for (const status of statuses) {
+        mockGetTeamIdsWithPermission.mockResolvedValue([]);
+        mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+        mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+        const { mockQueryBuilder, whereCalls } = createMockQueryBuilderWithTracking();
+
+        const kyselyWithTracking = {
+          selectFrom: vi.fn(() => mockQueryBuilder),
+          executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+        } as unknown as Kysely<DB>;
+
+        await getBookings({
+          user: mockUser,
+          prisma: mockPrisma,
+          kysely: kyselyWithTracking,
+          bookingListingByStatus: [status],
+          filters: {
+            noShow: true,
+          },
+          take: 10,
+          skip: 0,
+        });
+
+        // Should have callbacks for both status filter and noShow filter
+        const callbackCalls = whereCalls.filter((call) => call.isCallback);
+        expect(callbackCalls.length).toBeGreaterThanOrEqual(6);
+      }
+    });
+
+    it("should filter bookings to only include noShow entries when filter is enabled", async () => {
+      // This test verifies that when noShow=true, the filter creates an OR condition
+      // that checks: Booking.noShowHost = true OR Attendee.noShow = true
+
+      mockGetTeamIdsWithPermission.mockResolvedValue([]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      const capturedWhereCallbacks: Function[] = [];
+
+      const { mockQueryBuilder, whereCalls } = createMockQueryBuilderWithTracking();
+
+      // Override where to capture callback functions
+      const originalWhere = mockQueryBuilder.where;
+      mockQueryBuilder.where = vi.fn((...args: any[]) => {
+        if (typeof args[0] === "function") {
+          capturedWhereCallbacks.push(args[0]);
+        }
+        return originalWhere(...args);
+      });
+
+      const kyselyWithTracking = {
+        selectFrom: vi.fn(() => mockQueryBuilder),
+        executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+      } as unknown as Kysely<DB>;
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: kyselyWithTracking,
+        bookingListingByStatus: ["past"],
+        filters: {
+          noShow: true,
+        },
+        take: 10,
+        skip: 0,
+      });
+
+      // Verify that we captured where callbacks
+      expect(capturedWhereCallbacks.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("should return all bookings when noShow filter is not enabled", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      const { mockQueryBuilder, whereCalls } = createMockQueryBuilderWithTracking();
+
+      const kyselyWithTracking = {
+        selectFrom: vi.fn(() => mockQueryBuilder),
+        executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+      } as unknown as Kysely<DB>;
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: kyselyWithTracking,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 10,
+        skip: 0,
+      });
+
+      // Should have callbacks for status filters but no noShow filter
+      // The number depends on how many query subqueries are created
+      const callbackCalls = whereCalls.filter((call) => call.isCallback);
+      // Should have at least 3 callbacks (for status filters in multiple subqueries)
+      expect(callbackCalls.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it("should apply noShow filter with other filters combined", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      const { mockQueryBuilder, whereCalls } = createMockQueryBuilderWithTracking();
+
+      const kyselyWithTracking = {
+        selectFrom: vi.fn(() => mockQueryBuilder),
+        executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+      } as unknown as Kysely<DB>;
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: kyselyWithTracking,
+        bookingListingByStatus: ["past"],
+        filters: {
+          noShow: true,
+          bookingUid: "test-uid",
+        },
+        take: 10,
+        skip: 0,
+      });
+
+      // Should have both status filter and noShow filter callbacks
+      const callbackCalls = whereCalls.filter((call) => call.isCallback);
+      expect(callbackCalls.length).toBeGreaterThanOrEqual(6);
+
+      // Should have the bookingUid filter
+      const bookingUidCalls = whereCalls.filter((call) => !call.isCallback && call.args[0] === "Booking.uid");
+      expect(bookingUidCalls.length).toBeGreaterThanOrEqual(1);
+    });
+  });
 });

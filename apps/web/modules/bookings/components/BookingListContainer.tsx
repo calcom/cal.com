@@ -149,6 +149,7 @@ function BookingListInner({
         attendeeEmail: false,
         dateRange: false,
         bookingUid: false,
+        noShow: false,
       },
     },
     getCoreRowModel: getCoreRowModel(),
@@ -232,8 +233,8 @@ function BookingListInner({
 }
 
 export function BookingListContainer(props: BookingListContainerProps) {
-  const { limit, offset, isValidatorPending } = useDataTable();
-  const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
+  const { limit, offset, setPageIndex, isValidatorPending } = useDataTable();
+  const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid, noShow } =
     useBookingFilters();
 
   const { resolvedTabStatus, isResolvingTabStatus, preSelectedBooking } = useSwitchToCorrectStatusTab({
@@ -253,6 +254,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
         attendeeName,
         attendeeEmail,
         bookingUid,
+        noShow,
         afterStartDate: dateRange?.startDate
           ? dayjs(dateRange?.startDate).startOf("day").toISOString()
           : undefined,
@@ -270,6 +272,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
       attendeeEmail,
       bookingUid,
       dateRange,
+      noShow,
     ]
   );
 

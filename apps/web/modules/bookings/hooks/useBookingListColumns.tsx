@@ -146,6 +146,18 @@ export function useBookingListColumns({
           );
         },
       }),
+      columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.uid, {
+        id: "noShow",
+        header: t("no_show"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.SINGLE_SELECT,
+          },
+        },
+      }),
     ];
   }, [user, status, t, bookingsV3Enabled, handleBookingClick]);
 }
