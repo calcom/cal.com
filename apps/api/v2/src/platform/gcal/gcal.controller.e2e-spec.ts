@@ -20,7 +20,10 @@ import { UsersModule } from "@/modules/users/users.module";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 
-describe("Platform Gcal Endpoints", () => {
+// biome-ignore lint/style/noProcessEnv: Need to check env availability before test setup
+const describePlatformGcal = process.env.GOOGLE_API_CREDENTIALS ? describe : describe.skip;
+
+describePlatformGcal("Platform Gcal Endpoints", () => {
   let app: INestApplication;
 
   let oAuthClient: PlatformOAuthClient;
