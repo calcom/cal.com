@@ -217,4 +217,11 @@ export class IntegrationAttributeSyncService {
   async getAllByCredentialId(credentialId: number) {
     return this.deps.integrationAttributeSyncRepository.getAllByCredentialId(credentialId);
   }
+
+  async validateCredentialBelongsToOrg(credentialId: number, organizationId: number) {
+    return this.deps.credentialRepository.findByIdAndTeamId({
+      id: credentialId,
+      teamId: organizationId,
+    });
+  }
 }

@@ -1151,7 +1151,7 @@ const AssignmentReasonTooltip = ({
   assignmentReason,
   onClick,
 }: {
-  assignmentReason: AssignmentReason;
+  assignmentReason: Pick<AssignmentReason, "reasonEnum" | "reasonString">;
   onClick?: () => void;
 }) => {
   const { t } = useLocale();
