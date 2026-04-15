@@ -28,7 +28,6 @@ export const getLocationBookingField = () => {
     disableBookingTitle: false,
     customInputs: [],
     metadata: {},
-    workflows: [],
   });
 
   const locationBookingField = bookingFields.find((field) => field.name === "location");

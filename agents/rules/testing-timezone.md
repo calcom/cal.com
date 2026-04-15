@@ -9,7 +9,7 @@ tags: testing, timezone, consistency
 
 ## Always Use TZ=UTC
 
-When running tests in the Cal.com repository, use the `TZ=UTC` environment variable:
+When running tests in the Cal.diy repository, use the `TZ=UTC` environment variable:
 
 ```bash
 TZ=UTC yarn test

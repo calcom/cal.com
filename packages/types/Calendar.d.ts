@@ -222,7 +222,6 @@ export interface CalendarEvent {
   hideBranding?: boolean;
   oneTimePassword?: string | null;
   delegationCredentialId?: string | null;
-  domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
   rescheduledBy?: string;
   organizationId?: number | null;

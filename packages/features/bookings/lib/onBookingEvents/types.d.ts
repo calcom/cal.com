@@ -16,7 +16,6 @@ export interface BookingCreatedPayload {
       id: number;
     };
   };
-  organizationId: number | null;
 }
 
 export interface BookingRescheduledPayload extends BookingCreatedPayload {
