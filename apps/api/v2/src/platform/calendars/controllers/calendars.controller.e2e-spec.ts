@@ -47,7 +47,10 @@ import { UsersModule } from "@/modules/users/users.module";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 
-describe("Platform Calendars Endpoints", () => {
+// biome-ignore lint/style/noProcessEnv: Need to check env availability before test setup
+const describeCalendars = process.env.GOOGLE_API_CREDENTIALS ? describe : describe.skip;
+
+describeCalendars("Platform Calendars Endpoints", () => {
   let app: INestApplication;
 
   let oAuthClient: PlatformOAuthClient;
