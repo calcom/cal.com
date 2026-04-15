@@ -1247,6 +1247,7 @@ export const getOptions = ({
                 name: user.name,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
+                ...((profile as { locale?: string })?.locale && { locale: (profile as { locale?: string }).locale }),
               },
             });
 
@@ -1391,6 +1392,7 @@ export const getOptions = ({
                 },
               }),
               creationSource: CreationSource.WEBAPP,
+              ...((profile as { locale?: string })?.locale && { locale: (profile as { locale?: string }).locale }),
             },
           });
           const linkAccountNewUserData = AdapterAccountPresenter.fromCalAccount(
