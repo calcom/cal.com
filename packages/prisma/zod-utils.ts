@@ -1,6 +1,5 @@
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
-import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
   AnyZodObject,
   objectInputType,
@@ -10,7 +9,7 @@ import type {
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
-
+import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type { Prisma } from "./client";
 import { EventTypeCustomInputType } from "./enums";
 
@@ -299,7 +298,7 @@ export const bookingResponses = z
 export type BookingResponses = z.infer<typeof bookingResponses>;
 
 // Re-exported from @calcom/lib/zod/eventType for backwards compatibility
-export { eventTypeLocations, type EventTypeLocation } from "@calcom/lib/zod/eventType";
+export { type EventTypeLocation, eventTypeLocations } from "@calcom/lib/zod/eventType";
 
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
 export const recurringEventType = z
@@ -986,6 +985,7 @@ export const fieldTypeEnum = z.enum([
   "radioInput",
   "boolean",
   "url",
+  "date",
 ]);
 
 export type FieldType = z.infer<typeof fieldTypeEnum>;

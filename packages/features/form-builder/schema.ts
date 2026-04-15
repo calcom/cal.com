@@ -291,6 +291,36 @@ export const fieldTypesSchemaMap = {
       });
     },
   }),
+  date: defineFieldSchema<unknown, string>({
+    preprocess: ({ response }) => {
+      return stringifyResponse(response).trim();
+    },
+    superRefine: ({ response, ctx, m }) => {
+      const value = response ?? "";
+      if (!value) return;
+      // Validate ISO date format yyyy-MM-dd
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(value)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("invalid_date_format"),
+        });
+        return;
+      }
+      const [yearStr, monthStr, dayStr] = value.split("-");
+      const year = Number(yearStr);
+      const month = Number(monthStr);
+      const day = Number(dayStr);
+      const parsed = new Date(Date.UTC(year, month - 1, day));
+      parsed.setUTCFullYear(year);
+      if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("invalid_date_format"),
+        });
+      }
+    },
+  }),
 };
 
 export type FieldZodCtx = {

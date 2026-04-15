@@ -8,6 +8,7 @@ const CUSTOM_REQUIRED_FIELD_ERROR_MSG = "error_required_field";
 const CUSTOM_PHONE_VALIDATION_ERROR_MSG = "invalid_number";
 const CUSTOM_EMAIL_VALIDATION_ERROR_MSG = "email_validation_error";
 const CUSTOM_URL_VALIDATION_ERROR_MSG = "url_validation_error";
+const CUSTOM_DATE_VALIDATION_ERROR_MSG = "invalid_date_format";
 const CUSTOM_EMAIL_EXCLUDED_ERROR_MSG = "exclude_emails_match_found_error_message";
 const CUSTOM_EMAIL_REQUIRED_ERROR_MSG = "require_emails_no_match_found_error_message";
 const ZOD_REQUIRED_FIELD_ERROR_MSG = "Required";
@@ -1759,6 +1760,179 @@ describe("getBookingResponsesSchema", () => {
           message: `{url}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`,
         })
       );
+    });
+  });
+
+  describe("Field Type: date", () => {
+    test(`should successfully parse a valid ISO date`, async ({}) => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "dateOfBirth",
+            type: "date",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        dateOfBirth: "2024-06-15",
+      });
+      expectResponsesToBe(parsedResponses, {
+        email: "test@test.com",
+        name: "test",
+        dateOfBirth: "2024-06-15",
+      });
+    });
+
+    test(`should fail parsing if date format is invalid`, async ({}) => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "dateOfBirth",
+            type: "date",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        dateOfBirth: "15/06/2024",
+      });
+      expectParsingToFail(
+        parsedResponses,
+        expect.objectContaining({
+          code: "custom",
+          message: `{dateOfBirth}${CUSTOM_DATE_VALIDATION_ERROR_MSG}`,
+        })
+      );
+    });
+
+    test(`should fail parsing if date is not a real date`, async ({}) => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "dateOfBirth",
+            type: "date",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        dateOfBirth: "2024-13-45",
+      });
+      expectParsingToFail(
+        parsedResponses,
+        expect.objectContaining({
+          code: "custom",
+          message: `{dateOfBirth}${CUSTOM_DATE_VALIDATION_ERROR_MSG}`,
+        })
+      );
+    });
+
+    test(`should fail parsing if required date field is empty`, async ({}) => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "dateOfBirth",
+            type: "date",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        dateOfBirth: "",
+      });
+      expectParsingToFail(
+        parsedResponses,
+        expect.objectContaining({
+          code: "custom",
+          message: `{dateOfBirth}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`,
+        })
+      );
+    });
+
+    test(`should pass parsing if optional date field is empty`, async ({}) => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "dateOfBirth",
+            type: "date",
+            required: false,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        dateOfBirth: "",
+      });
+      expectResponsesToBe(parsedResponses, {
+        email: "test@test.com",
+        name: "test",
+        dateOfBirth: "",
+      });
     });
   });
 });
