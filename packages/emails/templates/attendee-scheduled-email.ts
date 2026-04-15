@@ -58,9 +58,14 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   }
 
   async getHtml(calEvent: CalendarEvent, attendee: Person) {
+    const attendeeWithTimeFormat = {
+      ...attendee,
+      timeFormat: attendee.timeFormat ?? calEvent.organizer.timeFormat,
+    };
+
     return await renderEmail("AttendeeScheduledEmail", {
       calEvent,
-      attendee,
+      attendee: attendeeWithTimeFormat,
     });
   }
 
