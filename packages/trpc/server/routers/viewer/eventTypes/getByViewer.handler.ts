@@ -20,7 +20,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   });
   const user = ctx.user;
   const filters = input?.filters;
-  const forRoutingForms = input?.forRoutingForms;
 
-  return await getEventTypesByViewer(user, filters, forRoutingForms);
+  return await getEventTypesByViewer(user, filters);
 };

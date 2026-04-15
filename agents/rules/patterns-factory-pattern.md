@@ -84,4 +84,4 @@ class TeamBillingService extends BillingService {
 - Prefer polymorphism over conditionals
 - Watch for if statement accumulation during code review
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

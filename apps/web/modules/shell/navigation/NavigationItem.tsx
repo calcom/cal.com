@@ -1,18 +1,17 @@
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import posthog from "posthog-js";
-import React, { Fragment, useState, useEffect } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { sessionStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
-import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import posthog from "posthog-js";
+import type React from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";
 
 const usePersistedExpansionState = (itemName: string) => {

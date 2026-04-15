@@ -22,7 +22,6 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetOrgId } from "@/modules/auth/decorators/get-org-id/get-org-id.decorator";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
@@ -42,7 +41,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
   path: "/v2/oauth-clients/:clientId/users",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, OAuthClientGuard, OrganizationRolesGuard)
+@UseGuards(ApiAuthGuard, OAuthClientGuard)
 @DocsTags("Deprecated: Platform / Managed Users")
 @ApiHeader({
   name: X_CAL_SECRET_KEY,

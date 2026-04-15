@@ -23,7 +23,6 @@ const membershipSelect = {
   userId: true,
   accepted: true,
   role: true,
-  disableImpersonation: true,
 } satisfies Prisma.MembershipSelect;
 
 type MembershipSelectableKeys = keyof typeof membershipSelect;
@@ -271,7 +270,6 @@ export class MembershipRepository {
       userId: true,
       accepted: true,
       role: true,
-      disableImpersonation: true,
       team: {
         select: {
           ...teamParentSelect,
@@ -666,9 +664,7 @@ export class MembershipRepository {
     }
 
     if (memberUserIds !== undefined && memberUserIds !== null) {
-      userFilter.id = cursor
-        ? { in: memberUserIds, gt: cursor }
-        : { in: memberUserIds };
+      userFilter.id = cursor ? { in: memberUserIds, gt: cursor } : { in: memberUserIds };
     } else if (cursor) {
       userFilter.id = { gt: cursor };
     }

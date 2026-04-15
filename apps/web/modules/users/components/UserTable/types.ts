@@ -1,10 +1,31 @@
-import type { RouterOutputs } from "@calcom/trpc/react";
-
-export type UserTableUser = RouterOutputs["viewer"]["organizations"]["listMembers"]["rows"][number];
+export type UserTableUser = {
+  id: number;
+  name: string | null;
+  username: string | null;
+  email: string;
+  role: string;
+  timeZone: string;
+  bio: string | null;
+  avatarUrl: string | null;
+  accepted: boolean;
+  completedOnboarding: boolean;
+  lastActiveAt: Date | null;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+  customRole?: { name: string } | null;
+  twoFactorEnabled?: boolean;
+  teams: { id: number; name: string; slug: string | null }[];
+  attributes: {
+    attributeId: string;
+    value: string;
+    weight?: number;
+    contains?: string[];
+  }[];
+};
 
 export type PlatformManagedUserTableUser = Omit<
   UserTableUser,
-  "lastActiveAt" | "attributes" | "completedOnboarding" | "disableImpersonation"
+  "lastActiveAt" | "attributes" | "completedOnboarding"
 >;
 
 export type UserTablePayload = {

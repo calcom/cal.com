@@ -212,15 +212,6 @@ describe("getUniqueIdentifierForBookingPage", () => {
     });
   });
 
-  describe("Routing Pages", () => {
-    it("should return formId for routing pages", () => {
-      const result = getUniqueIdentifierForBookingPage({
-        pathname: "/forms/test",
-      });
-      expect(result).toBe("test");
-    });
-  });
-
   describe("Private Booking Pages", () => {
     it.each([
       { path: "/d/private", expected: "private" },

@@ -2,7 +2,6 @@ import type { WebhookFeature } from "@calcom/features/webhooks/lib/facade/Webhoo
 import type { IWebhookRepository } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import type {
   IBookingWebhookService,
-  IFormWebhookService,
   IOOOWebhookService,
   IRecordingWebhookService,
   IWebhookService,
@@ -17,7 +16,6 @@ import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger
 import { taskerServiceModule } from "../../shared/services/tasker.service";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
 import { bookingWebhookDataFetcherModule } from "../modules/BookingWebhookDataFetcher.module";
-import { formWebhookDataFetcherModule } from "../modules/FormWebhookDataFetcher.module";
 import { oooWebhookDataFetcherModule } from "../modules/OOOWebhookDataFetcher.module";
 import { paymentWebhookDataFetcherModule } from "../modules/PaymentWebhookDataFetcher.module";
 import { recordingWebhookDataFetcherModule } from "../modules/RecordingWebhookDataFetcher.module";
@@ -40,7 +38,6 @@ webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_USER_REPOSITORY, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_REPOSITORY, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_SERVICE, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.BOOKING_WEBHOOK_SERVICE, webhookModule);
-webhookContainer.load(WEBHOOK_TOKENS.FORM_WEBHOOK_SERVICE, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.RECORDING_WEBHOOK_SERVICE, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.OOO_WEBHOOK_SERVICE, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.PAYLOAD_BUILDER_FACTORY, webhookModule);
@@ -50,7 +47,6 @@ webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER, webhookModule);
 // Load Data Fetchers (Strategy Pattern implementations)
 webhookContainer.load(WEBHOOK_TOKENS.BOOKING_DATA_FETCHER, bookingWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.PAYMENT_DATA_FETCHER, paymentWebhookDataFetcherModule);
-webhookContainer.load(WEBHOOK_TOKENS.FORM_DATA_FETCHER, formWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.RECORDING_DATA_FETCHER, recordingWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.OOO_DATA_FETCHER, oooWebhookDataFetcherModule);
 
@@ -96,7 +92,6 @@ export function getWebhookFeature(): WebhookFeature {
     consumer: webhookContainer.get<WebhookTaskConsumer>(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER),
     core: webhookContainer.get<IWebhookService>(WEBHOOK_TOKENS.WEBHOOK_SERVICE),
     booking: webhookContainer.get<IBookingWebhookService>(WEBHOOK_TOKENS.BOOKING_WEBHOOK_SERVICE),
-    form: webhookContainer.get<IFormWebhookService>(WEBHOOK_TOKENS.FORM_WEBHOOK_SERVICE),
     recording: webhookContainer.get<IRecordingWebhookService>(WEBHOOK_TOKENS.RECORDING_WEBHOOK_SERVICE),
     ooo: webhookContainer.get<IOOOWebhookService>(WEBHOOK_TOKENS.OOO_WEBHOOK_SERVICE),
     notifier: webhookContainer.get<IWebhookNotifier>(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER),

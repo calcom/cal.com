@@ -1,6 +1,6 @@
 # Schedules API Reference
 
-Detailed documentation for schedule management endpoints in the Cal.com API v2.
+Detailed documentation for schedule management endpoints in the Cal.diy API v2.
 
 ## Endpoints Overview
 

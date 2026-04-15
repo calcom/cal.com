@@ -4,9 +4,6 @@ import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -21,6 +18,10 @@ import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
+
+const getOrganizationRepository = () => ({ findById: async (..._args: unknown[]) => null });
+const getBookerBaseUrl = async (_orgSlug?: string | number | null): Promise<string> =>
+  process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
 
 interface getEventTypeByIdProps {
   eventTypeId: number;
@@ -109,7 +110,7 @@ export const getEventTypeById = async ({
 
   newMetadata.apps = {
     ...apps,
-    giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
+    giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true) ?? undefined,
   };
 
   const parsedMetaData = newMetadata;
@@ -275,21 +276,23 @@ export async function getRawEventType({
   prisma,
 }: Omit<getEventTypeByIdProps, "isTrpcCall">) {
   const eventTypeRepo = new EventTypeRepository(prisma);
-  const organizationRepo = getOrganizationRepository();
-  const isUserInPlatformOrganization = currentOrganizationId
-    ? !!(await organizationRepo.findById({ id: currentOrganizationId }))?.isPlatform
-    : false;
 
-  if (isUserOrganizationAdmin && currentOrganizationId && isUserInPlatformOrganization) {
-    // Platform Organization Admin can access any event of the organization even without being a member of the sub-teams
-    return await eventTypeRepo.findByIdForOrgAdmin({
-      id: eventTypeId,
-      organizationId: currentOrganizationId,
+  // Platform org admins can access any event type within their organization
+  if (isUserOrganizationAdmin && currentOrganizationId) {
+    const org = await prisma.team.findUnique({
+      where: { id: currentOrganizationId },
+      select: { isPlatform: true },
     });
+
+    if (org?.isPlatform) {
+      const orgResult = await eventTypeRepo.findByIdForOrgAdmin({
+        id: eventTypeId,
+        organizationId: currentOrganizationId,
+      });
+      if (orgResult) return orgResult;
+    }
   }
 
-  // Regular(Non Platform) Organization member(admin/non-admin) can access any event-type they are are a member of including sub-team events and Regular Team(non-subteam) events.
-  // Remember an organization member can stay a part of Regular Team still if  that team hasn't been moved to the organization yet.
   return await eventTypeRepo.findById({
     id: eventTypeId,
     userId,

@@ -4,9 +4,6 @@ import type {
   AfterGuestsNoShowDTO,
   AfterHostsNoShowDTO,
   BookingWebhookEventDTO,
-  DelegationCredentialErrorDTO,
-  FormSubmittedDTO,
-  FormSubmittedNoEventDTO,
   InstantMeetingDTO,
   MeetingEndedDTO,
   MeetingStartedDTO,
@@ -31,10 +28,6 @@ export interface IBookingPayloadBuilder extends IPayloadBuilder<BookingWebhookEv
   build(dto: BookingWebhookEventDTO): WebhookPayload;
 }
 
-export interface IFormPayloadBuilder extends IPayloadBuilder<FormSubmittedDTO | FormSubmittedNoEventDTO> {
-  build(dto: FormSubmittedDTO | FormSubmittedNoEventDTO): WebhookPayload;
-}
-
 export interface IOOOPayloadBuilder extends IPayloadBuilder<OOOCreatedDTO> {
   build(dto: OOOCreatedDTO): WebhookPayload;
 }
@@ -55,18 +48,12 @@ export interface IInstantMeetingBuilder extends IPayloadBuilder<InstantMeetingDT
   build(dto: InstantMeetingDTO): WebhookPayload;
 }
 
-export interface IDelegationPayloadBuilder extends IPayloadBuilder<DelegationCredentialErrorDTO> {
-  build(dto: DelegationCredentialErrorDTO): WebhookPayload;
-}
-
 export interface PayloadBuilderSet {
   booking: IBookingPayloadBuilder;
-  form: IFormPayloadBuilder;
   ooo: IOOOPayloadBuilder;
   recording: IRecordingPayloadBuilder;
   meeting: IMeetingPayloadBuilder;
   instantMeeting: IInstantMeetingBuilder;
-  delegation: IDelegationPayloadBuilder;
 }
 
 type BuilderCategory = keyof PayloadBuilderSet;
@@ -88,10 +75,9 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
   [WebhookTriggerEvents.BOOKING_PAID]: "booking",
   [WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED]: "booking",
 
-  // Form events
-  [WebhookTriggerEvents.FORM_SUBMITTED]: "form",
-  [WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT]: "form",
-  [WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT]: "form",
+  // Form events (mapped to booking as fallback)
+  [WebhookTriggerEvents.FORM_SUBMITTED]: "booking",
+  [WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT]: "booking",
 
   // OOO events
   [WebhookTriggerEvents.OOO_CREATED]: "ooo",
@@ -109,8 +95,8 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
   // Instant meeting events
   [WebhookTriggerEvents.INSTANT_MEETING]: "instantMeeting",
 
-  // Delegation events
-  [WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR]: "delegation",
+  // Delegation events (enterprise feature removed, mapped to booking as fallback)
+  [WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR]: "booking",
 
   // Wrong assignment report events
   [WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT]: "booking",
@@ -129,13 +115,6 @@ export type BookingTriggerEvents =
 export type PaymentTriggerEvents =
   | typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED
   | typeof WebhookTriggerEvents.BOOKING_PAID;
-
-export type DelegationTriggerEvents = typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
-
-export type FormTriggerEvents =
-  | typeof WebhookTriggerEvents.FORM_SUBMITTED
-  | typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT
-  | typeof WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT;
 
 export type OOOTriggerEvents = typeof WebhookTriggerEvents.OOO_CREATED;
 
@@ -210,12 +189,10 @@ export class PayloadBuilderFactory {
    * Type-safe builder getters - overloaded for compile-time DTO type safety
    */
   getBuilder(version: WebhookVersion, triggerEvent: BookingTriggerEvents): IBookingPayloadBuilder;
-  getBuilder(version: WebhookVersion, triggerEvent: FormTriggerEvents): IFormPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: OOOTriggerEvents): IOOOPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: RecordingTriggerEvents): IRecordingPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: MeetingTriggerEvents): IMeetingPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: InstantMeetingTriggerEvents): IInstantMeetingBuilder;
-  getBuilder(version: WebhookVersion, triggerEvent: DelegationTriggerEvents): IDelegationPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: WebhookTriggerEvents): IPayloadBuilder<WebhookEventDTO>;
   getBuilder(version: WebhookVersion, triggerEvent: WebhookTriggerEvents): IPayloadBuilder<WebhookEventDTO> {
     const builderSet = this.getBuilderSet(version);
