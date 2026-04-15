@@ -1,5 +1,6 @@
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
@@ -75,6 +76,11 @@ function EventTypeSingleLayout({
   const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Subscribe to formState to ensure re-render when form becomes dirty
+  // Using useWatch to subscribe to form changes which ensures proper re-renders
+  useWatch({ control: formMethods.control });
+  const { dirtyFields } = formMethods.formState;
 
   const hasPermsToDelete =
     currentUserMembership?.role !== "MEMBER" ||
