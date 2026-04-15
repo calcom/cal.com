@@ -1,12 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import QRCode from "react-qr-code";
-import z from "zod";
-
 import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
-import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,6 +8,48 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Spinner } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import QRCode from "react-qr-code";
+import z from "zod";
+
+type PaymentPageProps = {
+  payment: {
+    id: number;
+    success: boolean;
+    refunded: boolean;
+    amount: number;
+    currency: string;
+    paymentOption: string | null;
+    data: Record<string, unknown>;
+  };
+  clientSecret?: string | null;
+  booking: {
+    id: number;
+    uid: string;
+    title: string;
+    startTime: string;
+    endTime: string;
+    status: string;
+    paid: boolean;
+    description?: string | null;
+    location?: string | null;
+    attendees?: Array<{ name: string; email: string; timeZone: string }>;
+    user?: { name: string | null; timeZone: string } | null;
+    responses?: Record<string, unknown>;
+  };
+  eventType: {
+    id: number;
+    title: string;
+    length: number;
+    price: number;
+    currency: string;
+    metadata: Record<string, unknown> | null;
+    successRedirectUrl?: string | null;
+    forwardParamsSuccessRedirect?: boolean | null;
+    recurringEvent?: unknown;
+  };
+};
 
 interface IAlbyPaymentComponentProps {
   payment: {
@@ -51,7 +87,7 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
   const paymentRequest = parsedData.data.invoice.paymentRequest;
 
   return (
-    <div className="mb-4 mt-8 flex h-full w-full flex-col items-center justify-center gap-4">
+    <div className="mt-8 mb-4 flex h-full w-full flex-col items-center justify-center gap-4">
       <PaymentChecker {...props.paymentPageProps} />
       {isPaying && <Spinner className="mt-12 h-8 w-8" />}
       {!isPaying && (
@@ -98,7 +134,7 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
                 size="sm"
                 color="secondary"
                 onClick={() => copyToClipboard(paymentRequest)}
-                className="text-subtle rounded-md"
+                className="rounded-md text-subtle"
                 StartIcon={isCopied ? "clipboard-check" : "clipboard"}>
                 Copy Invoice
               </Button>
@@ -166,10 +202,19 @@ function PaymentChecker(props: PaymentCheckerProps) {
           };
 
           bookingSuccessRedirect({
-            successRedirectUrl: props.eventType.successRedirectUrl,
+            successRedirectUrl: props.eventType.successRedirectUrl ?? null,
             query: params,
-            booking: props.booking,
-            forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
+            booking: {
+              ...props.booking,
+              startTime: new Date(props.booking.startTime),
+              endTime: new Date(props.booking.endTime),
+              user: props.booking.user ? { ...props.booking.user, email: null } : { email: null, name: null },
+              responses: undefined,
+              attendees: undefined,
+              location: props.booking.location ?? null,
+              description: props.booking.description ?? null,
+            },
+            forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect ?? null,
           });
         }
       })();
@@ -181,10 +226,8 @@ function PaymentChecker(props: PaymentCheckerProps) {
     props.booking,
     props.booking.id,
     props.booking.status,
-    props.eventType.id,
     props.eventType.successRedirectUrl,
     props.eventType.forwardParamsSuccessRedirect,
-    props.payment.success,
     searchParams,
     t,
     utils.viewer.bookings,

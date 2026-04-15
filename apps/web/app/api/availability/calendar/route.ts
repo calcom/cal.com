@@ -44,7 +44,7 @@ async function authMiddleware() {
   return userWithCredentials;
 }
 
-// TODO: It doesn't seem to be used from within the app. It is possible that someone outside Cal.com is using this GET endpoint
+// TODO: It doesn't seem to be used from within the app. It is possible that someone outside Cal.diy is using this GET endpoint
 async function getHandler() {
   const user = await authMiddleware();
 

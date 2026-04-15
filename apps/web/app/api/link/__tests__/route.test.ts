@@ -227,7 +227,6 @@ describe("link route", () => {
             bookingId: 1,
             confirmed: true,
             emailsEnabled: true,
-            actionSource: "MAGIC_LINK",
           }),
         })
       );
@@ -245,7 +244,6 @@ describe("link route", () => {
             bookingId: 1,
             confirmed: false,
             emailsEnabled: true,
-            actionSource: "MAGIC_LINK",
           }),
         })
       );
@@ -265,7 +263,6 @@ describe("link route", () => {
             confirmed: false,
             reason: "test-reason",
             emailsEnabled: true,
-            actionSource: "MAGIC_LINK",
           }),
         })
       );
@@ -316,16 +313,18 @@ describe("link route", () => {
       );
     });
 
-    it("should pass actor from makeUserActor to confirmHandler", async () => {
+    it("should pass user context to confirmHandler input", async () => {
       const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
       await GET(req, { params: Promise.resolve({}) });
 
+      // After EE removal, actor/actionSource are no longer passed to confirmHandler
       expect(mockConfirmHandler).toHaveBeenCalledWith(
         expect.objectContaining({
           input: expect.objectContaining({
-            actor: { type: "user", id: "test-uuid" },
+            bookingId: 1,
+            confirmed: true,
           }),
         })
       );

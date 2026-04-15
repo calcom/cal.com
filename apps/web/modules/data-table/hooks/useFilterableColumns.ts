@@ -1,12 +1,11 @@
 "use client";
 
-import { type Table } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
-import { useMemo } from "react";
-
-import type { FilterableColumn, FacetedValue } from "@calcom/features/data-table/lib/types";
+import type { FacetedValue, FilterableColumn } from "@calcom/features/data-table/lib/types";
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { convertMapToFacetedValues } from "@calcom/features/data-table/lib/utils";
+import type { Table } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import { useMemo } from "react";
 
 export function useFilterableColumns<TData>(table: Table<TData>) {
   const columns = useMemo(

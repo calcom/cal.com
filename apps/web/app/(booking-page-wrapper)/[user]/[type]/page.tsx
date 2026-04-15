@@ -1,58 +1,21 @@
-import { CustomI18nProvider } from "app/CustomI18nProvider";
-import { withAppDirSsr } from "app/WithAppDirSsr";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { loadTranslations } from "@calcom/i18n/server";
+import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
+import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
-import { headers, cookies } from "next/headers";
-
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { loadTranslations } from "@calcom/i18n/server";
-
-import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
-
-import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
-
+import { CustomI18nProvider } from "app/CustomI18nProvider";
+import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { Metadata } from "next";
+import { cookies, headers } from "next/headers";
+import type React from "react";
 import type { PageProps as LegacyPageProps } from "~/users/views/users-type-public-view";
 import LegacyPage from "~/users/views/users-type-public-view";
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(legacyCtx);
+const getData: (ctx: ReturnType<typeof buildLegacyCtx>) => Promise<LegacyPageProps> =
+  withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
-  const { booking, isSEOIndexable = true, eventData, isBrandingHidden } = props;
-  const rescheduleUid = booking?.uid;
-  const profileName = eventData?.profile?.name ?? "";
-  const profileImage = eventData?.profile.image;
-  const title = eventData?.title ?? "";
-  const meeting = {
-    title,
-    profile: { name: profileName, image: profileImage },
-    users:
-      eventData?.subsetOfUsers.map((user) => ({
-        name: `${user.name}`,
-        username: `${user.username}`,
-      })) || [],
-  };
-  const decodedParams = decodeParams(await params);
-  const metadata = await generateMeetingMetadata(
-    meeting,
-    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
-    isBrandingHidden,
-    getOrgFullOrigin(eventData?.entity.orgSlug ?? null),
-    `/${decodedParams.user}/${decodedParams.type}`
-  );
-
-  return {
-    ...metadata,
-    robots: {
-      follow: !(eventData?.hidden || !isSEOIndexable),
-      index: !(eventData?.hidden || !isSEOIndexable),
-    },
-  };
-};
-const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
-
-const ServerPage = async ({ params, searchParams }: PageProps) => {
+const ServerPage = async ({ params, searchParams }: PageProps): Promise<JSX.Element> => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
 
@@ -68,6 +31,42 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   }
 
   return <LegacyPage {...props} />;
+};
+
+export const generateMetadata = async ({ params, searchParams }: PageProps): Promise<Metadata> => {
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const props = await getData(legacyCtx);
+
+  const { booking, isSEOIndexable = true, eventData, isBrandingHidden } = props;
+  const rescheduleUid = booking?.uid;
+  const profileName = eventData?.profile?.name ?? "";
+  const title = eventData?.title ?? "";
+  const meeting = {
+    title,
+    profile: { name: profileName, image: eventData?.profile.image },
+    users:
+      eventData?.subsetOfUsers.map((user) => ({
+        name: `${user.name}`,
+        username: `${user.username}`,
+      })) || [],
+  };
+  const decodedParams = decodeParams(await params);
+  const metadata = await generateMeetingMetadata(
+    meeting,
+    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
+    isBrandingHidden,
+    WEBAPP_URL,
+    `/${decodedParams.user}/${decodedParams.type}`
+  );
+
+  return {
+    ...metadata,
+    robots: {
+      follow: !(eventData?.hidden || !isSEOIndexable),
+      index: !(eventData?.hidden || !isSEOIndexable),
+    },
+  };
 };
 
 export default ServerPage;

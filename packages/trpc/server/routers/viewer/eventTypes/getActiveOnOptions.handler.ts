@@ -1,19 +1,29 @@
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
+import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
-import { listOtherTeamHandler } from "../organizations/listOtherTeams.handler";
 import type { TGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
+
+class PermissionCheckService {
+  constructor(_prisma?: unknown) {}
+  async checkPermission(..._args: unknown[]) {
+    return true;
+  }
+  async hasPermission(..._args: unknown[]) {
+    return true;
+  }
+  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> {
+    return [];
+  }
+}
+const listOtherTeamHandler = async (
+  ..._args: unknown[]
+): Promise<{ id: number; name: string; slug: string }[]> => [];
 
 type GetActiveOnOptions = {
   ctx: {
@@ -187,21 +197,6 @@ const fetchTeamOptions = async ({
   return profileTeamsOptions.concat(otherTeamsOptions);
 };
 
-const fetchRoutingFormOptions = async ({
-  userId,
-  teamId,
-}: {
-  userId: number;
-  teamId?: number;
-}): Promise<Option[]> => {
-  const routingForms = await PrismaRoutingFormRepository.findActiveFormsForUserOrTeam({ userId, teamId });
-
-  return routingForms.map((form) => ({
-    value: form.id,
-    label: form.name,
-  }));
-};
-
 export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getActiveOnOptions.handler:${ctx.user.id}`,
@@ -247,39 +242,27 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
   });
 
   const eventTypeOptions = eventTypeGroups.reduce((options, group) => {
-    // Don't show team event types for user workflow
+    // Don't show team event types for user
     if (!teamId && group.teamId) return options;
-    // Only show correct team event types for team workflows
+    // Only show correct team event types for team
     if (teamId && teamId !== group.teamId) return options;
 
     const groupEventTypes =
       group?.eventTypes
         ?.filter((evType) => {
           const metadata = EventTypeMetaDataSchema.parse(evType.metadata);
-          return (
-            !metadata?.managedEventConfig ||
-            !!metadata?.managedEventConfig.unlockedFields?.workflows ||
-            !!teamId
-          );
+          return !metadata?.managedEventConfig || !!teamId;
         })
         ?.map((eventType) => ({
           value: String(eventType.id),
-          label: `${eventType.title}${
-            eventType?.children && eventType.children.length ? ` (+${eventType.children.length})` : ""
-          }`,
+          label: `${eventType.title}${eventType?.children?.length ? ` (+${eventType.children.length})` : ""}`,
         })) ?? [];
 
     return [...options, ...groupEventTypes];
   }, [] as Option[]);
 
-  const routingFormOptions = await fetchRoutingFormOptions({
-    userId: user.id,
-    teamId,
-  });
-
   return {
     eventTypeOptions,
     teamOptions,
-    routingFormOptions,
   };
 };

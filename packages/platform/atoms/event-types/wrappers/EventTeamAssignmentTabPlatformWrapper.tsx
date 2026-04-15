@@ -1,13 +1,7 @@
-import {
-  EventTeamAssignmentTab,
-  type EventTeamAssignmentTabBaseProps,
-} from "@calcom/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab";
-
-const EventTeamAssignmentTabPlatformWrapper = (
-  props: Omit<EventTeamAssignmentTabBaseProps, "isSegmentApplicable" | "hideFixedHostsForCollective">
-) => {
-  // todo: implement attributes for platform orgs for segment
-  return <EventTeamAssignmentTab {...props} isSegmentApplicable={false} hideFixedHostsForCollective={true} />;
+// EventTeamAssignmentTab was removed as part of EE code removal.
+// This wrapper returns null until a platform-specific implementation is added.
+const EventTeamAssignmentTabPlatformWrapper = (_props: Record<string, unknown>) => {
+  return null;
 };
 
 export default EventTeamAssignmentTabPlatformWrapper;

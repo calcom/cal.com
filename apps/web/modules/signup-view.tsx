@@ -9,7 +9,6 @@ import {
   isUserAlreadyExistsError,
 } from "@calcom/features/auth/signup/lib/fetchSignup";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import {
   APP_NAME,
@@ -140,7 +139,15 @@ function UsernameField({
     }
     checkUsername();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedUsername, disabled, orgSlug, formState.isSubmitting, formState.isSubmitSuccessful]);
+  }, [
+    debouncedUsername,
+    disabled,
+    orgSlug,
+    formState.isSubmitting,
+    formState.isSubmitSuccessful,
+    setPremium,
+    setUsernameTaken,
+  ]);
 
   return (
     <div>
@@ -151,10 +158,10 @@ function UsernameField({
         data-testid="signup-usernamefield"
       />
       {(!formState.isSubmitting || !formState.isSubmitted) && (
-        <div className="text-gray text-default flex items-center text-sm">
-          <div className="text-sm ">
+        <div className="flex items-center text-default text-gray text-sm">
+          <div className="text-sm">
             {usernameTaken ? (
-              <div className="text-error flex items-center">
+              <div className="flex items-center text-error">
                 <InfoIcon className="mr-1 inline-block h-4 w-4" />
                 <p>{t("already_in_use_error")}</p>
               </div>
@@ -188,14 +195,12 @@ export default function Signup({
   orgSlug,
   isGoogleLoginEnabled,
   isOutlookLoginEnabled,
-  isSAMLLoginEnabled,
   orgAutoAcceptEmail,
   redirectUrl,
   emailVerificationEnabled,
   onboardingV3Enabled,
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
-  const [isSamlSignup, setIsSamlSignup] = useState(false);
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -377,23 +382,23 @@ export default function Signup({
       ) : null}
       <div
         className={classNames(
-          "light bg-cal-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+          "light flex min-h-screen w-full flex-col items-center justify-center bg-cal-muted [--cal-brand:#111827] 2xl:bg-default dark:[--cal-brand:#FFFFFF]",
           "[--cal-brand-subtle:#9CA3AF]",
           "[--cal-brand-text:#FFFFFF] dark:[--cal-brand-text:#000000]",
-          "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1] "
+          "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1]"
         )}>
-        <div className="bg-cal-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
+        <div className="grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden bg-cal-muted lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:border-subtle 2xl:py-6">
           {/* Left side */}
-          <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-24 2xl:px-28">
+          <div className="mt-0 mr-auto ml-auto flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-24 2xl:px-28">
             {accountUnderReview ? (
               <div
                 className="flex flex-col items-center gap-4 py-10 text-center"
                 data-testid="account-under-review">
-                <div className="bg-subtle flex h-12 w-12 items-center justify-center rounded-full">
-                  <ShieldCheckIcon className="text-default h-6 w-6" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-subtle">
+                  <ShieldCheckIcon className="h-6 w-6 text-default" />
                 </div>
                 <h1 className="font-cal text-[28px] leading-none">{t("account_under_review_title")}</h1>
-                <p className="text-subtle text-base font-medium leading-5">
+                <p className="font-medium text-base text-subtle leading-5">
                   {t("account_under_review_description")}
                 </p>
                 <Button href="/auth/login" className="mt-4">
@@ -406,27 +411,26 @@ export default function Signup({
                   <div className="flex w-fit lg:-mt-12">
                     <Button
                       color="minimal"
-                      className="hover:bg-subtle todesktop:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2"
+                      className="todesktop:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2 hover:bg-subtle"
                       StartIcon="arrow-left"
                       data-testid="signup-back-button"
                       onClick={() => {
                         setDisplayEmailForm(false);
-                        setIsSamlSignup(false);
                       }}>
                       {t("back")}
                     </Button>
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-cal text-[28px] leading-none ">
+                  <h1 className="font-cal text-[28px] leading-none">
                     {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
                   </h1>
                   {IS_CALCOM ? (
-                    <p className="text-subtle text-base font-medium leading-5">
+                    <p className="font-medium text-base text-subtle leading-5">
                       {t("cal_signup_description")}
                     </p>
                   ) : (
-                    <p className="text-subtle text-base font-medium leading-5">
+                    <p className="font-medium text-base text-subtle leading-5">
                       {t("calcom_explained", {
                         appName: APP_NAME,
                       })}
@@ -515,13 +519,13 @@ export default function Signup({
                           addOnLeading={
                             orgSlug
                               ? truncateDomain(
-                                  `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
+                                  `${WEBAPP_URL.replace(
                                     URL_PROTOCOL_REGEX,
                                     ""
                                   )}/`
                                 )
                               : truncateDomain(
-                                  `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                                  `${WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
                                 )
                           }
                         />
@@ -539,16 +543,14 @@ export default function Signup({
                       />
 
                       {/* Password */}
-                      {!isSamlSignup && (
-                        <PasswordField
-                          id="signup-password"
-                          data-testid="signup-passwordfield"
-                          autoComplete="new-password"
-                          label={t("password")}
-                          {...register("password")}
-                          hintErrors={["caplow", "min", "num"]}
-                        />
-                      )}
+                      <PasswordField
+                        id="signup-password"
+                        data-testid="signup-passwordfield"
+                        autoComplete="new-password"
+                        label={t("password")}
+                        {...register("password")}
+                        hintErrors={["caplow", "min", "num"]}
+                      />
                       {/* Cloudflare Turnstile Captcha */}
                       {CLOUDFLARE_SITE_ID ? (
                         <TurnstileCaptcha
@@ -579,70 +581,24 @@ export default function Signup({
                           data-testid="signup-error-message"
                         />
                       )}
-                      {isSamlSignup ? (
-                        <Button
-                          data-testid="saml-submit-button"
-                          color="primary"
-                          disabled={
-                            !!formMethods.formState.errors.username ||
-                            !!formMethods.formState.errors.email ||
-                            !formMethods.getValues("email") ||
-                            !formMethods.getValues("username") ||
-                            premiumUsername ||
-                            isSubmitting
-                          }
-                          onClick={() => {
-                            const username = formMethods.getValues("username");
-                            if (!username) {
-                              // should not be reached but needed to bypass type errors
-                              showToast(t("username_required"), "error");
-                              return;
-                            }
-
-                            posthog.capture("signup_saml_submit_button_clicked", {
-                              has_token: !!token,
-                              is_org_invite: isOrgInviteByLink,
-                              org_slug: orgSlug,
-                            });
-
-                            localStorage.setItem("username", username);
-                            const sp = new URLSearchParams();
-                            // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                            sp.set("username", username);
-                            sp.set("email", formMethods.getValues("email"));
-                            router.push(
-                              `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
-                            );
-                          }}
-                          className={classNames(
-                            "my-2 w-full justify-center rounded-md text-center",
-                            formMethods.formState.errors.username && formMethods.formState.errors.email
-                              ? "opacity-50"
-                              : ""
-                          )}>
-                          <ShieldCheckIcon className="mr-2 h-5 w-5" />
-                          {t("create_account_with_saml")}
-                        </Button>
-                      ) : (
-                        <Button
-                          type="submit"
-                          data-testid="signup-submit-button"
-                          className="my-2 w-full justify-center"
-                          loading={loadingSubmitState}
-                          disabled={
-                            !!formMethods.formState.errors.username ||
-                            !!formMethods.formState.errors.email ||
-                            !formMethods.getValues("email") ||
-                            !formMethods.getValues("password") ||
-                            (CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !watch("cfToken")) ||
-                            isSubmitting ||
-                            usernameTaken
-                          }>
-                          {premiumUsername && !usernameTaken
-                            ? `${t("get_started")} (${getPremiumPlanPriceValue()})`
-                            : t("get_started")}
-                        </Button>
-                      )}
+                      <Button
+                        type="submit"
+                        data-testid="signup-submit-button"
+                        className="my-2 w-full justify-center"
+                        loading={loadingSubmitState}
+                        disabled={
+                          !!formMethods.formState.errors.username ||
+                          !!formMethods.formState.errors.email ||
+                          !formMethods.getValues("email") ||
+                          !formMethods.getValues("password") ||
+                          (CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !watch("cfToken")) ||
+                          isSubmitting ||
+                          usernameTaken
+                        }>
+                        {premiumUsername && !usernameTaken
+                          ? `${t("get_started")} (${getPremiumPlanPriceValue()})`
+                          : t("get_started")}
+                      </Button>
                     </Form>
                   </div>
                 )}
@@ -660,7 +616,7 @@ export default function Signup({
                               {/* eslint-disable @next/next/no-img-element */}
                               <img
                                 className={classNames(
-                                  "text-subtle  mr-2 h-4 w-4",
+                                  "mr-2 h-4 w-4 text-subtle",
                                   premiumUsername && "opacity-50"
                                 )}
                                 src="/google-icon-colored.svg"
@@ -677,7 +633,6 @@ export default function Signup({
                               org_slug: orgSlug,
                               has_prepopulated_username: !!prepopulateFormValues?.username,
                             });
-                            setIsSamlSignup(false);
                             setIsGoogleLoading(true);
                             const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
                             const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
@@ -729,7 +684,6 @@ export default function Signup({
                               org_slug: orgSlug,
                               has_prepopulated_username: !!prepopulateFormValues?.username,
                             });
-                            setIsSamlSignup(false);
                             setIsMicrosoftLoading(true);
                             const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
                             const MICROSOFT_AUTH_URL = `${baseUrl}/auth/sso/microsoft`;
@@ -756,11 +710,11 @@ export default function Signup({
                     {(isGoogleLoginEnabled || isOutlookLoginEnabled) && (
                       <div>
                         <div className="relative flex items-center">
-                          <div className="border-subtle grow border-t" />
-                          <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
+                          <div className="grow border-subtle border-t" />
+                          <span className="mx-2 shrink font-normal text-sm text-subtle leading-none">
                             {t("or").toLocaleLowerCase()}
                           </span>
-                          <div className="border-subtle grow border-t" />
+                          <div className="grow border-subtle border-t" />
                         </div>
                       </div>
                     )}
@@ -778,29 +732,10 @@ export default function Signup({
                             org_slug: orgSlug,
                           });
                           setDisplayEmailForm(true);
-                          setIsSamlSignup(false);
                         }}
                         data-testid="continue-with-email-button">
                         {t("continue_with_email")}
                       </Button>
-                      {isSAMLLoginEnabled && (
-                        <Button
-                          data-testid="continue-with-saml-button"
-                          color="minimal"
-                          disabled={isGoogleLoading}
-                          className={classNames("w-full justify-center rounded-md text-center")}
-                          onClick={() => {
-                            posthog.capture("signup_saml_button_clicked", {
-                              has_token: !!token,
-                              is_org_invite: isOrgInviteByLink,
-                              org_slug: orgSlug,
-                            });
-                            setDisplayEmailForm(true);
-                            setIsSamlSignup(true);
-                          }}>
-                          {`${t("or").toLocaleLowerCase()} ${t("saml_sso")}`}
-                        </Button>
-                      )}
                     </div>
                   </div>
                 )}
@@ -842,16 +777,16 @@ export default function Signup({
               </>
             )}
           </div>
-          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
+          <div className="mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl border-subtle pl-4 lg:mt-0 lg:flex lg:max-w-full lg:border lg:bg-subtle lg:py-12 lg:pl-12 dark:bg-none">
             {IS_CALCOM && (
               <>
-                <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
+                <div className="-mt-4 mr-12 mb-6 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
                   <div>
                     {/* eslint-disable @next/next/no-img-element */}
                     <img
                       src="/product-cards/product-of-the-day.svg"
                       className="h-[34px] w-full dark:invert"
-                      alt="Cal.com was Product of the Day at ProductHunt"
+                      alt="Cal.diy was Product of the Day at ProductHunt"
                     />
                   </div>
                   <div>
@@ -859,7 +794,7 @@ export default function Signup({
                     <img
                       src="/product-cards/product-of-the-week.svg"
                       className="h-[34px] w-full dark:invert"
-                      alt="Cal.com was Product of the Week at ProductHunt"
+                      alt="Cal.diy was Product of the Week at ProductHunt"
                     />
                   </div>
                   <div>
@@ -867,11 +802,11 @@ export default function Signup({
                     <img
                       src="/product-cards/product-of-the-month.svg"
                       className="h-[34px] w-full dark:invert"
-                      alt="Cal.com was Product of the Month at ProductHunt"
+                      alt="Cal.diy was Product of the Month at ProductHunt"
                     />
                   </div>
                 </div>
-                <div className="mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
+                <div className="mr-12 mb-6 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
                   <div>
                     {/* eslint-disable @next/next/no-img-element */}
                     <img
@@ -899,23 +834,23 @@ export default function Signup({
                 </div>
               </>
             )}
-            <div className="border-default bg-black/3 hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
-              <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
+            <div className="hidden rounded-tl-2xl rounded-br-none rounded-bl-2xl border border-default border-r-0 border-dashed bg-black/3 lg:block lg:py-[6px] lg:pl-[6px] dark:bg-white/5">
+              <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.diy Booking Page" />
               {/* eslint-disable @next/next/no-img-element */}
               <img
                 className="hidden dark:block"
                 src="/mock-event-type-list-dark.svg"
-                alt="Cal.com Booking Page"
+                alt="Cal.diy Booking Page"
               />
             </div>
-            <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
+            <div className="mt-8 mr-12 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
               {FEATURES.map((feature, index) => (
-                <div key={index} className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
-                  <div className="text-emphasis items-center">
+                <div key={index} className="mb-8 flex max-w-52 flex-col leading-none sm:mb-0">
+                  <div className="items-center text-emphasis">
                     <Icon name={feature.icon} className="mb-1 h-4 w-4" />
-                    <span className="text-sm font-medium">{t(feature.title)}</span>
+                    <span className="font-medium text-sm">{t(feature.title)}</span>
                   </div>
-                  <div className="text-subtle text-sm">
+                  <div className="text-sm text-subtle">
                     <p>
                       {t(
                         feature.description,

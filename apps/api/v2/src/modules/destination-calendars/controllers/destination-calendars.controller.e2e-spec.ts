@@ -12,7 +12,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsService } from "@/platform/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -117,7 +117,6 @@ describe("Platform Destination Calendar Endpoints", () => {
           userId: null,
           id: 0,
           delegationCredentialId: null,
-          domainWideDelegationCredentialId: null,
           createdAt: new Date(),
           updatedAt: new Date(),
           customCalendarReminder: 10,

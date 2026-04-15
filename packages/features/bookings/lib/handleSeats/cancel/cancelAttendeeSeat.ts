@@ -5,7 +5,6 @@ import {
 } from "@calcom/app-store/delegationCredential";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails/email-manager";
 import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import type { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
@@ -160,9 +159,8 @@ async function cancelAttendeeSeat(
       ]
     : [];
 
-  const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const payload: EventPayloadType = {
-    ...evtWithoutAssignmentReason,
+    ...evt,
     ...eventTypeInfo,
     status: "CANCELLED",
     smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
@@ -184,12 +182,6 @@ async function cancelAttendeeSeat(
     })
   );
   await Promise.all(promises);
-
-  const workflowRemindersForAttendee =
-    bookingToDelete?.workflowReminders.filter((reminder) => reminder.seatReferenceId === seatReferenceUid) ??
-    null;
-
-  await WorkflowRepository.deleteAllWorkflowReminders(workflowRemindersForAttendee);
 
   return { success: true };
 }

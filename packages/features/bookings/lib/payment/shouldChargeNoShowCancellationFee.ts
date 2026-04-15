@@ -21,17 +21,18 @@ export const shouldChargeNoShowCancellationFee = ({
     return false;
   }
 
-  const cancellationFeeEnabled =
-    eventTypeMetadata?.apps?.[paymentAppId as keyof typeof eventTypeMetadata.apps]
-      ?.autoChargeNoShowFeeIfCancelled;
-  const paymentOption =
-    eventTypeMetadata?.apps?.[paymentAppId as keyof typeof eventTypeMetadata.apps]?.paymentOption;
-  const timeValue =
-    eventTypeMetadata?.apps?.[paymentAppId as keyof typeof eventTypeMetadata.apps]
-      ?.autoChargeNoShowFeeTimeValue;
-  const timeUnit =
-    eventTypeMetadata?.apps?.[paymentAppId as keyof typeof eventTypeMetadata.apps]
-      ?.autoChargeNoShowFeeTimeUnit;
+  const appData = eventTypeMetadata?.apps?.[paymentAppId as keyof typeof eventTypeMetadata.apps] as
+    | {
+        autoChargeNoShowFeeIfCancelled?: boolean;
+        paymentOption?: string;
+        autoChargeNoShowFeeTimeValue?: number;
+        autoChargeNoShowFeeTimeUnit?: string;
+      }
+    | undefined;
+  const cancellationFeeEnabled = appData?.autoChargeNoShowFeeIfCancelled;
+  const paymentOption = appData?.paymentOption;
+  const timeValue = appData?.autoChargeNoShowFeeTimeValue;
+  const timeUnit = appData?.autoChargeNoShowFeeTimeUnit;
 
   if (!cancellationFeeEnabled || paymentOption !== "HOLD" || !booking?.startTime) {
     return false;
