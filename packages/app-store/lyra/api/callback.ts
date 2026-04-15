@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Convert expires_in (seconds) to expiry_date (absolute ms timestamp)
-  // This follows Cal.com's universal OAuth token schema
+  // This follows Cal.diy's universal OAuth token schema
   responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
   delete responseBody.expires_in;
 

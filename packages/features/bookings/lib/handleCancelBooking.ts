@@ -3,32 +3,15 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
-import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
-import {
-  buildActorEmail,
-  getUniqueIdentifier,
-  makeGuestActor,
-  makeUserActor,
-} from "@calcom/features/booking-audit/lib/makeActor";
-import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
-import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import {
   type EventTypeBrandingData,
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
-import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -38,8 +21,6 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -49,14 +30,13 @@ import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
-import type { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { isCancellationReasonRequired } from "./cancellationReason";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { bookingCancelInput, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
 import { BookingRepository } from "../repositories/BookingRepository";
 import { PrismaBookingAttendeeRepository } from "../repositories/PrismaBookingAttendeeRepository";
@@ -67,7 +47,6 @@ import type {
 } from "./dto/BookingCancel";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingToDelete } from "./getBookingToDelete";
-import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
 
@@ -87,72 +66,27 @@ export type CancelBookingInput = {
   userId?: number;
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
-  actionSource: ValidActionSource;
-  impersonatedByUserUuid: string | null;
+  actionSource?: string;
+  actor?: unknown;
 } & PlatformParams;
 
 type Dependencies = {
   userRepository: UserRepository;
   bookingRepository: BookingRepository;
-  profileRepository: ProfileRepository;
   bookingReferenceRepository: BookingReferenceRepository;
   attendeeRepository: PrismaBookingAttendeeRepository;
 };
-
-/**
- * Its job is to ensure that an actor is always returned, otherwise we won't be able to audit the action.
- */
-function getAuditActor({
-  userUuid,
-  cancelledByEmailInQueryParam,
-  bookingUid,
-}: {
-  userUuid: string | null;
-  cancelledByEmailInQueryParam: string | null;
-  bookingUid: string;
-}): Actor {
-  if (userUuid) {
-    return makeUserActor(userUuid);
-  }
-
-  let actorEmail: string;
-  // Fallback to guest actor for unauthenticated cancellation
-  if (!cancelledByEmailInQueryParam) {
-    log.warn(
-      "No cancelledBy email in query param available, creating fallback guest actor for audit",
-      safeStringify({
-        bookingUid,
-      })
-    );
-    // Having fallback prefix makes it clear that we created guest actor from fallback logic
-    actorEmail = buildActorEmail({
-      identifier: getUniqueIdentifier({ prefix: "fallback" }),
-      actorType: "guest",
-    });
-  } else {
-    // We can't trust cancelledByEmail and thus can't reuse it as is because it can be set anything by anyone. If we use that as guest actor, we could accidentally attribute the action to the wrong guest actor.
-    // Having param prefix makes it clear that we created guest actor from query param and we still don't use the email as is.
-    actorEmail = buildActorEmail({
-      identifier: getUniqueIdentifier({ prefix: "param" }),
-      actorType: "guest",
-    });
-  }
-
-  return makeGuestActor({ email: actorEmail, name: null });
-}
 
 async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const prismaClient = prisma;
   const {
     userRepository,
     bookingRepository,
-    profileRepository,
     bookingReferenceRepository,
     attendeeRepository,
   } = dependencies || {
     userRepository: new UserRepository(prismaClient),
     bookingRepository: new BookingRepository(prismaClient),
-    profileRepository: new ProfileRepository({ prismaClient }),
     bookingReferenceRepository: new BookingReferenceRepository({ prismaClient }),
     attendeeRepository: new PrismaBookingAttendeeRepository(prismaClient),
   };
@@ -165,7 +99,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     seatReferenceUid,
     cancelledBy,
     cancelSubsequentBookings,
-    internalNote,
     skipCancellationReasonValidation = false,
     skipCalendarSyncTaskCancellation = false,
   } = bookingCancelInput.parse(body);
@@ -179,18 +112,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     arePlatformEmailsEnabled,
   } = input;
 
-  const userUuid = input.userUuid ?? null;
-  const impersonatedByUserUuid = input.impersonatedByUserUuid ?? null;
-
-  const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
-
-  const actionSource = input.actionSource;
-
-  const actorToUse = getAuditActor({
-    userUuid,
-    cancelledByEmailInQueryParam: cancelledBy ?? null,
-    bookingUid: bookingToDelete.uid,
-  });
 
   /**
    * Important: We prevent cancelling an already cancelled booking.
@@ -246,17 +167,10 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
 
-    const userIsOrgAdminOfBookingUser =
-      userId &&
-      (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
-        userId,
-        bookingToDelete.userId
-      ));
-
-    if (!userIsHost && !userIsOwnerOfEventType && !userIsOrgAdminOfBookingUser) {
+    if (!userIsHost && !userIsOwnerOfEventType) {
       throw new HttpError({
         statusCode: 401,
-        message: "User not a host of this event or an admin of the booking user",
+        message: "User not a host of this event",
       });
     }
   }
@@ -264,28 +178,12 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   // get webhooks
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
 
-  const teamId = await getTeamIdFromEventType({
-    eventType: {
-      team: { id: bookingToDelete.eventType?.team?.id ?? null },
-      parentId: bookingToDelete?.eventType?.parentId ?? null,
-    },
-  });
-  const triggerForUser = !teamId || (teamId && bookingToDelete.eventType?.parentId);
-  const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
-
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
-
-  const featuresRepository = getFeaturesRepository();
-  const isBookingAuditEnabled = orgId
-    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
-    : false;
-
   const subscriberOptions: GetSubscriberOptions = {
-    userId: organizerUserId,
+    userId: bookingToDelete.userId,
     eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
-    teamId,
-    orgId,
+    teamId: null,
+    orgId: undefined,
     oAuthClientId: platformClientId,
   };
 
@@ -304,13 +202,10 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     id: bookingToDelete.userId,
   });
 
-  const teamMembersPromises = [];
   const attendeesListPromises = [];
-  const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
-  for (let index = 0; index < bookingToDelete.attendees.length; index++) {
-    const attendee = bookingToDelete.attendees[index];
-    const attendeeObject = {
+  for (const attendee of bookingToDelete.attendees) {
+    attendeesListPromises.push({
       name: attendee.name,
       email: attendee.email,
       timeZone: attendee.timeZone,
@@ -319,34 +214,13 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         translate: await getTranslation(attendee.locale ?? "en", "common"),
         locale: attendee.locale ?? "en",
       },
-    };
-
-    // The first attendee is the booker in all cases, so always consider them as an attendee.
-    if (index === 0) {
-      attendeesListPromises.push(attendeeObject);
-    } else {
-      const isTeamEvent = hostEmails.size > 0;
-      const isTeamMember = isTeamEvent && hostEmails.has(attendee.email);
-
-      if (isTeamMember) {
-        teamMembersPromises.push(attendeeObject);
-      } else {
-        attendeesListPromises.push(attendeeObject);
-      }
-    }
+    });
   }
 
   const attendeesList = await Promise.all(attendeesListPromises);
-  const teamMembers = await Promise.all(teamMembersPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
-  const ownerProfile = await profileRepository.findFirstByUserId({
-    userId: bookingToDelete.userId,
-  });
-
-  const bookerUrl = await getBookerBaseUrl(
-    bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
-  );
+  const bookerUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
 
   const evt: CalendarEvent = {
     bookerUrl,
@@ -366,7 +240,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     organizer: {
       id: organizer.id,
       username: organizer.username || undefined,
-      usernameInOrg: ownerProfile?.username || undefined,
       email: bookingToDelete?.userPrimaryEmail ?? organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
@@ -387,14 +260,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         ? [bookingToDelete?.user.destinationCalendar]
         : [],
     cancellationReason: cancellationReason,
-    ...(teamMembers &&
-      teamId && {
-        team: {
-          name: bookingToDelete?.eventType?.team?.name || "Nameless",
-          members: teamMembers,
-          id: teamId,
-        },
-      }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
@@ -405,7 +270,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
     platformBookingUrl,
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
-    organizationId: ownerProfile?.organizationId ?? null,
     schedulingType: bookingToDelete.eventType?.schedulingType,
     hideBranding: bookingToDelete.eventTypeId
       ? await getEventTypeService().shouldHideBrandingForEventType(bookingToDelete.eventTypeId, {
@@ -447,10 +311,9 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       isPlatformManagedUserBooking: bookingToDelete.user.isPlatformManaged,
     } satisfies HandleCancelBookingResponse;
 
-  const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evtWithoutAssignmentReason,
+      ...evt,
       ...eventTypeInfo,
       status: "CANCELLED",
       smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
@@ -465,40 +328,9 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   );
   await Promise.all(promises);
 
-  const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
-  const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
-
-  const creditService = new CreditService();
-
-  await sendCancelledReminders({
-    workflows,
-    smsReminderNumber: bookingToDelete.smsReminderNumber,
-    evt: {
-      ...evt,
-      ...(parsedMetadata.success && parsedMetadata.data?.videoCallUrl
-        ? { metadata: { videoCallUrl: parsedMetadata.data.videoCallUrl } }
-        : {}),
-      bookerUrl,
-      ...{
-        eventType: {
-          slug: bookingToDelete.eventType?.slug as string,
-          schedulingType: bookingToDelete.eventType?.schedulingType,
-          hosts: bookingToDelete.eventType?.hosts,
-        },
-      },
-    },
-    hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
-    creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
-  });
-
   let updatedBookings: {
     id: number;
     uid: string;
-    workflowReminders: {
-      id: number;
-      referenceId: string | null;
-      method: WorkflowMethods;
-    }[];
     references: {
       type: string;
       credentialId: number | null;
@@ -508,8 +340,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     startTime: Date;
     endTime: Date;
   }[] = [];
-
-  const bookingEventHandlerService = getBookingEventHandlerService();
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
@@ -534,7 +364,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         cancelledBy: cancelledBy,
       },
     });
-    const allUpdatedBookings = await bookingRepository.findManyIncludeWorkflowRemindersAndReferences({
+    const allUpdatedBookings = await bookingRepository.findManyIncludeReferences({
       where: {
         recurringEventId: bookingToDelete.recurringEventId,
         startTime: {
@@ -543,33 +373,12 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       },
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
-
-    const operationId = uuidv4();
-    await bookingEventHandlerService.onBulkBookingsCancelled({
-      bookings: allUpdatedBookings.map((updatedRecurringBooking) => ({
-        bookingUid: updatedRecurringBooking.uid,
-        auditData: {
-          cancellationReason: cancellationReason ?? null,
-          cancelledBy: cancelledBy ?? null,
-          status: {
-            old: bookingToDelete.status,
-            new: BookingStatus.CANCELLED,
-          },
-        },
-      })),
-      actor: actorToUse,
-      organizationId: orgId ?? null,
-      operationId,
-      source: actionSource,
-      context: auditContext,
-      isBookingAuditEnabled,
-    });
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
       await attendeeRepository.deleteManyByBookingId(bookingToDelete.id);
     }
 
-    const updatedBooking = await bookingRepository.updateIncludeWorkflowRemindersAndReferences({
+    const updatedBooking = await bookingRepository.updateIncludeReferences({
       where: {
         uid: bookingToDelete.uid,
       },
@@ -584,28 +393,10 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
     updatedBookings.push(updatedBooking);
 
-    await bookingEventHandlerService.onBookingCancelled({
-      bookingUid: updatedBooking.uid,
-      actor: actorToUse,
-      organizationId: orgId ?? null,
-      source: actionSource,
-      auditData: {
-        cancellationReason: cancellationReason ?? null,
-        cancelledBy: cancelledBy ?? null,
-        status: {
-          old: bookingToDelete.status,
-          new: BookingStatus.CANCELLED,
-        },
-      },
-      context: auditContext,
-      isBookingAuditEnabled,
-    });
-
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
       try {
         await processPaymentRefund({
           booking: bookingToDelete,
-          teamId,
         });
       } catch (error) {
         log.error(`Error processing payment refund for booking ${bookingToDelete.uid}:`, error);
@@ -627,7 +418,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   if (bookingToDelete.location === DailyLocationType) {
     bookingToDelete.user.credentials.push({
       ...FAKE_DAILY_CREDENTIAL,
-      teamId: bookingToDelete.eventType?.team?.id || null,
+      teamId: null,
     });
   }
 
@@ -638,7 +429,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   );
 
   // Skip calendar event deletion when cancellation comes from a calendar subscription webhook
-  // to avoid infinite loops (Google/Office365 → Cal.com → Google/Office365 → ...)
+  // to avoid infinite loops (Google/Office365 → Cal.diy → Google/Office365 → ...)
   if (!skipCalendarSyncTaskCancellation) {
     try {
       const bookingToDeleteEventTypeMetadataParsed = eventTypeMetaDataSchemaWithTypedApps.safeParse(
@@ -681,41 +472,22 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
   try {
     const webhookTriggerPromises = [];
-    const workflowReminderPromises = [];
-
     for (const booking of updatedBookings) {
-      // delete scheduled webhook triggers of cancelled bookings
       webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
       webhookTriggerPromises.push(cancelNoShowTasksForBooking({ bookingUid: booking.uid }));
-
-      //Workflows - cancel all reminders for cancelled bookings
-      workflowReminderPromises.push(WorkflowRepository.deleteAllWorkflowReminders(booking.workflowReminders));
     }
 
-    await Promise.allSettled([...webhookTriggerPromises, ...workflowReminderPromises]).then((results) => {
+    await Promise.allSettled(webhookTriggerPromises).then((results) => {
       const rejectedReasons = results
         .filter((result): result is PromiseRejectedResult => result.status === "rejected")
         .map((result) => result.reason);
 
       if (rejectedReasons.length > 0) {
-        log.error("An error occurred when deleting workflow reminders and webhook triggers", rejectedReasons);
+        log.error("An error occurred when deleting webhook triggers", rejectedReasons);
       }
     });
   } catch (error) {
-    log.error("Error deleting scheduled webhooks and workflows", safeStringify({ error }));
-  }
-
-  try {
-    if (internalNote && teamId) {
-      await handleInternalNote({
-        internalNote,
-        booking: bookingToDelete,
-        userId: userId || -1,
-        teamId: teamId,
-      });
-    }
-  } catch (error) {
-    log.error("Error handlingInternalNote", safeStringify({ error }));
+    log.error("Error deleting scheduled webhooks", safeStringify({ error }));
   }
 
   try {
@@ -742,7 +514,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 type BookingCancelServiceDependencies = {
   userRepository: UserRepository;
   bookingRepository: BookingRepository;
-  profileRepository: ProfileRepository;
+  profileRepository?: unknown;
   bookingReferenceRepository: BookingReferenceRepository;
   attendeeRepository: PrismaBookingAttendeeRepository;
 };
@@ -754,16 +526,10 @@ type BookingCancelServiceDependencies = {
 export class BookingCancelService implements IBookingCancelService {
   constructor(private readonly deps: BookingCancelServiceDependencies) {}
 
-  async cancelBooking(input: {
-    bookingData: CancelRegularBookingData;
-    bookingMeta?: CancelBookingMeta;
-    actionSource: ValidActionSource;
-  }) {
+  async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
     const cancelBookingInput: CancelBookingInput = {
       bookingData: input.bookingData,
       ...(input.bookingMeta || {}),
-      impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
-      actionSource: input.actionSource,
     };
 
     return handler(cancelBookingInput, this.deps);

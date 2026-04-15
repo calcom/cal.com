@@ -1,4 +1,4 @@
-import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
+import { EventTypesModule_2024_04_15 } from "@/platform/event-types/event-types_2024_04_15/event-types.module";
 import { AvailableSlotsModule } from "@/lib/modules/available-slots.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SlotsController_2024_04_15 } from "@/modules/slots/slots-2024-04-15/controllers/slots.controller";

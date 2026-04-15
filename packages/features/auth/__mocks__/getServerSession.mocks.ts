@@ -1,9 +1,8 @@
-import type { Mock } from "vitest";
-import { vi } from "vitest";
-import { mockDeep, mockReset, type DeepMockProxy } from "vitest-mock-extended";
-
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
+import type { Mock } from "vitest";
+import { vi } from "vitest";
+import { type DeepMockProxy, mockDeep, mockReset } from "vitest-mock-extended";
 
 // Types
 type LoggerInstance = {
@@ -65,14 +64,6 @@ function createLicenseKeyMock(): {
         checkLicense: vi.fn().mockResolvedValue(false),
       }),
     },
-  };
-}
-
-function createDeploymentRepositoryMock(): {
-  DeploymentRepository: new (_prisma: PrismaClient) => object;
-} {
-  return {
-    DeploymentRepository: class MockDeploymentRepository {},
   };
 }
 
@@ -149,7 +140,6 @@ export {
   createLoggerMock,
   createPrismaMock,
   createLicenseKeyMock,
-  createDeploymentRepositoryMock,
   createUserRepositoryMock,
   createAvatarUrlMock,
   createSafeStringifyMock,

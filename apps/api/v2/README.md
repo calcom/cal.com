@@ -1,4 +1,4 @@
-Cal.com api v2 is a [Nest.js](https://github.com/nestjs/nest) project.
+Cal.diy api v2 is a [Nest.js](https://github.com/nestjs/nest) project.
 
 # Local development
 This setup will allow you to develop with api v2 locally. If you want to also test atoms locally with platform's example app,

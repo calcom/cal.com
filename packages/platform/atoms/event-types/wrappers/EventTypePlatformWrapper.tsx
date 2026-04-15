@@ -22,7 +22,6 @@ import type { EventRecurringTabCustomClassNames } from "@calcom/web/modules/even
 import type { EventSetupTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";
 
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
-import { useDeleteTeamEventTypeById } from "../../hooks/event-types/private/useDeleteTeamEventTypeById";
 import { useAtomsContext } from "../../hooks/useAtomsContext";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
@@ -113,15 +112,6 @@ const EventType = forwardRef<
   };
 
   const deleteMutation = useDeleteEventTypeById({
-    onSuccess: async () => {
-      handleDeleteSuccess();
-    },
-    onError: (err) => {
-      handleDeleteError(err);
-    },
-  });
-
-  const deleteTeamEventTypeMutation = useDeleteTeamEventTypeById({
     onSuccess: async () => {
       handleDeleteSuccess();
     },
@@ -324,9 +314,7 @@ const EventType = forwardRef<
   const onDelete = () => {
     if (allowDelete && !isDryRun) {
       isTeamEventTypeDeleted.current = true;
-      team?.id
-        ? deleteTeamEventTypeMutation.mutate({ eventTypeId: id, teamId: team.id })
-        : deleteMutation.mutate(id);
+      deleteMutation.mutate(id);
     }
 
     if (isDryRun) {

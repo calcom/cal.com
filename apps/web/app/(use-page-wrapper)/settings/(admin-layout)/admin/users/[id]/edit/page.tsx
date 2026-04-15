@@ -1,12 +1,10 @@
-import { type Params } from "app/_types";
-import { _generateMetadata, getTranslate } from "app/_utils";
-import { z } from "zod";
-
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import { UsersEditView } from "~/ee/users/views/users-edit-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
+import type { Params } from "app/_types";
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { z } from "zod";
+import { UsersEditView } from "~/users/views/users-edit-view";
 
 const userIdSchema = z.object({ id: z.coerce.number() });
 
@@ -46,9 +44,7 @@ const Page = async ({ params }: { params: Params }) => {
 
   return (
     <SettingsHeader title={t("editing_user")} description={t("admin_users_edit_description")}>
-      <LicenseRequired>
-        <UsersEditView user={user} />
-      </LicenseRequired>
+      <UsersEditView user={user} />
     </SettingsHeader>
   );
 };

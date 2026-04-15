@@ -1,18 +1,14 @@
-import { useSession } from "next-auth/react";
-import { useMemo } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
-import { Calendar } from "@calcom/features/calendars/weeklyview/components/Calendar";
+import { useSchedule } from "~/schedules/hooks/useSchedule";
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-
-import { useSchedule } from "~/schedules/hooks/useSchedule";
-
-import { OutOfOfficeInSlots } from "../../bookings/components/OutOfOfficeInSlots";
+import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
+import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const { t } = useLocale();
@@ -135,7 +131,6 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         hoverEventDuration={30}
         hideHeader
         timezone={timezone}
-        renderOutOfOffice={(props) => <OutOfOfficeInSlots {...props} />}
       />
     </div>
   );

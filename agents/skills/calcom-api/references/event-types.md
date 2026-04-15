@@ -1,6 +1,6 @@
 # Event Types API Reference
 
-Detailed documentation for event type endpoints in the Cal.com API v2.
+Detailed documentation for event type endpoints in the Cal.diy API v2.
 
 ## Endpoints Overview
 

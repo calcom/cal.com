@@ -29,7 +29,7 @@ const credentialSchema = z
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-// Cal.com Custom Activity Fields
+// Cal.diy Custom Activity Fields
 const calComCustomActivityFields: CloseComFieldOptions = [
   // Field name, field type, required?, multiple values?
   ["Attendees", "contact", false, true],
@@ -55,7 +55,7 @@ const calComCustomActivityFields: CloseComFieldOptions = [
  * Contact creation
  * Every contact in Close.com need to belong to a Lead. When creating a contact in
  * Close.com as part of this integration, a new generic Lead will be created in order
- * to assign every contact created by this process, and it is named "From Cal.com"
+ * to assign every contact created by this process, and it is named "From Cal.diy"
  */
 class CloseComCRMService implements CRM {
   private integrationName = "";

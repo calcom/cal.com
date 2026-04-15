@@ -34,11 +34,6 @@ vi.mock("@calcom/features/bookings/services/BookingAccessService", () => {
     },
   };
 });
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => {
-  return {
-    TeamRepository: class MockTeamRepository {},
-  };
-});
 vi.mock("@calcom/features/webhooks/lib/getWebhooks");
 vi.mock("@calcom/features/webhooks/lib/sendPayload");
 vi.mock("@calcom/prisma", () => ({
@@ -100,7 +95,6 @@ describe("reportWrongAssignmentHandler", () => {
     },
     attendees: [{ email: "guest@example.com" }],
     assignmentReason: [{ reasonString: "Matched by round-robin" }],
-    routedFromRoutingFormReponse: null,
   };
 
   beforeEach(() => {
@@ -353,7 +347,6 @@ describe("reportWrongAssignmentHandler", () => {
         correctAssignee: "correct@example.com",
         additionalNotes: "This booking should have gone to the sales team",
         teamId: mockBooking.eventType.team.id,
-        routingFormId: null,
       });
     });
 
@@ -378,7 +371,6 @@ describe("reportWrongAssignmentHandler", () => {
         correctAssignee: null,
         additionalNotes: "Wrong person",
         teamId: null,
-        routingFormId: null,
       });
     });
 

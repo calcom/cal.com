@@ -55,7 +55,6 @@ export type AppPageProps = {
   tos?: string;
   privacy?: string;
   licenseRequired: AppType["licenseRequired"];
-  teamsPlanRequired: AppType["teamsPlanRequired"];
   descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
   disableInstall?: boolean;
@@ -82,7 +81,6 @@ export const AppPage = ({
   email,
   tos,
   privacy,
-  teamsPlanRequired,
   descriptionItems,
   isTemplate,
   dependencies,
@@ -231,7 +229,6 @@ export const AppPage = ({
       <InstallAppButton
         type={type}
         disableInstall={disableInstall}
-        teamsPlanRequired={teamsPlanRequired}
         render={({ useDefaultComponent, ...props }) => {
           if (useDefaultComponent) {
             props = {
@@ -251,7 +248,6 @@ export const AppPage = ({
       <InstallAppButton
         type={type}
         disableInstall={disableInstall}
-        teamsPlanRequired={teamsPlanRequired}
         render={({ useDefaultComponent, ...props }) => {
           if (useDefaultComponent) {
             props = {
@@ -426,9 +422,7 @@ export const AppPage = ({
           <>
             <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
             <span className="text-default">
-              {teamsPlanRequired ? (
-                t("teams_plan_required")
-              ) : price === 0 ? (
+                {price === 0 ? (
                 t("free_to_use_apps")
               ) : (
                 <>

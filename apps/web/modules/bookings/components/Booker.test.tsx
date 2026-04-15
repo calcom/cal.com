@@ -134,8 +134,6 @@ const defaultProps = {
     handleBookEvent: vi.fn(),
     errors: {},
     loadingStates: {},
-    expiryTime: 0,
-    instantVideoMeetingUrl: "",
   },
   verifyEmail: {
     isEmailVerificationModalVisible: false,
@@ -166,13 +164,10 @@ const defaultProps = {
   isPlatform: false,
   orgBannerUrl: null,
   customClassNames: {},
-  areInstantMeetingParametersSet: false,
   userLocale: "en",
   hasValidLicense: true,
   isBookingDryRun: false,
   renderCaptcha: false,
-  onConnectNowInstantMeeting: vi.fn(),
-  onGoBackInstantMeeting: vi.fn(),
   onOverlayClickNoCalendar: vi.fn(),
   onClickOverlayContinue: vi.fn(),
   onOverlaySwitchStateChange: vi.fn(),
@@ -180,7 +175,6 @@ const defaultProps = {
   sessionUsername: null,
   rescheduleUid: null,
   hasSession: false,
-  isInstantMeeting: false,
 };
 
 describe("Booker", () => {
@@ -188,7 +182,7 @@ describe("Booker", () => {
     constantsScenarios.set({
       PUBLIC_QUICK_AVAILABILITY_ROLLOUT: "100",
       POWERED_BY_URL: "https://go.cal.com/booking",
-      APP_NAME: "Cal.com",
+      APP_NAME: "Cal.diy",
     });
     vi.clearAllMocks();
   });

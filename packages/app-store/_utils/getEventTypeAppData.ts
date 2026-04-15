@@ -3,6 +3,8 @@ import type { z } from "zod";
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { BookerEventForAppData } from "@calcom/features/bookings/types.server";
 
+import type { CommonAppData } from "./commonAppDataType";
+
 export type EventTypeApps = NonNullable<
   NonNullable<z.infer<typeof eventTypeMetaDataSchemaWithTypedApps>>["apps"]
 >;
@@ -12,20 +14,21 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
   eventType: BookerEventForAppData,
   appId: T,
   forcedGet?: boolean
-): EventTypeApps[T] => {
+): EventTypeApps[T] | null => {
   const metadata = eventType.metadata;
   const appMetadata = metadata?.apps && metadata.apps[appId];
   if (appMetadata) {
-    const allowDataGet = forcedGet ? true : appMetadata.enabled;
+    const app = appMetadata as CommonAppData;
+    const allowDataGet = forcedGet ? true : app.enabled;
     return allowDataGet
       ? {
           ...appMetadata,
           // We should favor eventType's price and currency over appMetadata's price and currency
-          price: eventType.price || appMetadata.price || null,
-          currency: eventType.currency || appMetadata.currency || null,
+          price: eventType.price || app.price || null,
+          currency: eventType.currency || app.currency || null,
           // trackingId is legacy way to store value for TRACKING_ID. So, we need to support both.
-          TRACKING_ID: appMetadata.TRACKING_ID || appMetadata.trackingId || null,
-          TRACKING_EVENT: appMetadata.trackingEvent || "Lead",
+          TRACKING_ID: app.TRACKING_ID || app.trackingId || null,
+          TRACKING_EVENT: app.trackingEvent || "Lead",
         }
       : null;
   }

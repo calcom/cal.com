@@ -7,6 +7,30 @@ import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/Ca
 
 import { handleCreateSelectedCalendars, isSameEmail } from "../route";
 
+// Mock findUniqueDelegationCalendarCredential to actually query prismock
+// The stub in delegationCredential.ts always returns null, breaking the cron flow.
+// We mock it to return a credential-like object so getCalendarService() proceeds.
+vi.mock("@calcom/app-store/delegationCredential", async () => {
+  const actual = await vi.importActual<typeof import("@calcom/app-store/delegationCredential")>(
+    "@calcom/app-store/delegationCredential"
+  );
+  return {
+    ...actual,
+    findUniqueDelegationCalendarCredential: vi
+      .fn()
+      .mockImplementation(
+        async ({ userId, delegationCredentialId }: { userId: number; delegationCredentialId: string }) => {
+          // Return a minimal credential object that satisfies CredentialForCalendarServiceWithEmail
+          const credential = await prismock.credential.findFirst({
+            where: { userId, delegationCredentialId },
+            include: { user: { select: { email: true } } },
+          });
+          return credential;
+        }
+      ),
+  };
+});
+
 // Mock GoogleCalendarService factory function
 const getPrimaryCalendarMock = vi.fn();
 vi.mock("@calcom/app-store/googlecalendar/lib/CalendarService", () => {

@@ -1,5 +1,3 @@
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
-import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -181,35 +179,20 @@ export class EventTypeHostService implements IEventTypeHostService {
   async exportHostsForWeights({
     eventTypeId,
     assignAllTeamMembers,
-    assignRRMembersUsingSegment,
-    attributesQueryValue,
-    organizationId,
   }: {
     eventTypeId: number;
     assignAllTeamMembers: boolean;
-    assignRRMembersUsingSegment?: boolean;
-    attributesQueryValue?: AttributesQueryValue | null;
-    organizationId: number | null;
   }): Promise<ExportWeightsResponse> {
     // Derive teamId from the event type to prevent cross-team enumeration
     const eventType = await this.eventTypeRepository.getTeamIdByEventTypeId({ id: eventTypeId });
     const teamId = eventType?.teamId;
-
-    const segmentMemberIds = teamId
-      ? await this.getSegmentMemberIds({
-          teamId,
-          organizationId,
-          assignRRMembersUsingSegment,
-          attributesQueryValue,
-        })
-      : null;
 
     if (assignAllTeamMembers && teamId) {
       const memberships = await this.membershipRepository.findAcceptedMembersWithUserProfile({
         teamId,
       });
 
-      let members: ExportedWeightMember[] = memberships.map((m) => ({
+      const members: ExportedWeightMember[] = memberships.map((m) => ({
         userId: m.user.id,
         name: m.user.name,
         email: m.user.email,
@@ -217,16 +200,12 @@ export class EventTypeHostService implements IEventTypeHostService {
         weight: null,
       }));
 
-      if (segmentMemberIds) {
-        members = members.filter((m) => segmentMemberIds.has(m.userId));
-      }
-
       return { members };
     }
 
     const hosts = await this.hostRepository.findAllRoundRobinHosts({ eventTypeId });
 
-    let members: ExportedWeightMember[] = hosts.map((h) => ({
+    const members: ExportedWeightMember[] = hosts.map((h) => ({
       userId: h.userId,
       name: h.user.name,
       email: h.user.email,
@@ -234,41 +213,6 @@ export class EventTypeHostService implements IEventTypeHostService {
       weight: h.weight ?? 100,
     }));
 
-    if (segmentMemberIds) {
-      members = members.filter((m) => segmentMemberIds.has(m.userId));
-    }
-
     return { members };
-  }
-
-  private async getSegmentMemberIds({
-    teamId,
-    organizationId,
-    assignRRMembersUsingSegment,
-    attributesQueryValue,
-  }: {
-    teamId: number;
-    organizationId: number | null;
-    assignRRMembersUsingSegment?: boolean;
-    attributesQueryValue?: AttributesQueryValue | null;
-  }): Promise<Set<number> | null> {
-    if (!assignRRMembersUsingSegment || !attributesQueryValue) {
-      return null;
-    }
-
-    if (!organizationId) return null;
-
-    const { teamMembersMatchingAttributeLogic } = await findTeamMembersMatchingAttributeLogic(
-      {
-        teamId,
-        attributesQueryValue,
-        orgId: organizationId,
-      },
-      { enablePerf: false }
-    );
-
-    if (!teamMembersMatchingAttributeLogic) return null;
-
-    return new Set(teamMembersMatchingAttributeLogic.map((m) => m.userId));
   }
 }
