@@ -28,7 +28,7 @@ export default class OrganizerLocationChangeEmail extends OrganizerScheduledEmai
         date: this.getFormattedDate(),
       })}`,
       html: await renderEmail("OrganizerLocationChangeEmail", {
-        attendee: this.calEvent.organizer,
+        attendee: this.calEvent.attendees[0],
         calEvent: this.calEvent,
       }),
       text: this.getTextBody("event_location_changed"),

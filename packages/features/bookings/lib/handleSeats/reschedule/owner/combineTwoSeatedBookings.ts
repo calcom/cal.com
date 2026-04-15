@@ -5,10 +5,11 @@ import { sendRescheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
@@ -111,6 +112,7 @@ const combineTwoSeatedBookings = async (
   const updatedBookingAttendees = updatedNewBooking.attendees.map((attendee) => {
     const evtAttendee = {
       ...attendee,
+      timeFormat: attendee.timeFormat ? getTimeFormatStringFromUserTimeFormat(attendee.timeFormat) : undefined,
       language: { translate: tAttendees, locale: attendeeLanguage ?? "en" },
     };
     return evtAttendee;
@@ -118,9 +120,7 @@ const combineTwoSeatedBookings = async (
 
   evt.attendees = updatedBookingAttendees;
 
-  evt = CalendarEventBuilder.fromEvent(evt)
-    .withVideoCallDataFromReferences(updatedNewBooking.references)
-    .build();
+  evt = { ...addVideoCallDataToEvent(updatedNewBooking.references, evt), bookerUrl: evt.bookerUrl };
 
   const copyEvent = cloneDeep(evt);
 

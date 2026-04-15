@@ -10,6 +10,7 @@ const safeSelect = {
   phoneNumber: true,
   bookingId: true,
   noShow: true,
+  timeFormat: true,
 };
 
 /**
@@ -101,6 +102,7 @@ export class AttendeeRepository implements IAttendeeRepository {
       phoneNumber: string | null;
       bookingId: number | null;
       noShow: boolean | null;
+      timeFormat: number | null;
     }[]
   > {
     return this.prismaClient.attendee.findMany({

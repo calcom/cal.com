@@ -34,6 +34,7 @@ const getUserBooking = async (uid: string) => {
           username: true,
           timeZone: true,
           avatarUrl: true,
+          timeFormat: true,
         },
       },
       attendees: {
@@ -41,6 +42,7 @@ const getUserBooking = async (uid: string) => {
           name: true,
           email: true,
           timeZone: true,
+          timeFormat: true,
           phoneNumber: true,
         },
         orderBy: {

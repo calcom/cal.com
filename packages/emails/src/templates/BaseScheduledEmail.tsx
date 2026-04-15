@@ -33,17 +33,17 @@ export const BaseScheduledEmail = (
   const timeFormat = timeFormat_ ?? TimeFormat.TWELVE_HOUR;
 
   function getRecipientStart(format: string) {
-    return dayjs(props.calEvent.startTime).tz(timeZone).format(format);
+    return dayjs(props.calEvent.startTime).tz(timeZone).locale(locale).format(format);
   }
 
   function getRecipientEnd(format: string) {
-    return dayjs(props.calEvent.endTime).tz(timeZone).format(format);
+    return dayjs(props.calEvent.endTime).tz(timeZone).locale(locale).format(format);
   }
 
   const subject = t(props.subject || "confirmed_event_type_subject", {
     eventType: props.calEvent.type,
     name: props.calEvent.team?.name || props.calEvent.organizer.name,
-    date: `${getRecipientStart("h:mma")} - ${getRecipientEnd("h:mma")}, ${t(
+    date: `${getRecipientStart(timeFormat)} - ${getRecipientEnd(timeFormat)}, ${t(
       getRecipientStart("dddd").toLowerCase()
     )}, ${t(getRecipientStart("MMMM").toLowerCase())} ${getRecipientStart("D, YYYY")}`,
     interpolation: { escapeValue: false },

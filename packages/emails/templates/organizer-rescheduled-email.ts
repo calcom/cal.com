@@ -28,7 +28,7 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
       })}`,
       html: await this.getHtml(
         { ...this.calEvent, attendeeSeatId: undefined },
-        this.calEvent.organizer,
+        this.calEvent.attendees[0],
         this.teamMember
       ),
       text: this.getTextBody("event_has_been_rescheduled"),

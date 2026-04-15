@@ -18,7 +18,7 @@ import {
 } from "@calcom/lib/LinkBuilder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
-import { TimeFormat } from "@calcom/lib/timeFormat";
+import { TimeFormat, getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
   SchedulingType,
@@ -385,7 +385,15 @@ export class EmailWorkflowService {
     const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
     // Detect if the email content matches a default template for locale-based regeneration
-    const timeFormat = evt.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
+    const rawTimeFormat = isEmailAttendeeAction
+      ? attendeeToBeUsedInMail?.timeFormat || evt.organizer.timeFormat
+      : evt.organizer.timeFormat;
+
+    // We parse it using the string converter since workflow tasks pull these as raw integers directly from the Database (12/24), which breaks dayjs formatting
+    const timeFormat =
+      typeof rawTimeFormat === "string"
+        ? (rawTimeFormat as TimeFormat)
+        : getTimeFormatStringFromUserTimeFormat(rawTimeFormat as number | undefined) || TimeFormat.TWELVE_HOUR;
     let defaultTemplates = {
       reminder: { body: null as string | null, subject: null as string | null },
       rating: { body: null as string | null, subject: null as string | null },
@@ -449,7 +457,7 @@ export class EmailWorkflowService {
         locale,
         t,
         action,
-        timeFormat: evt.organizer.timeFormat,
+        timeFormat,
         startTime,
         endTime,
         eventName: evt.title,
@@ -466,7 +474,7 @@ export class EmailWorkflowService {
         locale,
         action,
         t: await getTranslation(locale, "common"),
-        timeFormat: evt.organizer.timeFormat,
+        timeFormat,
         startTime,
         endTime,
         eventName: evt.title,
@@ -553,14 +561,14 @@ export class EmailWorkflowService {
         translatedEmailSubject,
         variables,
         locale,
-        evt.organizer.timeFormat
+        timeFormat
       );
       emailContent.emailSubject = emailSubjectTemplate.text;
       emailContent.emailBody = customTemplate(
         translatedEmailBody,
         variables,
         locale,
-        evt.organizer.timeFormat,
+        timeFormat,
         hideBranding
       ).html;
     }

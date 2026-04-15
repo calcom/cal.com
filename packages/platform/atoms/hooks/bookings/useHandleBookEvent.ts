@@ -3,6 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
@@ -52,6 +53,7 @@ export const useHandleBookEvent = ({
   const storeTimeSlot = useBookerStoreContext((state) => state.selectedTimeslot);
   const duration = useBookerStoreContext((state) => state.selectedDuration);
   const { timezone } = useBookerTime();
+  const timeFormat = useTimePreferences((state) => state.timeFormat);
   const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
   const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
   const { t, i18n } = useLocale();
@@ -102,6 +104,7 @@ export const useHandleBookEvent = ({
         event: event.data,
         date: timeslot,
         timeZone: timezone,
+        timeFormat,
         language: i18n.language,
         rescheduleUid: rescheduleUid || undefined,
         rescheduledBy: rescheduledBy || undefined,

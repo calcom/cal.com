@@ -89,6 +89,7 @@ export type AttendeeInBookingInfo = {
   phoneNumber?: string | null;
   timeZone: string;
   language: { locale: string };
+  timeFormat?: TimeFormat;
 };
 
 export type BookingInfo = {

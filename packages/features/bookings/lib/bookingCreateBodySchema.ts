@@ -3,6 +3,7 @@ import z from "zod";
 
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { CreationSource } from "@calcom/prisma/enums";
 
 export const bookingCreateBodySchema = z.object({
@@ -14,6 +15,7 @@ export const bookingCreateBodySchema = z.object({
   rescheduledBy: z.string().email({ message: "Invalid email" }).optional(),
   start: z.string(),
   timeZone: timeZoneSchema,
+  timeFormat: z.nativeEnum(TimeFormat).optional(),
   user: z.union([z.string(), z.array(z.string())]).optional(),
   language: z.string(),
   bookingUid: z.string().optional(),
@@ -105,6 +107,7 @@ export const bookingCreateSchemaLegacyPropsForApi = z.object({
   guests: z.array(z.string()).optional(),
   notes: z.string().optional(),
   location: z.string(),
+  timeFormat: z.nativeEnum(TimeFormat).optional(),
   smsReminderNumber: z.string().optional().nullable(),
   rescheduleReason: z.string().optional(),
   customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
