@@ -3652,6 +3652,7 @@
   "save_changes": "Save changes",
   "leave_without_saving": "Leave without saving",
   "leave_without_saving_description": "Are you sure you want to leave without saving changes to your routing form?",
+  "leave_without_saving_event_description": "You have unsaved changes. Are you sure you want to leave?",
   "something_unexpected_occurred": "Something unexpected occurred",
   "500_error_message": "It's not you, it's us.",
   "dry_run_mode_active": "You are doing a test booking.",

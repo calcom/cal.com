@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -26,6 +26,7 @@ import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "./EventType";
+import UnsavedChangesDialog from "./dialogs/UnsavedChangesDialog";
 import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
 import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
 import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
@@ -146,6 +147,11 @@ const EventTypeWeb = ({
   const leaveWithoutAssigningHosts = useRef(false);
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
+  const [isOpenUnsavedChangesDialog, setIsOpenUnsavedChangesDialog] = useState(false);
+  const unsavedChangesPendingUrl = useRef<string | null>(null);
+  const formIsDirtyRef = useRef(false);
+  const skipPopStateRef = useRef(false);
+  const hadPriorHistoryRef = useRef(false);
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
@@ -301,6 +307,81 @@ const EventTypeWeb = ({
     },
   });
 
+  // Keep ref in sync with form dirty state
+  useEffect(() => {
+    formIsDirtyRef.current = form.formState.isDirty;
+  }, [form.formState.isDirty]);
+
+  // Warn before closing/refreshing the page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (form.formState.isDirty) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [form.formState.isDirty]);
+
+  // Intercept in-app navigation when form has unsaved changes
+  useEffect(() => {
+    hadPriorHistoryRef.current = window.history.length > 1;
+
+    const handleClick = (e: MouseEvent) => {
+      if (!formIsDirtyRef.current) return;
+
+      // Don't intercept modifier clicks (new tab/window)
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
+      const target = (e.target as HTMLElement).closest("a");
+      if (!target) return;
+
+      // Don't intercept links with target attribute (e.g. target="_blank")
+      if (target.getAttribute("target")) return;
+
+      const href = target.getAttribute("href");
+      if (!href || href.startsWith("#") || href.startsWith("http") || href.startsWith("mailto:")) return;
+
+      // Only intercept internal navigation to different pages
+      if (href === window.location.pathname) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      unsavedChangesPendingUrl.current = href;
+      setIsOpenUnsavedChangesDialog(true);
+    };
+
+    const handlePopState = () => {
+      if (skipPopStateRef.current) {
+        skipPopStateRef.current = false;
+        return;
+      }
+      if (formIsDirtyRef.current) {
+        // Push current URL back to prevent leaving the page
+        window.history.pushState(null, "", window.location.href);
+        unsavedChangesPendingUrl.current = null;
+        setIsOpenUnsavedChangesDialog(true);
+      } else {
+        // Form is clean — continue back navigation past the extra history entry
+        skipPopStateRef.current = true;
+        window.history.back();
+      }
+    };
+
+    // Add extra history entry so back button triggers popstate instead of leaving
+    window.history.pushState(null, "", window.location.href);
+
+    document.addEventListener("click", handleClick, true);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      document.removeEventListener("click", handleClick, true);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       const Components = [
@@ -433,6 +514,26 @@ const EventTypeWeb = ({
           pendingRoute={pendingRoute}
           leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
           id={eventType.id}
+        />
+        <UnsavedChangesDialog
+          isOpen={isOpenUnsavedChangesDialog}
+          setIsOpen={setIsOpenUnsavedChangesDialog}
+          onDiscard={() => {
+            const pendingUrl = unsavedChangesPendingUrl.current;
+            unsavedChangesPendingUrl.current = null;
+            if (pendingUrl) {
+              formIsDirtyRef.current = false;
+              appRouter.push(pendingUrl);
+            } else if (hadPriorHistoryRef.current) {
+              // Back button: go back past the extra history entry and the current page
+              formIsDirtyRef.current = false;
+              window.history.go(-2);
+            } else {
+              // Direct entry (no prior history): navigate to parent page
+              formIsDirtyRef.current = false;
+              appRouter.push("/event-types");
+            }
+          }}
         />
       </>
     </EventTypeComponent>
