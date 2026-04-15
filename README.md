@@ -15,8 +15,6 @@
   <p align="center">
     The community-driven, open-source scheduling platform.
     <br />
-    
-    <br />
     <a href="https://github.com/calcom/cal.diy"><strong>GitHub</strong></a>
     <br />
     <br />
