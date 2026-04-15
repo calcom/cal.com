@@ -21,6 +21,7 @@ export { DailyVideoDownloadTranscriptEmail } from "./DailyVideoDownloadTranscrip
 export { DisabledAppEmail } from "./DisabledAppEmail";
 export { FeedbackEmail } from "./FeedbackEmail";
 export { ForgotPasswordEmail } from "./ForgotPasswordEmail";
+export { GuestVerificationEmail } from "./GuestVerificationEmail";
 export { MonthlyDigestEmail } from "./MonthlyDigestEmail";
 export { NoShowFeeChargedEmail } from "./NoShowFeeChargedEmail";
 export { OAuthClientApprovedNotificationEmail } from "./OAuthClientApprovedNotificationEmail";

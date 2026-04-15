@@ -141,6 +141,7 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
+import { createPendingGuestsAndSendEmails } from "../handlePendingGuests";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
 
 const translator = short();
@@ -1381,6 +1382,7 @@ async function handler(
   }
 
   const guestsRemoved: string[] = [];
+  const guestsToVerify: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
 
@@ -1390,7 +1392,7 @@ async function handler(
     }
 
     if (emailToRequiresVerification.get(baseGuestEmail)) {
-      guestsRemoved.push(guest);
+      guestsToVerify.push(baseGuestEmail);
       return guestArray;
     }
 
@@ -2815,6 +2817,27 @@ async function handler(
       },
       isTeamEventType,
     });
+
+    // Send verification emails to pending guests
+    if (guestsToVerify.length > 0 && booking) {
+      try {
+        await createPendingGuestsAndSendEmails({
+          guestsToVerify,
+          booking: {
+            id: booking.id,
+            uid: booking.uid,
+            title: booking.title,
+            startTime: booking.startTime,
+          },
+          bookerUrl,
+          language: attendeeLanguage ?? "en",
+          timeZone: attendeeTimezone,
+        });
+        tracingLogger.info("Sent verification emails to pending guests", { count: guestsToVerify.length });
+      } catch (error) {
+        tracingLogger.error("Error sending verification emails to pending guests", error);
+      }
+    }
 
     // Unused until we deploy to trigger.dev production
     // for now we only enable for cal.com org and we keep our current email system
