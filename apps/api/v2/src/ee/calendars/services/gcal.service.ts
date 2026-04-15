@@ -6,7 +6,7 @@ import { CredentialsRepository } from "@/modules/credentials/credentials.reposit
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { TokensService } from "@/modules/tokens/tokens.service";
 import { calendar_v3 } from "@googleapis/calendar";
-import { Logger, NotFoundException } from "@nestjs/common";
+import { Logger, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -162,7 +162,17 @@ export class GoogleCalendarService implements OAuthCalendarApp {
       auth: oAuth2Client,
     });
 
-    const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
+    let cals;
+    try {
+      cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
+    } catch (error) {
+      if (error instanceof Error && error.message === "Insufficient Permission") {
+        throw new ForbiddenException(
+          "Insufficient permissions to access Google Calendar. Please ensure you have granted the required calendar permissions."
+        );
+      }
+      throw error;
+    }
 
     const primaryCal = cals.data.items?.find((cal) => cal.primary);
 
