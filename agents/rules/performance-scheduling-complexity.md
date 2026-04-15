@@ -55,4 +55,4 @@ async function precomputeTeamAvailability(teamId: number) {
 
 This is why performance isn't just a nice-to-have in scheduling software. It's the foundation that determines whether your system can scale to enterprise needs.
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

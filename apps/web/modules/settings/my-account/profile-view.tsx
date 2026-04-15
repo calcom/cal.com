@@ -2,7 +2,6 @@
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
@@ -71,7 +70,6 @@ const ProfileView = ({ user }: Props) => {
   const utils = trpc.useUtils();
   const session = useSession();
   const { update } = session;
-  const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
   const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -130,6 +128,7 @@ const ProfileView = ({ user }: Props) => {
   const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
   const [showCreateAccountPasswordDialog, setShowCreateAccountPasswordDialog] = useState(false);
   const [showAccountDisconnectWarning, setShowAccountDisconnectWarning] = useState(false);
+  const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
   const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] = useState("");
   const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<undefined | string>(undefined);
 
@@ -255,7 +254,7 @@ const ProfileView = ({ user }: Props) => {
     !session.data?.user?.org?.id &&
     !user.organization?.id &&
     userEmail &&
-    isCompanyEmail(userEmail);
+    false;
 
   return (
     <SettingsHeader
@@ -314,9 +313,9 @@ const ProfileView = ({ user }: Props) => {
         </div>
       )}
 
-      <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
-        <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
-        <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
+      <div className="mt-6 rounded-lg rounded-b-none border border-subtle border-b-0 p-6">
+        <Label className="mb-0 font-semibold text-base text-red-700">{t("danger_zone")}</Label>
+        <p className="text-sm text-subtle">{t("account_deletion_cannot_be_undone")}</p>
       </div>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
@@ -332,40 +331,38 @@ const ProfileView = ({ user }: Props) => {
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
           Icon="triangle-alert">
-          <>
-            <div className="mb-10">
-              <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
-              {isCALIdentityProvider && (
-                <PasswordField
-                  data-testid="password"
-                  name="password"
-                  id="password"
-                  autoComplete="current-password"
-                  required
-                  label="Password"
-                  ref={passwordRef}
-                />
-              )}
+          <div className="mb-10">
+            <p className="mb-4 text-sm text-subtle">{t("delete_account_confirmation_message")}</p>
+            {isCALIdentityProvider && (
+              <PasswordField
+                data-testid="password"
+                name="password"
+                id="password"
+                autoComplete="current-password"
+                required
+                label="Password"
+                ref={passwordRef}
+              />
+            )}
 
-              {user?.twoFactorEnabled && isCALIdentityProvider && (
-                <Form handleSubmit={onConfirm} className="pb-4" form={form}>
-                  <TwoFactor center={false} />
-                </Form>
-              )}
+            {user?.twoFactorEnabled && isCALIdentityProvider && (
+              <Form handleSubmit={onConfirm} className="pb-4" form={form}>
+                <TwoFactor center={false} />
+              </Form>
+            )}
 
-              {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
-            </div>
-            <DialogFooter showDivider>
-              <DialogClose />
-              <Button
-                color="destructive"
-                data-testid="delete-account-confirm"
-                onClick={(e) => onConfirmButton(e)}
-                loading={deleteMeMutation.isPending}>
-                {t("delete_my_account")}
-              </Button>
-            </DialogFooter>
-          </>
+            {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
+          </div>
+          <DialogFooter showDivider>
+            <DialogClose />
+            <Button
+              color="destructive"
+              data-testid="delete-account-confirm"
+              onClick={(e) => onConfirmButton(e)}
+              loading={deleteMeMutation.isPending}>
+              {t("delete_my_account")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -379,13 +376,13 @@ const ProfileView = ({ user }: Props) => {
           <div className="mb-10">
             <div className="mb-4 grid gap-2 md:grid-cols-2">
               <div>
-                <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                <span className="mb-2 block font-medium text-emphasis text-sm leading-none">
                   {t("old_email_address")}
                 </span>
                 <p className="text-subtle leading-none">{user.email}</p>
               </div>
               <div>
-                <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                <span className="mb-2 block font-medium text-emphasis text-sm leading-none">
                   {t("new_email_address")}
                 </span>
                 <p className="text-subtle leading-none">{tempFormValues?.email}</p>
@@ -600,10 +597,8 @@ const ProfileForm = ({
     handleAccountDisconnect(getUpdatedFormValues(formMethods.getValues()));
   };
 
-  const { data: usersAttributes, isPending: usersAttributesPending } =
-    trpc.viewer.attributes.getByUserId.useQuery({
-      userId: user.id,
-    });
+  type UserAttribute = { id: string; name: string; type: string; options: { value: string }[] };
+  const usersAttributes = null as UserAttribute[] | null;
 
   const {
     formState: { isSubmitting, isDirty },
@@ -612,7 +607,7 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
   return (
     <Form form={formMethods} handleSubmit={handleFormSubmit}>
-      <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
+      <div className="border-subtle border-x px-4 pt-8 pb-10 sm:px-6">
         <div className="flex items-center">
           <Controller
             control={formMethods.control}
@@ -623,7 +618,7 @@ const ProfileForm = ({
                 <>
                   <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
                   <div className="ms-4">
-                    <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
+                    <h2 className="mb-2 font-medium text-sm">{t("profile_picture")}</h2>
                     <div className="flex gap-2">
                       <ImageUploader
                         target="avatar"
@@ -653,7 +648,7 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
-        <p className="text-subtle mt-1 flex gap-1 text-sm">
+        <p className="mt-1 flex gap-1 text-sm text-subtle">
           <InfoIcon className="mt-0.5 shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
@@ -743,7 +738,7 @@ const ProfileForm = ({
             <div className="flex items-center">
               <span className="text-default text-sm capitalize">{user.identityProvider.toLowerCase()}</span>
               {user.identityProviderEmail && (
-                <span className="text-default ml-2 text-sm">{user.identityProviderEmail}</span>
+                <span className="ml-2 text-default text-sm">{user.identityProviderEmail}</span>
               )}
               <div className="flex flex-1 justify-end">
                 <Button color="destructive" onClick={onDisconnect}>

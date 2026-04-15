@@ -1,44 +1,17 @@
-import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
+import { SlotFormat } from "@calcom/platform-enums";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import type { ValidationArguments, ValidatorConstraintInterface } from "class-validator";
 import {
   IsArray,
   IsBoolean,
   IsDateString,
+  IsEnum,
   IsInt,
   IsNumber,
   IsOptional,
   IsString,
   Min,
-  IsEnum,
-  ValidatorConstraint,
-  Validate,
 } from "class-validator";
-
-import { SlotFormat } from "@calcom/platform-enums";
-
-@ValidatorConstraint({ name: "routingFormResponseIdValidator", async: false })
-class RoutingFormResponseIdValidator implements ValidatorConstraintInterface {
-  validate(routingFormResponseId: number, args: ValidationArguments) {
-    if (routingFormResponseId === undefined) return true;
-
-    const payload = args.object as GetAvailableSlotsInput_2024_04_15;
-
-    if (payload._isDryRun) {
-      return routingFormResponseId === 0;
-    }
-
-    return routingFormResponseId >= 1;
-  }
-
-  defaultMessage(args: ValidationArguments) {
-    const payload = args.object as GetAvailableSlotsInput_2024_04_15;
-    if (payload._isDryRun) {
-      return "routingFormResponseId must be 0 for dry run";
-    }
-    return "routingFormResponseId must be a positive number";
-  }
-}
 
 export class GetAvailableSlotsInput_2024_04_15 {
   @IsDateString({ strict: true })
@@ -123,10 +96,6 @@ export class GetAvailableSlotsInput_2024_04_15 {
   })
   slotFormat?: SlotFormat;
 
-  // note(rajiv): after going through getUrlSearchParamsToForward.ts we found out
-  // that the below properties were not being included inside getSlots :- cc @morgan
-  // cal.salesforce.rrSkipToAccountLookupField, cal.rerouting, cal.routingFormResponseId, cal.reroutingFormResponses & cal.isTestPreviewLink
-  // hence no input values have been setup for them in GetAvailableSlotsInput
   @Transform(({ value }) => value && value.toLowerCase() === "true")
   @IsBoolean()
   @IsOptional()
@@ -167,14 +136,6 @@ export class GetAvailableSlotsInput_2024_04_15 {
   @ApiPropertyOptional()
   @ApiHideProperty()
   email?: string | null;
-
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @IsOptional()
-  @Validate(RoutingFormResponseIdValidator)
-  @ApiPropertyOptional()
-  @ApiHideProperty()
-  routingFormResponseId?: number;
 
   @Transform(({ value }) => value && value.toLowerCase() === "true")
   @IsBoolean()

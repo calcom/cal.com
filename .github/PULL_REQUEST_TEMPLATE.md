@@ -1,9 +1,10 @@
 ## What does this PR do?
 
-<!-- Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change. -->
+<!-- Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
+
+Note: Cal.diy is a community-maintained open-source project. Contributions here do NOT flow to Cal.com's production service. -->
 
 - Fixes #XXXX (GitHub issue number)
-- Fixes CAL-XXXX (Linear issue number - should be visible at the bottom of the GitHub issue description)
 
 ## Visual Demo (For contributors especially)
 
@@ -22,7 +23,7 @@ A visual demonstration is strongly recommended, for both the original and new ch
 ## Mandatory Tasks (DO NOT REMOVE)
 
 - [ ] I have self-reviewed the code (A decent size PR without self-review might be rejected).
-- [ ] I have updated the developer docs in /docs if this PR makes changes that would require a [documentation change](https://cal.com/docs). If N/A, write N/A here and check the checkbox.
+- [ ] I have updated the developer docs if this PR makes changes that would require a documentation change. If N/A, write N/A here and check the checkbox.
 - [ ] I confirm automated tests are in place that prove my fix is effective or that my feature works.
 
 ## How should this be tested?
@@ -38,7 +39,7 @@ A visual demonstration is strongly recommended, for both the original and new ch
 
 <!-- Remove bullet points below that don't apply to you -->
 
-- I haven't read the [contributing guide](https://github.com/calcom/cal.com/blob/main/CONTRIBUTING.md)
+- I haven't read the [contributing guide](https://github.com/calcom/cal.diy/blob/main/CONTRIBUTING.md)
 - My code doesn't follow the style guidelines of this project
 - I haven't commented my code, particularly in hard-to-understand areas
 - I haven't checked if my changes generate no new warnings

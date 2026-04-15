@@ -13,7 +13,6 @@ import {
 } from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
-import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
@@ -42,6 +41,17 @@ import { NextResponse } from "next/server";
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 
+const billingService = {
+  async createCustomer(_args: Record<string, unknown>): Promise<{ stripeCustomerId: string }> {
+    return { stripeCustomerId: "" };
+  },
+  async createSubscriptionCheckout(
+    _args: Record<string, unknown>
+  ): Promise<{ sessionId: string }> {
+    return { sessionId: "" };
+  },
+};
+
 const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
   const {
     email: _email,
@@ -54,8 +64,6 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
       token: true,
     })
     .parse(body);
-
-  const billingService = getBillingProviderService();
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
     email: _email,
@@ -169,7 +177,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
   // Hash the password
   const hashedPassword = await hashPassword(password);
 
-  if (foundToken && foundToken?.teamId) {
+  if (foundToken?.teamId) {
     const team = await prisma.team.findUnique({
       where: {
         id: foundToken.teamId,

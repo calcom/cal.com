@@ -1,14 +1,9 @@
 import dayjs from "@calcom/dayjs";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/ee/workflows/lib/allowDisablingStandardEmails";
-import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getTranslation } from "@calcom/i18n/server";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { Prisma, User } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -50,7 +45,6 @@ type RescheduleEmailAndSmsPayload = EmailAndSmsPayload & {
 };
 
 type ConfirmedEmailAndSmsPayload = EmailAndSmsPayload & {
-  workflows: WorkflowType[];
   eventNameObject: EventNameObjectType;
   additionalInformation: AdditionalInformation;
   additionalNotes: string | null | undefined;
@@ -266,23 +260,15 @@ export class BookingEmailSmsHandler {
     const {
       evt,
       eventType: { metadata },
-      workflows,
       eventNameObject,
       additionalInformation,
       additionalNotes,
       customInputs,
     } = data;
 
-    let isHostConfirmationEmailsDisabled = metadata?.disableStandardEmails?.confirmation?.host || false;
-    if (isHostConfirmationEmailsDisabled) {
-      isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-    }
-
-    let isAttendeeConfirmationEmailDisabled =
+    const isHostConfirmationEmailsDisabled = metadata?.disableStandardEmails?.confirmation?.host || false;
+    const isAttendeeConfirmationEmailDisabled =
       metadata?.disableStandardEmails?.confirmation?.attendee || false;
-    if (isAttendeeConfirmationEmailDisabled) {
-      isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-    }
 
     const { sendScheduledEmailsAndSMS } = await import("@calcom/emails/email-manager");
 
@@ -335,6 +321,34 @@ export class BookingEmailSmsHandler {
   }
 
   /**
+   * Handles notifications when a single attendee is added to an existing booking.
+   */
+  public async handleAddAttendee(data: AddGuestsEmailAndSmsPayload) {
+    const {
+      evt,
+      eventType: { metadata },
+      newGuests,
+    } = data;
+
+    this.log.debug(
+      "Action: ADD_ATTENDEE. Sending add attendee emails and SMS.",
+      safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
+    );
+
+    const { sendAddGuestsEmailsAndSMS } = await import("@calcom/emails/email-manager");
+
+    try {
+      await sendAddGuestsEmailsAndSMS({
+        calEvent: evt,
+        newGuests,
+        eventTypeMetadata: metadata,
+      });
+    } catch (err) {
+      this.log.error("Failed to send add attendee related emails and SMS", err);
+    }
+  }
+
+  /**
    * Handles notifications when guests are added to an existing booking.
    */
   public async handleAddGuests(data: AddGuestsEmailAndSmsPayload) {
@@ -359,31 +373,6 @@ export class BookingEmailSmsHandler {
       });
     } catch (err) {
       this.log.error("Failed to send add guests related emails and SMS", err);
-    }
-  }
-
-  public async handleAddAttendee(data: AddGuestsEmailAndSmsPayload) {
-    const {
-      evt,
-      eventType: { metadata },
-      newGuests,
-    } = data;
-
-    this.log.debug(
-      "Action: ADD_ATTENDEE. Sending add attendee emails and SMS.",
-      safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
-    );
-
-    const { sendAddAttendeeEmailsAndSMS } = await import("@calcom/emails/email-manager");
-
-    try {
-      await sendAddAttendeeEmailsAndSMS({
-        calEvent: evt,
-        newAttendees: newGuests,
-        eventTypeMetadata: metadata,
-      });
-    } catch (err) {
-      this.log.error("Failed to send add attendee related emails and SMS", err);
     }
   }
 }

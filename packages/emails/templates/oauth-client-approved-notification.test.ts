@@ -29,7 +29,7 @@ describe("OAuthClientApprovedEmail", () => {
       }
 
       if (key === "oauth_client_approved_email_footer") {
-        return "You can now use your client ID and secret to integrate with Cal.com.";
+        return "You can now use your client ID and secret to integrate with Cal.diy.";
       }
 
       if (key === "oauth_client_approved_email_cta") return "View Your OAuth Clients";
@@ -73,6 +73,6 @@ describe("OAuthClientApprovedEmail", () => {
     expect(html).toContain("View Your OAuth Clients");
     expect(html).toContain("/settings/developer/oauth");
 
-    expect(html).toContain("You can now use your client ID and secret to integrate with Cal.com.");
+    expect(html).toContain("You can now use your client ID and secret to integrate with Cal.diy.");
   });
 });

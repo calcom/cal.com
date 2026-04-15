@@ -1,13 +1,11 @@
-import { useForm } from "react-hook-form";
-
+import type { FilterSegmentOutput } from "@calcom/features/data-table/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-
-import type { FilterSegmentOutput } from "@calcom/features/data-table/lib/types";
+import { useForm } from "react-hook-form";
 
 type FormValues = {
   name: string;
@@ -28,23 +26,15 @@ export function RenameSegmentDialog({
   });
   const utils = trpc.useUtils();
 
-  const { mutate: updateSegment, isPending } = trpc.viewer.filterSegments.update.useMutation({
-    onSuccess: () => {
-      utils.viewer.filterSegments.list.invalidate();
-      showToast(t("filter_segment_updated"), "success");
-      onClose();
-    },
-    onError: () => {
-      showToast(t("error_updating_filter_segment"), "error");
-    },
-  });
+  const updateSegment = { mutate: (_args: Record<string, unknown>) => {}, isPending: false };
+  const isPending = updateSegment.isPending;
 
   const handleSubmit = (data: FormValues) => {
     if (!segment) {
       return;
     }
     if (segment.scope === "TEAM") {
-      updateSegment({
+      updateSegment.mutate({
         ...segment,
         scope: "TEAM",
         teamId: segment.teamId ?? 0,
@@ -52,7 +42,7 @@ export function RenameSegmentDialog({
       });
       return;
     }
-    updateSegment({
+    updateSegment.mutate({
       ...segment,
       scope: "USER",
       name: data.name,
