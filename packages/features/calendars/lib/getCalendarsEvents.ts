@@ -20,7 +20,8 @@ export const getCalendarsEventsWithTimezones = async (
   withCredentials: CredentialForCalendarService[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  selectedCalendars: SelectedCalendar[],
+  shouldServeCache?: boolean
 ): Promise<(EventBusyDate & { timeZone: string })[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type === "google_calendar")
@@ -29,7 +30,7 @@ export const getCalendarsEventsWithTimezones = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential, "slots");
+      const calendar = await getCalendar(credential, "slots", shouldServeCache);
       return [calendar, credential] as const;
     })
   );
@@ -93,7 +94,8 @@ const getCalendarsEvents = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  mode: CalendarFetchMode
+  mode: CalendarFetchMode,
+  shouldServeCache?: boolean
 ): Promise<EventBusyDate[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
@@ -127,7 +129,8 @@ const getCalendarsEvents = async (
           // use encrypted secret to get unencrypted calendar creds
           key,
         },
-        mode
+        mode,
+        shouldServeCache
       );
       return [calendar, credential] as const;
     })

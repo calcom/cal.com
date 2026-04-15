@@ -307,7 +307,8 @@ export const getBusyCalendarTimes = async (
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
   mode?: CalendarFetchMode,
-  includeTimeZone?: boolean
+  includeTimeZone?: boolean,
+  shouldServeCache?: boolean
 ) => {
   let results: (EventBusyDate & { timeZone?: string })[][] = [];
 
@@ -336,7 +337,8 @@ export const getBusyCalendarTimes = async (
         deduplicatedCredentials,
         startDate,
         endDate,
-        selectedCalendars
+        selectedCalendars,
+        shouldServeCache
       );
     } else {
       results = await getCalendarsEvents(
@@ -344,7 +346,8 @@ export const getBusyCalendarTimes = async (
         startDate,
         endDate,
         selectedCalendars,
-        mode ?? "slots"
+        mode ?? "slots",
+        shouldServeCache
       );
     }
   } catch (e) {
