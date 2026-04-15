@@ -1526,6 +1526,18 @@ describe("handleNewBooking", () => {
           expect(createdBooking).toEqual(
             expect.objectContaining({
               location: BookingLocations.GoogleMeet,
+              videoCallUrl: "https://meet.google.com/test-meeting",
+            })
+          );
+
+          const bookingInDb = await prismaMock.booking.findUnique({
+            where: { uid: createdBooking.uid },
+            select: { metadata: true },
+          });
+
+          expect(bookingInDb?.metadata).toEqual(
+            expect.objectContaining({
+              videoCallUrl: "https://meet.google.com/test-meeting",
             })
           );
         },
