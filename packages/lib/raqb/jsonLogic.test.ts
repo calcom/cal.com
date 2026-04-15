@@ -9,7 +9,7 @@ describe("jsonLogic", () => {
       expect(jsonLogic.apply({ "==": ["hello", "world"] })).toBe(false);
     });
 
-    it.skip("should compare arrays case-insensitively", () => {
+    it("should compare arrays case-insensitively", () => {
       expect(
         jsonLogic.apply({
           "==": [
@@ -34,6 +34,25 @@ describe("jsonLogic", () => {
       expect(jsonLogic.apply({ "===": ["hello", "HELLO"] })).toBe(true);
       expect(jsonLogic.apply({ "===": ["hello", "world"] })).toBe(false);
     });
+
+    it("should compare arrays case-insensitively", () => {
+      expect(
+        jsonLogic.apply({
+          "===": [
+            ["hello", "WORLD"],
+            ["HELLO", "world"],
+          ],
+        })
+      ).toBe(true);
+      expect(
+        jsonLogic.apply({
+          "===": [
+            ["hello"],
+            ["hello", "world"],
+          ],
+        })
+      ).toBe(false);
+    });
   });
 
   describe("!== operation", () => {
@@ -41,12 +60,50 @@ describe("jsonLogic", () => {
       expect(jsonLogic.apply({ "!==": ["hello", "HELLO"] })).toBe(false);
       expect(jsonLogic.apply({ "!==": ["hello", "world"] })).toBe(true);
     });
+
+    it("should compare arrays case-insensitively", () => {
+      expect(
+        jsonLogic.apply({
+          "!==": [
+            ["hello", "WORLD"],
+            ["HELLO", "world"],
+          ],
+        })
+      ).toBe(false);
+      expect(
+        jsonLogic.apply({
+          "!==": [
+            ["hello"],
+            ["hi"],
+          ],
+        })
+      ).toBe(true);
+    });
   });
 
   describe("!= operation", () => {
     it("should compare strings case-insensitively", () => {
       expect(jsonLogic.apply({ "!=": ["hello", "HELLO"] })).toBe(false);
       expect(jsonLogic.apply({ "!=": ["hello", "world"] })).toBe(true);
+    });
+
+    it("should compare arrays case-insensitively", () => {
+      expect(
+        jsonLogic.apply({
+          "!=": [
+            ["hello", "WORLD"],
+            ["HELLO", "world"],
+          ],
+        })
+      ).toBe(false);
+      expect(
+        jsonLogic.apply({
+          "!=": [
+            ["a", "b"],
+            ["c", "d"],
+          ],
+        })
+      ).toBe(true);
     });
   });
 

@@ -18,24 +18,36 @@ function normalize<T extends string | string[]>(input: T): T {
   return input;
 }
 
+// JS == and === compare array references, not values.
+// This compares normalized arrays element-by-element.
+function areEqual(a: any, b: any): boolean {
+  const na = normalize(a);
+  const nb = normalize(b);
+  if (Array.isArray(na) && Array.isArray(nb)) {
+    if (na.length !== nb.length) return false;
+    return na.every((val: any, i: number) => val === nb[i]);
+  }
+  return na === nb;
+}
+
 /**
  * Single Select equals and not equals uses it
  * Short Text equals and not equals uses it
  */
 jsonLogic.add_operation("==", function (a: any, b: any) {
-  return normalize(a) == normalize(b);
+  return areEqual(a, b);
 });
 
 jsonLogic.add_operation("===", function (a: any, b: any) {
-  return normalize(a) === normalize(b);
+  return areEqual(a, b);
 });
 
 jsonLogic.add_operation("!==", function (a: any, b: any) {
-  return normalize(a) !== normalize(b);
+  return !areEqual(a, b);
 });
 
 jsonLogic.add_operation("!=", function (a: any, b: any) {
-  return normalize(a) != normalize(b);
+  return !areEqual(a, b);
 });
 
 /**
