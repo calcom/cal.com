@@ -1,3 +1,9 @@
+> [!WARNING]  
+> Use at your own risk. Cal.diy is the open source community edition of Cal.com and it is intended for users who want to self-host their own Cal.diy instance. It is strictly recommended for personal, non-production use. Please review all installation and configuration steps carefully. Self-hosting requires advanced knowledge of server administration, database management, and securing sensitive data. Proceed only if you are comfortable with these responsibilities.
+
+> [!TIP]
+> For any commercial and enterprise-ready scheduling infrastructure, use Cal.com, not Cal.diy; hosted by us or get invited to on-prem enterprise access here: <a href="https://cal.com/sales">https://cal.com/sales</a>
+
 <!-- PROJECT LOGO -->
 <p align="center">
   <a href="https://github.com/calcom/cal.diy">
@@ -8,6 +14,8 @@
 
   <p align="center">
     The community-driven, open-source scheduling platform.
+    <br />
+    
     <br />
     <a href="https://github.com/calcom/cal.diy"><strong>GitHub</strong></a>
     <br />
