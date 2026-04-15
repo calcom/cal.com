@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import type {
   ButtonGroupProps,
   ButtonProps,
@@ -135,18 +135,192 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   );
 };
 
-function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+function NumberWidget(props: TextLikeComponentPropsRAQB) {
+  const { value, setValue, type: _type, ...remainingProps } = props;
+  const valueStr = value != null && value !== "" ? String(value) : "";
+  const [rawValue, setRawValue] = useState(valueStr);
+
+  const language = typeof navigator !== "undefined" ? navigator.language : "en-US";
+  const nf = useMemo(() => new Intl.NumberFormat(language), [language]);
+
+  const symbols = useMemo(() => {
+    const parts = nf.formatToParts(-1234567.89);
+    let decimal = ".";
+    let minus = "-";
+    let group: string | null = null;
+
+    for (const p of parts) {
+      if (p.type === "decimal") decimal = p.value;
+      if (p.type === "minusSign") minus = p.value;
+      if (p.type === "group" && !group) group = p.value;
+    }
+
+    return { decimal, minus, group };
+  }, [nf]);
+
+  const escapeRegex = useCallback((str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), []);
+
+  const normalizeRawValue = useCallback(
+    (raw: string) => {
+      let normalized = raw;
+      if (symbols.group) {
+        normalized = normalized.replace(new RegExp(escapeRegex(symbols.group), "g"), "");
+      }
+      normalized = normalized
+        .replace(new RegExp(escapeRegex(symbols.decimal), "g"), ".")
+        .replace(new RegExp(escapeRegex(symbols.minus), "g"), "-");
+      return normalized;
+    },
+    [symbols]
+  );
+
+  const formattedValue = useMemo(() => {
+    const rawStr = typeof rawValue === "string" ? rawValue : String(rawValue ?? "");
+    const normalized = normalizeRawValue(rawStr);
+    const significantDigits = (normalized || "").replace(/[^0-9]/g, "").replace(/^0+/, "").length;
+
+    let processedValue = normalized || "";
+
+    if (significantDigits > 15) {
+      processedValue = trimToMaxSignifcantDigits(normalized);
+    }
+
+    const numberValue = Number(processedValue);
+
+    const hasDecimal = rawStr.includes(symbols.decimal);
+    const decPart = hasDecimal ? normalized.split(".").pop() ?? "" : "";
+    const decimalEndsWithZero = decPart.endsWith("0");
+    if (
+      !isNaN(numberValue) &&
+      numberValue !== 0 &&
+      !rawStr.endsWith(symbols.decimal) &&
+      rawStr !== symbols.minus &&
+      rawValue !== "" &&
+      !decimalEndsWithZero
+    ) {
+      return new Intl.NumberFormat(language, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 14,
+      }).format(numberValue);
+    }
+
+    return rawStr;
+  }, [rawValue, language, symbols, normalizeRawValue]);
+
+  function trimToMaxSignifcantDigits(value: string) {
+    const isNegative = value.startsWith("-");
+    const [intPart, decPart] = value.replace("-", "").split(".");
+    const intTrimmed = intPart.replace(/^0+/, "") || "0";
+
+    if (intTrimmed.length >= 15) {
+      const first15Int = intTrimmed.slice(0, 15);
+      return (isNegative ? "-" : "") + first15Int;
+    }
+
+    const intSigDigits = intTrimmed === "0" ? 0 : intTrimmed.length;
+    const remainingSigDigits = 15 - intSigDigits;
+    let trimmedDec: string | undefined;
+    if (decPart && remainingSigDigits > 0) {
+      const leadingZeros = decPart.match(/^0*/)?.[0] ?? "";
+      const sigPart = decPart.slice(leadingZeros.length);
+      const keptSig = sigPart.slice(0, remainingSigDigits);
+      trimmedDec = leadingZeros + keptSig;
+    }
+    return (isNegative ? "-" : "") + intTrimmed + (trimmedDec ? "." + trimmedDec : "");
+  }
+
+  useEffect(() => {
+    const rawNormalized = normalizeRawValue(typeof rawValue === "string" ? rawValue : String(rawValue ?? ""));
+    if (rawNormalized !== valueStr) {
+      if (!valueStr) {
+        setRawValue("");
+        return;
+      }
+
+      if (valueStr === "-") {
+        setRawValue(symbols.minus);
+        return;
+      }
+
+      const significantDigits = (valueStr || "").replace(/[^0-9]/g, "").replace(/^0+/, "").length;
+
+      let processedValue = valueStr || "";
+
+      if (significantDigits > 15) {
+        processedValue = trimToMaxSignifcantDigits(valueStr);
+      }
+
+      if (processedValue.endsWith(".")) {
+        const withoutDecimal = processedValue.slice(0, -1);
+        const numberValue = Number(withoutDecimal);
+        if (!isNaN(numberValue)) {
+          const formatted = new Intl.NumberFormat(language, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 14,
+          }).format(numberValue);
+          setRawValue(formatted + symbols.decimal);
+          return;
+        }
+      }
+
+      const numberValue = Number(processedValue);
+
+      if (!isNaN(numberValue)) {
+        if (numberValue === 0 && valueStr.includes(".")) {
+          return;
+        }
+        const localizedValue = new Intl.NumberFormat(language, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 14,
+        }).format(numberValue);
+        setRawValue(localizedValue);
+      } else {
+        setRawValue("");
+      }
+    }
+  }, [valueStr, symbols, language, normalizeRawValue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+
+    const allowedChars = [
+      "0-9",
+      escapeRegex(symbols.decimal),
+      symbols.group ? escapeRegex(symbols.group) : "",
+      escapeRegex(symbols.minus),
+    ]
+      .filter(Boolean)
+      .join("");
+
+    val = val.replace(new RegExp(`[^${allowedChars}]`, "g"), "");
+
+    val = val.replace(new RegExp(`(?!^)${escapeRegex(symbols.minus)}`, "g"), "");
+
+    const firstDecimal = val.indexOf(symbols.decimal);
+    if (firstDecimal !== -1) {
+      val =
+        val.substring(0, firstDecimal + 1) +
+        val.substring(firstDecimal + 1).replace(new RegExp(escapeRegex(symbols.decimal), "g"), "");
+    }
+
+    setRawValue(val);
+
+    let normalized = normalizeRawValue(val);
+    const [intPart, decPart] = normalized.split(".");
+    let intTrimmed = intPart.replace(/^(-?)0+(?=\d)/, "$1");
+    if (intTrimmed === "" && intPart.length > 0) intTrimmed = "0";
+    setValue(decPart !== undefined ? `${intTrimmed}.${decPart}` : intTrimmed);
+  };
+
   return (
     <TextField
       size="sm"
-      type="number"
+      type="text"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
       className="mb-2"
-      value={value}
-      onChange={(e) => {
-        setValue(e.target.value);
-      }}
+      value={typeof formattedValue === "string" ? formattedValue : String(formattedValue ?? "")}
+      onChange={handleChange}
       {...remainingProps}
     />
   );

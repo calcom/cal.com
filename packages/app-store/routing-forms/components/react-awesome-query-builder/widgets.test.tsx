@@ -1,9 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 
 import widgets from "./widgets";
 
-const { SelectWidget, MultiSelectWidget } = widgets;
+const { SelectWidget, MultiSelectWidget, NumberWidget } = widgets;
 
 // Mock the dynamic import of Select component
 vi.mock("next/dynamic", () => ({
@@ -98,6 +98,544 @@ describe("Select Widgets", () => {
       render(<MultiSelectWidget value={["4", "5"]} setValue={setValue} listValues={listValues} />);
 
       expect(setValue).toHaveBeenCalledWith([]);
+    });
+  });
+});
+
+describe("NumberWidget", () => {
+  const originalNavigatorLanguage = navigator.language;
+
+  function setNavigatorLanguage(lang: string) {
+    Object.defineProperty(window.navigator, "language", {
+      value: lang,
+      configurable: true,
+    });
+  }
+
+  afterEach(() => {
+    setNavigatorLanguage(originalNavigatorLanguage);
+  });
+
+  it("formats value using en-US locale", () => {
+    setNavigatorLanguage("en-US");
+    const setValue = vi.fn();
+
+    render(<NumberWidget value="1234.56" setValue={setValue} />);
+
+    const input = screen.getByRole("textbox");
+    expect((input as HTMLInputElement).value).toBe("1,234.56");
+  });
+
+  it("formats value using de-DE locale", () => {
+    setNavigatorLanguage("de-DE");
+    const setValue = vi.fn();
+
+    render(<NumberWidget value="1234.56" setValue={setValue} />);
+
+    const input = screen.getByRole("textbox");
+    expect((input as HTMLInputElement).value).toBe("1.234,56");
+  });
+
+  it("converts de-DE input to standard numeric value while keeping display localized", () => {
+    setNavigatorLanguage("de-DE");
+    const setValue = vi.fn();
+
+    render(<NumberWidget value="" setValue={setValue} />);
+
+    const input = screen.getByRole("textbox");
+
+    fireEvent.change(input, { target: { value: "1.234,56" } });
+
+    expect(setValue).toHaveBeenLastCalledWith("1234.56");
+    expect((input as HTMLInputElement).value).toBe("1.234,56");
+  });
+
+  it("converts negative de-DE input to standard numeric value", () => {
+    setNavigatorLanguage("de-DE");
+    const setValue = vi.fn();
+
+    render(<NumberWidget value="" setValue={setValue} />);
+
+    const input = screen.getByRole("textbox");
+
+    fireEvent.change(input, { target: { value: "-1.234,56" } });
+
+    expect(setValue).toHaveBeenLastCalledWith("-1234.56");
+    expect((input as HTMLInputElement).value).toBe("-1.234,56");
+  });
+
+  it("converts en-US input (pasted) with commas to standard numeric value", () => {
+    setNavigatorLanguage("en-US");
+    const setValue = vi.fn();
+
+    render(<NumberWidget value="" setValue={setValue} />);
+
+    const input = screen.getByRole("textbox");
+
+    fireEvent.change(input, { target: { value: "1,234.56" } });
+
+    expect(setValue).toHaveBeenLastCalledWith("1234.56");
+    expect((input as HTMLInputElement).value).toBe("1,234.56");
+  });
+
+  it("keeps only the first decimal separator (de-DE)", () => {
+    setNavigatorLanguage("de-DE");
+    const setValue = vi.fn();
+
+    render(<NumberWidget value="" setValue={setValue} />);
+
+    const input = screen.getByRole("textbox");
+
+    fireEvent.change(input, { target: { value: "1.234,56,78" } });
+
+    expect(setValue).toHaveBeenLastCalledWith("1234.5678");
+    expect((input as HTMLInputElement).value).toBe("1.234,5678");
+  });
+
+  it("removes minus signs that aren't at the start", () => {
+    setNavigatorLanguage("en-US");
+    const setValue = vi.fn();
+
+    render(<NumberWidget value="" setValue={setValue} />);
+
+    const input = screen.getByRole("textbox");
+
+    fireEvent.change(input, { target: { value: "12-34.5" } });
+
+    expect(setValue).toHaveBeenLastCalledWith("1234.5");
+  });
+
+  it("keeps trailing decimal point while typing in en-US", () => {
+    setNavigatorLanguage("en-US");
+    const setValue = vi.fn();
+
+    render(<NumberWidget value="" setValue={setValue} />);
+    const input = screen.getByRole("textbox");
+
+    fireEvent.change(input, { target: { value: "1234." } });
+
+    expect((input as HTMLInputElement).value).toBe("1234.");
+    expect(setValue).toHaveBeenLastCalledWith("1234.");
+  });
+
+  it("allows typing just a minus sign", () => {
+    setNavigatorLanguage("en-US");
+    const setValue = vi.fn();
+
+    render(<NumberWidget value="" setValue={setValue} />);
+
+    const input = screen.getByRole("textbox");
+    fireEvent.change(input, { target: { value: "-" } });
+
+    expect(setValue).toHaveBeenLastCalledWith("-");
+    expect((input as HTMLInputElement).value).toBe("-");
+  });
+
+  describe("Top locales display and normalization", () => {
+    type LocaleCase = {
+      locale: string;
+      decimal: string;
+      group?: string;
+      groupSafeForTyping?: boolean;
+    };
+
+    function isLocaleSupported(locale: string): boolean {
+      try {
+        const resolved = new Intl.NumberFormat(locale).resolvedOptions().locale;
+        return resolved.toLowerCase() === locale.toLowerCase();
+      } catch {
+        return false; // Invalid or unsupported locale
+      }
+    }
+
+    const locales: LocaleCase[] = [
+      { locale: "en-US", decimal: ".", group: ",", groupSafeForTyping: true },
+      { locale: "es-ES", decimal: ",", group: ".", groupSafeForTyping: true },
+      { locale: "de-DE", decimal: ",", group: ".", groupSafeForTyping: true },
+      { locale: "ja-JP", decimal: ".", group: ",", groupSafeForTyping: true },
+      { locale: "fr-FR", decimal: "," },
+      { locale: "pt-BR", decimal: ",", group: ".", groupSafeForTyping: true },
+      { locale: "ru-RU", decimal: "," },
+      { locale: "it-IT", decimal: ",", group: ".", groupSafeForTyping: true },
+      { locale: "nl-NL", decimal: ",", group: ".", groupSafeForTyping: true },
+      { locale: "pl-PL", decimal: "," },
+      { locale: "zh-CN", decimal: ".", group: ",", groupSafeForTyping: true },
+      { locale: "hi-IN", decimal: ".", group: ",", groupSafeForTyping: true },
+      { locale: "ko-KR", decimal: ".", group: ",", groupSafeForTyping: true },
+      { locale: "tr-TR", decimal: ",", group: ".", groupSafeForTyping: true },
+    ];
+
+    locales.forEach(({ locale, decimal, group, groupSafeForTyping }) => {
+      const isSupported = isLocaleSupported(locale);
+
+      (isSupported ? it : it.skip)(`${locale}: displays value with correct formatting`, () => {
+        setNavigatorLanguage(locale);
+        const setValue = vi.fn();
+        render(<NumberWidget value="1234.56" setValue={setValue} />);
+        const input = screen.getByRole("textbox");
+        const expected = new Intl.NumberFormat(locale, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 14,
+        }).format(1234.56);
+        expect((input as HTMLInputElement).value).toBe(expected);
+      });
+
+      (isSupported ? it : it.skip)(`${locale}: converts input with decimal to standard format`, () => {
+        setNavigatorLanguage(locale);
+        const setValue = vi.fn();
+        render(<NumberWidget value="" setValue={setValue} />);
+        const input = screen.getByRole("textbox");
+        const localized = `1234${decimal}56`;
+        fireEvent.change(input, { target: { value: localized } });
+        expect(setValue).toHaveBeenLastCalledWith("1234.56");
+      });
+
+      if (group && groupSafeForTyping) {
+        (isSupported ? it : it.skip)(
+          `${locale}: converts pasted input with grouping and decimal to standard format`,
+          () => {
+            setNavigatorLanguage(locale);
+            const setValue = vi.fn();
+            render(<NumberWidget value="" setValue={setValue} />);
+            const input = screen.getByRole("textbox");
+            const localized = `1${group}234${decimal}56`;
+
+            fireEvent.change(input, { target: { value: localized } });
+            expect(setValue).toHaveBeenLastCalledWith("1234.56");
+          }
+        );
+      }
+    });
+  });
+
+  describe("Number length handling", () => {
+    it("handles 5 digits with 4 decimals (en-US)", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "12345.6789" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("12345.6789");
+      expect((input as HTMLInputElement).value).toBe("12,345.6789");
+    });
+
+    it("handles 5 digits with 4 decimals (de-DE)", () => {
+      setNavigatorLanguage("de-DE");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "12.345,6789" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("12345.6789");
+      expect((input as HTMLInputElement).value).toBe("12.345,6789");
+    });
+
+    it("handles 10 digits with 2 decimals (en-US)", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "1234567890.12" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("1234567890.12");
+      expect((input as HTMLInputElement).value).toBe("1,234,567,890.12");
+    });
+
+    it("handles 10 digits with 3 decimals (de-DE)", () => {
+      setNavigatorLanguage("de-DE");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "1.234.567.890,123" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("1234567890.123");
+      expect((input as HTMLInputElement).value).toBe("1.234.567.890,123");
+    });
+
+    it("handles exactly 15 digits without decimals (en-US)", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "123456789012345" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("123456789012345");
+      expect((input as HTMLInputElement).value).toBe("123,456,789,012,345");
+    });
+
+    it("handles exactly 15 digits without decimals (de-DE)", () => {
+      setNavigatorLanguage("de-DE");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "123.456.789.012.345" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("123456789012345");
+      expect((input as HTMLInputElement).value).toBe("123.456.789.012.345");
+    });
+
+    it.skip("handles 15 digits WITH decimals (precision issues)", () => {});
+  });
+
+  describe("15 significant digit limit", () => {
+    it("accepts up to 15 integer digits", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "123456789012345" } });
+      expect(setValue).toHaveBeenLastCalledWith("123456789012345");
+    });
+
+    it("cuts off 16+ digits to first 15 when provided via props", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="1234567890123456" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      expect((input as HTMLInputElement).value).toBe("123,456,789,012,345");
+    });
+
+    it("cuts off 18 digits to first 15 when provided via props", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="123456789012345678" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      expect((input as HTMLInputElement).value).toBe("123,456,789,012,345");
+    });
+
+    it("trims decimal by significant digits for numbers < 1 with leading decimal zeros", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="0.000001234567890123456789" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+      const displayed = (input as HTMLInputElement).value;
+
+      expect(displayed).not.toBe("0.000001234567890");
+      expect(displayed).toMatch(/0\.0+123456789/);
+    });
+  });
+
+  describe("Edge cases", () => {
+    it("handles zero", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="0" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      expect((input as HTMLInputElement).value).toBe("0");
+    });
+
+    it("removes leading zeros before decimal", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "000123.45" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("123.45");
+    });
+
+    it("keeps small decimals like 0.0001 (does not strip zeros after decimal point)", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "0.0001" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("0.0001");
+      expect((input as HTMLInputElement).value).toBe("0.0001");
+    });
+
+    it("preserves leading decimal so user can type .0, .00, .0001", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="0" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: ".0" } });
+      expect((input as HTMLInputElement).value).toBe(".0");
+      expect(setValue).toHaveBeenLastCalledWith(".0");
+
+      fireEvent.change(input, { target: { value: ".00" } });
+      expect((input as HTMLInputElement).value).toBe(".00");
+      expect(setValue).toHaveBeenLastCalledWith(".00");
+    });
+
+    it("preserves decimal part when typing 10,000.0 then .0001 (e.g. 10,000.0001)", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "10000.0" } });
+      expect((input as HTMLInputElement).value).toBe("10000.0");
+      fireEvent.change(input, { target: { value: "10000.00" } });
+      expect((input as HTMLInputElement).value).toBe("10000.00");
+      fireEvent.change(input, { target: { value: "10000.0001" } });
+      expect((input as HTMLInputElement).value).toBe("10,000.0001");
+      expect(setValue).toHaveBeenLastCalledWith("10000.0001");
+    });
+
+    it("updates when parent resets value to empty", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      const { rerender } = render(<NumberWidget value="1234.56" setValue={setValue} />);
+
+      const input = screen.getByRole("textbox");
+      expect((input as HTMLInputElement).value).toBe("1,234.56");
+
+      rerender(<NumberWidget value="" setValue={setValue} />);
+
+      expect((input as HTMLInputElement).value).toBe("");
+    });
+
+    it("updates when parent changes value from outside", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      const { rerender } = render(<NumberWidget value="100" setValue={setValue} />);
+
+      let input = screen.getByRole("textbox");
+      expect((input as HTMLInputElement).value).toBe("100");
+
+      rerender(<NumberWidget value="9999.99" setValue={setValue} />);
+
+      input = screen.getByRole("textbox");
+      expect((input as HTMLInputElement).value).toBe("9,999.99");
+    });
+
+    it("updates when parent changes value from number to zero", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      const { rerender } = render(<NumberWidget value="1234" setValue={setValue} />);
+
+      let input = screen.getByRole("textbox");
+      expect((input as HTMLInputElement).value).toBe("1,234");
+
+      rerender(<NumberWidget value="0" setValue={setValue} />);
+
+      input = screen.getByRole("textbox");
+      expect((input as HTMLInputElement).value).toBe("0");
+    });
+
+    it("allows typing negative decimal starting with -0", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "-0" } });
+      expect((input as HTMLInputElement).value).toBe("-0");
+      expect(setValue).toHaveBeenLastCalledWith("-0");
+
+      fireEvent.change(input, { target: { value: "-0.5" } });
+      expect((input as HTMLInputElement).value).toBe("-0.5");
+      expect(setValue).toHaveBeenLastCalledWith("-0.5");
+    });
+
+    it("formats negative numbers correctly", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="-1234.56" setValue={setValue} />);
+
+      const input = screen.getByRole("textbox");
+      expect((input as HTMLInputElement).value).toBe("-1,234.56");
+    });
+
+    it("handles very small decimal numbers", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="0.0001" setValue={setValue} />);
+
+      const input = screen.getByRole("textbox");
+      expect((input as HTMLInputElement).value).toBe("0.0001");
+    });
+
+    it("handles numbers with many decimal places", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="123.123456789012" setValue={setValue} />);
+
+      const input = screen.getByRole("textbox");
+      expect((input as HTMLInputElement).value).toBe("123.123456789012");
+    });
+  });
+
+  describe("User input behavior", () => {
+    it("allows typing decimal separator at end", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "123." } });
+
+      expect(setValue).toHaveBeenLastCalledWith("123.");
+      expect((input as HTMLInputElement).value).toBe("123.");
+    });
+
+    it("formats after typing complete decimal number", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "123." } });
+      expect((input as HTMLInputElement).value).toBe("123.");
+
+      fireEvent.change(input, { target: { value: "123.5" } });
+      expect((input as HTMLInputElement).value).toBe("123.5");
+    });
+
+    it("removes letters and special characters", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "12abc34.56xyz" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("1234.56");
+    });
+
+    it("allows only one minus sign at the beginning", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "--123.45" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("-123.45");
+    });
+  });
+
+  describe("Locale switching behavior", () => {
+    it("updates display when locale changes from en-US to de-DE", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      const { rerender } = render(<NumberWidget value="1234.56" setValue={setValue} />);
+
+      let input = screen.getByRole("textbox");
+      expect((input as HTMLInputElement).value).toBe("1,234.56");
+
+      setNavigatorLanguage("de-DE");
+      rerender(<NumberWidget value="1234.56" setValue={setValue} />);
+
+      input = screen.getByRole("textbox");
+      expect((input as HTMLInputElement).value).toBe("1.234,56");
     });
   });
 });
