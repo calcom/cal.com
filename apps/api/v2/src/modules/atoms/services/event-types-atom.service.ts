@@ -486,14 +486,14 @@ export class EventTypesAtomService {
     usernameOrTeamSlug = usernameOrTeamSlug.toLowerCase();
 
     try {
-      let event = await getPublicEvent(
-        usernameOrTeamSlug,
-        eventSlug,
-        isTeamEvent,
-        orgSlug,
-        this.dbRead.prisma as unknown as PrismaClient,
-        true
-      );
+      let event = await getPublicEvent({
+        username: usernameOrTeamSlug,
+        eventSlug: eventSlug,
+        isTeamEvent: isTeamEvent,
+        org: orgSlug,
+        prisma: this.dbRead.prisma as unknown as PrismaClient,
+        fromRedirectOfNonOrgLink: true
+      });
 
       const usernamePossiblyNotFromProfile = username && orgId && !event;
       if (usernamePossiblyNotFromProfile) {
@@ -501,14 +501,14 @@ export class EventTypesAtomService {
         if (user) {
           const profile = await this.usersService.getUserMainProfile(user);
           if (profile?.username) {
-            event = await getPublicEvent(
-              profile.username,
-              eventSlug,
-              isTeamEvent,
-              orgSlug,
-              this.dbRead.prisma as unknown as PrismaClient,
-              true
-            );
+            event = await getPublicEvent({
+              username: profile.username,
+              eventSlug: eventSlug,
+              isTeamEvent: isTeamEvent,
+              org: orgSlug,
+              prisma: this.dbRead.prisma as unknown as PrismaClient,
+              fromRedirectOfNonOrgLink: true
+            });
           }
         }
       }
