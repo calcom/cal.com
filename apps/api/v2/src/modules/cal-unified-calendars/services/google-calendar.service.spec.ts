@@ -44,8 +44,8 @@ import { GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { BadRequestException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { GoogleCalendarService } from "./google-calendar.service";
-import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
-import { GoogleCalendarService as GCalService } from "@/ee/calendars/services/gcal.service";
+import { BookingReferencesRepository_2024_08_13 } from "@/platform/bookings/2024-08-13/repositories/booking-references.repository";
+import { GoogleCalendarService as GCalService } from "@/platform/calendars/services/gcal.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 
 describe("GoogleCalendarService", () => {

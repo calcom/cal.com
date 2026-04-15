@@ -1,15 +1,13 @@
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Select, Input } from "@calcom/ui/components/form";
-
-import { useFilterValue, useDataTable } from "~/data-table/hooks";
 import type { FilterableColumn } from "@calcom/features/data-table/lib/types";
-import { ZTextFilterValue, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { ColumnFilterType, ZTextFilterValue } from "@calcom/features/data-table/lib/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { FilterType } from "@calcom/types/data-table";
+import { Button } from "@calcom/ui/components/button";
+import { Form, Input, Select } from "@calcom/ui/components/form";
+import { Controller, useForm } from "react-hook-form";
+import { useDataTable, useFilterValue } from "~/data-table/hooks";
 import { useTextFilterOperatorOptions } from "./utils";
 
 export type TextFilterOptionsProps = {

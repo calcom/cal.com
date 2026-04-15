@@ -10,7 +10,7 @@ import metadata from "../_metadata";
 import { createGoogleCalendarServiceWithGoogleType } from "../lib/CalendarService";
 
 /**
- * Creates the booking on Cal.com and makes the GCal call to fetch the event.
+ * Creates the booking on Cal.diy and makes the GCal call to fetch the event.
  * Ends on the booking success page
  * @param page
  *

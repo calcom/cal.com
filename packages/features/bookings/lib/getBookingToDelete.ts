@@ -1,4 +1,3 @@
-import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -98,13 +97,6 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
               user: true,
             },
           },
-          workflows: {
-            select: {
-              workflow: {
-                select: workflowSelect,
-              },
-            },
-          },
         },
       },
       uid: true,
@@ -112,7 +104,6 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
       eventTypeId: true,
       destinationCalendar: true,
       smsReminderNumber: true,
-      workflowReminders: true,
       seatsReferences: true,
       responses: true,
       iCalUID: true,

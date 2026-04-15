@@ -1,7 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import type { Payment } from "@calcom/prisma/client";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handleNoShowFee } from "./handleNoShowFee";
 import { processNoShowFeeOnCancellation } from "./processNoShowFeeOnCancellation";
 import { shouldChargeNoShowCancellationFee } from "./shouldChargeNoShowCancellationFee";
@@ -180,7 +178,6 @@ describe("processNoShowFeeOnCancellation", () => {
         accepted: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-        disableImpersonation: false,
         customRoleId: null,
       });
 
@@ -215,7 +212,6 @@ describe("processNoShowFeeOnCancellation", () => {
         accepted: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-        disableImpersonation: false,
         customRoleId: null,
       });
 
@@ -246,7 +242,6 @@ describe("processNoShowFeeOnCancellation", () => {
         accepted: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-        disableImpersonation: false,
         customRoleId: null,
       });
       vi.mocked(shouldChargeNoShowCancellationFee).mockReturnValue(true);

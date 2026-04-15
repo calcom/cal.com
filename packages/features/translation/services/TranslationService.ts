@@ -1,4 +1,3 @@
-import type { WorkflowStepTranslationRepository } from "@calcom/features/ee/workflows/repositories/WorkflowStepTranslationRepository";
 import type { EventTypeTranslationRepository } from "@calcom/features/eventTypeTranslation/repositories/EventTypeTranslationRepository";
 import { locales as i18nLocales } from "@calcom/lib/i18n";
 import logger from "@calcom/lib/logger";
@@ -6,7 +5,7 @@ import {
   TRANSLATION_SUPPORTED_LOCALES,
   type TranslationSupportedLocale,
 } from "@calcom/lib/translationConstants";
-import { EventTypeAutoTranslatedField, WorkflowStepAutoTranslatedField } from "@calcom/prisma/enums";
+import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 import type {
   EventTypeTranslationLookupOptions,
   EventTypeTranslationLookupResult,
@@ -14,13 +13,10 @@ import type {
   TranslateTextParams,
   TranslateTextResult,
   TranslationResult,
-  WorkflowStepTranslationLookupOptions,
-  WorkflowStepTranslationLookupResult,
 } from "./ITranslationService";
 
 export interface ITranslationServiceDeps {
   localizeText: (text: string, sourceLocale: string, targetLocale: string) => Promise<string | null>;
-  workflowStepTranslationRepository: WorkflowStepTranslationRepository;
   eventTypeTranslationRepository: EventTypeTranslationRepository;
 }
 
@@ -68,42 +64,6 @@ export class TranslationService implements ITranslationService {
       logger.error("TranslationService.translateText() failed:", error);
       return { translations: [], failedLocales: targetLocales };
     }
-  }
-
-  async getWorkflowStepTranslation(
-    workflowStepId: number,
-    targetLocale: string,
-    options: WorkflowStepTranslationLookupOptions = { includeBody: true, includeSubject: false }
-  ): Promise<WorkflowStepTranslationLookupResult> {
-    const result: WorkflowStepTranslationLookupResult = {};
-    const promises: Promise<void>[] = [];
-
-    if (options.includeBody) {
-      promises.push(
-        this.deps.workflowStepTranslationRepository
-          .findByLocale(workflowStepId, WorkflowStepAutoTranslatedField.REMINDER_BODY, targetLocale)
-          .then((translation) => {
-            if (translation?.translatedText) {
-              result.translatedBody = translation.translatedText;
-            }
-          })
-      );
-    }
-
-    if (options.includeSubject) {
-      promises.push(
-        this.deps.workflowStepTranslationRepository
-          .findByLocale(workflowStepId, WorkflowStepAutoTranslatedField.EMAIL_SUBJECT, targetLocale)
-          .then((translation) => {
-            if (translation?.translatedText) {
-              result.translatedSubject = translation.translatedText;
-            }
-          })
-      );
-    }
-
-    await Promise.all(promises);
-    return result;
   }
 
   async getEventTypeTranslation(
