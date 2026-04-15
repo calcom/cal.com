@@ -1,14 +1,5 @@
-import { prisma } from "@calcom/prisma";
-import type {
-  Booking,
-  EventType,
-  BookingReference,
-  Attendee,
-  Credential,
-  DestinationCalendar,
-  User,
-} from "@calcom/prisma/client";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { getBookingRepository } from "@calcom/features/di/containers/Booking";
+import type { BookingFullContextDto } from "@calcom/lib/dto/BookingDto";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,82 +12,23 @@ export const bookingsProcedure = authedProcedure
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
     const { bookingId } = input;
     const loggedInUser = ctx.user;
-    const bookingInclude = {
-      attendees: true,
-      eventType: {
-        include: {
-          team: {
-            select: {
-              id: true,
-              name: true,
-              parentId: true,
-            },
-          },
-        },
-      },
-      destinationCalendar: true,
-      references: true,
-      user: {
-        include: {
-          destinationCalendar: true,
-          credentials: true,
-          profiles: {
-            select: {
-              organizationId: true,
-            },
-          },
-        },
-      },
-    };
 
-    const bookingByBeingAdmin = await prisma.booking.findFirst({
-      where: {
-        id: bookingId,
-        eventType: {
-          team: {
-            members: {
-              some: {
-                userId: loggedInUser.id,
-                role: {
-                  in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-                },
-              },
-            },
-          },
-        },
-      },
-      include: bookingInclude,
+    const bookingRepository = getBookingRepository();
+
+    const bookingByBeingAdmin = await bookingRepository.findByIdForAdminIncludeFullContext({
+      bookingId,
+      adminUserId: loggedInUser.id,
     });
 
-    if (!!bookingByBeingAdmin) {
+    if (bookingByBeingAdmin) {
       return next({ ctx: { booking: bookingByBeingAdmin } });
     }
 
-    const bookingByBeingOrganizerOrCollectiveEventMember = await prisma.booking.findFirst({
-      where: {
-        id: bookingId,
-        AND: [
-          {
-            OR: [
-              /* If user is organizer */
-              { userId: ctx.user.id },
-              /* Or part of a collective booking */
-              {
-                eventType: {
-                  schedulingType: SchedulingType.COLLECTIVE,
-                  users: {
-                    some: {
-                      id: ctx.user.id,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
-      include: bookingInclude,
-    });
+    const bookingByBeingOrganizerOrCollectiveEventMember =
+      await bookingRepository.findByIdForOrganizerOrCollectiveMemberIncludeFullContext({
+        bookingId,
+        userId: ctx.user.id,
+      });
 
     if (!bookingByBeingOrganizerOrCollectiveEventMember) throw new TRPCError({ code: "UNAUTHORIZED" });
 
@@ -104,21 +36,5 @@ export const bookingsProcedure = authedProcedure
   });
 
 export type BookingsProcedureContext = {
-  booking: Booking & {
-    eventType:
-      | (EventType & {
-          team?: { id: number; name: string; parentId?: number | null } | null;
-        })
-      | null;
-    destinationCalendar: DestinationCalendar | null;
-    user:
-      | (User & {
-          destinationCalendar: DestinationCalendar | null;
-          credentials: Credential[];
-          profiles: { organizationId: number }[];
-        })
-      | null;
-    references: BookingReference[];
-    attendees: Attendee[];
-  };
+  booking: BookingFullContextDto;
 };

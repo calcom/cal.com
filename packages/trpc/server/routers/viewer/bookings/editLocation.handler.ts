@@ -7,17 +7,17 @@ import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getBookingRepository } from "@calcom/features/di/containers/Booking";
+import { getUserRepository } from "@calcom/features/di/containers/User";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/i18n/server";
-import { prisma } from "@calcom/prisma";
-import type { Booking, BookingReference } from "@calcom/prisma/client";
+import type { JsonValue } from "@calcom/types/JsonObject";
+import type { PartialBooking } from "@calcom/types/EventManager";
 import type { EventTypeMetadata, userMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -48,10 +48,8 @@ async function updateLocationInConnectedAppForBooking({
 }: {
   evt: CalendarEvent;
   eventManager: EventManager;
-  booking: Booking & {
-    references: BookingReference[];
-  };
-}) {
+  booking: PartialBooking;
+}){
   const updatedResult = await eventManager.updateLocation(evt, booking);
   const results = updatedResult.results;
   if (results.length > 0 && results.every((res) => !res.success)) {
@@ -85,8 +83,8 @@ async function updateBookingLocationInDb({
 }: {
   booking: {
     id: number;
-    metadata: Booking["metadata"];
-    responses: Booking["responses"];
+    metadata: JsonValue;
+    responses: JsonValue;
   };
   evt: Ensure<CalendarEvent, "location">;
   references: PartialReference[];
@@ -110,7 +108,7 @@ async function updateBookingLocationInDb({
     },
   };
 
-  const bookingRepository = new BookingRepository(prisma);
+  const bookingRepository = getBookingRepository();
   await bookingRepository.updateLocationById({
     where: { id: booking.id },
     data: {
@@ -269,7 +267,7 @@ export async function editLocationHandler({ ctx, input, actionSource, impersonat
 
   const oldLocation = booking.location;
 
-  const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
+  const organizer = await getUserRepository().findByIdOrThrow({ id: booking.userId || 0 });
   const organizationId = booking.user?.profiles?.[0]?.organizationId ?? null;
 
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
