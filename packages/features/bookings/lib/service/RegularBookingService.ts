@@ -1140,19 +1140,7 @@ async function handler(
 
       const roundRobinLimitBuckets = groupRoundRobinHostsByEffectiveLimits({
         schedulingType: eventType.schedulingType,
-        eventLimits: {
-          minimumBookingNotice: eventType.minimumBookingNotice,
-          beforeEventBuffer: eventType.beforeEventBuffer,
-          afterEventBuffer: eventType.afterEventBuffer,
-          slotInterval: eventType.slotInterval,
-          bookingLimits: eventType.bookingLimits,
-          durationLimits: eventType.durationLimits,
-          periodType: eventType.periodType,
-          periodDays: eventType.periodDays,
-          periodCountCalendarDays: eventType.periodCountCalendarDays,
-          periodStartDate: eventType.periodStartDate,
-          periodEndDate: eventType.periodEndDate,
-        },
+        eventLimits: getEventLevelLimits(eventType),
         hosts: nonFixedUsers,
         getHostOverrides: getRoundRobinHostLimitOverrides,
       });

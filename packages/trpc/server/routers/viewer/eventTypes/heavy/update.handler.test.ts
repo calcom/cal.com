@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest";
 import { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { mapHostCreateData, mapHostUpdateData } from "./update.handler";
+import { mapHostCreateData, mapHostUpdateData } from "./hostDataMapping";
 
 describe("update.handler", () => {
   describe("bookingFields null to Prisma.DbNull transformation", () => {

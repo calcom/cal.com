@@ -1345,38 +1345,62 @@ export class AvailableSlotsService {
             });
           }
 
-          return await Promise.all(
-            users.map(async (user) => {
-              const effectiveLimits = effectiveLimitsByUserId.get(user.id) ?? eventLevelLimits;
+          const availabilityByUserId = new Map<
+            number,
+            Awaited<ReturnType<(typeof this.dependencies.userAvailabilityService)["getUsersAvailability"]>>[number]
+          >();
 
-              return await this.dependencies.userAvailabilityService.getUserAvailability(
-                {
-                  dateFrom: startTime,
-                  dateTo: endTime,
-                  eventTypeId: eventType.id,
-                  afterEventBuffer: effectiveLimits.afterEventBuffer,
-                  beforeEventBuffer: effectiveLimits.beforeEventBuffer,
-                  duration: input.duration || 0,
-                  returnDateOverrides: false,
-                  bypassBusyCalendarTimes,
-                  silentlyHandleCalendarFailures: silentCalendarFailures,
-                  mode,
-                },
-                {
-                  user,
-                  eventType: buildEventTypeWithEffectiveLimits({
-                    eventType,
-                    effectiveLimits,
-                  }),
-                  currentSeats,
-                  rescheduleUid: input.rescheduleUid,
-                  busyTimesFromLimitsBookings: busyTimesFromLimitsByUserId.get(user.id) ?? [],
-                  teamBookingLimits: teamBookingLimitsMap,
-                  teamForBookingLimits: teamForBookingLimits,
-                }
-              );
-            })
-          );
+          for (const bucket of limitBuckets) {
+            const effectiveEventType = buildEventTypeWithEffectiveLimits({
+              eventType,
+              effectiveLimits: bucket.effectiveLimits,
+            });
+
+            const bucketBusyTimesFromLimits = new Map<number, EventBusyDetails[]>();
+            bucket.hosts.forEach((user) => {
+              bucketBusyTimesFromLimits.set(user.id, busyTimesFromLimitsByUserId.get(user.id) ?? []);
+            });
+
+            const bucketAvailability = await this.dependencies.userAvailabilityService.getUsersAvailability({
+              users: bucket.hosts,
+              query: {
+                dateFrom: startTime.format(),
+                dateTo: endTime.format(),
+                eventTypeId: eventType.id,
+                afterEventBuffer: bucket.effectiveLimits.afterEventBuffer,
+                beforeEventBuffer: bucket.effectiveLimits.beforeEventBuffer,
+                duration: input.duration || 0,
+                returnDateOverrides: false,
+                bypassBusyCalendarTimes,
+                silentlyHandleCalendarFailures: silentCalendarFailures,
+                mode,
+              },
+              initialData: {
+                eventType: effectiveEventType,
+                currentSeats,
+                rescheduleUid: input.rescheduleUid,
+                busyTimesFromLimits: bucketBusyTimesFromLimits,
+                eventTypeForLimits: effectiveEventType,
+                teamBookingLimits: teamBookingLimitsMap,
+                teamForBookingLimits,
+              },
+            });
+
+            bucket.hosts.forEach((user, index) => {
+              const availability = bucketAvailability[index];
+              if (availability) {
+                availabilityByUserId.set(user.id, availability);
+              }
+            });
+          }
+
+          return users.map((user) => {
+            const availability = availabilityByUserId.get(user.id);
+            if (!availability) {
+              throw new Error(`Missing availability for user ${user.id}`);
+            }
+            return availability;
+          });
         })()
       : await this.dependencies.userAvailabilityService.getUsersAvailability({
           users,

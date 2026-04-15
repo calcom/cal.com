@@ -485,7 +485,39 @@ export const LimitOverridesDialog = (
       };
     });
 
-    onChange([...otherGroupsOptions, ...updatedOptions]);
+    const fixedHostsOptions = hosts
+      .filter((host) => host.isFixed)
+      .map((host) => {
+        const userOption = options.find((opt) => opt.value === host.userId.toString());
+
+        return {
+          avatar: userOption?.avatar ?? "",
+          label: userOption?.label ?? host.userId.toString(),
+          value: host.userId.toString(),
+          priority: host.priority,
+          weight: host.weight,
+          isFixed: true,
+          groupId: host.groupId,
+          overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
+          overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
+          overrideAfterEventBuffer: host.overrideAfterEventBuffer,
+          overrideSlotInterval: host.overrideSlotInterval,
+          overrideBookingLimits: host.overrideBookingLimits,
+          overrideDurationLimits: host.overrideDurationLimits,
+          overridePeriodType: host.overridePeriodType,
+          overridePeriodStartDate: host.overridePeriodStartDate,
+          overridePeriodEndDate: host.overridePeriodEndDate,
+          overridePeriodDays: host.overridePeriodDays,
+          overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
+        };
+      });
+
+    const nextHostsByUserId = new Map<string, (typeof updatedOptions)[number]>();
+    [...fixedHostsOptions, ...otherGroupsOptions, ...updatedOptions].forEach((host) => {
+      nextHostsByUserId.set(host.value, host);
+    });
+
+    onChange(Array.from(nextHostsByUserId.values()));
     setIsOpenDialog(false);
   };
 

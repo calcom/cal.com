@@ -128,8 +128,10 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
   }
 
   if (hostsWithCreatedAt.length === 0) {
-    log.debug("No round-robin hosts with createdAt available after lead-threshold pre-filtering");
-    return [];
+    log.debug(
+      "No round-robin hosts with createdAt available after lead-threshold pre-filtering; returning original hosts to avoid fallback re-enabling"
+    );
+    return hosts;
   }
 
   // this needs the routing forms response too, because it needs to know what queue we are in
