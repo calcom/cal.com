@@ -9,6 +9,7 @@ import type {
   GetAvailabilityUser,
   UserAvailabilityService,
 } from "@calcom/features/availability/lib/getUserAvailability";
+import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
@@ -16,12 +17,14 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
@@ -48,7 +51,6 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -57,11 +59,67 @@ import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import type { GetScheduleOptions } from "./types";
-import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
-import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
+
+type SlotEntry = { time: string; attendees?: number; bookingUid?: string };
+
+interface MapSlotsToDateParams {
+  availableTimeSlots: { time: dayjs.Dayjs; userIds?: number[] }[];
+  currentSeats: CurrentSeats | null;
+  eventType: { onlyShowFirstAvailableSlot?: boolean; seatsPerTimeSlot?: number | null } | null;
+  formatter: Intl.DateTimeFormat;
+}
+
+export function mapSlotsToDateMap({
+  availableTimeSlots,
+  currentSeats,
+  eventType,
+  formatter,
+}: MapSlotsToDateParams): Record<string, SlotEntry[]> {
+  const currentSeatsMap = new Map<string, { attendees: number; uid: string }>();
+
+  if (currentSeats && currentSeats.length > 0) {
+    for (const booking of currentSeats) {
+      const timeKey = booking.startTime.toISOString();
+      currentSeatsMap.set(timeKey, {
+        attendees: booking._count.attendees,
+        uid: booking.uid,
+      });
+    }
+  }
+
+  return availableTimeSlots.reduce((r: Record<string, SlotEntry[]>, { time, ...passThroughProps }) => {
+    const dateString = formatter.format(time.toDate());
+    const timeISO = time.toISOString();
+
+    r[dateString] = r[dateString] || [];
+
+    const existingBooking = currentSeatsMap.get(timeISO);
+
+    if (eventType?.seatsPerTimeSlot) {
+      const isFullyBooked = existingBooking && existingBooking.attendees >= eventType.seatsPerTimeSlot;
+      if (isFullyBooked) {
+        return r;
+      }
+    }
+
+    if (eventType?.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
+      return r;
+    }
+
+    r[dateString].push({
+      ...passThroughProps,
+      time: timeISO,
+      ...(existingBooking && {
+        attendees: existingBooking.attendees,
+        bookingUid: existingBooking.uid,
+      }),
+    });
+    return r;
+  }, Object.create(null));
+}
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<NonNullable<GetAvailabilityUser>, "credentials"> & {
   credentials: CredentialForCalendarService[];
@@ -1508,47 +1566,12 @@ export class AvailableSlotsService {
     });
 
     function _mapSlotsToDate() {
-      const currentSeatsMap = new Map();
-
-      if (currentSeats && currentSeats.length > 0) {
-        currentSeats.forEach((booking) => {
-          const timeKey = booking.startTime.toISOString();
-          currentSeatsMap.set(timeKey, {
-            attendees: booking._count.attendees,
-            uid: booking.uid,
-          });
-        });
-      }
-
-      return availableTimeSlots.reduce(
-        (
-          r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
-          { time, ...passThroughProps }
-        ) => {
-          // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
-          // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
-          const dateString = formatter.format(time.toDate());
-          const timeISO = time.toISOString();
-
-          r[dateString] = r[dateString] || [];
-          if (eventType?.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
-            return r;
-          }
-
-          const existingBooking = currentSeatsMap.get(timeISO);
-
-          r[dateString].push({
-            ...passThroughProps,
-            time: timeISO,
-            ...(existingBooking && {
-              attendees: existingBooking.attendees,
-              bookingUid: existingBooking.uid,
-            }),
-          });
-          return r;
-        },
-        Object.create(null)
-      );
+      return mapSlotsToDateMap({
+        availableTimeSlots,
+        currentSeats: currentSeats ?? null,
+        eventType,
+        formatter,
+      });
     }
     const mapSlotsToDate = withReporting(_mapSlotsToDate.bind(this), "mapSlotsToDate");
     const slotsMappedToDate = mapSlotsToDate();
