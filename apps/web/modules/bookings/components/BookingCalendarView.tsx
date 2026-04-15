@@ -44,7 +44,7 @@ export function BookingCalendarView({
   useEffect(() => {
     onWeekStartChange(currentWeekStart);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentWeekStart, onWeekStartChange]);
 
   const events = useMemo<CalendarEvent[]>(() => {
     const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
@@ -65,8 +65,7 @@ export function BookingCalendarView({
       .map((booking, idx) => {
         // Parse eventTypeColor and extract the appropriate color based on theme
         const eventTypeColor =
-          booking.eventType?.eventTypeColor &&
-          booking.eventType.eventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
+          booking.eventType?.eventTypeColor?.[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
 
         return {
           id: idx,
@@ -83,35 +82,33 @@ export function BookingCalendarView({
   }, [bookings, currentWeekStart, resolvedTheme, forcedTheme]);
 
   return (
-    <>
-      <div
-        className="border-subtle flex flex-1 flex-col overflow-y-auto overflow-x-hidden rounded-2xl border"
-        style={containerStyle ?? { height: `calc(100vh - 6rem - ${bannersHeight}px)` }}>
-        <Calendar
-          timezone={timezone}
-          sortEvents
-          startHour={startHour}
-          endHour={endHour}
-          events={events}
-          startDate={startDate}
-          endDate={endDate}
-          gridCellsPerHour={4}
-          hoverEventDuration={0}
-          showBackgroundPattern={false}
-          showBorder={false}
-          borderColor="subtle"
-          selectedBookingUid={selectedBookingUid}
-          onEventClick={(event) => {
-            const bookingUid = event.options?.bookingUid;
-            if (bookingUid) {
-              setSelectedBookingUid(bookingUid);
-            }
-          }}
-          showTimezone
-          hideHeader
-          updateCurrentTimeOnFocus
-        />
-      </div>
-    </>
+    <div
+      className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden rounded-2xl border border-subtle"
+      style={containerStyle ?? { height: `calc(100vh - 6rem - ${bannersHeight}px)` }}>
+      <Calendar
+        timezone={timezone}
+        sortEvents
+        startHour={startHour}
+        endHour={endHour}
+        events={events}
+        startDate={startDate}
+        endDate={endDate}
+        gridCellsPerHour={4}
+        hoverEventDuration={0}
+        showBackgroundPattern={false}
+        showBorder={false}
+        borderColor="subtle"
+        selectedBookingUid={selectedBookingUid}
+        onEventClick={(event) => {
+          const bookingUid = event.options?.bookingUid;
+          if (bookingUid) {
+            setSelectedBookingUid(bookingUid);
+          }
+        }}
+        showTimezone
+        hideHeader
+        updateCurrentTimeOnFocus
+      />
+    </div>
   );
 }

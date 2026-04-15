@@ -1,11 +1,10 @@
 "use client";
 
-import type { BookingStatus } from "@calcom/prisma/enums";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { BookingStatus } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { useMemo } from "react";
-
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 
@@ -48,10 +47,7 @@ export function BookingMonthView({ bookings, currentMonth, userWeekStart }: Book
   const gridStart = firstDayOfMonth.subtract(prefixDays, "day");
 
   // Always render 6 rows × 7 cols = 42 cells so the grid has a stable height
-  const cells = useMemo(
-    () => Array.from({ length: 42 }, (_, i) => gridStart.add(i, "day")),
-    [gridStart]
-  );
+  const cells = useMemo(() => Array.from({ length: 42 }, (_, i) => gridStart.add(i, "day")), [gridStart]);
 
   // Day header labels starting from userWeekStart
   const dayHeaders = useMemo(
@@ -71,11 +67,13 @@ export function BookingMonthView({ bookings, currentMonth, userWeekStart }: Book
   }, [bookings]);
 
   return (
-    <div className="border-subtle overflow-hidden rounded-2xl border">
+    <div className="overflow-hidden rounded-2xl border border-subtle">
       {/* Day-of-week header row */}
-      <div className="border-subtle grid grid-cols-7 border-b">
+      <div className="grid grid-cols-7 border-subtle border-b">
         {dayHeaders.map((label) => (
-          <div key={label} className="text-subtle py-3 text-center text-xs font-semibold uppercase tracking-wide">
+          <div
+            key={label}
+            className="py-3 text-center font-semibold text-subtle text-xs uppercase tracking-wide">
             {label}
           </div>
         ))}
@@ -103,7 +101,7 @@ export function BookingMonthView({ bookings, currentMonth, userWeekStart }: Book
               <div className="mb-1.5 flex items-center justify-between">
                 <span
                   className={classNames(
-                    "flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold",
+                    "flex h-7 w-7 items-center justify-center rounded-full font-semibold text-sm",
                     isToday && "bg-brand-default text-brand",
                     !isToday && isCurrentMonth && "text-emphasis",
                     !isToday && !isCurrentMonth && "text-subtle"
@@ -125,7 +123,7 @@ export function BookingMonthView({ bookings, currentMonth, userWeekStart }: Book
                       type="button"
                       onClick={() => setSelectedBookingUid(booking.uid)}
                       className={classNames(
-                        "border-subtle flex w-full items-center gap-1.5 truncate rounded border bg-subtle px-1.5 py-1 text-left text-xs font-medium",
+                        "flex w-full items-center gap-1.5 truncate rounded border border-subtle bg-subtle px-1.5 py-1 text-left font-medium text-xs",
                         "focus:outline-none focus:ring-1 focus:ring-brand-default focus:ring-offset-1",
                         chipClass
                       )}
@@ -139,7 +137,7 @@ export function BookingMonthView({ bookings, currentMonth, userWeekStart }: Book
                 })}
 
                 {dayBookings.length > MAX_VISIBLE_CHIPS && (
-                  <span className="text-subtle px-1 text-xs">
+                  <span className="px-1 text-subtle text-xs">
                     +{dayBookings.length - MAX_VISIBLE_CHIPS} {t("more")}
                   </span>
                 )}

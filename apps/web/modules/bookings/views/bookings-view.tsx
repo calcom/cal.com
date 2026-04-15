@@ -1,12 +1,12 @@
 "use client";
 
 import { ColumnFilterType, type SystemFilterSegment } from "@calcom/features/data-table";
-import { DataTableProvider } from "~/data-table/DataTableProvider";
-import { useSegments } from "~/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import { BookingListContainer } from "../components/BookingListContainer";
 import { useActiveFiltersValidator } from "../hooks/useActiveFiltersValidator";
 import type { validStatuses } from "../lib/validStatuses";
@@ -75,10 +75,10 @@ export default function Bookings(props: BookingsProps) {
 
 function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditEnabled }: BookingsProps) {
   const router = useRouter();
-  const handleOptInSuccess = useCallback(() => {
+  const _handleOptInSuccess = useCallback(() => {
     router.refresh();
   }, [router]);
-  const optInBanner = null;
+  const _optInBanner = null;
 
   return (
     <div>

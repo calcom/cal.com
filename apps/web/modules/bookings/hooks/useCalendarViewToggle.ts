@@ -1,9 +1,8 @@
 "use client";
 
+import { localStorage } from "@calcom/lib/webstorage";
 import { createParser, useQueryState } from "nuqs";
 import { useEffect, useRef, useSyncExternalStore } from "react";
-
-import { localStorage } from "@calcom/lib/webstorage";
 
 const STORAGE_KEY = "bookings-calendar-sub-view";
 
@@ -62,7 +61,7 @@ export function useCalendarViewToggle() {
       isInitializedRef.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [calView, setCalView, storedView]);
 
   useEffect(() => {
     if (!isInitializedRef.current && calView === storedView) {

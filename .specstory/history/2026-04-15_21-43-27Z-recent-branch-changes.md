@@ -10412,3 +10412,27 @@ On the PR form:
 ---
 
 **One important note before submitting to the official repo:** Cal.com is an active large project with its own contribution guidelines and CI checks (type checking, tests, Biome linting). Their maintainers will review the code. Looking at [CLAUDE.md](CLAUDE.md), the PR checklist includes running `yarn type-check:ci --force` and `yarn biome check --write .` before submitting. Want me to run those checks first?
+
+---
+
+_**User**_
+
+yes, run checks
+
+---
+
+_**Agent (claude-sonnet-4-6)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: cd "/Users/shams/Library/Mobile Documents/com~apple~CloudDocs/Desktop/Projects/cal.com" && yarn biome check apps/web/modules/bookings/components/BookingCalendarSection.tsx apps/web/modules/bookings/components/BookingMonthView.tsx apps/web/modules/bookings/components/BookingCalendarView.tsx apps/web/modules/bookings/hooks/useCalendarViewToggle.ts apps/web/modules/bookings/views/bookings-view.tsx packages/i18n/locales/en/common.json 2>&1</summary>
+
+```bash
+cd "/Users/shams/Library/Mobile Documents/com~apple~CloudDocs/Desktop/Projects/cal.com" && yarn biome check apps/web/modules/bookings/components/BookingCalendarSection.tsx apps/web/modules/bookings/components/BookingMonthView.tsx apps/web/modules/bookings/components/BookingCalendarView.tsx apps/web/modules/bookings/hooks/useCalendarViewToggle.ts apps/web/modules/bookings/views/bookings-view.tsx packages/i18n/locales/en/common.json 2>&1
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>

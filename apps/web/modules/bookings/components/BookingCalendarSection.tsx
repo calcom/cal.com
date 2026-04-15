@@ -10,7 +10,6 @@ import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { ChevronLeftIcon, ChevronRightIcon } from "@coss/ui/icons";
 import { useEffect, useMemo, useState } from "react";
-
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useCalendarViewToggle } from "~/bookings/hooks/useCalendarViewToggle";
 import { getWeekStart } from "../lib/weekUtils";
@@ -52,12 +51,16 @@ function BookingCalendarSectionInner({
   const currentWeekStart = getWeekStart(referenceDate, userWeekStart);
   const currentMonth = referenceDate.startOf("month");
 
-  const headerLabel =
-    calView === "week"
-      ? currentWeekStart.month() === currentWeekStart.add(6, "day").month()
-        ? `${currentWeekStart.format("MMM D")} – ${currentWeekStart.add(6, "day").format("D, YYYY")}`
-        : `${currentWeekStart.format("MMM D")} – ${currentWeekStart.add(6, "day").format("MMM D, YYYY")}`
-      : currentMonth.format("MMMM YYYY");
+  let headerLabel: string;
+  if (calView === "week") {
+    const weekEnd = currentWeekStart.add(6, "day");
+    headerLabel =
+      currentWeekStart.month() === weekEnd.month()
+        ? `${currentWeekStart.format("MMM D")} – ${weekEnd.format("D, YYYY")}`
+        : `${currentWeekStart.format("MMM D")} – ${weekEnd.format("MMM D, YYYY")}`;
+  } else {
+    headerLabel = currentMonth.format("MMMM YYYY");
+  }
 
   const goBack = () => {
     if (calView === "week") {
@@ -82,7 +85,7 @@ function BookingCalendarSectionInner({
       {/* Controls row */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-emphasis text-sm font-semibold">{headerLabel}</span>
+          <span className="font-semibold text-emphasis text-sm">{headerLabel}</span>
           <Button color="secondary" size="sm" onClick={goToToday} className="capitalize">
             {t("today")}
           </Button>
