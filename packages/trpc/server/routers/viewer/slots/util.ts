@@ -66,7 +66,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { PeriodType } from "@calcom/prisma/enums";
+import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { TRPCError } from "@trpc/server";
@@ -652,6 +652,79 @@ export class AvailableSlotsService {
   }
   private getOOODates = withReporting(this._getOOODates.bind(this), "getOOODates");
 
+  /**
+   * When the host reschedules, check if any attendee is a Cal.com user
+   * and collect their busy times so the host only sees mutually available slots.
+   */
+  private async _getGuestBusyTimesForReschedule({
+    rescheduleUid,
+    rescheduledBy,
+    schedulingType,
+    dateFrom,
+    dateTo,
+  }: {
+    rescheduleUid: string | null | undefined;
+    rescheduledBy: string | null | undefined;
+    schedulingType: SchedulingType | null;
+    dateFrom: Date;
+    dateTo: Date;
+  }): Promise<{ start: Date; end: Date }[]> {
+    if (!rescheduleUid || schedulingType === SchedulingType.COLLECTIVE) {
+      return [];
+    }
+
+    try {
+      const original = await this.dependencies.bookingRepo.findByUidIncludeAttendeeEmails({
+        uid: rescheduleUid,
+      });
+      if (!original?.attendees?.length) return [];
+
+      // Only apply guest busy-time blocking for host-initiated reschedules.
+      // When an attendee reschedules, they should see all available slots
+      // without being constrained by other guests' schedules.
+      if (rescheduledBy) {
+        const hostEmail = original.user?.email;
+        const isHostReschedule = hostEmail && rescheduledBy.toLowerCase() === hostEmail.toLowerCase();
+        if (!isHostReschedule) {
+          return [];
+        }
+      }
+
+      const emails = original.attendees.map((a) => a.email).filter((e): e is string => Boolean(e));
+      if (!emails.length) return [];
+
+      const calUsers = await this.dependencies.userRepo.findByEmails({ emails });
+      if (!calUsers.length) return [];
+
+      // Only use Cal.com user emails for the booking query, not all attendee emails.
+      // This prevents pulling in bookings for non-Cal.com guests via the OR email filter.
+      const calUserEmails = calUsers.map((u) => u.email);
+
+      const guestBookings = await this.dependencies.bookingRepo.findByUserIdsAndDateRange({
+        userIds: calUsers.map((u) => u.id),
+        userEmails: calUserEmails,
+        dateFrom,
+        dateTo,
+        excludeUid: rescheduleUid,
+      });
+
+      return guestBookings.map((b) => ({ start: b.startTime, end: b.endTime }));
+    } catch (error) {
+      // Graceful degradation: never block rescheduling if guest lookup fails.
+      // Log at warn (not error) so operators can detect upstream regressions
+      // without paging on a non-blocking code path.
+      log.warn(
+        "[getGuestBusyTimesForReschedule] degraded to empty result",
+        safeStringify({ rescheduleUid, error })
+      );
+      return [];
+    }
+  }
+  private getGuestBusyTimesForReschedule = withReporting(
+    this._getGuestBusyTimesForReschedule.bind(this),
+    "getGuestBusyTimesForReschedule"
+  );
+
   private _getUsersWithCredentials({
     hosts,
   }: {
@@ -726,7 +799,7 @@ export class AvailableSlotsService {
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     const bookingRepo = this.dependencies.bookingRepo;
-    const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
+    const [currentBookingsAllUsers, outOfOfficeDaysAllUsers, guestBusyTimes] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTimeDate,
         endDate: endTimeDate,
@@ -735,6 +808,13 @@ export class AvailableSlotsService {
         userIdAndEmailMap,
       }),
       this.getOOODates(startTimeDate, endTimeDate, allUserIds),
+      this.getGuestBusyTimesForReschedule({
+        rescheduleUid: input.rescheduleUid,
+        rescheduledBy: input.rescheduledBy,
+        schedulingType: eventType.schedulingType,
+        dateFrom: startTimeDate,
+        dateTo: endTimeDate,
+      }),
     ]);
 
     const bookingLimits =
@@ -825,6 +905,7 @@ export class AvailableSlotsService {
         busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
         busyTimesFromLimits: busyTimesFromLimitsMap,
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
+        guestBusyTimes,
       },
     });
     /* We get all users working hours and busy slots */
