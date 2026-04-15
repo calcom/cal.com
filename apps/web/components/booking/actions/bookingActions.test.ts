@@ -113,6 +113,8 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
     isDisabledRescheduling: false,
     isCalVideoLocation: true,
     showPendingPayment: false,
+    isAttendee: false,
+    isHost: false,
     cardCharged: false,
     attendeeList: [
       {
@@ -560,6 +562,38 @@ describe("Booking Actions", () => {
 
     it("should disable cancel action when cancellation is disabled", () => {
       const context = createMockContext({ isDisabledCancelling: true });
+
+      expect(isActionDisabled("cancel", context)).toBe(true);
+    });
+
+    it("should allow hosts to cancel bookings even when cancellation is disabled", () => {
+      const context = createMockContext({
+        isHost: true,
+        isDisabledCancelling: true,
+        isBookingInPast: false,
+      });
+
+      expect(isActionDisabled("cancel", context)).toBe(false);
+    });
+
+    it("should not allow hosts to cancel already cancelled bookings", () => {
+      const context = createMockContext({
+        isHost: true,
+        isDisabledCancelling: true,
+        isBookingInPast: false,
+        isCancelled: true,
+      });
+
+      expect(isActionDisabled("cancel", context)).toBe(true);
+    });
+
+    it("should not allow hosts to cancel rejected bookings", () => {
+      const context = createMockContext({
+        isHost: true,
+        isDisabledCancelling: true,
+        isBookingInPast: false,
+        isRejected: true,
+      });
 
       expect(isActionDisabled("cancel", context)).toBe(true);
     });

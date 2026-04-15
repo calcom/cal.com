@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
+import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
@@ -564,6 +565,12 @@ export async function getBookings({
                 "EventType.length",
                 jsonObjectFrom(
                   eb
+                    .selectFrom("users")
+                    .select(["users.id", "users.email"])
+                    .whereRef("EventType.userId", "=", "users.id")
+                ).as("owner"),
+                jsonObjectFrom(
+                  eb
                     .selectFrom("Team")
                     .select(["Team.id", "Team.name", "Team.slug"])
                     .whereRef("EventType.teamId", "=", "Team.id")
@@ -728,7 +735,26 @@ export async function getBookings({
     })
   );
 
+  const bookingHostUserIds = [
+    ...new Set(
+      plainBookings
+        .map((b) => b.user?.id)
+        .filter((id): id is number => typeof id === "number" && id > 0)
+    ),
+  ];
+
+  const bookingHostUserIdsWhereViewerIsOrgAdmin =
+    await PrismaOrgMembershipRepository.getBookingHostUserIdsWhereLoggedInUserIsOrgAdmin(
+      user.id,
+      bookingHostUserIds
+    );
+
   const checkIfUserIsHost = (userId: number, booking: (typeof plainBookings)[number]) => {
+    const bookingHostId = booking.user?.id;
+    if (bookingHostId != null && bookingHostUserIdsWhereViewerIsOrgAdmin.has(bookingHostId)) {
+      return true;
+    }
+
     if (booking.user?.id === userId) {
       return true;
     }
@@ -770,8 +796,11 @@ export async function getBookings({
         }
       }
 
+      const bookingHostId = booking.user?.id;
       return {
         ...booking,
+        isLoggedInUserOrgAdminOfBookingHost:
+          bookingHostId != null && bookingHostUserIdsWhereViewerIsOrgAdmin.has(bookingHostId),
         rescheduler,
         eventType: {
           ...booking.eventType,

@@ -32,6 +32,7 @@ import { useState } from "react";
 import type { z } from "zod";
 import ViewRecordingsDialog from "~/ee/video/components/ViewRecordingsDialog";
 import { useBookingConfirmation } from "../hooks/useBookingConfirmation";
+import { isUserHostOfBooking } from "../lib/isUserHostOfBooking";
 import { RoutingTraceSheet } from "../RoutingTraceSheet";
 import type { BookingItemProps } from "../types";
 import { useBookingActionsStoreContext } from "./BookingActionsStoreProvider";
@@ -194,8 +195,7 @@ export function BookingActionsDropdown({
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
   const isAttendee = !!userSeat;
 
-  // Check if the logged-in user is the host/owner of the booking
-  const isHost = booking.loggedInUser.userId === booking.user?.id;
+  const isHost = isUserHostOfBooking(booking);
 
   const isCalVideoLocation =
     !booking.location ||
@@ -250,6 +250,7 @@ export function BookingActionsDropdown({
     isCalVideoLocation,
     showPendingPayment,
     isAttendee,
+    isHost,
     cardCharged,
     attendeeList,
     getSeatReferenceUid,

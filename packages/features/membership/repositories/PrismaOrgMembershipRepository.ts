@@ -21,41 +21,79 @@ export class PrismaOrgMembershipRepository {
     return loggedInUserOrgMemberships.map((m) => m.teamId);
   }
 
-  static async isLoggedInUserOrgAdminOfBookingHost(loggedInUserId: number, bookingUserId: number) {
-    const orgIdsWhereLoggedInUserAdmin = await this.getOrgIdsWhereAdmin(loggedInUserId);
-
-    if (orgIdsWhereLoggedInUserAdmin.length === 0) {
-      return false;
+  /**
+   * Batch version of {@link isLoggedInUserOrgAdminOfBookingHost}: one org lookup + two membership queries
+   * for the whole page instead of per booking.
+   */
+  static async getBookingHostUserIdsWhereLoggedInUserIsOrgAdmin(
+    loggedInUserId: number,
+    bookingHostUserIds: readonly number[]
+  ): Promise<Set<number>> {
+    const seen = new Set<number>();
+    const uniqueHostIds: number[] = [];
+    for (const id of bookingHostUserIds) {
+      if (id > 0 && !seen.has(id)) {
+        seen.add(id);
+        uniqueHostIds.push(id);
+      }
+    }
+    if (uniqueHostIds.length === 0) {
+      return new Set();
     }
 
-    const bookingUserOrgMembership = await prisma.membership.findFirst({
+    const orgIdsWhereLoggedInUserAdmin =
+      await PrismaOrgMembershipRepository.getOrgIdsWhereAdmin(loggedInUserId);
+    if (orgIdsWhereLoggedInUserAdmin.length === 0) {
+      return new Set();
+    }
+
+    const result = new Set<number>();
+
+    const directOrgMembers = await prisma.membership.findMany({
       where: {
-        userId: bookingUserId,
-        teamId: {
-          in: orgIdsWhereLoggedInUserAdmin,
-        },
+        userId: { in: uniqueHostIds },
+        teamId: { in: orgIdsWhereLoggedInUserAdmin },
         team: {
           parentId: null,
         },
       },
-      select: {
-        userId: true,
-      },
+      select: { userId: true },
     });
+    for (const row of directOrgMembers) {
+      result.add(row.userId);
+    }
 
-    if (bookingUserOrgMembership) return true;
+    const remaining = uniqueHostIds.filter((id) => !result.has(id));
+    if (remaining.length === 0) {
+      return result;
+    }
 
-    const bookingUserOrgTeamMembership = await prisma.membership.findFirst({
+    const childTeamMembers = await prisma.membership.findMany({
       where: {
-        userId: bookingUserId,
+        userId: { in: remaining },
         team: {
           parentId: {
             in: orgIdsWhereLoggedInUserAdmin,
           },
         },
       },
+      select: { userId: true },
     });
+    for (const row of childTeamMembers) {
+      result.add(row.userId);
+    }
 
-    return !!bookingUserOrgTeamMembership;
+    return result;
+  }
+
+  static async isLoggedInUserOrgAdminOfBookingHost(
+    loggedInUserId: number,
+    bookingUserId: number
+  ): Promise<boolean> {
+    const set = await PrismaOrgMembershipRepository.getBookingHostUserIdsWhereLoggedInUserIsOrgAdmin(
+      loggedInUserId,
+      [bookingUserId]
+    );
+    return set.has(bookingUserId);
   }
 }

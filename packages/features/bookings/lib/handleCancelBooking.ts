@@ -209,22 +209,48 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (bookingToDelete.eventType?.disableCancelling) {
+  // Determine if the canceling user is a host (owner, event type host, or org admin)
+  // For event type hosts, verify they are assigned to this specific booking via attendee email
+  let isCancellationUserHost = false;
+  if (userId && userId > 0) {
+    if (bookingToDelete.userId === userId) {
+      isCancellationUserHost = true;
+    } else if (
+      bookingToDelete.eventType?.hosts?.some(
+        (host) =>
+          host.user.id === userId &&
+          bookingToDelete.attendees.some((attendee) => attendee.email === host.user.email)
+      )
+    ) {
+      isCancellationUserHost = true;
+    } else if (bookingToDelete.eventType?.owner?.id === userId) {
+      isCancellationUserHost = true;
+    } else if (
+      await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(userId, bookingToDelete.userId)
+    ) {
+      isCancellationUserHost = true;
+    }
+  }
+
+  // Only the host can cancel the booking even when the cancellation is disabled for the event
+  if (!isCancellationUserHost && bookingToDelete.eventType?.disableCancelling) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
     });
   }
 
-  const isCancellationUserHost =
-    bookingToDelete.userId === userId || bookingToDelete.user.email === cancelledBy;
-
   const isReasonRequired = isCancellationReasonRequired(
     bookingToDelete.eventType?.requiresCancellationReason,
     isCancellationUserHost
   );
 
-  if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
+  if (
+    !platformClientId &&
+    !cancellationReason?.trim() &&
+    isReasonRequired &&
+    !skipCancellationReasonValidation
+  ) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required",

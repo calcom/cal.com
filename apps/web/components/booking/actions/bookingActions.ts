@@ -1,7 +1,6 @@
 import { isWithinMinimumRescheduleNotice } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
-
 import type { BookingItemProps } from "../types";
 
 export interface BookingActionContext {
@@ -23,6 +22,7 @@ export interface BookingActionContext {
   isCalVideoLocation: boolean;
   showPendingPayment: boolean;
   isAttendee: boolean;
+  isHost: boolean;
   cardCharged: boolean;
   attendeeList: Array<{
     name: string;
@@ -245,11 +245,12 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
     isAttendee,
     isCancelled,
     isRejected,
+    isHost,
   } = context;
 
   switch (actionId) {
     case "reschedule":
-    case "reschedule_request":
+    case "reschedule_request": {
       // Only apply minimum reschedule notice restriction if user is NOT the organizer
       // If user is an attendee (or not authenticated), apply the restriction
       const isUserOrganizer =
@@ -270,7 +271,12 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
         isDisabledRescheduling ||
         isWithinMinimumNotice
       );
+    }
     case "cancel":
+      // Allow hosts to cancel even when cancellation is disabled for guests
+      if (isHost && !isBookingInPast && !isCancelled && !isRejected) {
+        return false;
+      }
       return isDisabledCancelling || isBookingInPast || isCancelled || isRejected;
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
