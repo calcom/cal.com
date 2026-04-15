@@ -2,6 +2,7 @@ import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { loadTranslations } from "@calcom/i18n/server";
 import { IconSprites } from "@calcom/ui/components/icon";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { getLogoUrl } from "@lib/logo-hash";
 import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -10,6 +11,7 @@ import Script from "next/script";
 import type React from "react";
 
 import "../styles/globals.css";
+import process from "node:process";
 import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { Providers } from "./providers";
 import { SpeculationRules } from "./SpeculationRules";
@@ -43,8 +45,8 @@ export const viewport = {
 
 export const metadata = {
   icons: {
-    icon: "/api/logo?type=favicon-32",
-    apple: "/api/logo?type=apple-touch-icon",
+    icon: getLogoUrl("favicon-32"),
+    apple: getLogoUrl("apple-touch-icon"),
     other: [
       {
         rel: "icon-mask",
@@ -52,12 +54,12 @@ export const metadata = {
         color: "#000000",
       },
       {
-        url: "/api/logo?type=favicon-16",
+        url: getLogoUrl("favicon-16"),
         sizes: "16x16",
         type: "image/png",
       },
       {
-        url: "/api/logo?type=favicon-32",
+        url: getLogoUrl("favicon-32"),
         sizes: "32x32",
         type: "image/png",
       },
@@ -116,8 +118,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
+            --font-sans: ${interFont.style.fontFamily.replace(/'/g, "")};
+            --font-cal: ${calFont.style.fontFamily.replace(/'/g, "")};
           }
         `}</style>
         {process.env.NODE_ENV === "development" && (

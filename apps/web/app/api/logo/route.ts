@@ -1,9 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { cookies, headers } from "next/headers";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { z } from "zod";
-
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   ANDROID_CHROME_ICON_192,
@@ -19,8 +13,14 @@ import {
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isTrustedInternalUrl, logBlockedSSRFAttempt, validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import type { LogoType as LogoHashType } from "@lib/logo-hash";
+import { getLogoHash, isValidLogoType as isValidLogoHashType } from "@lib/logo-hash";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { cookies, headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["[api/logo]"] });
 
@@ -39,6 +39,7 @@ function extractSubdomainAndDomain(hostname: string) {
 
 const logoApiSchema = z.object({
   type: z.coerce.string().optional(),
+  v: z.string().optional(),
 });
 
 const SYSTEM_SUBDOMAINS = ["console", "app", "www"];
@@ -188,6 +189,7 @@ async function getHandler(request: NextRequest) {
   // Resolve all icon types to team logos, falling back to Cal.com defaults.
   const type: LogoType = parsedQuery?.type && isValidLogoType(parsedQuery.type) ? parsedQuery.type : "logo";
   const logoDefinition = logoDefinitions[type];
+  const isTeamLogo = !!teamLogos[logoDefinition.source];
   const filteredLogo = teamLogos[logoDefinition.source] ?? logoDefinition.fallback;
 
   try {
@@ -234,7 +236,16 @@ async function getHandler(request: NextRequest) {
 
     // Set the appropriate headers
     imageResponse.headers.set("Content-Type", contentType);
-    imageResponse.headers.set("Cache-Control", "s-maxage=86400, stale-while-revalidate=60");
+    const hasValidHash =
+      !isTeamLogo &&
+      parsedQuery.v &&
+      isValidLogoHashType(type) &&
+      getLogoHash(type as LogoHashType) === parsedQuery.v;
+    if (hasValidHash) {
+      imageResponse.headers.set("Cache-Control", "public, max-age=31536000, immutable");
+    } else {
+      imageResponse.headers.set("Cache-Control", "s-maxage=86400, stale-while-revalidate=60");
+    }
 
     return imageResponse;
   } catch (error) {

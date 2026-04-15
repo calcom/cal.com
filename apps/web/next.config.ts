@@ -1,3 +1,7 @@
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import process from "node:process";
 import { withBotId } from "botid/next/config";
 import { config as dotenvConfig } from "dotenv";
 import type { NextConfig } from "next";
@@ -53,10 +57,103 @@ if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_E
 const isOrganizationsEnabled =
   process.env.ORGANIZATIONS_ENABLED === "1" || process.env.ORGANIZATIONS_ENABLED === "true";
 
+function computeLogoHashes(): string {
+  const logoFiles: Record<string, string> = {
+    logo: "/calcom-logo-white-word.svg",
+    icon: "/cal-com-icon-white.svg",
+    "favicon-16": "/favicon-16x16.png",
+    "favicon-32": "/favicon-32x32.png",
+    "apple-touch-icon": "/apple-touch-icon.png",
+    mstile: "/mstile-150x150.png",
+    "android-chrome-192": "/android-chrome-192x192.png",
+    "android-chrome-256": "/android-chrome-256x256.png",
+  };
+
+  const candidates = [path.join(process.cwd(), "public"), path.join(process.cwd(), "apps", "web", "public")];
+
+  let publicDir: string | null = null;
+  for (const candidate of candidates) {
+    if (existsSync(path.join(candidate, "favicon-32x32.png"))) {
+      publicDir = candidate;
+      break;
+    }
+  }
+
+  if (!publicDir) return "{}";
+
+  const hashes: Record<string, string> = {};
+  for (const [type, filePath] of Object.entries(logoFiles)) {
+    try {
+      const fullPath = path.join(publicDir, filePath);
+      const content = readFileSync(fullPath);
+      hashes[type] = createHash("sha256").update(content).digest("hex").slice(0, 8);
+    } catch {
+      // Skip files that can't be read
+    }
+  }
+
+  return JSON.stringify(hashes);
+}
+
+function generateStaticFilesWithHashes(hashes: Record<string, string>) {
+  const candidates = [path.join(process.cwd(), "public"), path.join(process.cwd(), "apps", "web", "public")];
+
+  let publicDir: string | null = null;
+  for (const candidate of candidates) {
+    if (existsSync(path.join(candidate, "favicon-32x32.png"))) {
+      publicDir = candidate;
+      break;
+    }
+  }
+  if (!publicDir) return;
+
+  function logoUrl(type: string): string {
+    const hash = hashes[type];
+    if (hash) return `/api/logo?type=${type}&v=${hash}`;
+    return `/api/logo?type=${type}`;
+  }
+
+  const manifest = JSON.stringify(
+    {
+      name: "Cal.com",
+      short_name: "Cal.com",
+      description: "Scheduling infrastructure for absolutely everyone.",
+      icons: [
+        { src: logoUrl("android-chrome-192"), sizes: "192x192", type: "image/png" },
+        { src: logoUrl("android-chrome-256"), sizes: "256x256", type: "image/png" },
+      ],
+      theme_color: "#ffffff",
+      background_color: "#ffffff",
+      display_override: ["minimal-ui"],
+      display: "standalone",
+      scope: "/",
+      start_url: "/",
+    },
+    null,
+    4
+  );
+  writeFileSync(path.join(publicDir, "site.webmanifest"), manifest + "\n");
+
+  const browserconfig = `<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+    <msapplication>
+        <tile>
+            <square150x150logo src="${logoUrl("mstile")}"/>
+            <TileColor>#ff0000</TileColor>
+        </tile>
+    </msapplication>
+</browserconfig>
+`;
+  writeFileSync(path.join(publicDir, "browserconfig.xml"), browserconfig);
+}
+
 // Type-safe way to assign to process.env (which is typed as readonly in environment.d.ts)
 const env = process.env as Record<string, string | undefined>;
 
 env.NEXT_PUBLIC_CALCOM_VERSION = version;
+const logoHashesJson = computeLogoHashes();
+env.NEXT_PUBLIC_LOGO_HASHES = logoHashesJson;
+generateStaticFilesWithHashes(JSON.parse(logoHashesJson) as Record<string, string>);
 
 if (process.env.NODE_ENV === "production" || process.env.CALCOM_ENV === "production") {
   env.TRIGGER_VERSION = TRIGGER_VERSION;
