@@ -29,9 +29,7 @@
   "formatter": {
     "includes": [
       "**/*",
-      "!packages/ui/components/icon/dynamicIconImports.tsx",
-      "!apps/api/v1/tests",
-      "!apps/api/v1/templates"
+      "!packages/ui/components/icon/dynamicIconImports.tsx"
     ],
     "lineWidth": 110,
     "indentStyle": "space",

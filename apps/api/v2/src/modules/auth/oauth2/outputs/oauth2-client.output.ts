@@ -1,8 +1,16 @@
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { OAuthClientType } from "@calcom/prisma/enums";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsBoolean, IsEnum, IsNotEmptyObject, IsOptional, IsString, ValidateNested } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNotEmptyObject,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from "class-validator";
 
 export class OAuth2ClientDto {
   @ApiProperty({
@@ -14,9 +22,16 @@ export class OAuth2ClientDto {
   client_id!: string;
 
   @ApiProperty({
-    description: "The redirect URI for the OAuth client",
-    example: "https://example.com/callback",
+    description: "The redirect URIs for the OAuth client",
+    example: ["https://example.com/callback"],
+    type: [String],
   })
+  @IsArray()
+  @IsString({ each: true })
+  @Expose({ name: "redirectUris" })
+  redirect_uris!: string[];
+
+  @ApiHideProperty()
   @IsString()
   @Expose({ name: "redirectUri" })
   redirect_uri!: string;

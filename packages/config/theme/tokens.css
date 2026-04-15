@@ -26,7 +26,7 @@
   --radius-2xl: var(--radius-2xl);
   --radius-3xl: var(--radius-3xl);
 
-  /* Cal.com Border Radius */
+  /* Cal.diy Border Radius */
   --radius-cal-none: 0px;
   --radius-cal-sm: 0.125rem;
   --radius-cal: 0.25rem;
@@ -92,7 +92,7 @@
   --color-darkgray-900: var(--color-gray-900);
   --color-darkgray-950: var(--color-gray-950);
 
-  /* Cal.com Border Colors */
+  /* Cal.diy Border Colors */
   --border-color-emphasis: var(--cal-border-emphasis);
   --border-color-default: var(--cal-border);
   --border-color-subtle: var(--cal-border-subtle);
@@ -103,10 +103,10 @@
   --border-color-semantic-error-subtle: var(--cal-border-semantic-error-subtle);
   --border-color-booker: var(--cal-border-booker);
 
-  /* Cal.com Border Widths */
+  /* Cal.diy Border Widths */
   --border-width-booker-width: var(--cal-border-booker-width, 1px);
 
-  /* Cal.com Text Colors */
+  /* Cal.diy Text Colors */
   --text-color-emphasis: var(--cal-text-emphasis);
   --text-color-default: var(--cal-text);
   --text-color-subtle: var(--cal-text-subtle);
@@ -136,7 +136,7 @@
   /* Default Ring Color */
   --default-ring-color: rgb(59 130 246 / 0.5);
 
-  /* Cal.com Box Shadows */
+  /* Cal.diy Box Shadows */
   --shadow-dropdown: var(--shadow-dropdown);
   --shadow-switch-thumb: var(--shadow-switch-thumb);
   --shadow-solid-gray-rested: var(--shadow-solid-gray-rested);
@@ -156,7 +156,7 @@
   --shadow-button-solid-brand-focused: var(--shadow-button-solid-brand-focused);
   --shadow-button-outline-red-focused: var(--shadow-button-outline-red-focused);
 
-  /* Cal.com Fill Colors */
+  /* Cal.diy Fill Colors */
   --fill-emphasis: var(--fill-emphasis);
   --fill-default: var(--fill-default);
   --fill-subtle: var(--fill-subtle);
@@ -168,7 +168,7 @@
   --fill-error: var(--fill-error);
   --fill-brand: var(--fill-brand);
 
-  /* Cal.com Animations */
+  /* Cal.diy Animations */
   --animate-fade-in-up: fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21, 1.02, .73, 1) forwards;
   --animate-fade-in-bottom: fade-in-bottom cubic-bezier(.21, 1.02, .73, 1) forwards;
   --animate-spinning: spinning 0.75s linear infinite;

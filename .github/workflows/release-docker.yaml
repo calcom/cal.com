@@ -32,7 +32,7 @@ on:
 jobs:
   prepare:
     name: "Prepare Release"
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.determine-tag.outputs.release_tag }}
       checkout_ref: ${{ steps.determine-tag.outputs.checkout_ref }}
@@ -81,7 +81,7 @@ jobs:
   release-amd64:
     name: "Release AMD64"
     needs: prepare
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     env:
       RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
     steps:
@@ -106,7 +106,7 @@ jobs:
           use-as-latest: "true"
 
       - name: Notify Slack on Success
-        if: success()
+        if: success() && secrets.CI_SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
@@ -117,7 +117,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
 
       - name: Notify Slack on Failure
-        if: failure()
+        if: failure() && secrets.CI_SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
@@ -154,7 +154,7 @@ jobs:
           push-image: ${{ (github.event_name == 'push' || inputs.PUSH_IMAGE) && 'true' || 'false' }}
 
       - name: Notify Slack on Success
-        if: success()
+        if: success() && secrets.CI_SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
@@ -165,7 +165,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
 
       - name: Notify Slack on Failure
-        if: failure()
+        if: failure() && secrets.CI_SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |

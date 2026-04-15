@@ -13,7 +13,6 @@ type DestinationCalendar = {
   eventTypeId: number | null;
   credentialId: number | null;
   delegationCredentialId: string | null;
-  domainWideDelegationCredentialId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   customCalendarReminder: number | null;

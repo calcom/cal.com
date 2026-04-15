@@ -8,7 +8,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "https://github.com/calcom/cal.com",
+    "url": "https://github.com/calcom/cal.diy",
     "directory": "packages/embeds/embed-snippet"
   },
   "scripts": {

@@ -81,7 +81,7 @@ window.heavilyCustomizeUi = ({ namespace }) => {
         "cal-radius-full": "7px",
         "cal-spacing-px": "5px",
         // More CSS variables are defined here
-        // https://github.com/calcom/cal.com/blob/main/packages/config/tailwind-preset.js
+        // https://github.com/calcom/cal.diy/blob/main/packages/config/tailwind-preset.js
       },
       dark: {
         // Set the similar variables as in light theme but for dark mode.
@@ -318,28 +318,6 @@ if (only === "all" || only === "preload-test") {
   });
 }
 
-if (only === "all" || only === "inline-routing-form") {
-  Cal("init", "inline-routing-form", {
-    debug: true,
-    origin: origin,
-  });
-  Cal.ns["inline-routing-form"]([
-    "inline",
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-expect-error
-    {
-      elementOrSelector: "#cal-booking-place-inline-routing-form .place",
-      calLink: "forms/948ae412-d995-4865-875a-48302588de03",
-      config: {
-        iframeAttrs: {
-          id: "cal-booking-place-inline-routing-form-iframe",
-        },
-        "flag.coep": "true",
-      },
-    },
-  ]);
-}
-
 if (only === "all" || only === "ns:hideEventTypeDetails") {
   const identifier = "hideEventTypeDetails";
   Cal("init", identifier, {
@@ -464,30 +442,6 @@ Cal("init", "childElementTarget", {
 });
 
 Cal("init", "floatingButton", {
-  debug: true,
-  origin: origin,
-});
-
-Cal("init", "routingFormAuto", {
-  debug: true,
-  origin: origin,
-});
-
-Cal("init", "routingFormHeadlessRouter", {
-  debug: true,
-  origin: origin,
-});
-
-Cal.ns.routingFormAuto("on", {
-  action: "routed",
-  callback: (e) => {
-    const detail = e.detail;
-    console.log("`routed` event data:", detail.data);
-    alert(`Routing Done - Check console for 'routed' event data`);
-  },
-});
-
-Cal("init", "routingFormDark", {
   debug: true,
   origin: origin,
 });
@@ -772,30 +726,6 @@ if (only === "all" || only === "ns:skeletonDemoElementClick") {
   });
 
   Cal.ns.skeletonDemoElementClick("on", {
-    action: "*",
-    callback,
-  });
-}
-
-if (only === "all" || only === "ns:routingFormPrerender") {
-  Cal("init", "routingFormPrerender", {
-    debug: true,
-    origin,
-  });
-
-  Cal.ns.routingFormPrerender("on", {
-    action: "*",
-    callback,
-  });
-}
-
-if (only === "all" || only === "ns:routingFormWithoutPrerender") {
-  Cal("init", "routingFormWithoutPrerender", {
-    debug: true,
-    origin,
-  });
-
-  Cal.ns.routingFormWithoutPrerender("on", {
     action: "*",
     callback,
   });

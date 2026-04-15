@@ -1,6 +1,5 @@
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
-import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
   AnyZodObject,
   objectInputType,
@@ -10,14 +9,14 @@ import type {
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
-
+import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type { Prisma } from "./client";
 import { EventTypeCustomInputType } from "./enums";
 
 /** @see https://github.com/colinhacks/zod/issues/3155#issuecomment-2060045794 */
 export const emailRegex =
   /* eslint-disable-next-line no-useless-escape */
-  /^(?!\.)(?!.*\.\.)([A-Z0-9_+-\.']*)[A-Z0-9_+'-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
+  /^(?!\.)(?!.*\.\.)([A-Z0-9_+-.']*)[A-Z0-9_+'-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
 
 /**
  * RFC 5321 Section 4.5.3.1.3 specifies:
@@ -77,76 +76,6 @@ export const intervalLimitsType: z.Schema<IntervalLimit | null> = z
     PER_YEAR: z.number().optional(),
   })
   .nullable();
-
-const raqbChildSchema = z.object({
-  type: z.string().optional(),
-  properties: z
-    .object({
-      field: z.any().optional(),
-      operator: z.any().optional(),
-      value: z.any().optional(),
-      valueSrc: z.any().optional(),
-      valueError: z.array(z.union([z.string(), z.null()])).optional(),
-      valueType: z.any().optional(),
-    })
-    .optional(),
-});
-
-const raqbChildren1Schema = z.record(raqbChildSchema).superRefine((children1, ctx) => {
-  if (!children1) return;
-  const isObject = (value: unknown): value is Record<string, unknown> =>
-    typeof value === "object" && value !== null;
-  Object.entries(children1).forEach(([, _rule]) => {
-    const rule = _rule as unknown;
-    if (!isObject(rule) || rule.type !== "rule") return;
-    if (!isObject(rule.properties)) return;
-
-    const value = rule.properties.value || [];
-    const valueSrc = rule.properties.valueSrc;
-    if (!(value instanceof Array) || !(valueSrc instanceof Array)) {
-      return;
-    }
-
-    if (!valueSrc.length) {
-      // If valueSrc is empty, value could be empty for operators like is_empty, is_not_empty
-      return;
-    }
-
-    // MultiSelect array can be 2D array
-    const flattenedValues = value.flat();
-
-    const validValues = flattenedValues.filter((value: unknown) => {
-      // Might want to restrict it to filter out null and empty string as well. But for now we know that Prisma errors only for undefined values when saving it in JSON field
-      // Also, it is possible that RAQB has some requirements to support null or empty string values.
-      if (value === undefined) return false;
-      return true;
-    });
-
-    if (!validValues.length) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Looks like you are trying to create a rule with no value",
-      });
-    }
-  });
-});
-
-const raqbQueryValueSchema = z.union([
-  z.object({
-    id: z.string().optional(),
-    type: z.literal("group"),
-    children1: raqbChildren1Schema.optional(),
-    properties: z.any(),
-  }),
-  z.object({
-    id: z.string().optional(),
-    type: z.literal("switch_group"),
-    children1: raqbChildren1Schema.optional(),
-    properties: z.any(),
-  }),
-]);
-
-const zodAttributesQueryValue = raqbQueryValueSchema;
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -299,7 +228,7 @@ export const bookingResponses = z
 export type BookingResponses = z.infer<typeof bookingResponses>;
 
 // Re-exported from @calcom/lib/zod/eventType for backwards compatibility
-export { eventTypeLocations, type EventTypeLocation } from "@calcom/lib/zod/eventType";
+export { type EventTypeLocation, eventTypeLocations } from "@calcom/lib/zod/eventType";
 
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
 export const recurringEventType = z
@@ -385,6 +314,8 @@ export const bookingConfirmPatchBodySchema = z.object({
   reason: z.string().optional(),
   emailsEnabled: z.boolean().default(true),
   platformClientParams: PlatformClientParamsSchema.optional(),
+  actionSource: z.string().optional(),
+  actor: z.unknown().optional(),
 });
 
 export const bookingCancelSchema = z.object({
@@ -597,17 +528,6 @@ export const successRedirectUrl = z
   ])
   .optional();
 
-export const RoutingFormSettings = z
-  .object({
-    // Applicable only for User Forms
-    emailOwnerOnSubmission: z.boolean(),
-
-    // Applicable only for Team Forms
-    sendUpdatesTo: z.array(z.number()).optional(),
-    sendToAll: z.boolean().optional(),
-  })
-  .nullable();
-
 export const DeploymentTheme = z
   .object({
     brand: z.string().default("#292929"),
@@ -755,7 +675,6 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   isInstantEvent: true,
   instantMeetingParameters: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
-  aiPhoneCallConfig: true,
   currency: true,
   periodDays: true,
   position: true,
@@ -803,7 +722,6 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   showOptimizedSlots: true,
   slotInterval: true,
   scheduleId: true,
-  workflows: true,
   bookingFields: true,
   durationLimits: true,
   maxActiveBookingsPerBooker: true,
@@ -967,7 +885,8 @@ export const serviceAccountKeySchema = z
 
 export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;
 
-export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();
+// rrSegmentQueryValue is stored as JSON in EventType - just parse as nullable JSON object
+export const rrSegmentQueryValueSchema = z.record(z.string(), z.unknown()).nullish();
 
 // Routing Form Fields
 export const fieldTypeEnum = z.enum([

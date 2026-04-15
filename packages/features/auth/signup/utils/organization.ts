@@ -1,8 +1,6 @@
-import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
-import type { Team, OrganizationSettings } from "@calcom/prisma/client";
-
+import type { OrganizationSettings, Team } from "@calcom/prisma/client";
 import { getOrgUsernameFromEmail } from "./getOrgUsernameFromEmail";
 
 export async function joinAnyChildTeamOnOrgInvite({
@@ -80,5 +78,4 @@ export async function joinAnyChildTeamOnOrgInvite({
     }),
   ]);
 
-  await updateNewTeamMemberEventTypes(userId, org.id);
 }

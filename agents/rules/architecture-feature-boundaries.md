@@ -39,4 +39,4 @@ Domain boundaries are enforced automatically through linting. If `packages/featu
 - Easier testing: Test the entire feature as a unit with all pieces in one place
 - Clearer dependencies: When you see `import { getAvailability } from '@calcom/features/availability'`, you know exactly which feature you're depending on
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

@@ -1,38 +1,30 @@
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
-import logger from "@calcom/lib/logger";
-import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
   slug: z.string().transform((s) => slugify(s)),
 });
 
-function hasApiV2RouteInEnv() {
-  return Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
-}
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, params, query } = context;
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
-  const { rescheduleUid, bookingUid, isInstantMeeting: queryIsInstantMeeting } = query;
+  const { rescheduleUid, bookingUid } = query;
   const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
+  const currentOrgDomain = null;
+  const isValidOrgDomain = false;
 
   const redirect = await handleOrgRedirect({
     slugs: [teamSlug],
@@ -56,23 +48,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (eventData.schedulingType === SchedulingType.MANAGED) {
     return { notFound: true } as const;
-  }
-
-  // Redirect if no routing form response and redirect URL is configured
-  // Don't redirect if this is a reschedule flow or seated booking flow
-  const hasRoutingFormResponse = query["cal.routingFormResponseId"] || query["cal.queuedFormResponseId"];
-  if (
-    !hasRoutingFormResponse &&
-    !rescheduleUid &&
-    !bookingUid &&
-    eventData.redirectUrlOnNoRoutingFormResponse
-  ) {
-    return {
-      redirect: {
-        destination: eventData.redirectUrlOnNoRoutingFormResponse,
-        permanent: false,
-      },
-    };
   }
 
   if (rescheduleUid && eventData.disableRescheduling) {
@@ -109,8 +84,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   // Run independent queries in parallel — these all depend on team/eventData but not on each other
   const log = logger.getSubLogger({ prefix: ["team-event-ssr", `${teamSlug}/${meetingSlug}`] });
-  const featureRepo = new FeaturesRepository(prisma);
-  const [eventHostsUserData, crmResult, teamHasApiV2Route, booking] = await Promise.all([
+  const [eventHostsUserData, crmResult, booking] = await Promise.all([
     getUsersData(
       team.isPrivate,
       eventTypeId,
@@ -119,20 +93,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       log.error("Failed to get users data", err);
       throw err;
     }),
-    needsCrmLookup
-      ? import("@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm")
-          .then(({ getTeamMemberEmailForResponseOrContactUsingUrlQuery }) =>
-            getTeamMemberEmailForResponseOrContactUsingUrlQuery({ query, eventData })
-          )
-          .catch((err) => {
-            log.error("Failed CRM lookup", err);
-            throw err;
-          })
-      : Promise.resolve(null),
-    featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots").catch((err) => {
-      log.error("Failed to check API V2 feature flag", err);
-      throw err;
-    }),
+    Promise.resolve(
+      null as { email: string; recordType: string; crmAppSlug: string; recordId: string } | null
+    ),
     rescheduleUid
       ? getServerSession({ req })
           .then((session) => getBookingForReschedule(`${rescheduleUid}`, session?.user?.id))
@@ -161,10 +124,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const crmAppSlug = crmResult?.crmAppSlug ?? crmAppSlugStr;
   const crmRecordId = crmResult?.recordId ?? crmRecordIdStr;
 
-  const organizationSettings = getOrganizationSEOSettings(team);
+  const organizationSettings = {} as { allowSEOIndexing?: boolean };
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
-  const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
+  const useApiV2 = false;
 
   const branding = getBrandingForEventType({
     eventType: {
@@ -209,7 +172,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         eventTypeId: eventData.id,
         team,
       }),
-      isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
       teamMemberEmail,
@@ -229,8 +191,8 @@ const getTeamWithEventsData = async (
 ) => {
   return await prisma.team.findFirst({
     where: {
-      ...getSlugOrRequestedSlug(teamSlug),
-      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+      ...{ slug: teamSlug },
+      parent: isValidOrgDomain && currentOrgDomain ? { slug: currentOrgDomain } : null,
     },
     orderBy: {
       slug: { sort: "asc", nulls: "last" },
@@ -277,7 +239,6 @@ const getTeamWithEventsData = async (
           disableCancelling: true,
           disableRescheduling: true,
           allowReschedulingCancelledBookings: true,
-          redirectUrlOnNoRoutingFormResponse: true,
           interfaceLanguage: true,
           hosts: {
             take: 3,
