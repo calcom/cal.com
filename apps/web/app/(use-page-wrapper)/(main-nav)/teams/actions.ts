@@ -1,7 +1,7 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { updateTag } from "next/cache";
 
 export async function revalidateTeamsList() {
-  revalidateTag("viewer.teams.list", "max");
+  updateTag("viewer.teams.list");
 }
