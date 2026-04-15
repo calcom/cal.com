@@ -13,6 +13,7 @@ import {
   TextAreaFieldInput_2024_06_14,
   SelectFieldInput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
+  EmailFieldInput_2024_06_14,
   MultiEmailFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
@@ -549,6 +550,23 @@ export class MultiSelectFieldOutput_2024_06_14 extends MultiSelectFieldInput_202
   hidden!: boolean;
 }
 
+export class EmailFieldOutput_2024_06_14 extends EmailFieldInput_2024_06_14 {
+  @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
+  isDefault = false;
+
+  @IsBoolean()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden!: boolean;
+}
+
 export class MultiEmailFieldOutput_2024_06_14 extends MultiEmailFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
@@ -647,6 +665,7 @@ export type CustomFieldOutput_2024_06_14 =
   | TextAreaFieldOutput_2024_06_14
   | SelectFieldOutput_2024_06_14
   | MultiSelectFieldOutput_2024_06_14
+  | EmailFieldOutput_2024_06_14
   | MultiEmailFieldOutput_2024_06_14
   | CheckboxGroupFieldOutput_2024_06_14
   | RadioGroupFieldOutput_2024_06_14

@@ -10541,7 +10541,7 @@
       "patch": {
         "operationId": "BookingLocationController_2024_08_13_updateBookingLocation",
         "summary": "Update booking location for an existing booking",
-        "description": "**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n\n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
+        "description": "Updates the location for an existing booking.\n\n**Integration Fallback Behavior:**\n- **Google Meet**: Requires Google Calendar to be connected. If the booking has no Google Calendar event, it will automatically fall back to Cal Video.\n- **MS Teams**: If Office 365 Calendar is connected, generates the meeting link via calendar. Otherwise, uses the MS Teams video integration directly.\n\n<Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10747,6 +10747,60 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetBookingAttendeeOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings / Attendees"]
+      },
+      "delete": {
+        "operationId": "BookingAttendeesController_2024_08_13_removeAttendee",
+        "summary": "Remove an attendee from a booking",
+        "description": "Remove an attendee from an existing booking by their attendee ID. The primary attendee (first attendee) cannot be removed — to remove them, cancel the booking instead. The removed attendee will receive a cancellation email notification.\n\n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveAttendeeOutput_2024_08_13"
                 }
               }
             }
@@ -32692,8 +32746,8 @@
         "properties": {
           "start": {
             "type": "string",
-            "description": "Start time in ISO 8601 format for the new booking",
-            "example": "2024-08-13T10:00:00Z"
+            "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
+            "example": "2024-08-13T09:00:00Z"
           },
           "rescheduledBy": {
             "type": "string",
@@ -32717,8 +32771,8 @@
         "properties": {
           "start": {
             "type": "string",
-            "description": "Start time in ISO 8601 format for the new booking",
-            "example": "2024-08-13T10:00:00Z"
+            "description": "The start time of the booking in ISO 8601 format in UTC timezone.",
+            "example": "2024-08-13T09:00:00Z"
           },
           "rescheduledBy": {
             "type": "string",
@@ -33393,6 +33447,51 @@
           },
           "data": {
             "$ref": "#/components/schemas/BookingAttendeeOutput_2024_08_13"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "RemovedAttendeeOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The ID of the attendee.",
+            "example": 123
+          },
+          "bookingId": {
+            "type": "number",
+            "description": "The ID of the booking.",
+            "example": 456
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the attendee.",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the attendee.",
+            "example": "john.doe@example.com"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "The time zone of the attendee.",
+            "example": "America/New_York"
+          }
+        },
+        "required": ["id", "bookingId", "name", "email", "timeZone"]
+      },
+      "RemoveAttendeeOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/RemovedAttendeeOutput_2024_08_13"
           }
         },
         "required": ["status", "data"]
