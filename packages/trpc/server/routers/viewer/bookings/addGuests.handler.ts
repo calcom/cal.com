@@ -1,31 +1,28 @@
+import process from "node:process";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import {
   type EventTypeBrandingData,
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
+
+type ActionSource = string;
 
 export type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId" | "uuid"> &
   Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
@@ -36,21 +33,19 @@ type AddGuestsOptions = {
   };
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
-  actionSource: ValidActionSource;
-  impersonatedByUserUuid: string | null;
+  actionSource: ActionSource;
 };
 
 export type Booking = NonNullable<
   Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>
 >;
-export type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
+type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
 export const addGuestsHandler = async ({
   ctx,
   input,
   emailsEnabled = true,
   actionSource,
-  impersonatedByUserUuid,
 }: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
@@ -82,7 +77,7 @@ export const addGuestsHandler = async ({
   );
 
   // Capture new attendee emails after update for audit logging
-  const newAttendeeEmails = bookingAttendees.attendees.map((attendee) => attendee.email);
+  const _newAttendeeEmails = bookingAttendees.attendees.map((attendee) => attendee.email);
 
   const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
 
@@ -93,26 +88,6 @@ export const addGuestsHandler = async ({
   if (emailsEnabled) {
     await sendGuestNotifications(evt, booking, uniqueGuestEmails);
   }
-
-  const bookingEventHandlerService = getBookingEventHandlerService();
-  const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
-  const featuresRepository = getFeaturesRepository();
-  const organizationId = user.organizationId ?? null;
-  const isBookingAuditEnabled = organizationId
-    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
-    : false;
-
-  await bookingEventHandlerService.onAttendeeAdded({
-    bookingUid: booking.uid,
-    actor: makeUserActor(user.uuid),
-    organizationId,
-    source: actionSource,
-    auditData: {
-      added: uniqueGuestEmails,
-    },
-    context,
-    isBookingAuditEnabled,
-  });
 
   return { message: "Guests added" };
 };
@@ -132,22 +107,8 @@ export async function validateUserPermissions(booking: Booking, user: TUser): Pr
   const isOrganizer = booking.userId === user.id;
   const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
 
-  let hasBookingUpdatePermission = false;
-  if (booking.eventType?.teamId) {
-    const permissionCheckService = new PermissionCheckService();
-    hasBookingUpdatePermission = await permissionCheckService.checkPermission({
-      userId: user.id,
-      teamId: booking.eventType?.teamId,
-      permission: "booking.update",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-    });
-  }
-
-  if (!hasBookingUpdatePermission && !isOrganizer && !isAttendee) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "you_do_not_have_permission",
-    });
+  if (!isOrganizer && !isAttendee) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
   }
 }
 
@@ -264,10 +225,7 @@ export async function sanitizeAndFilterGuests(
   });
 
   if (uniqueGuestEmails.length === 0) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "emails_must_be_unique_valid",
-    });
+    throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
   }
 
   // Return the full guest objects for unique emails
@@ -278,12 +236,7 @@ export async function sanitizeAndFilterGuests(
 
 export async function updateBookingAttendees(
   bookingId: number,
-  newAttendees: {
-    name: string;
-    email: string;
-    timeZone: string;
-    locale: string | null;
-  }[],
+  newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[],
   uniqueGuestEmails: string[],
   booking: Booking
 ) {
@@ -379,10 +332,7 @@ export async function buildCalendarEvent(
 
 export async function updateCalendarEvent(booking: Booking, evt: CalendarEvent): Promise<void> {
   if (!booking.user) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Booking user not found",
-    });
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Booking user not found" });
   }
 
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(booking.user);
@@ -395,7 +345,7 @@ export async function updateCalendarEvent(booking: Booking, evt: CalendarEvent):
   await eventManager.updateCalendarAttendees(evt, booking);
 }
 
-export async function sendGuestNotifications(
+async function sendGuestNotifications(
   evt: CalendarEvent,
   booking: Booking,
   uniqueGuests: string[]

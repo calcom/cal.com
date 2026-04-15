@@ -14,8 +14,8 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
-import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
-import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
+import { SchedulesModule_2024_06_11 } from "@/platform/schedules/schedules_2024_06_11/schedules.module";
+import { SchedulesService_2024_06_11 } from "@/platform/schedules/schedules_2024_06_11/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.module";
@@ -685,92 +685,6 @@ describe("Slots 2024-04-15 Endpoints", () => {
       });
 
       await bookingsRepositoryFixture.deleteById(booking.id);
-    });
-
-    describe("routingFormResponseId and _isDryRun validation", () => {
-      const baseUrl = "/api/v2/slots/available";
-      const baseParams = {
-        startTime: "2050-09-05",
-        endTime: "2050-09-10",
-      };
-
-      it("should allow routingFormResponseId=0 in dry-run mode", async () => {
-        return request(app.getHttpServer())
-          .get(baseUrl)
-          .query({
-            ...baseParams,
-            eventTypeId,
-            routingFormResponseId: 0,
-            _isDryRun: true,
-          })
-          .expect(200)
-          .expect((res) => {
-            expect(res.body.status).toEqual(SUCCESS_STATUS);
-          });
-      });
-
-      it("should reject routingFormResponseId=1 in dry-run mode", async () => {
-        return request(app.getHttpServer())
-          .get(baseUrl)
-          .query({
-            ...baseParams,
-            eventTypeId,
-            routingFormResponseId: 1,
-            _isDryRun: true,
-          })
-          .expect(400)
-          .expect((res) => {
-            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain(
-              "routingFormResponseId must be 0 for dry run"
-            );
-          });
-      });
-
-      it("should allow routingFormResponseId=1 in non-dry-run mode", async () => {
-        return request(app.getHttpServer())
-          .get(baseUrl)
-          .query({
-            ...baseParams,
-            eventTypeId,
-            routingFormResponseId: 1,
-          })
-          .expect(200)
-          .expect((res) => {
-            expect(res.body.status).toEqual(SUCCESS_STATUS);
-          });
-      });
-
-      it("should reject routingFormResponseId=0 in non-dry-run mode", async () => {
-        return request(app.getHttpServer())
-          .get(baseUrl)
-          .query({
-            ...baseParams,
-            eventTypeId,
-            routingFormResponseId: 0,
-          })
-          .expect(400)
-          .expect((res) => {
-            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain(
-              "routingFormResponseId must be a positive number"
-            );
-          });
-      });
-
-      it("should reject routingFormResponseId=-1 in non-dry-run mode", async () => {
-        return request(app.getHttpServer())
-          .get(baseUrl)
-          .query({
-            ...baseParams,
-            eventTypeId,
-            routingFormResponseId: -1,
-          })
-          .expect(400)
-          .expect((res) => {
-            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain(
-              "routingFormResponseId must be a positive number"
-            );
-          });
-      });
     });
 
     afterAll(async () => {

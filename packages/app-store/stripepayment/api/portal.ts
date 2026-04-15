@@ -1,9 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import type { Session } from "next-auth";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-
+import type { NextApiRequest, NextApiResponse } from "next";
+import type { Session } from "next-auth";
 import { BillingPortalServiceFactory } from "../lib/BillingPortalService";
 
 interface AuthenticatedUser {
@@ -39,21 +37,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Not authenticated" });
   }
 
-  const teamId = req.query.teamId ? parseInt(req.query.teamId as string) : null;
   const returnUrl = buildReturnUrl(req.query.returnTo as string);
 
   try {
-    if (!teamId) {
-      const userService = BillingPortalServiceFactory.createUserService();
-      return await userService.processBillingPortal(user.id, returnUrl, res);
-    }
-
-    const billingService = await BillingPortalServiceFactory.createService(teamId);
-    return await billingService.processBillingPortal(user.id, teamId, returnUrl, res);
+    const userService = BillingPortalServiceFactory.createUserService();
+    return await userService.processBillingPortal(user.id, returnUrl, res);
   } catch (error) {
-    if (error instanceof Error && error.message === "Team not found") {
-      return res.status(404).json({ message: "Team not found" });
-    }
     throw error;
   }
 }

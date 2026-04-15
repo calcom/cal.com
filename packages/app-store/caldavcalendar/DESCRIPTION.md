@@ -16,6 +16,6 @@ Confirmed and verified list of all supported CalDAV integration calendar service
 
 Every CalDav Provider is different and needs minor adjustments.
 
-Follow our CalDav Roadmap here: <a class="text-blue-500" target="_blank" href="https://github.com/calcom/cal.com/issues/3457">https://github.com/calcom/cal.com/issues/3457</a>.
+Follow our CalDav Roadmap here: <a class="text-blue-500" target="_blank" href="https://github.com/calcom/cal.diy/issues/3457">https://github.com/calcom/cal.diy/issues/3457</a>.
 
 If your CalDav connection is not working, please try another Calendar provider (Google Mail or another CalDav).

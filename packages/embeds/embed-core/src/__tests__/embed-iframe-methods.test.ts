@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeCurrentDocumentUrl, nextTick } from "../embed-iframe/__tests__/test-utils";
 
 describe("embed-iframe.methods", async () => {
@@ -8,7 +7,6 @@ describe("embed-iframe.methods", async () => {
     let isLinkReadyMock: ReturnType<typeof vi.fn> | undefined;
     let isBookerReadyMock: ReturnType<typeof vi.fn> | undefined;
     let ensureQueryParamsInUrlMock: ReturnType<typeof vi.fn> | undefined;
-    let recordResponseIfQueuedMock: ReturnType<typeof vi.fn> | undefined;
     beforeEach(async () => {
         vi.useRealTimers();
         fakeCurrentDocumentUrl();
@@ -18,7 +16,6 @@ describe("embed-iframe.methods", async () => {
                 ...actual,
                 isLinkReady: isLinkReadyMock,
                 isBookerReady: isBookerReadyMock,
-                recordResponseIfQueued: recordResponseIfQueuedMock,
             };
         });
         vi.doMock("../embed-iframe/lib/embedStore", async (importOriginal) => {
@@ -43,14 +40,13 @@ describe("embed-iframe.methods", async () => {
                 stopEnsuringQueryParamsInUrl: vi.fn(),
             };
         });
-        recordResponseIfQueuedMock = vi.fn().mockResolvedValue(1);
         ({ methods } = await import("../embed-iframe"));
         ({ embedStore } = await import("../embed-iframe/lib/embedStore"));
     });
     afterEach(() => {
         vi.resetAllMocks();
         vi.resetModules();
-        console.log('After each of first describe');
+        console.log("After each of first describe");
     });
 
     describe("methods.connect", async () => {
@@ -89,35 +85,6 @@ describe("embed-iframe.methods", async () => {
             expect(embedStore.router.ensureQueryParamsInUrl).toHaveBeenCalledWith({
                 toBeThereParams: {
                     "cal.embed.connectVersion": currentConnectVersion.toString(),
-                },
-                toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
-            });
-        });
-
-        it("should set/update 'cal.routingFormResponseId' if the current iframe has 'cal.queuedFormResponse' in the query params", async () => {
-            embedStore.renderState = "completed";
-            const currentConnectVersion = 1;
-            embedStore.connectVersion = currentConnectVersion;
-            fakeCurrentDocumentUrl({
-                params: {
-                    "cal.queuedFormResponse": "true",
-                    "cal.routingFormResponseId": "1",
-                    "cal.embed.connectVersion": currentConnectVersion.toString(),
-                },
-            });
-            const convertedRoutingFormResponseId = 101;
-            recordResponseIfQueuedMock?.mockResolvedValue(convertedRoutingFormResponseId);
-            isLinkReadyMock?.mockReturnValue(true);
-            isBookerReadyMock?.mockReturnValue(true);
-            await methods.connect({
-                config: {},
-                params: {},
-            });
-
-            expect(ensureQueryParamsInUrlMock).toHaveBeenCalledWith({
-                toBeThereParams: {
-                    "cal.embed.connectVersion": (currentConnectVersion + 1).toString(),
-                    "cal.routingFormResponseId": convertedRoutingFormResponseId.toString(),
                 },
                 toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
             });

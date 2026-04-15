@@ -157,9 +157,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "/bookings/upcoming",
             "/teams",
             "/apps",
-            "/apps/routing-forms/forms",
-            "/workflows",
-            "/insights",
           ]}
         />
 

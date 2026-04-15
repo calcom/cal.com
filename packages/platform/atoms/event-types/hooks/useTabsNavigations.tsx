@@ -1,38 +1,31 @@
 "use client";
 
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import type {
+  AvailabilityOption,
+  EventTypeApps,
+  EventTypeSetupProps,
+  FormValues,
+} from "@calcom/features/eventtypes/lib/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import type { TFunction } from "i18next";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
-
-import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import type {
-  EventTypeSetupProps,
-  AvailabilityOption,
-  FormValues,
-  EventTypeApps,
-} from "@calcom/features/eventtypes/lib/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 type Props = {
   formMethods: UseFormReturn<FormValues>;
   eventType: EventTypeSetupProps["eventType"];
   team: EventTypeSetupProps["team"];
   eventTypeApps?: EventTypeApps;
-  allActiveWorkflows?: Workflow[];
-  canReadWorkflows?: boolean;
 };
 export const useTabsNavigations = ({
   formMethods,
   eventType,
   team,
   eventTypeApps,
-  allActiveWorkflows,
-  canReadWorkflows = false,
 }: Props) => {
   const { t } = useLocale();
 
@@ -44,18 +37,16 @@ export const useTabsNavigations = ({
   const availability = formMethods.watch("availability");
   const appsMetadata = formMethods.getValues("metadata")?.apps;
 
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
+  const isManagedEventType = eventType.schedulingType === "MANAGED";
+  const isChildrenManagedEventType = false;
 
   let enabledAppsNumber = 0;
 
   if (appsMetadata) {
     enabledAppsNumber = Object.entries(appsMetadata).filter(
       ([appId, appData]) =>
-        eventTypeApps?.items.find((app) => app.slug === appId)?.isInstalled && appData.enabled
+        eventTypeApps?.items.find((app) => app.slug === appId)?.isInstalled &&
+        (appData as { enabled?: boolean } | undefined)?.enabled
     ).length;
   }
   const paymentAppData = getPaymentAppData({
@@ -68,7 +59,6 @@ export const useTabsNavigations = ({
   const activeWebhooksNumber = eventType.webhooks.filter((webhook) => webhook.active).length;
 
   const installedAppsNumber = eventTypeApps?.items.filter((app) => app.isInstalled).length || 0;
-  const enabledWorkflowsNumber = allActiveWorkflows ? allActiveWorkflows.length : 0;
 
   const eventTypeId = formMethods.getValues("id");
 
@@ -80,9 +70,7 @@ export const useTabsNavigations = ({
       id: eventTypeId,
       enabledAppsNumber,
       installedAppsNumber,
-      enabledWorkflowsNumber,
       availability,
-      canReadWorkflows,
     });
 
     if (!requirePayment) {
@@ -103,12 +91,13 @@ export const useTabsNavigations = ({
           ? formMethods.getValues("schedule") === null
             ? t("members_default_schedule")
             : isChildrenManagedEventType
-              ? `${formMethods.getValues("scheduleName")
-                ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
-                : t(`default_schedule_name`)
-              }`
-              : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`)
-          : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`),
+              ? `${
+                  formMethods.getValues("scheduleName")
+                    ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
+                    : t(`default_schedule_name`)
+                }`
+              : (formMethods.getValues("scheduleName") ?? t(`default_schedule_name`))
+          : (formMethods.getValues("scheduleName") ?? t(`default_schedule_name`)),
       "data-testid": "availability",
     });
     // If there is a team put this navigation item within the tabs
@@ -117,8 +106,9 @@ export const useTabsNavigations = ({
         name: t("assignment"),
         href: `/event-types/${eventTypeId}?tabName=team`,
         icon: "users",
-        info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
-          }`,
+        info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
+          isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
+        }`,
         "data-testid": "assignment",
       });
     }
@@ -146,7 +136,6 @@ export const useTabsNavigations = ({
     t,
     enabledAppsNumber,
     installedAppsNumber,
-    enabledWorkflowsNumber,
     availability,
     isManagedEventType,
     isChildrenManagedEventType,
@@ -158,7 +147,6 @@ export const useTabsNavigations = ({
     watchSchedulingType,
     watchChildrenCount,
     activeWebhooksNumber,
-    canReadWorkflows,
     eventType.id,
     formMethods,
   ]);
@@ -172,10 +160,8 @@ type getNavigationProps = {
   id: number;
   multipleDuration?: EventTypeSetupProps["eventType"]["metadata"]["multipleDuration"];
   enabledAppsNumber: number;
-  enabledWorkflowsNumber: number;
   installedAppsNumber: number;
   availability: AvailabilityOption | undefined;
-  canReadWorkflows: boolean;
 };
 
 function getNavigation({
@@ -185,8 +171,6 @@ function getNavigation({
   t,
   enabledAppsNumber,
   installedAppsNumber,
-  enabledWorkflowsNumber,
-  canReadWorkflows,
 }: getNavigationProps) {
   const duration = multipleDuration?.map((duration) => ` ${duration}`) || length;
 
@@ -220,17 +204,6 @@ function getNavigation({
       "data-testid": "apps",
     },
   ];
-
-  // Only add workflows tab if user has permission to read workflows
-  if (canReadWorkflows) {
-    baseNavigation.push({
-      name: t("workflows"),
-      href: `/event-types/${id}?tabName=workflows`,
-      icon: "zap",
-      info: `${enabledWorkflowsNumber} ${t("active")}`,
-      "data-testid": "workflows",
-    });
-  }
 
   return baseNavigation;
 }

@@ -1,16 +1,14 @@
-import { useSession } from "next-auth/react";
-import { useForm } from "react-hook-form";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import type { CombinedFilterSegment } from "@calcom/features/data-table/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { useSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
 import { useDataTable } from "~/data-table/hooks";
-import type { CombinedFilterSegment } from "@calcom/features/data-table/lib/types";
 
 type FormValues = {
   name: string;
@@ -34,17 +32,8 @@ export function DuplicateSegmentDialog({
   const session = useSession();
   const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
-  const { mutate: createSegment, isPending } = trpc.viewer.filterSegments.create.useMutation({
-    onSuccess: ({ id }) => {
-      utils.viewer.filterSegments.list.invalidate();
-      showToast(t("filter_segment_duplicated"), "success");
-      setSegmentId({ id, type: "user" });
-      onClose();
-    },
-    onError: () => {
-      showToast(t("error_duplicating_filter_segment"), "error");
-    },
-  });
+  const createSegment = { mutate: (_args: Record<string, unknown>) => {}, isPending: false };
+  const isPending = createSegment.isPending;
 
   const handleSubmit = (data: FormValues) => {
     if (!segment) {
@@ -53,14 +42,14 @@ export function DuplicateSegmentDialog({
     if (segment.type === "user") {
       const { type: _type, id: _id, name: _name, team: _team, teamId, ...rest } = segment;
       if (segment.scope === "TEAM" && isAdminOrOwner) {
-        createSegment({
+        createSegment.mutate({
           ...rest,
           teamId: teamId ?? 0,
           scope: "TEAM",
           name: data.name,
         });
       } else {
-        createSegment({
+        createSegment.mutate({
           ...rest,
           scope: "USER",
           name: data.name,
@@ -68,7 +57,7 @@ export function DuplicateSegmentDialog({
       }
     } else if (segment.type === "system") {
       const { type: _type, ...rest } = segment;
-      createSegment({
+      createSegment.mutate({
         ...rest,
         scope: "USER",
         name: data.name,

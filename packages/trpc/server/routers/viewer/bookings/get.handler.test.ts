@@ -1,15 +1,10 @@
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { DB } from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
-import { TRPCError } from "@trpc/server";
 import type { Kysely } from "kysely";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getBookings, getHandler } from "./get.handler";
 
-vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
-  PermissionCheckService: vi.fn(),
-}));
 vi.mock("@calcom/features/bookings/lib/getAllUserBookings");
 vi.mock("@calcom/kysely", () => ({
   default: {
@@ -99,7 +94,7 @@ describe("getHandler", () => {
   });
 });
 
-describe("getBookings - PBAC Permission Checks", () => {
+describe("getBookings - stub PermissionCheckService behavior", () => {
   const mockUser = {
     id: 1,
     email: "user@example.com",
@@ -123,11 +118,9 @@ describe("getBookings - PBAC Permission Checks", () => {
     $queryRaw: vi.fn().mockResolvedValue([]),
   } as unknown as PrismaClient;
 
-  // Create a comprehensive kysely mock that handles all chain methods
   const createMockKysely = () => {
     const mockQueryBuilder = {
-      select: vi.fn((arg?: any) => {
-        // Handle select with callback function
+      select: vi.fn((arg?: unknown) => {
         if (typeof arg === "function") {
           return mockQueryBuilder;
         }
@@ -158,321 +151,126 @@ describe("getBookings - PBAC Permission Checks", () => {
 
   let mockKysely: ReturnType<typeof createMockKysely>;
 
-  const mockGetTeamIdsWithPermission = vi.fn();
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetTeamIdsWithPermission.mockReset();
-    vi.mocked(PermissionCheckService).mockImplementation(function () {
-      return {
-        getTeamIdsWithPermission: mockGetTeamIdsWithPermission,
-      } as unknown as PermissionCheckService;
-    });
     mockKysely = createMockKysely();
   });
 
-  describe("PBAC permission checks with userIds filter", () => {
-    it("should call PermissionCheckService with correct parameters", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([{ id: 2, email: "member@example.com" }]);
-      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+  it("should allow access when filtering by own userId", async () => {
+    mockPrisma.user.findMany = vi.fn((args: { where?: { id?: { in?: number[] } } }) => {
+      if (args?.where?.id?.in?.includes(1)) {
+        return Promise.resolve([{ id: 1, email: "user@example.com" }]) as ReturnType<typeof mockPrisma.user.findMany>;
+      }
+      return Promise.resolve([]) as ReturnType<typeof mockPrisma.user.findMany>;
+    });
+    mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
+    mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
 
-      await getBookings({
+    await expect(
+      getBookings({
         user: mockUser,
         prisma: mockPrisma,
         kysely: mockKysely as unknown as Kysely<DB>,
         bookingListingByStatus: ["upcoming"],
         filters: {
-          userIds: [2],
+          userIds: [1],
         },
         take: 10,
         skip: 0,
-      });
-
-      expect(mockGetTeamIdsWithPermission).toHaveBeenCalledWith({
-        userId: 1,
-        permission: "booking.read",
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-    });
-
-    it("should throw FORBIDDEN when user doesn't have booking.read permission for filtered userIds", async () => {
-      // User has booking.read permission for team 1, but user 4 is not in that team
-      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
-      // getUserIdsAndEmailsFromTeamIds returns only users from team 1 (ids 2, 3)
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([
-        { id: 2, email: "member@example.com" },
-        { id: 3, email: "member2@example.com" },
-      ]);
-      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      const mockQueryBuilder = {
-        select: vi.fn(() => mockQueryBuilder),
-        where: vi.fn(() => mockQueryBuilder),
-        innerJoin: vi.fn(() => mockQueryBuilder),
-        union: vi.fn(() => mockQueryBuilder),
-        unionAll: vi.fn(() => mockQueryBuilder),
-        as: vi.fn(() => ({
-          select: vi.fn(() => ({
-            selectAll: vi.fn(() => ({
-              orderBy: vi.fn(() => ({
-                limit: vi.fn(() => ({
-                  offset: vi.fn(() => ({
-                    compile: vi.fn(() => ({ sql: "SELECT * FROM bookings" })),
-                  })),
-                })),
-              })),
-            })),
-            executeTakeFirst: vi.fn().mockResolvedValue({ bookingCount: 0 }),
-          })),
-        })),
-      };
-
-      (mockKysely as any).selectFrom = vi.fn(() => mockQueryBuilder as any);
-      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({ rows: [] });
-
-      await expect(
-        getBookings({
-          user: mockUser,
-          prisma: mockPrisma,
-          kysely: mockKysely as unknown as Kysely<DB>,
-          bookingListingByStatus: ["upcoming"],
-          filters: {
-            userIds: [4], // User 4 is not in team 1
-          },
-          take: 10,
-          skip: 0,
-        })
-      ).rejects.toMatchObject({
-        code: "FORBIDDEN",
-        message: "You do not have permissions to fetch bookings for specified userIds",
-      });
-    });
-
-    it("should allow access when filtering by own userId", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([]);
-      // When userIds filter is provided, getAttendeeEmailsFromUserIdsFilter is called
-      // which looks up users by the userIds
-      mockPrisma.user.findMany = vi.fn((args: any) => {
-        // If looking up by userIds filter, return the user
-        if (args?.where?.id?.in?.includes(1)) {
-          return Promise.resolve([{ id: 1, email: "user@example.com" }]) as any;
-        }
-        // Otherwise return empty (for getUserIdsAndEmailsFromTeamIds)
-        return Promise.resolve([]) as any;
-      });
-      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      // User should always be able to access their own bookings
-      await expect(
-        getBookings({
-          user: mockUser,
-          prisma: mockPrisma,
-          kysely: mockKysely as unknown as Kysely<DB>,
-          bookingListingByStatus: ["upcoming"],
-          filters: {
-            userIds: [1], // Own user ID
-          },
-          take: 10,
-          skip: 0,
-        })
-      ).resolves.not.toThrow();
-    });
-
-    it("should use fallback ADMIN/OWNER roles when PBAC is not enabled", async () => {
-      // User is ADMIN in team 1 (fallback role)
-      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([{ id: 2, email: "member@example.com" }]);
-      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      await expect(
-        getBookings({
-          user: mockUser,
-          prisma: mockPrisma,
-          kysely: mockKysely as unknown as Kysely<DB>,
-          bookingListingByStatus: ["upcoming"],
-          filters: {
-            userIds: [2],
-          },
-          take: 10,
-          skip: 0,
-        })
-      ).resolves.not.toThrow();
-
-      // Verify fallback roles are passed
-      expect(mockGetTeamIdsWithPermission).toHaveBeenCalledWith({
-        userId: 1,
-        permission: "booking.read",
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-    });
-
-    it("should combine PBAC permissions and ADMIN/OWNER roles", async () => {
-      // User has booking.read permission for team 1 via PBAC
-      // User is ADMIN in team 2 (fallback)
-      mockGetTeamIdsWithPermission.mockResolvedValue([1, 2]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([
-        { id: 2, email: "member-team1@example.com" },
-        { id: 3, email: "member-team2@example.com" },
-      ]);
-      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      // Should be able to access bookings from both teams
-      await expect(
-        getBookings({
-          user: mockUser,
-          prisma: mockPrisma,
-          kysely: mockKysely as unknown as Kysely<DB>,
-          bookingListingByStatus: ["upcoming"],
-          filters: {
-            userIds: [2, 3],
-          },
-          take: 10,
-          skip: 0,
-        })
-      ).resolves.not.toThrow();
-    });
+      })
+    ).resolves.not.toThrow();
   });
 
-  describe("Event type filtering with subqueries", () => {
-    it("should use subqueries for event types from teams where user has booking.read permission", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+  it("should throw BAD_REQUEST when filtering by non-existent userIds", async () => {
+    mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+    mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
+    mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
 
-      await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: {},
-        take: 10,
-        skip: 0,
-      });
-
-      // PERFORMANCE: With the optimization, we no longer call $queryRaw to fetch event type IDs.
-      // Instead, we use subqueries directly in the SQL to avoid materializing large arrays.
-      // The query is built using Kysely and executed via executeQuery.
-      expect((mockKysely as any).executeQuery).toHaveBeenCalled();
-    });
-  });
-
-  describe("User IDs retrieval for permission validation", () => {
-    it("should only fetch user IDs when userIds filter is provided", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([1, 2]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([
-        { id: 2, email: "user2@example.com" },
-        { id: 3, email: "user3@example.com" },
-      ]);
-      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      await getBookings({
+    await expect(
+      getBookings({
         user: mockUser,
         prisma: mockPrisma,
         kysely: mockKysely as unknown as Kysely<DB>,
         bookingListingByStatus: ["upcoming"],
         filters: {
-          userIds: [2], // When userIds filter is provided, we need to validate permissions
+          userIds: [4],
         },
         take: 10,
         skip: 0,
-      });
-
-      // Verify users are fetched from teams 1 and 2 for permission validation
-      expect(mockPrisma.user.findMany).toHaveBeenCalled();
-    });
-
-    it("should NOT fetch user IDs when no userIds filter is provided (uses subqueries instead)", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([1, 2]);
-      // Reset the mock to track calls
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: {}, // No userIds filter
-        take: 10,
-        skip: 0,
-      });
-
-      // PERFORMANCE: Without userIds filter, we don't need to fetch user IDs for validation.
-      // The query uses subqueries instead of materializing all user IDs/emails.
-      // user.findMany should NOT be called for getUserIdsFromTeamIds
-      expect(mockPrisma.user.findMany).not.toHaveBeenCalled();
+      })
+    ).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message: "The requested users do not exist.",
     });
   });
 
-  describe("UNION ALL with DISTINCT query optimization", () => {
-    it("should use unionAll instead of union for combining booking queries", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+  it("should execute query via kysely when no userIds filter is provided", async () => {
+    mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+    mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
+    mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
 
-      await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: {},
-        take: 10,
-        skip: 0,
-      });
-
-      // Verify unionAll is used (UNION ALL) instead of union (UNION)
-      // This is the performance optimization: UNION ALL avoids an implicit DISTINCT
-      // at each union step, deferring deduplication to the outer SELECT DISTINCT
-      expect(mockKysely._mockQueryBuilder.unionAll).toHaveBeenCalled();
+    await getBookings({
+      user: mockUser,
+      prisma: mockPrisma,
+      kysely: mockKysely as unknown as Kysely<DB>,
+      bookingListingByStatus: ["upcoming"],
+      filters: {},
+      take: 10,
+      skip: 0,
     });
 
-    it("should apply DISTINCT on the outer select from union subquery", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+    expect((mockKysely as unknown as { executeQuery: ReturnType<typeof vi.fn> }).executeQuery).toHaveBeenCalled();
+  });
 
-      await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: {},
-        take: 10,
-        skip: 0,
-      });
+  it("should NOT fetch user IDs when no userIds filter is provided", async () => {
+    mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+    mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
+    mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
 
-      // Verify distinct() is called on the outer query to deduplicate
-      // results from UNION ALL
-      expect(mockKysely._mockQueryBuilder.distinct).toHaveBeenCalled();
+    await getBookings({
+      user: mockUser,
+      prisma: mockPrisma,
+      kysely: mockKysely as unknown as Kysely<DB>,
+      bookingListingByStatus: ["upcoming"],
+      filters: {},
+      take: 10,
+      skip: 0,
     });
 
-    it("should use count with distinct for totalCount calculation", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+    expect(mockPrisma.user.findMany).not.toHaveBeenCalled();
+  });
 
-      await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: {},
-        take: 10,
-        skip: 0,
-      });
+  it("should use unionAll for combining booking queries", async () => {
+    mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+    mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
 
-      // The count query uses fn.count("union_subquery.id").distinct()
-      // instead of fn.countAll() to ensure duplicates from UNION ALL
-      // are not counted multiple times
-      expect(mockKysely._mockQueryBuilder.executeTakeFirst).toHaveBeenCalled();
+    await getBookings({
+      user: mockUser,
+      prisma: mockPrisma,
+      kysely: mockKysely as unknown as Kysely<DB>,
+      bookingListingByStatus: ["upcoming"],
+      filters: {},
+      take: 10,
+      skip: 0,
     });
+
+    expect(mockKysely._mockQueryBuilder.unionAll).toHaveBeenCalled();
+  });
+
+  it("should apply DISTINCT on the outer select", async () => {
+    mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+    mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+    await getBookings({
+      user: mockUser,
+      prisma: mockPrisma,
+      kysely: mockKysely as unknown as Kysely<DB>,
+      bookingListingByStatus: ["upcoming"],
+      filters: {},
+      take: 10,
+      skip: 0,
+    });
+
+    expect(mockKysely._mockQueryBuilder.distinct).toHaveBeenCalled();
   });
 });
