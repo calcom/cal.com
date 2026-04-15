@@ -964,6 +964,8 @@ async function handler(
   let luckyUserResponse;
   let isFirstSeat = true;
   let availableUsers: IsFixedAwareUser[] = [];
+  let luckyUserPoolsForRetry: Record<string, IsFixedAwareUser[]> | null = null;
+  const selectedLuckyUsersByGroupId = new Map<string, IsFixedAwareUser>();
 
   if (eventType.seatsPerTimeSlot) {
     const booking = await deps.prismaClient.booking.findFirst({
@@ -1152,6 +1154,7 @@ async function handler(
         hosts: bucketedNonFixedUsers,
         hostGroups: eventType.hostGroups,
       });
+      luckyUserPoolsForRetry = luckyUserPools;
 
       const notAvailableLuckyUsers: typeof users = [];
 
@@ -1243,6 +1246,7 @@ async function handler(
               }
               // if no error, then lucky user is available for the next slots
               luckyUsers.push(newLuckyUser);
+              selectedLuckyUsersByGroupId.set(groupId, newLuckyUser);
               luckUserFound = true;
             } catch {
               notAvailableLuckyUsers.push(newLuckyUser);
@@ -1252,6 +1256,7 @@ async function handler(
             }
           } else {
             luckyUsers.push(newLuckyUser);
+            selectedLuckyUsersByGroupId.set(groupId, newLuckyUser);
             luckUserFound = true;
           }
         }
@@ -1320,7 +1325,7 @@ async function handler(
     const busyTimesService = getBusyTimesService();
     const bookingDuration = dayjs(reqBody.end).diff(dayjs(reqBody.start), "minute");
 
-    for (const selectedUser of users) {
+    const getLimitConflictMessageForUser = async (selectedUser: IsFixedAwareUser) => {
       const effectiveLimits = resolveRoundRobinHostEffectiveLimits({
         schedulingType: eventType.schedulingType,
         eventLimits: eventLevelLimits,
@@ -1340,14 +1345,14 @@ async function handler(
       );
 
       if (skipEventLimitsCheck) {
-        continue;
+        return null;
       }
 
       const parsedBookingLimits = parseBookingLimit(effectiveLimits.bookingLimits);
       const parsedDurationLimits = parseDurationLimit(effectiveLimits.durationLimits);
 
       if (!parsedBookingLimits && !parsedDurationLimits) {
-        continue;
+        return null;
       }
 
       const limitTimeZone = effectiveEventType.schedule?.timeZone ?? selectedUser.timeZone ?? "UTC";
@@ -1386,16 +1391,72 @@ async function handler(
       });
 
       if (!conflictingBusyTime) {
-        continue;
+        return null;
       }
 
-      throw new HttpError({
-        statusCode: 403,
-        message:
-          conflictingBusyTime.source?.includes("Duration") === true
-            ? "duration_limit_reached"
-            : "booking_limit_reached",
-      });
+      return conflictingBusyTime.source?.includes("Duration") === true
+        ? "duration_limit_reached"
+        : "booking_limit_reached";
+    };
+
+    if (luckyUserPoolsForRetry && selectedLuckyUsersByGroupId.size > 0) {
+      const fixedUsers = users.filter((user) => user.isFixed);
+      const usedUserIds = new Set(fixedUsers.map((user) => user.id));
+      const resolvedLuckyUsers: IsFixedAwareUser[] = [];
+
+      for (const [groupId, selectedUser] of selectedLuckyUsersByGroupId.entries()) {
+        const groupPool = luckyUserPoolsForRetry[groupId] ?? [];
+        const orderedCandidates = [
+          selectedUser,
+          ...groupPool.filter((candidate) => candidate.id !== selectedUser.id),
+        ];
+        let chosenCandidate: IsFixedAwareUser | null = null;
+        let lastConflictMessage: "duration_limit_reached" | "booking_limit_reached" | null = null;
+
+        for (const candidate of orderedCandidates) {
+          if (usedUserIds.has(candidate.id)) {
+            continue;
+          }
+
+          const conflictMessage = await getLimitConflictMessageForUser(candidate);
+          if (conflictMessage) {
+            lastConflictMessage = conflictMessage;
+            continue;
+          }
+
+          chosenCandidate = candidate;
+          break;
+        }
+
+        if (!chosenCandidate) {
+          throw new HttpError({
+            statusCode: 403,
+            message: lastConflictMessage ?? "booking_limit_reached",
+          });
+        }
+
+        usedUserIds.add(chosenCandidate.id);
+        resolvedLuckyUsers.push(chosenCandidate);
+      }
+
+      users = [...fixedUsers, ...resolvedLuckyUsers];
+      luckyUserResponse = { luckyUsers: resolvedLuckyUsers.map((user) => user.id) };
+      troubleshooterData = {
+        ...troubleshooterData,
+        luckyUsers: resolvedLuckyUsers.map((user) => user.id),
+      };
+    } else {
+      for (const selectedUser of users) {
+        const conflictMessage = await getLimitConflictMessageForUser(selectedUser);
+        if (!conflictMessage) {
+          continue;
+        }
+
+        throw new HttpError({
+          statusCode: 403,
+          message: conflictMessage,
+        });
+      }
     }
   }
 
