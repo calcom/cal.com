@@ -17,5 +17,5 @@
   "devDependencies": {
     "@calcom/types": "workspace:*"
   },
-  "description": "Import events from an ICS Feed into Cal.com."
+  "description": "Import events from an ICS Feed into Cal.diy."
 }

@@ -1,16 +1,15 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from "react";
-
-import { useSegmentsNoop } from "../hooks/useSegmentsNoop";
 import type {
-  FilterSegmentOutput,
-  SystemFilterSegment,
   CombinedFilterSegment,
+  FilterSegmentOutput,
   SegmentIdentifier,
+  SystemFilterSegment,
   UseSegments,
 } from "@calcom/features/data-table/lib/types";
 import { SYSTEM_SEGMENT_PREFIX } from "@calcom/features/data-table/lib/types";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useSegmentsNoop } from "../hooks/useSegmentsNoop";
 import { useDataTableState } from "./DataTableStateContext";
 
 export type DataTableSegmentContextType = {

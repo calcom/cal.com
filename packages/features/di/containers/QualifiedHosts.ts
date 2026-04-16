@@ -1,18 +1,32 @@
-import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
-import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { prismaModule } from "@calcom/features/di/modules/Prisma";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import { createContainer } from "../di";
-import { bookingRepositoryModule } from "../modules/Booking";
-import { filterHostsModule } from "../modules/FilterHosts";
-import { qualifiedHostsModule } from "../modules/QualifiedHosts";
+type QualifiedHost = {
+  user: {
+    id: number;
+    credentials: CredentialForCalendarService[];
+  };
+  isFixed?: boolean;
+  groupId?: string | null;
+};
 
-const container = createContainer();
-container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
-container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
-container.load(DI_TOKENS.FILTER_HOSTS_SERVICE_MODULE, filterHostsModule);
-container.load(DI_TOKENS.QUALIFIED_HOSTS_SERVICE_MODULE, qualifiedHostsModule);
+type QualifiedHostsResult = {
+  qualifiedRRHosts: QualifiedHost[];
+  allFallbackRRHosts: QualifiedHost[];
+  fixedHosts: QualifiedHost[];
+};
 
-export function getQualifiedHostsService() {
-  return container.get<QualifiedHostsService>(DI_TOKENS.QUALIFIED_HOSTS_SERVICE);
+export type QualifiedHostsService = {
+  findQualifiedHostsWithDelegationCredentials: (..._args: unknown[]) => Promise<QualifiedHostsResult>;
+};
+
+const noOpService: QualifiedHostsService = {
+  findQualifiedHostsWithDelegationCredentials: async () => ({
+    qualifiedRRHosts: [],
+    allFallbackRRHosts: [],
+    fixedHosts: [],
+  }),
+};
+
+export function getQualifiedHostsService(): QualifiedHostsService {
+  return noOpService;
 }

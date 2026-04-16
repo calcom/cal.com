@@ -1,17 +1,24 @@
-export { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-export { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
-export { OrganizationMembershipService } from "@calcom/features/ee/organizations/lib/service/OrganizationMembershipService";
-export type { IOrganizationRepository } from "@calcom/features/ee/organizations/lib/repository/IOrganizationRepository";
+// Organizations are not available in community edition
+// Only getBookerBaseUrlSync is kept as it's used for URL generation
 
-export { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-export { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import process from "node:process";
+export function getBookerBaseUrlSync(_orgSlug: string | null): string {
+  return process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
+}
 
-export { PlatformBillingRepository } from "@calcom/features/ee/organizations/repositories/PlatformBillingRepository";
-export { PlatformOrganizationBillingTasker } from "@calcom/features/ee/organizations/lib/billing/tasker/PlatformOrganizationBillingTasker";
-export { PlatformOrganizationBillingSyncTasker } from "@calcom/features/ee/organizations/lib/billing/tasker/PlatformOrganizationBillingSyncTasker";
-export { PlatformOrganizationBillingTriggerTasker } from "@calcom/features/ee/organizations/lib/billing/tasker/PlatformOrganizationBillingTriggerTasker";
-export { PlatformOrganizationBillingTaskService } from "@calcom/features/ee/organizations/lib/billing/tasker/PlatformOrganizationBillingTaskService";
-export type { IBillingProviderService } from "@calcom/features/ee/billing/service/billingProvider/IBillingProviderService";
+// Stub billing service for API v2 — org billing removed in community edition
+class ActiveUserBillingServiceStub {
+  async getActiveUserCountForPlatformOrg(
+    _subscriptionId: string,
+    _invoiceStart: Date,
+    _invoiceEnd: Date
+  ): Promise<number> {
+    return 0;
+  }
+}
 
-export { getActiveUserBillingService } from "@calcom/features/ee/billing/active-user/di/ActiveUserBillingService.container";
-export { ActiveUserBillingService } from "@calcom/features/ee/billing/active-user/services/ActiveUserBillingService";
+const activeUserBillingServiceStub = new ActiveUserBillingServiceStub();
+
+export function getActiveUserBillingService(): ActiveUserBillingServiceStub {
+  return activeUserBillingServiceStub;
+}

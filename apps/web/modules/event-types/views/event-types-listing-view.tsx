@@ -1,11 +1,9 @@
 "use client";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { extractHostTimezone, filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
@@ -34,12 +32,10 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label, Switch, TextField } from "@calcom/ui/components/form";
-import { SearchIcon } from "@coss/ui/icons";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { CreateButton } from "@calcom/web/modules/ee/teams/components/createButton/CreateButton";
 import {
   EventTypeEmbedButton,
   EventTypeEmbedDialog,
@@ -51,6 +47,7 @@ import {
 } from "@calcom/web/modules/event-types/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/web/modules/event-types/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/web/modules/event-types/components/SkeletonLoader";
+import { SearchIcon } from "@coss/ui/icons";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { TRPCClientError } from "@trpc/client";
 import Link from "next/link";
@@ -155,7 +152,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props: InfiniteTeamsTabProp
         />
       )}
       {(query.data?.pages?.[0]?.eventTypes?.length ?? 0) > 0 && query.hasNextPage && (
-        <div className="text-default p-4 text-center" ref={buttonInView.ref}>
+        <div className="p-4 text-center text-default" ref={buttonInView.ref}>
           <Button
             color="minimal"
             loading={query.isFetchingNextPage}
@@ -183,8 +180,7 @@ const Item = ({
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const parsedeventTypeColor = parseEventTypeColor(type.eventTypeColor);
-  const eventTypeColor =
-    parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
+  const eventTypeColor = parsedeventTypeColor?.[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
   const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
   const isRoundRobinOrCollective =
     type.schedulingType === SchedulingType.ROUND_ROBIN || type.schedulingType === SchedulingType.COLLECTIVE;
@@ -194,19 +190,19 @@ const Item = ({
   const content = (): JSX.Element => (
     <div>
       <span
-        className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
+        className="break-words font-semibold text-default ltr:mr-1 rtl:ml-1"
         data-testid={`event-type-title-${type.id}`}>
         {type.title}
       </span>
       {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
         <small
-          className="text-subtle hidden font-normal leading-4 sm:inline"
+          className="hidden font-normal text-subtle leading-4 sm:inline"
           data-testid={`event-type-slug-${type.id}`}>
           {`/${group.profile.slug}/${type.slug}`}
         </small>
       ) : null}
       {!isManagedEventType && type.hidden && (
-        <span className="ml-2 text-sm text-gray-400 sm:hidden">{t("hidden")}</span>
+        <span className="ml-2 text-gray-400 text-sm sm:hidden">{t("hidden")}</span>
       )}
       {readOnly && (
         <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
@@ -238,19 +234,19 @@ const Item = ({
           <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
             <div>
               <span
-                className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
+                className="break-words font-semibold text-default ltr:mr-1 rtl:ml-1"
                 data-testid={`event-type-title-${type.id}`}>
                 {type.title}
               </span>
               {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
                 <small
-                  className="text-subtle hidden font-normal leading-4 sm:inline"
+                  className="hidden font-normal text-subtle leading-4 sm:inline"
                   data-testid={`event-type-slug-${type.id}`}>
                   {`/${group.profile.slug}/${type.slug}`}
                 </small>
               ) : null}
               {!isManagedEventType && type.hidden && (
-                <span className="ml-2 text-sm text-gray-400 sm:hidden">{t("hidden")}</span>
+                <span className="ml-2 text-gray-400 text-sm sm:hidden">{t("hidden")}</span>
               )}
               {readOnly && (
                 <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
@@ -432,15 +428,14 @@ export const InfiniteEventTypeList = ({
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
     }
-        setParamsIfDefined("dialog", "duplicate");
-        setParamsIfDefined("title", eventType.title);
-        setParamsIfDefined("description", eventType.description);
-        setParamsIfDefined("slug", eventType.slug);
-        setParamsIfDefined("id", eventType.id);
-        setParamsIfDefined("length", eventType.length);
-        setParamsIfDefined("pageSlug", group.profile.slug);
-        setParamsIfDefined("schedulingType", eventType.schedulingType);
-        router.push(`${pathname}?${newSearchParams.toString()}`);
+    setParamsIfDefined("dialog", "duplicate");
+    setParamsIfDefined("title", eventType.title);
+    setParamsIfDefined("description", eventType.description);
+    setParamsIfDefined("slug", eventType.slug);
+    setParamsIfDefined("id", eventType.id);
+    setParamsIfDefined("length", eventType.length);
+    setParamsIfDefined("pageSlug", group.profile.slug);
+    router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
@@ -539,8 +534,8 @@ export const InfiniteEventTypeList = ({
   });
 
   return (
-    <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
-      <ul ref={parent} className="divide-subtle static! w-full divide-y" data-testid="event-types">
+    <div className="flex flex-col overflow-hidden rounded-md border border-subtle bg-default">
+      <ul ref={parent} className="static! w-full divide-y divide-subtle" data-testid="event-types">
         {pages.map((page, pageIdx) => {
           return page?.eventTypes?.map((type, index) => {
             const embedLink = `${group.profile.slug}/${type.slug}`;
@@ -562,7 +557,7 @@ export const InfiniteEventTypeList = ({
               type.schedulingType !== SchedulingType.MANAGED;
             return (
               <li key={type.id}>
-                <div className="hover:bg-cal-muted flex w-full items-center justify-between transition">
+                <div className="flex w-full items-center justify-between transition hover:bg-cal-muted">
                   <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                     {!(firstItem && firstItem.id === type.id) && (
                       <ArrowButton
@@ -601,7 +596,7 @@ export const InfiniteEventTypeList = ({
                         <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
                           {!isManagedEventType && (
                             <>
-                              {type.hidden && <span className="text-sm text-gray-400">{t("hidden")}</span>}
+                              {type.hidden && <span className="text-gray-400 text-sm">{t("hidden")}</span>}
                               <Tooltip
                                 content={
                                   type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")
@@ -696,7 +691,7 @@ export const InfiniteEventTypeList = ({
                                   </DropdownMenuItem>
                                 )}
                                 {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                                {!readOnly && !isChildrenManagedEventType && (
+                                {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
                                   <DropdownMenuItem className="outline-none">
                                     <DropdownItem
                                       type="button"
@@ -747,7 +742,7 @@ export const InfiniteEventTypeList = ({
                       </div>
                     </div>
                   </div>
-                  <div className="min-w-9 mx-5 flex sm:hidden">
+                  <div className="mx-5 flex min-w-9 sm:hidden">
                     <Dropdown>
                       <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
                         <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
@@ -811,7 +806,7 @@ export const InfiniteEventTypeList = ({
                               </DropdownItem>
                             </DropdownMenuItem>
                           )}
-                          {!readOnly && !isChildrenManagedEventType && (
+                          {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
                             <DropdownMenuItem className="outline-none">
                               <DropdownItem
                                 onClick={() => openDuplicateModal(type, group)}
@@ -823,29 +818,27 @@ export const InfiniteEventTypeList = ({
                           )}
                           {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
                           {!readOnly && !isChildrenManagedEventType && (
-                            <>
-                              <DropdownMenuItem className="outline-none">
-                                <DropdownItem
-                                  color="destructive"
-                                  onClick={() => {
-                                    setDeleteDialogOpen(true);
-                                    setDeleteDialogTypeId(type.id);
-                                    setDeleteDialogSchedulingType(type.schedulingType);
-                                  }}
-                                  StartIcon="trash"
-                                  className="w-full rounded-t-none">
-                                  {t("delete")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                            </>
+                            <DropdownMenuItem className="outline-none">
+                              <DropdownItem
+                                color="destructive"
+                                onClick={() => {
+                                  setDeleteDialogOpen(true);
+                                  setDeleteDialogTypeId(type.id);
+                                  setDeleteDialogSchedulingType(type.schedulingType);
+                                }}
+                                StartIcon="trash"
+                                className="w-full rounded-t-none">
+                                {t("delete")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
                           {!isManagedEventType && (
-                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between rounded-b-lg px-4 py-2 transition">
+                            <div className="flex h-9 cursor-pointer flex-row items-center justify-between rounded-b-lg px-4 py-2 transition hover:bg-subtle">
                               <Skeleton
                                 as={Label}
                                 htmlFor="hiddenSwitch"
-                                className="mt-2 inline cursor-pointer self-center pr-2 ">
+                                className="mt-2 inline cursor-pointer self-center pr-2">
                                 {type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                               </Skeleton>
                               <Switch
@@ -927,7 +920,7 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
     <div className="flex items-center gap-4">
       <TextField
         className="max-w-64"
-        addOnLeading={<SearchIcon className="text-subtle h-4 w-4" />}
+        addOnLeading={<SearchIcon className="h-4 w-4 text-subtle" />}
         containerClassName="max-w-64 focus:ring-offset-0!"
         type="search"
         value={searchTerm}
@@ -937,12 +930,12 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
         }}
         placeholder={t("search")}
       />
-      <CreateButton
+      <Button
         data-testid="new-event-type"
-        subtitle={t("create_event_on").toUpperCase()}
-        options={profileOptions}
-        createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}
-      />
+        href={`?dialog=new&eventPage=${profileOptions[0]?.slug ?? ""}`}>
+        {t("new")}
+      </Button>
+      <CreateEventTypeDialog profileOptions={profileOptions} />
     </div>
   );
 };
@@ -956,21 +949,17 @@ const EmptyEventTypeList = ({
 }) => {
   const { t } = useLocale();
   return (
-    <>
-      <EmptyScreen
-        Icon="link"
-        headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
-        description={t("new_team_event_type_description")}
-        className="mb-16"
-        buttonRaw={
-          <Button
-            href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
-            variant="button">
-            {t("create")}
-          </Button>
-        }
-      />
-    </>
+    <EmptyScreen
+      Icon="link"
+      headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
+      description={t("new_team_event_type_description")}
+      className="mb-16"
+      buttonRaw={
+        <Button href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`} variant="button">
+          {t("create")}
+        </Button>
+      }
+    />
   );
 };
 
@@ -983,8 +972,6 @@ const InfiniteScrollMain = ({
 }) => {
   const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
-  const orgBranding = useOrgBranding();
-
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
@@ -995,18 +982,6 @@ const InfiniteScrollMain = ({
 
   const activeEventTypeGroup =
     eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
-
-  const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
-
-  // If the event type group is the same as the org branding team, or the parent team, set the bookerUrl to the org branding URL
-  // This is to ensure that the bookerUrl is always the same as the one in the org branding settings
-  // This keeps the app working for personal event types that were not migrated to the org (rare)
-  if (
-    orgBranding &&
-    (activeEventTypeGroup[0].teamId === orgBranding.id || activeEventTypeGroup[0].parentId === orgBranding.id)
-  ) {
-    activeEventTypeGroup[0].bookerUrl = bookerUrl;
-  }
 
   return (
     <>
@@ -1072,8 +1047,6 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
 };
 
 const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
-  const [_showProfileBanner, setShowProfileBanner] = useState(false);
-  const orgBranding = useOrgBranding();
   const router = useRouter();
 
   useEffect(() => {
@@ -1087,12 +1060,6 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
       router.push(redirectUrl);
     }
   }, [router]);
-
-  useEffect(() => {
-    setShowProfileBanner(
-      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
-    );
-  }, [orgBranding, user]);
 
   return (
     <InfiniteScrollMain

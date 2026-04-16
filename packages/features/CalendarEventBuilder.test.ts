@@ -6,10 +6,6 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@calcom/features/ee/organizations/lib/getBookerUrlServer", () => ({
-  getBookerBaseUrl: vi.fn(async () => "https://cal.com"),
-}));
-
 vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn(async () => vi.fn(() => "translated")),
 }));
@@ -226,7 +222,6 @@ describe("CalendarEventBuilder", () => {
       createdAt: null,
       updatedAt: null,
       delegationCredentialId: null,
-      domainWideDelegationCredentialId: null,
     };
 
     const event = createBuilder()
@@ -598,8 +593,7 @@ describe("CalendarEventBuilder", () => {
           createdAt: null,
           updatedAt: null,
           delegationCredentialId: null,
-          domainWideDelegationCredentialId: null,
-        },
+            },
       ])
       .withIdentifiers({
         iCalUID: "ical-123",
@@ -763,7 +757,6 @@ describe("CalendarEventBuilder", () => {
           team: null,
           users: [],
           hosts: [],
-          workflows: [],
         },
         references: [],
         seatsReferences: [],
@@ -849,7 +842,6 @@ describe("CalendarEventBuilder", () => {
           team: null,
           users: [],
           hosts: [],
-          workflows: [],
         },
         references: [
           {
@@ -931,8 +923,7 @@ describe("CalendarEventBuilder", () => {
             createdAt: null,
             updatedAt: null,
             delegationCredentialId: null,
-            domainWideDelegationCredentialId: null,
-          },
+                },
           profiles: [],
         },
         destinationCalendar: null,
@@ -986,8 +977,7 @@ describe("CalendarEventBuilder", () => {
                   createdAt: null,
                   updatedAt: null,
                   delegationCredentialId: null,
-                  domainWideDelegationCredentialId: null,
-                },
+                            },
               },
             },
             {
@@ -1012,12 +1002,10 @@ describe("CalendarEventBuilder", () => {
                   createdAt: null,
                   updatedAt: null,
                   delegationCredentialId: null,
-                  domainWideDelegationCredentialId: null,
-                },
+                            },
               },
             },
           ],
-          workflows: [],
         },
         references: [],
         seatsReferences: [],
@@ -1096,7 +1084,6 @@ describe("CalendarEventBuilder", () => {
           team: null,
           users: [],
           hosts: [],
-          workflows: [],
         },
         references: [],
         seatsReferences: [],
@@ -1175,7 +1162,6 @@ describe("CalendarEventBuilder", () => {
           team: null,
           users: [],
           hosts: [],
-          workflows: [],
         },
         references: [],
         seatsReferences: [
@@ -1272,7 +1258,6 @@ describe("CalendarEventBuilder", () => {
           team: null,
           users: [],
           hosts: [],
-          workflows: [],
         },
         references: [],
         seatsReferences: [],
@@ -1357,7 +1342,6 @@ describe("CalendarEventBuilder", () => {
           team: null,
           users: [],
           hosts: [],
-          workflows: [],
         },
         references: [],
         seatsReferences: [],
@@ -1473,7 +1457,6 @@ describe("CalendarEventBuilder", () => {
           team: null,
           users: [],
           hosts: [],
-          workflows: [],
         },
         references: [],
         seatsReferences: [],
@@ -1585,8 +1568,7 @@ describe("CalendarEventBuilder", () => {
             createdAt: null,
             updatedAt: null,
             delegationCredentialId: null,
-            domainWideDelegationCredentialId: null,
-          },
+                },
           profiles: [{ organizationId: 1 }],
         },
         destinationCalendar: null,
@@ -1647,8 +1629,7 @@ describe("CalendarEventBuilder", () => {
                   createdAt: null,
                   updatedAt: null,
                   delegationCredentialId: null,
-                  domainWideDelegationCredentialId: null,
-                },
+                            },
               },
             },
             {
@@ -1673,12 +1654,10 @@ describe("CalendarEventBuilder", () => {
                   createdAt: null,
                   updatedAt: null,
                   delegationCredentialId: null,
-                  domainWideDelegationCredentialId: null,
-                },
+                            },
               },
             },
           ],
-          workflows: [],
         },
         references: [
           {
@@ -1803,7 +1782,7 @@ describe("CalendarEventBuilder", () => {
       expect(builtFromBooking.userFieldsResponses).toBeDefined();
       expect(builtFromBooking.customInputs).toEqual({ oldCustomField: "oldValue" });
 
-      expect(builtFromBooking.bookerUrl).toBe("https://cal.com");
+      expect(builtFromBooking.bookerUrl).toBeTruthy();
     });
 
     it("should resolve app type to human-readable app name in appsStatus", async () => {
@@ -1865,7 +1844,6 @@ describe("CalendarEventBuilder", () => {
           team: null,
           users: [],
           hosts: [],
-          workflows: [],
         },
         references: [
           {

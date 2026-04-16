@@ -9,13 +9,13 @@ tags: testing, mocking, calendar, app-store
 
 ## Calendar Service Mocks
 
-When mocking calendar services in Cal.com test files, implement the `Calendar` interface rather than adding individual properties from each specific calendar service type (like `FeishuCalendarService`).
+When mocking calendar services in Cal.diy test files, implement the `Calendar` interface rather than adding individual properties from each specific calendar service type (like `FeishuCalendarService`).
 
 Since all calendar services implement the `Calendar` interface and are stored in a map, the mock service should also implement this interface to ensure type compatibility.
 
 ## App-Store Integration Mocks
 
-When mocking app-store resources in Cal.com tests, prefer implementing simpler mock designs that directly implement the required interfaces rather than trying to match complex deep mock structures created with `mockDeep`.
+When mocking app-store resources in Cal.diy tests, prefer implementing simpler mock designs that directly implement the required interfaces rather than trying to match complex deep mock structures created with `mockDeep`.
 
 This approach is more maintainable and helps resolve type compatibility issues.
 

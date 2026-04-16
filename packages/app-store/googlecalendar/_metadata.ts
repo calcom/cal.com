@@ -13,7 +13,7 @@ export const metadata = {
   category: "calendar",
   categories: ["calendar"],
   logo: "icon.svg",
-  publisher: "Cal.com",
+  publisher: "Cal.diy",
   slug: "google-calendar",
   url: "https://cal.com/",
   email: "help@cal.com",

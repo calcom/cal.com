@@ -5,7 +5,7 @@ export {};
 //   test.afterEach(async ({ users }) => {
 //     await users.deleteAll();
 //   });
-//   test("Continue with Cal.com flow", async ({ page, users }) => {
+//   test("Continue with Cal.diy flow", async ({ page, users }) => {
 //     await users.create({
 //       username: "overflow-user-test",
 //     });
