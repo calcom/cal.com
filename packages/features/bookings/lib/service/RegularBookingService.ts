@@ -2061,6 +2061,12 @@ async function handler(
     referencesToCreate = createManager.referencesToCreate;
     videoCallUrl = evt.videoCallData?.url ? evt.videoCallData.url : null;
 
+    const calendarResults = results.filter((res) => res.type.includes("_calendar"));
+    // Only downgrade to PENDING when ALL calendar integrations fail — if at least one
+    // calendar got the event, the organizer still has visibility on the booking.
+    const allCalendarEventsFailed =
+      calendarResults.length > 0 && calendarResults.every((res) => !res.success);
+
     if (results.length > 0 && results.every((res) => !res.success)) {
       const error = {
         errorCode: "BookingCreatingMeetingFailed",
@@ -2071,7 +2077,22 @@ async function handler(
         `EventManager.create failure in some of the integrations ${organizerUser.username}`,
         safeStringify({ error, results })
       );
-    } else {
+    }
+
+    if (allCalendarEventsFailed) {
+      await deps.prismaClient.booking.update({
+        where: { id: booking.id },
+        data: { status: BookingStatus.PENDING },
+      });
+      booking.status = BookingStatus.PENDING;
+
+      tracingLogger.error(
+        `Calendar event creation failed for all calendars, booking ${booking.uid} set to PENDING`,
+        safeStringify({ results: calendarResults })
+      );
+    }
+
+    if (!results.every((res) => !res.success)) {
       const additionalInformation: AdditionalInformation = {};
 
       if (results.length) {
@@ -2148,7 +2169,7 @@ async function handler(
           });
         }
       }
-      if (!noEmail) {
+      if (!noEmail && !allCalendarEventsFailed) {
         if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
           await emailsAndSmsHandler.send({
             action: BookingActionMap.confirmed,
@@ -2245,7 +2266,7 @@ async function handler(
       : undefined,
     metadata: { ...metadata, ...reqBody.metadata },
     eventTypeId,
-    status: "ACCEPTED",
+    status: booking?.status === BookingStatus.PENDING ? "PENDING" : "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
     location: webhookLocation,
