@@ -7,7 +7,7 @@ import type {
   ApiErrorResponse,
   ApiSuccessResponse,
   ApiSuccessResponseWithoutData,
-  RoutingFormSearchParams,
+  EmbedSearchParams,
 } from "@calcom/platform-types";
 import type React from "react";
 import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
@@ -68,8 +68,6 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
   onCreateRecurringBookingSuccess?: (data: ApiSuccessResponse<BookingResponse[]>) => void;
   onCreateRecurringBookingError?: (data: ApiErrorResponse | Error) => void;
-  onCreateInstantBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
-  onCreateInstantBookingError?: (data: ApiErrorResponse | Error) => void;
   onReserveSlotSuccess?: (data: ApiSuccessResponse<string>) => void;
   onReserveSlotError?: (data: ApiErrorResponse) => void;
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
@@ -100,14 +98,14 @@ export type BookerPlatformWrapperAtomProps = Omit<
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
   username: string | string[];
   isTeamEvent?: false;
-  routingFormSearchParams?: RoutingFormSearchParams;
+  embedSearchParams?: EmbedSearchParams;
 };
 
 export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
   username?: string | string[];
   isTeamEvent: true;
   teamId: number;
-  routingFormSearchParams?: RoutingFormSearchParams;
+  embedSearchParams?: EmbedSearchParams;
   rrHostSubsetIds?: number[];
 };
 

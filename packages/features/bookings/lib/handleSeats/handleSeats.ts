@@ -1,144 +1,17 @@
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
-import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
-import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
-import type { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-
-const fireBookingEvents = async ({
-  previousSeatedBooking,
-  newBooking,
-  originalRescheduledBooking,
-  rescheduleUid,
-  organizationId,
-  bookerEmail,
-  bookerName,
-  rescheduledBy,
-  actionSource,
-  actorUserUuid,
-  impersonatedByUserUuid,
-  isBookingAuditEnabled,
-  deps,
-}: {
-  previousSeatedBooking: SeatedBooking;
-  newBooking: NonNullable<HandleSeatsResultBooking>;
-  originalRescheduledBooking: NewSeatedBookingObject["originalRescheduledBooking"];
-  rescheduleUid: string | undefined;
-  organizationId: number | null | undefined;
-  bookerEmail: string;
-  bookerName: string;
-  rescheduledBy: string | undefined;
-  actionSource: ActionSource;
-  actorUserUuid: string | null;
-  impersonatedByUserUuid: string | null;
-  isBookingAuditEnabled: boolean;
-  deps: {
-    bookingEventHandler: BookingEventHandlerService;
-    logger: ISimpleLogger;
-  };
-}) => {
-  try {
-    const bookerAttendeeId = newBooking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
-    const rescheduledByAttendeeId = newBooking.attendees?.find(
-      (attendee) => attendee.email === rescheduledBy
-    )?.id;
-    const rescheduledByUserUuid = newBooking.user?.email === rescheduledBy ? newBooking.user?.uuid : null;
-
-    const auditActor = getBookingAuditActorForNewBooking({
-      bookerAttendeeId: bookerAttendeeId ?? null,
-      actorUserUuid,
-      bookerEmail,
-      bookerName,
-      rescheduledBy: rescheduledBy
-        ? {
-            attendeeId: rescheduledByAttendeeId ?? null,
-            userUuid: rescheduledByUserUuid ?? null,
-            email: rescheduledBy,
-          }
-        : null,
-      logger: deps.logger,
-    });
-
-    const seatReferenceUid = newBooking.seatReferenceUid;
-    if (!seatReferenceUid) {
-      return;
-    }
-
-    const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
-
-    if (rescheduleUid && originalRescheduledBooking) {
-      const movedToDifferentBooking = newBooking.uid && newBooking.uid !== previousSeatedBooking.uid;
-      const newBookingStartTimeMs =
-        movedToDifferentBooking && newBooking.startTime
-          ? newBooking.startTime.getTime()
-          : previousSeatedBooking.startTime.getTime();
-      const newBookingEndTimeMs =
-        movedToDifferentBooking && newBooking.endTime
-          ? newBooking.endTime.getTime()
-          : previousSeatedBooking.endTime.getTime();
-
-      await deps.bookingEventHandler.onSeatRescheduled({
-        bookingUid: previousSeatedBooking.uid,
-        actor: auditActor,
-        organizationId: organizationId ?? null,
-        auditData: {
-          seatReferenceUid,
-          attendeeEmail: bookerEmail,
-          startTime: {
-            old: originalRescheduledBooking.startTime.getTime(),
-            new: newBookingStartTimeMs,
-          },
-          endTime: {
-            old: originalRescheduledBooking.endTime.getTime(),
-            new: newBookingEndTimeMs,
-          },
-          rescheduledToBookingUid: {
-            old: null,
-            new: movedToDifferentBooking ? newBooking.uid || null : null,
-          },
-        },
-        source: actionSource,
-        context: auditContext,
-        isBookingAuditEnabled,
-      });
-    } else {
-      await deps.bookingEventHandler.onSeatBooked({
-        bookingUid: previousSeatedBooking.uid,
-        actor: auditActor,
-        organizationId: organizationId ?? null,
-        auditData: {
-          seatReferenceUid,
-          attendeeEmail: bookerEmail,
-          attendeeName: bookerName,
-          startTime: previousSeatedBooking.startTime.getTime(),
-          endTime: previousSeatedBooking.endTime.getTime(),
-        },
-        source: actionSource,
-        context: auditContext,
-        isBookingAuditEnabled,
-      });
-    }
-  } catch (error) {
-    deps.logger.error("Error while firing booking events", safeStringify(error));
-  }
-};
+import type { HandleSeatsResultBooking, NewSeatedBookingObject, SeatedBooking } from "./types";
 
 const handleSeats = async (
-  newSeatedBookingObject: NewSeatedBookingObject,
-  featuresRepository: FeaturesRepository
+  newSeatedBookingObject: NewSeatedBookingObject
 ) => {
   const {
     eventType,
@@ -149,7 +22,6 @@ const handleSeats = async (
     bookerEmail,
     smsReminderNumber,
     eventTypeInfo,
-    reqUserUuid,
     uid,
     originalRescheduledBooking,
     reqBodyMetadata,
@@ -157,16 +29,10 @@ const handleSeats = async (
     subscriberOptions,
     eventTrigger,
     evt,
-    workflows,
     rescheduledBy,
-    rescheduleReason,
     isDryRun = false,
-    organizationId,
     fullName,
     traceContext,
-    actionSource,
-    impersonatedByUserUuid,
-    deps: { bookingEventHandler },
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
   if (isDryRun) return;
@@ -234,67 +100,15 @@ const handleSeats = async (
     resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
   }
 
-  // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
+  // If the resultBooking is defined we should trigger webhooks else, trigger in handleNewBooking
   if (resultBooking) {
-    const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
-      : false;
-
-    await fireBookingEvents({
-      previousSeatedBooking: seatedBooking,
-      newBooking: resultBooking,
-      originalRescheduledBooking,
-      rescheduleUid,
-      organizationId,
-      bookerEmail,
-      bookerName: fullName,
-      rescheduledBy,
-      actionSource,
-      actorUserUuid: reqUserUuid ?? null,
-      impersonatedByUserUuid,
-      isBookingAuditEnabled,
-      deps: { bookingEventHandler, logger: loggerWithEventDetails },
-    });
     const metadata = {
       ...(typeof resultBooking.metadata === "object" && resultBooking.metadata),
       ...reqBodyMetadata,
     };
-    // For seated events, use the phone number from the specific attendee being added
-    const attendeePhoneNumber = invitee[0]?.phoneNumber || smsReminderNumber || null;
-    try {
-      const creditService = new CreditService();
 
-      await WorkflowService.scheduleWorkflowsForNewBooking({
-        workflows: workflows,
-        smsReminderNumber: attendeePhoneNumber,
-        calendarEvent: {
-          ...evt,
-          uid: seatedBooking.uid,
-          rescheduleReason,
-          ...{
-            metadata,
-            eventType: {
-              slug: eventType.slug,
-              schedulingType: eventType.schedulingType,
-              hosts: eventType.hosts,
-            },
-          },
-        },
-        emailAttendeeSendToOverride: bookerEmail,
-        seatReferenceUid: resultBooking?.seatReferenceUid,
-        isDryRun,
-        isConfirmedByDefault: !evt.requiresConfirmation,
-        isRescheduleEvent: !!rescheduleUid,
-        isNormalBookingOrFirstRecurringSlot: true,
-        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
-      });
-    } catch (error) {
-      loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
-    }
-
-    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const webhookData: EventPayloadType = {
-      ...evtWithoutAssignmentReason,
+      ...evt,
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
       bookingId: seatedBooking?.id,
@@ -309,7 +123,7 @@ const handleSeats = async (
       metadata,
       eventTypeId,
       status: "ACCEPTED",
-      smsReminderNumber: attendeePhoneNumber || undefined,
+      smsReminderNumber: invitee[0]?.phoneNumber || smsReminderNumber || undefined,
       rescheduledBy,
     };
 

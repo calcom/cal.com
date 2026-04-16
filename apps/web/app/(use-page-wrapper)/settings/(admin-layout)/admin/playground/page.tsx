@@ -1,28 +1,9 @@
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { Icon } from "@calcom/ui/components/icon";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import Link from "next/link";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { Icon } from "@calcom/ui/components/icon";
-
 const LINKS = [
-  {
-    title: "Routing Funnel",
-    description: "Visualize booking conversion flow and routing patterns",
-    href: "/settings/admin/playground/routing-funnel",
-    icon: "filter" as const,
-  },
-  {
-    title: "Bookings by Hour",
-    description: "View booking distribution across different hours",
-    href: "/settings/admin/playground/bookings-by-hour",
-    icon: "chart-bar" as const,
-  },
-  {
-    title: "Weekly Calendar",
-    description: "Interactive weekly calendar view for scheduling",
-    href: "/settings/admin/playground/weekly-calendar",
-    icon: "calendar" as const,
-  },
   {
     title: "Date Range Filter",
     description: "Test date range selection and filtering components",

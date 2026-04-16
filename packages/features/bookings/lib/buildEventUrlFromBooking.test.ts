@@ -1,20 +1,10 @@
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
-import { getBrand } from "@calcom/features/ee/organizations/lib/getBrand";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { buildEventUrlFromBooking } from "./buildEventUrlFromBooking";
 
-vi.mock("@calcom/features/ee/organizations/lib/getBrand", () => ({
-  getBrand: vi.fn(),
-}));
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
-const WEBSITE_URL = "https://buildEventTest.example";
+const WEBAPP_URL = "https://buildEventTest.example";
 beforeEach(() => {
-  constantsScenarios.setWebsiteUrl(WEBSITE_URL);
+  constantsScenarios.set({ WEBAPP_URL });
 });
 
 describe("buildEventUrlFromBooking", () => {
@@ -36,7 +26,7 @@ describe("buildEventUrlFromBooking", () => {
         },
         dynamicGroupSlugRef: null,
       };
-      const expectedUrl = `${WEBSITE_URL}/team/engineering/30min`;
+      const expectedUrl = `${WEBAPP_URL}/team/engineering/30min`;
       const result = await buildEventUrlFromBooking(booking);
       expect(result).toBe(expectedUrl);
     });
@@ -55,7 +45,7 @@ describe("buildEventUrlFromBooking", () => {
         },
         dynamicGroupSlugRef: "john+jane",
       };
-      const expectedUrl = `${WEBSITE_URL}/john+jane/30min`;
+      const expectedUrl = `${WEBAPP_URL}/john+jane/30min`;
       const result = await buildEventUrlFromBooking(booking);
       expect(result).toBe(expectedUrl);
     });
@@ -74,7 +64,7 @@ describe("buildEventUrlFromBooking", () => {
         },
         dynamicGroupSlugRef: null,
       };
-      const expectedUrl = `${WEBSITE_URL}/john/30min`;
+      const expectedUrl = `${WEBAPP_URL}/john/30min`;
       const result = await buildEventUrlFromBooking(booking);
       expect(result).toBe(expectedUrl);
     });
@@ -82,12 +72,6 @@ describe("buildEventUrlFromBooking", () => {
 
   describe("Organization", () => {
     const organizationId = 123;
-    const orgOrigin = "https://acme.cal.local";
-    beforeEach(() => {
-      getBrand.mockResolvedValue({
-        fullDomain: orgOrigin,
-      });
-    });
     it("should correctly build the event URL for a team event booking", async () => {
       const booking = {
         eventType: {
@@ -105,7 +89,7 @@ describe("buildEventUrlFromBooking", () => {
         },
         dynamicGroupSlugRef: null,
       };
-      const expectedUrl = `${orgOrigin}/team/engineering/30min`;
+      const expectedUrl = `${WEBAPP_URL}/team/engineering/30min`;
       const result = await buildEventUrlFromBooking(booking);
       expect(result).toBe(expectedUrl);
     });
@@ -124,7 +108,7 @@ describe("buildEventUrlFromBooking", () => {
         },
         dynamicGroupSlugRef: "john+jane",
       };
-      const expectedUrl = `${orgOrigin}/john+jane/30min`;
+      const expectedUrl = `${WEBAPP_URL}/john+jane/30min`;
       const result = await buildEventUrlFromBooking(booking);
       expect(result).toBe(expectedUrl);
     });
@@ -143,7 +127,7 @@ describe("buildEventUrlFromBooking", () => {
         },
         dynamicGroupSlugRef: null,
       };
-      const expectedUrl = `${orgOrigin}/john/30min`;
+      const expectedUrl = `${WEBAPP_URL}/john/30min`;
       const result = await buildEventUrlFromBooking(booking);
       expect(result).toBe(expectedUrl);
     });

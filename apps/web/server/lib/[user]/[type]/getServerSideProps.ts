@@ -1,11 +1,6 @@
-import { type GetServerSidePropsContext } from "next";
-import type { Session } from "next-auth";
-import { z } from "zod";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
@@ -14,10 +9,11 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
-
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
-
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
+import type { GetServerSidePropsContext } from "next";
+import type { Session } from "next-auth";
+import { z } from "zod";
 
 type Props = {
   eventData: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
@@ -120,7 +116,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const currentOrgDomain = null;
+  const isValidOrgDomain = false;
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
   const redirect = await handleOrgRedirect({
@@ -166,25 +163,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
-  }
-
-  // Redirect if no routing form response and redirect URL is configured
-  // Don't redirect if this is a reschedule or seated booking flow
-  const hasRoutingFormResponse =
-    context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
-  if (
-    !hasRoutingFormResponse &&
-    !rescheduleUid &&
-    !bookingUid &&
-    "redirectUrlOnNoRoutingFormResponse" in eventData &&
-    eventData.redirectUrlOnNoRoutingFormResponse
-  ) {
-    return {
-      redirect: {
-        destination: eventData.redirectUrlOnNoRoutingFormResponse,
-        permanent: false,
-      },
-    };
   }
 
   const props: Props = {
@@ -237,7 +215,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const currentOrgDomain = null;
+  const isValidOrgDomain = false;
 
   const redirect = await handleOrgRedirect({
     slugs: usernames,
@@ -277,25 +256,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
-  }
-
-  // Redirect if no routing form response and redirect URL is configured
-  // Don't redirect if this is a reschedule or seated booking flow
-  const hasRoutingFormResponse =
-    context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
-  if (
-    !hasRoutingFormResponse &&
-    !rescheduleUid &&
-    !bookingUid &&
-    "redirectUrlOnNoRoutingFormResponse" in eventData &&
-    eventData.redirectUrlOnNoRoutingFormResponse
-  ) {
-    return {
-      redirect: {
-        destination: eventData.redirectUrlOnNoRoutingFormResponse,
-        permanent: false,
-      },
-    };
   }
 
   const allowSEOIndexing = org

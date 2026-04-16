@@ -45,15 +45,6 @@ export const bookEventTypeSelect = {
   userId: true,
   seatsPerTimeSlot: true,
   bookingFields: true,
-  workflows: {
-    include: {
-      workflow: {
-        include: {
-          steps: true,
-        },
-      },
-    },
-  },
   users: {
     select: {
       id: true,

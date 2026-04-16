@@ -33,7 +33,6 @@ const mockSelectedCalendar: SelectedCalendar = {
   externalId: "test@example.com",
   eventTypeId: null,
   delegationCredentialId: null,
-  domainWideDelegationCredentialId: null,
   googleChannelId: null,
   googleChannelKind: null,
   googleChannelResourceId: null,

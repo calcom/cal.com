@@ -22,7 +22,7 @@ import {
 import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { UnifiedCalendarsFreebusyService } from "./unified-calendars-freebusy.service";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsService } from "@/platform/calendars/services/calendars.service";
 
 describe("UnifiedCalendarsFreebusyService", () => {
   let service: UnifiedCalendarsFreebusyService;

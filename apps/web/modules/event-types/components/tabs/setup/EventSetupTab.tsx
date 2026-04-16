@@ -1,5 +1,5 @@
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 import type {
   EventTypeSetupProps,
   FormValues,
@@ -26,14 +26,12 @@ import {
 } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
 import HostLocations from "@calcom/web/modules/event-types/components/locations/HostLocations";
 import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
 import { useState } from "react";
 import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
-import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -103,8 +101,10 @@ export const EventSetupTab = (
     selectedMultipleDuration.find((opt) => opt.value === formMethods.getValues("length")) ?? null
   );
 
-  const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
-    useLockedFieldsManager({ eventType, translate: t, formMethods });
+  const isManagedEventType = false;
+  const isChildrenManagedEventType = false;
+  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
+  const shouldLockIndicator = (_field: string) => false;
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");

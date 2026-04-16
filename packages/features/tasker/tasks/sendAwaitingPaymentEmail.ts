@@ -1,14 +1,12 @@
-import { z } from "zod";
-
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
-import stripe from "@calcom/features/ee/payments/server/stripe";
+import { PrismaBookingPaymentRepository } from "@calcom/features/bookings/repositories/PrismaBookingPaymentRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaBookingPaymentRepository } from "@calcom/features/bookings/repositories/PrismaBookingPaymentRepository";
 import prisma from "@calcom/prisma";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["sendAwaitingPaymentEmail"] });
 
@@ -42,24 +40,6 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
         `Payment ${paymentId} already succeeded or booking ${bookingId} already paid, skipping email`
       );
       return;
-    }
-
-    // verify stripe payment intent status directly in case of a delayed webhook scenario
-    if (payment.externalId && payment.app?.slug === "stripe") {
-      try {
-        const paymentIntent = await stripe.paymentIntents.retrieve(payment.externalId);
-        if (paymentIntent.status === "succeeded") {
-          log.debug(
-            `Stripe PaymentIntent ${payment.externalId} already succeeded, skipping email (webhook may be delayed)`
-          );
-          return;
-        }
-      } catch (error) {
-        log.warn(
-          `Could not verify Stripe PaymentIntent status for ${payment.externalId}, continuing with email send`,
-          safeStringify(error)
-        );
-      }
     }
 
     // filter attendees if this is for a specific seat

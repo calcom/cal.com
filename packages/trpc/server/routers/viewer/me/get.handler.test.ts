@@ -90,7 +90,6 @@ describe("getHandler - identity provider email lookup", () => {
     defaultScheduleId: null,
     completedOnboarding: true,
     twoFactorEnabled: false,
-    disableImpersonation: false,
     brandColor: "#000000",
     darkBrandColor: "#ffffff",
     bio: null,

@@ -12,8 +12,6 @@ import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
-import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import LocationSettingsContainer from "@calcom/web/modules/event-types/components/locations/LocationSettingsContainer";
 import { InfoBadge } from "@calcom/ui/components/badge";
 
@@ -23,7 +21,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
   const isPlatform = useIsPlatform();
   const [isExpanded, setIsExpanded] = useState(false);
   const [parent] = useAutoAnimate<HTMLDivElement>();
-  const { hasTeamPlan } = useHasTeamPlan();
+  const hasTeamPlan = false;
   return (
     <>
       <Tooltip content="expandable" side="right" className="lg:hidden">
@@ -55,7 +53,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
-                    Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    Badge={undefined}
                   />
                 );
               }}
@@ -72,7 +70,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
-                    Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    Badge={undefined}
                   />
                 );
               }}
@@ -90,7 +88,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                       checked={value}
                       disabled={!hasTeamPlan}
                       onCheckedChange={onChange}
-                      Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                      Badge={undefined}
                     />
                   );
                 }}
@@ -108,7 +106,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
-                    Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    Badge={undefined}
                   />
                 );
               }}
@@ -126,7 +124,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                       checked={value}
                       disabled={!hasTeamPlan}
                       onCheckedChange={onChange}
-                      Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                      Badge={undefined}
                     />
                   );
                 }}
@@ -144,7 +142,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                       checked={value}
                       disabled={!hasTeamPlan}
                       onCheckedChange={onChange}
-                      Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                      Badge={undefined}
                     />
                   );
                 }}
@@ -163,7 +161,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
-                    Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    Badge={undefined}
                   />
                 );
               }}

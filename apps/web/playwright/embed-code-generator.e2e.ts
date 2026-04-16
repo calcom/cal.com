@@ -1,13 +1,10 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { parse } from "node-html-parser";
-
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { parse } from "node-html-parser";
 import { test } from "./lib/fixtures";
 
 const nodeRequire = createRequire(__filename);
@@ -198,7 +195,6 @@ test.describe("Embed Code Generator Tests", () => {
 
       test("open Embed Dialog and choose Inline for First Event Type", async ({ page, users }) => {
         const [user] = users.get();
-        const { team: org } = await user.getOrgMembership();
         const embedUrl = await clickFirstEventTypeEmbedButton(page);
         await expectToBeNavigatingToEmbedTypesDialog(page, {
           embedUrl,
@@ -217,14 +213,14 @@ test.describe("Embed Code Generator Tests", () => {
         await expectToContainValidCode(page, {
           language: "html",
           embedType: "inline",
-          orgSlug: org.slug,
+          orgSlug: null,
         });
 
         await goToReactCodeTab(page);
         await expectToContainValidCode(page, {
           language: "react",
           embedType: "inline",
-          orgSlug: org.slug,
+          orgSlug: null,
         });
 
         // To prevent early timeouts
@@ -232,13 +228,11 @@ test.describe("Embed Code Generator Tests", () => {
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
           calLink: `${user.username}/multiple-duration`,
-          bookerUrl: getOrgFullOrigin(org?.slug ?? ""),
         });
       });
 
       test("open Embed Dialog and choose floating-popup for First Event Type", async ({ page, users }) => {
         const [user] = users.get();
-        const { team: org } = await user.getOrgMembership();
 
         const embedUrl = await clickFirstEventTypeEmbedButton(page);
 
@@ -257,14 +251,14 @@ test.describe("Embed Code Generator Tests", () => {
         await expectToContainValidCode(page, {
           language: "html",
           embedType: "floating-popup",
-          orgSlug: org.slug,
+          orgSlug: null,
         });
 
         await goToReactCodeTab(page);
         await expectToContainValidCode(page, {
           language: "react",
           embedType: "floating-popup",
-          orgSlug: org.slug,
+          orgSlug: null,
         });
 
         // To prevent early timeouts
@@ -272,14 +266,12 @@ test.describe("Embed Code Generator Tests", () => {
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
           calLink: `${user.username}/multiple-duration`,
-          bookerUrl: getOrgFullOrigin(org?.slug ?? ""),
         });
       });
 
       test("open Embed Dialog and choose element-click for First Event Type", async ({ page, users }) => {
         const [user] = users.get();
         const embedUrl = await clickFirstEventTypeEmbedButton(page);
-        const { team: org } = await user.getOrgMembership();
 
         await expectToBeNavigatingToEmbedTypesDialog(page, {
           embedUrl,
@@ -296,14 +288,14 @@ test.describe("Embed Code Generator Tests", () => {
         await expectToContainValidCode(page, {
           language: "html",
           embedType: "element-click",
-          orgSlug: org.slug,
+          orgSlug: null,
         });
 
         await goToReactCodeTab(page);
         await expectToContainValidCode(page, {
           language: "react",
           embedType: "element-click",
-          orgSlug: org.slug,
+          orgSlug: null,
         });
 
         // To prevent early timeouts
@@ -311,7 +303,6 @@ test.describe("Embed Code Generator Tests", () => {
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
           calLink: `${user.username}/multiple-duration`,
-          bookerUrl: getOrgFullOrigin(org?.slug ?? ""),
         });
       });
     });

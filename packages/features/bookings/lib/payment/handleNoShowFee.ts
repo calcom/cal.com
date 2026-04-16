@@ -3,12 +3,10 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import {
   type EventTypeBrandingData,
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -18,7 +16,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-export const handleNoShowFee = async ({
+export const handleNoShowFee= async ({
   booking,
   payment,
 }: {
@@ -130,36 +128,11 @@ export const handleNoShowFee = async ({
       : false,
   };
 
-  if (teamId) {
-    const membershipRepository = new MembershipRepository();
-    const userIsInTeam = await membershipRepository.findUniqueByUserIdAndTeamId({
-      userId,
-      teamId,
-    });
-
-    if (!userIsInTeam) {
-      log.error(`User ${userId} is not a member of team ${teamId}`);
-      throw new Error("User is not a member of the team");
-    }
-  }
-  let paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId({
+  const paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId({
     appId,
     userId,
     teamId,
   });
-
-  if (!paymentCredential && teamId) {
-    const teamRepository = new TeamRepository(prisma);
-    // See if the team event belongs to an org
-    const org = await teamRepository.findParentOrganizationByTeamId(teamId);
-
-    if (org) {
-      paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndTeamId({
-        appId,
-        teamId: org.id,
-      });
-    }
-  }
 
   if (!paymentCredential) {
     log.error(`No payment credential found for user ${userId} or team ${teamId}`);
