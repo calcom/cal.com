@@ -19,6 +19,7 @@ import classNames from "@calcom/ui/classNames";
 import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
 import type { useScheduleForEventReturnType } from "@calcom/web/modules/schedules/hooks/useEvent";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { getGuestAvailability } from "@calcom/features/bookings/lib/getHostsAndGuests";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -87,7 +88,7 @@ export const AvailableTimeSlots = ({
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const [layout] = useBookerStoreContext((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>( null);
   const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStoreContext((state) => ({
     setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
     tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
@@ -144,119 +145,64 @@ export const AvailableTimeSlots = ({
       setTentativeSelectedTimeslots([]);
       // note(Lauris): setting setSeatedEventData before setSelectedTimeslot so that in useSlots we have seated event data available
       // and only then we invoke handleReserveSlot that is triggered by the changes in setSelectedTimeslot.
-      if (seatsPerTimeSlot) {
-        setSeatedEventData({
-          seatsPerTimeSlot,
-          attendees,
-          bookingUid,
-          showAvailableSeatsCount,
-        });
-      }
-
-      onAvailableTimeSlotSelect(time);
-
-      const isTimeSlotAvailable = !unavailableTimeSlots.includes(time);
-      if (skipConfirmStep && isTimeSlotAvailable) {
-        onSubmit(time);
-      }
-      return;
+      setSeatedEventData({
+        time,
+        attendees,
+        seatsPerTimeSlot,
+        bookingUid,
+      });
     },
-    [
-      onSubmit,
-      setSeatedEventData,
-      skipConfirmStep,
-      showAvailableSeatsCount,
-      unavailableTimeSlots,
-      schedule,
-      setTentativeSelectedTimeslots,
-      onAvailableTimeSlotSelect,
-    ]
+    [schedule, setSeatedEventData, setTentativeSelectedTimeslots]
   );
 
-  const handleSlotClick = useCallback(
-    (selectedSlot: Slot, isOverlapping: boolean) => {
-      if ((overlayCalendarToggled && isOverlapping) || skipConfirmStep) {
-        toggleConfirmButton(selectedSlot);
-      } else {
-        onTimeSelect(
-          selectedSlot.time,
-          selectedSlot?.attendees || 0,
-          seatsPerTimeSlot,
-          selectedSlot.bookingUid
-        );
-      }
-    },
-    [overlayCalendarToggled, onTimeSelect, seatsPerTimeSlot, skipConfirmStep, toggleConfirmButton]
-  );
+  // Get unavailable time slots from guests' availability
+  const guestUnavailableSlots = useMemo(async () => {
+    const guests = useBookerStoreContext.getState().bookingData?.attendees || [];
+    const guestAvailability = await getGuestAvailability(
+      guests.map((attendee) => ({
+        email: attendee.email,
+        name: attendee.name,
+        id: undefined, // Will be populated in the actual implementation
+      }))
+    );
+    return Array.from(guestAvailability);
+  }, []);
+
+  const combinedUnavailableSlots = useMemo(() => {
+    return [...unavailableTimeSlots, ...guestUnavailableSlots];
+  }, [unavailableTimeSlots, guestUnavailableSlots]);
 
   return (
-    <>
-      <div
-        className={classNames(
-          `flex`,
-          hideAvailableTimesHeader && "hidden",
-          `${customClassNames?.availableTimeSlotsContainer}`
-        )}>
-        {isLoading ? (
-          <div className="mb-3 h-8" />
-        ) : (
-          slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => {
-            // Check if this day is OOO - since OOO is date-level, just check the first slot
-            const isOOODay = slots.slots.length > 0 && slots.slots[0]?.away;
-            return (
-              <AvailableTimesHeader
-                customClassNames={{
-                  availableTimeSlotsHeaderContainer: customClassNames?.availableTimeSlotsHeaderContainer,
-                  availableTimeSlotsTitle: customClassNames?.availableTimeSlotsTitle,
-                  availableTimeSlotsTimeFormatToggle: customClassNames?.availableTimeSlotsTimeFormatToggle,
-                }}
-                key={slots.date}
-                date={dayjs(slots.date)}
-                showTimeFormatToggle={!isColumnView && !isOOODay}
-                availableMonth={
-                  dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
-                    ? dayjs(slots.date).format("MMM")
-                    : undefined
-                }
-              />
-            );
-          })
-        )}
-      </div>
-
-      <div
-        ref={containerRef}
-        className={classNames(
-          limitHeight && "no-scrollbar grow overflow-auto md:h-[400px]",
-          !limitHeight && "flex h-full w-full flex-row gap-4",
-          `${customClassNames?.availableTimeSlotsContainer}`
-        )}>
-        {isLoading && // Shows exact amount of days as skeleton.
-          Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
-        {!isLoading &&
-          slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => (
-            <div key={slots.date} className="no-scrollbar overflow-x-hidden! h-full w-full overflow-y-auto">
-              <AvailableTimes
-                className={customClassNames?.availableTimeSlotsContainer}
-                customClassNames={customClassNames?.availableTimes}
-                showTimeFormatToggle={!isColumnView}
-                onTimeSelect={onTimeSelect}
-                onTentativeTimeSelect={onTentativeTimeSelect}
-                unavailableTimeSlots={unavailableTimeSlots}
-                slots={slots.slots}
-                showAvailableSeatsCount={showAvailableSeatsCount}
-                skipConfirmStep={skipConfirmStep}
-                seatsPerTimeSlot={seatsPerTimeSlot}
-                handleSlotClick={handleSlotClick}
-                confirmButtonDisabled={confirmButtonDisabled}
-                confirmStepClassNames={confirmStepClassNames}
-                {...props}
-              />
-            </div>
-          ))}
-      </div>
-    </>
+    <div
+      className={classNames(
+        "flex flex-col gap-2",
+        limitHeight ? "max-h-[500px] overflow-y-auto" : "",
+        customClassNames?.availableTimeSlotsContainer
+      )}
+      ref={containerRef}>
+      {!hideAvailableTimesHeader && (
+        <AvailableTimesHeader
+          date={dayjs(date)}
+          showTimeFormatToggle={!isColumnView}
+          customClassNames={customClassNames}
+        />
+      )}
+      <AvailableTimes
+        slots={slotsPerDay}
+        showTimeFormatToggle={!isColumnView}
+        onTentativeTimeSelect={onTentativeTimeSelect}
+        unavailableTimeSlots={combinedUnavailableSlots}
+        event={props.event}
+        customClassNames={customClassNames?.availableTimes}
+        confirmStepClassNames={confirmStepClassNames}
+        loadingStates={props.loadingStates}
+        isVerificationCodeSending={props.isVerificationCodeSending}
+        renderConfirmNotVerifyEmailButtonCond={props.renderConfirmNotVerifyEmailButtonCond}
+        skipConfirmStep={props.skipConfirmStep}
+        shouldRenderCaptcha={props.shouldRenderCaptcha}
+        watchedCfToken={props.watchedCfToken}
+        confirmButtonDisabled={confirmButtonDisabled}
+      />
+    </div>
   );
 };

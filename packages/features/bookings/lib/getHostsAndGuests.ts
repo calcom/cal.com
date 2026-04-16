@@ -6,6 +6,7 @@ export type Host = {
 export type Guest = {
   email: string;
   name: string;
+  id?: number;
 };
 
 type BookingInput = {
@@ -45,10 +46,42 @@ export function getHostsAndGuests(booking: BookingInput): { hosts: Host[]; guest
       .map((attendee) => ({
         email: attendee.email,
         name: attendee.name,
+        id: undefined, // Initially set to undefined, will be populated later if user is found
       })) ?? [];
 
   return {
     hosts: filteredHosts,
     guests,
   };
+}
+
+export async function getGuestAvailability(guests: Guest[]): Promise<Set<string>> {
+  const unavailableTimeSlots = new Set<string>();
+
+  if (!guests.length) {
+    return unavailableTimeSlots;
+  }
+
+  try {
+    // In a real implementation, we would fetch availability for each guest
+    // For now, we'll simulate this by returning an empty set
+    // Actual implementation would call an API endpoint like `/availability` for each guest
+    // Example:
+    // for (const guest of guests) {
+    //   if (guest.id) {
+    //     const availability = await fetchGuestAvailability(guest.id);
+    //     availability.unavailableSlots.forEach(slot => unavailableTimeSlots.add(slot));
+    //   }
+    // }
+  } catch (error) {
+    console.error("Failed to fetch guest availability", error);
+  }
+
+  return unavailableTimeSlots;
+}
+
+async function fetchGuestAvailability(userId: number): Promise<{ unavailableSlots: string[] }> {
+  // This is a placeholder for the actual implementation
+  // In a real app, this would call the availability endpoint
+  return { unavailableSlots: [] };
 }
