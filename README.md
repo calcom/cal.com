@@ -190,6 +190,46 @@ for Logger level to be set at info, for example.
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/calcom/cal.diy)
 
+#### Dev Container setup
+
+A Dev Container configuration is included so you can spin up a fully working development environment without installing PostgreSQL or Redis locally. It works with [VS Code Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers) and [GitHub Codespaces](https://github.com/features/codespaces).
+
+**Requirements:** [Docker](https://www.docker.com/get-started) and the [VS Code Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+
+1. Open the project in VS Code and click **Reopen in Container** when prompted (or run `Dev Containers: Reopen in Container` from the Command Palette).
+
+2. On first start, the container will automatically:
+   - Copy `.env.example` to `.env` (skipped if `.env` already exists)
+   - Run `yarn install`
+
+3. Open `.env` and fill in the two required secrets:
+
+   ```sh
+   # Generate NEXTAUTH_SECRET
+   openssl rand -base64 32
+
+   # Generate CALENDSO_ENCRYPTION_KEY (must be 32 bytes for AES256)
+   openssl rand -base64 24
+   ```
+
+   > The `DATABASE_URL` and `REDIS_URL` are pre-configured by the Dev Container and do not need to be changed.
+
+4. Run database migrations:
+
+   ```sh
+   yarn workspace @calcom/prisma db-migrate
+   ```
+
+5. Start the dev server:
+
+   ```sh
+   yarn dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000).
+
+> **Note:** PostgreSQL is exposed on host port `5450` and Redis on `6379`, matching the defaults in `.env.example`. This lets you connect to the database with tools like TablePlus or psql from your host machine without any extra configuration.
+
 #### Manual setup
 
 1. Configure environment variables in the `.env` file. Replace `<user>`, `<pass>`, `<db-host>`, and `<db-port>` with their applicable values
