@@ -2451,13 +2451,15 @@ async function handler(
     }
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    await handleWebhookTrigger({
-      subscriberOptions,
-      eventTrigger,
-      webhookData,
-      isDryRun,
-      traceContext,
-    });
+    if (booking?.status === BookingStatus.ACCEPTED) {
+      await handleWebhookTrigger({
+        subscriberOptions,
+        eventTrigger,
+        webhookData,
+        isDryRun,
+        traceContext,
+      });
+    }
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
@@ -2513,7 +2515,7 @@ async function handler(
   };
 
   try {
-    if (isConfirmedByDefault) {
+    if (isConfirmedByDefault && booking.status === BookingStatus.ACCEPTED) {
       await scheduleNoShowTriggers({
         booking: {
           startTime: booking.startTime,
