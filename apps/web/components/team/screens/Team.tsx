@@ -1,18 +1,32 @@
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { TeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import { UserAvatar } from "@calcom/ui/components/avatar";
+import Link from "next/link";
+
+type TeamWithMembers = {
+  id: number;
+  name: string;
+  slug: string | null;
+  logoUrl?: string | null;
+  bio?: string | null;
+  members: {
+    id: number;
+    name: string | null;
+    bio?: string | null;
+    username?: string | null;
+    avatar?: string | null;
+  }[];
+};
 
 type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
 type MembersType = TeamType["members"];
-type MemberType = Pick<
-  MembersType[number],
-  "id" | "name" | "bio" | "username" | "organizationId" | "avatarUrl"
-> & {
+type MemberType = Pick<MembersType[number], "id" | "name" | "bio"> & {
+  username: string | null;
+  organizationId?: number | null;
+  avatarUrl: string | null;
+} & {
   profile: Omit<UserProfile, "upId">;
   safeBio: string | null;
   bookerUrl: string;
@@ -30,20 +44,18 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
     <Link
       key={member.id}
       href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}>
-      <div className="bg-default hover:bg-cal-muted border-subtle group flex min-h-full flex-col stack-y-2 rounded-md border p-4 transition hover:cursor-pointer sm:w-80">
+      <div className="group stack-y-2 flex min-h-full flex-col rounded-md border border-subtle bg-default p-4 transition hover:cursor-pointer hover:bg-cal-muted sm:w-80">
         <UserAvatar noOrganizationIndicator size="md" user={member} />
-        <section className="mt-2 line-clamp-4 w-full stack-y-1">
-          <p className="text-default font-medium">{member.name}</p>
-          <div className="text-subtle line-clamp-3 text-ellipsis text-sm font-normal">
+        <section className="stack-y-1 mt-2 line-clamp-4 w-full">
+          <p className="font-medium text-default">{member.name}</p>
+          <div className="line-clamp-3 text-ellipsis font-normal text-sm text-subtle">
             {!isBioEmpty ? (
-              <>
-                <div
-                  className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  // eslint-disable-next-line react/no-danger
-                  // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML
-                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio) }}
-                />
-              </>
+              <div
+                className="wrap-break-word text-sm text-subtle [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                // eslint-disable-next-line react/no-danger
+                // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML
+                dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio ?? null) }}
+              />
             ) : (
               t("user_from_team", { user: member.name, team: teamName })
             )}

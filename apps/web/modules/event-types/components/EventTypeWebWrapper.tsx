@@ -1,43 +1,29 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { z } from "zod";
-
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
+import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
+import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
+import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
-import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { TRPCClientError } from "@trpc/react-query";
-
-import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
-
-import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import { TRPCClientError } from "@trpc/react-query";
+import dynamic from "next/dynamic";
+import { useRouter as useAppRouter, usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
 import { EventType as EventTypeComponent } from "./EventType";
-import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
-import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
-import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
 
 type EventPermissions = {
   eventTypes: {
-    canRead: boolean;
-    canCreate: boolean;
-    canUpdate: boolean;
-    canDelete: boolean;
-  };
-  workflows: {
     canRead: boolean;
     canCreate: boolean;
     canUpdate: boolean;
@@ -59,17 +45,11 @@ const EventAvailabilityTab = dynamic(() =>
   import("./tabs/availability/EventAvailabilityTabWebWrapper").then((mod) => mod)
 );
 
-const EventTeamAssignmentTab = dynamic(() =>
-  import("./tabs/assignment/EventTeamAssignmentTabWebWrapper").then((mod) => mod)
-);
+const EventTeamAssignmentTab = dynamic(() => Promise.resolve((_props: Record<string, unknown>) => null));
 
 const EventLimitsTab = dynamic(() => import("./tabs/limits/EventLimitsTabWebWrapper").then((mod) => mod));
 
 const EventAdvancedTab = dynamic(() => import("./tabs/advanced/EventAdvancedWebWrapper").then((mod) => mod));
-
-const EventInstantTab = dynamic(() =>
-  import("./tabs/instant/EventInstantTab").then((mod) => mod.EventInstantTab)
-);
 
 const EventRecurringTab = dynamic(() =>
   import("./tabs/recurring/EventRecurringWebWrapper").then((mod) => mod)
@@ -77,13 +57,10 @@ const EventRecurringTab = dynamic(() =>
 
 const EventAppsTab = dynamic(() => import("./tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab));
 
-const EventWorkflowsTab = dynamic(() => import("./tabs/workflows/EventWorkflowsTab"));
-
 const EventWebhooksTab = dynamic(() =>
   import("./tabs/webhooks/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
 );
 
-const EventAITab = dynamic(() => import("./tabs/ai/EventAITab").then((mod) => mod.EventAITab));
 
 export type EventTypeWebWrapperProps = {
   id: number;
@@ -101,12 +78,6 @@ export const EventTypeWebWrapper = ({
       canUpdate: false,
       canDelete: false,
     },
-    workflows: {
-      canRead: false,
-      canCreate: false,
-      canUpdate: false,
-      canDelete: false,
-    },
   },
 }: EventTypeWebWrapperProps) => {
   const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
@@ -116,18 +87,18 @@ export const EventTypeWebWrapper = ({
 
   if (serverFetchedData) {
     return (
-      <EventPermissionProvider initialPermissions={permissions}>
+      <>
         <EventTypeWeb {...serverFetchedData} id={id} />
-      </EventPermissionProvider>
+      </>
     );
   }
 
   if (!eventTypeQueryData) return null;
 
   return (
-    <EventPermissionProvider initialPermissions={permissions}>
+    <>
       <EventTypeWeb {...eventTypeQueryData} id={id} />
-    </EventPermissionProvider>
+    </>
   );
 };
 
@@ -153,8 +124,6 @@ const EventTypeWeb = ({
     teamId: eventType.team?.id || eventType.parent?.teamId,
   });
 
-  // Check workflow permissions
-  const { hasPermission: canReadWorkflows } = useWorkflowPermission("canRead");
   const updateMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
@@ -171,11 +140,6 @@ const EventTypeWeb = ({
       if (eventType.team?.slug) {
         // When an event-type is updated,
         // guests could still hit a stale cache and see the old page.
-        revalidateTeamEventTypeCache({
-          teamSlug: eventType.team.slug,
-          meetingSlug: eventType.slug,
-          orgSlug: eventType.team.parent?.slug ?? null,
-        });
       }
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
@@ -209,19 +173,9 @@ const EventTypeWeb = ({
   const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
   const slug = form.watch("slug") ?? eventType.slug;
 
-  const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
-    eventType: {
-      id,
-      teamId: eventType.teamId,
-      userId: eventType.userId,
-      parent: eventType.parent,
-      metadata: eventType.metadata,
-    },
-  });
+  const orgBranding = null as { id: number; [key: string]: unknown } | null;
 
-  const orgBranding = useOrgBranding();
-
-  const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
+  const bookerUrl = orgBranding ? "" : WEBSITE_URL;
   const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
@@ -263,7 +217,6 @@ const EventTypeWeb = ({
         orgId={orgBranding?.id ?? null}
       />
     ),
-    instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: (
       <EventAppsTab
@@ -272,14 +225,7 @@ const EventTypeWeb = ({
         isPendingApps={isPendingApps}
       />
     ),
-    workflows:
-      allActiveWorkflows && canReadWorkflows ? (
-        <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
-      ) : (
-        <></>
-      ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
-    ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
 
   useHandleRouteChange({
@@ -309,10 +255,8 @@ const EventTypeWeb = ({
         EventTeamAssignmentTab,
         EventLimitsTab,
         EventAdvancedTab,
-        EventInstantTab,
         EventRecurringTab,
         EventAppsTab,
-        EventWorkflowsTab,
         EventWebhooksTab,
       ];
 
@@ -340,12 +284,9 @@ const EventTypeWeb = ({
         "team",
         "limits",
         "advanced",
-        "instant",
         "recurring",
         "apps",
-        "workflows",
         "webhooks",
-        "ai",
       ])
       .optional()
       .default("setup"),
@@ -361,11 +302,6 @@ const EventTypeWeb = ({
       if (team?.slug) {
         // When a team event-type is deleted,
         // guests could still hit a stale cache and see the old page.
-        revalidateTeamEventTypeCache({
-          teamSlug: team.slug,
-          meetingSlug: eventType.slug,
-          orgSlug: team.parent?.slug ?? null,
-        });
       }
       showToast(t("event_type_deleted_successfully"), "success");
       isTeamEventTypeDeleted.current = true;
@@ -389,14 +325,11 @@ const EventTypeWeb = ({
     eventType,
     team,
     eventTypeApps,
-    allActiveWorkflows,
-    canReadWorkflows,
   });
 
   return (
     <EventTypeComponent
       {...rest}
-      allActiveWorkflows={allActiveWorkflows}
       tabMap={tabMap}
       onDelete={(id) => {
         deleteMutation.mutate({ id });
@@ -410,31 +343,29 @@ const EventTypeWeb = ({
       isPlatform={false}
       tabName={tabName}
       tabsNavigation={tabsNavigation}>
-      <>
-        {slugExistsChildrenDialogOpen.length ? (
-          <ManagedEventTypeDialog
-            slugExistsChildrenDialogOpen={slugExistsChildrenDialogOpen}
-            isPending={form.formState.isSubmitting}
-            onOpenChange={() => {
-              setSlugExistsChildrenDialogOpen([]);
-            }}
-            slug={slug}
-            onConfirm={(e: { preventDefault: () => void }) => {
-              e.preventDefault();
-              handleSubmit(form.getValues());
-              // telemetry.event(telemetryEventTypes.slugReplacementAction);
-              setSlugExistsChildrenDialogOpen([]);
-            }}
-          />
-        ) : null}
-        <AssignmentWarningDialog
-          isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
-          setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
-          pendingRoute={pendingRoute}
-          leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
-          id={eventType.id}
+      {slugExistsChildrenDialogOpen.length ? (
+        <ManagedEventTypeDialog
+          slugExistsChildrenDialogOpen={slugExistsChildrenDialogOpen}
+          isPending={form.formState.isSubmitting}
+          onOpenChange={() => {
+            setSlugExistsChildrenDialogOpen([]);
+          }}
+          slug={slug}
+          onConfirm={(e: { preventDefault: () => void }) => {
+            e.preventDefault();
+            handleSubmit(form.getValues());
+            // telemetry.event(telemetryEventTypes.slugReplacementAction);
+            setSlugExistsChildrenDialogOpen([]);
+          }}
         />
-      </>
+      ) : null}
+      <AssignmentWarningDialog
+        isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
+        setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
+        pendingRoute={pendingRoute}
+        leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
+        id={eventType.id}
+      />
     </EventTypeComponent>
   );
 };

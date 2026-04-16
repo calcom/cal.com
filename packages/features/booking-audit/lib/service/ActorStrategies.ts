@@ -74,7 +74,7 @@ export const ACTOR_STRATEGIES: Record<AuditActorType, ActorStrategy> = {
   },
   SYSTEM: {
     getRequirements: () => ({}),
-    enrich: () => ({ displayName: "Cal.com", displayEmail: null, displayAvatar: null }),
+    enrich: () => ({ displayName: "Cal.diy", displayEmail: null, displayAvatar: null }),
   },
   GUEST: {
     getRequirements: () => ({}),

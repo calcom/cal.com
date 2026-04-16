@@ -1,20 +1,17 @@
-import { useMemo, useRef } from "react";
-import { useFormContext } from "react-hook-form";
-import { z } from "zod";
-
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
-import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { DefaultEventLocationTypeEnum, getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
-import { FormBuilderField } from "@calcom/web/modules/form-builder/components/FormBuilderField";
-import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { FormBuilderField } from "@calcom/web/modules/form-builder/components/FormBuilderField";
+import { useMemo, useRef } from "react";
+import { useFormContext } from "react-hook-form";
+import { z } from "zod";
 
 type TouchedFields = {
   responses?: Record<string, boolean>;
@@ -46,8 +43,6 @@ export const BookingFields = ({
   const { watch, setValue, formState } = useFormContext();
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
-  const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
-
   // Identify all phone fields (except location field)
   const otherPhoneFieldNames = useMemo(
     () => fields.filter((f) => f.type === "phone" && f.name !== SystemField.Enum.location).map((f) => f.name),
@@ -130,9 +125,6 @@ export const BookingFields = ({
     // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form
     <div>
       {fields.map((field, index) => {
-        // Don't Display Location field in case of instant meeting as only Cal Video is supported
-        if (isInstantMeeting && field.name === "location") return null;
-
         // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         const rescheduleReadOnly =

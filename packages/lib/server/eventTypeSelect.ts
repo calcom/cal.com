@@ -61,7 +61,6 @@ export const eventTypeSelect = {
   isInstantEvent: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
   instantMeetingParameters: true,
-  aiPhoneCallConfig: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
   enablePerHostLocations: true,

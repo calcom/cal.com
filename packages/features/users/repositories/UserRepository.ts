@@ -1,5 +1,3 @@
-import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
-import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { getTranslation } from "@calcom/i18n/server";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -18,6 +16,9 @@ import { userSelect as prismaUserSelect } from "@calcom/prisma/selects/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 import type { z } from "zod";
+
+const whereClauseForOrgWithSlugOrRequestedSlug = (..._args: unknown[]) => ({});
+const getParsedTeam = <T>(team: T): T => team;
 
 export type { UserWithLegacySelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 export { withSelectedCalendars };
@@ -42,7 +43,6 @@ export type SessionUser = {
   createdDate: Date;
   hideBranding: boolean;
   twoFactorEnabled: boolean;
-  disableImpersonation: boolean;
   identityProvider: string | null;
   identityProviderId: string | null;
   brandColor: string | null;
@@ -110,7 +110,6 @@ const userSelect = {
   receiveMonthlyDigestEmail: true,
   requiresBookerEmailVerification: true,
   verified: true,
-  disableImpersonation: true,
   locked: true,
   movedToProfileId: true,
   metadata: true,
@@ -719,7 +718,7 @@ export class UserRepository {
       if (!profileMap.has(profile.userId)) {
         profileMap.set(profile.userId, []);
       }
-      profileMap.get(profile.userId)!.push(profile);
+      profileMap.get(profile.userId)?.push(profile);
     });
 
     // Precompute personal profiles for all users
@@ -1180,7 +1179,6 @@ export class UserRepository {
         createdDate: true,
         hideBranding: true,
         twoFactorEnabled: true,
-        disableImpersonation: true,
         identityProvider: true,
         identityProviderId: true,
         brandColor: true,
@@ -1291,13 +1289,6 @@ export class UserRepository {
     return this.prismaClient.user.update({
       where: { id },
       data: { metadata: { ...existingMetadata, stripeCustomerId } },
-    });
-  }
-
-  async updateWhitelistWorkflows({ id, whitelistWorkflows }: { id: number; whitelistWorkflows: boolean }) {
-    return this.prismaClient.user.update({
-      where: { id },
-      data: { whitelistWorkflows },
     });
   }
 

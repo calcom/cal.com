@@ -39,7 +39,7 @@ env:
 jobs:
   build:
     name: Build Web App
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -66,8 +66,12 @@ jobs:
           lookup-only: true
       - name: Delete old production build caches for this branch
         if: steps.cache-check.outputs.cache-hit != 'true'
-        uses: useblacksmith/cache-delete@v1
-        with:
-          key: prod-build-${{ github.head_ref || github.ref_name }}
-          prefix: "true"
+        continue-on-error: true
+        run: |
+          gh extension install actions/gh-actions-cache
+          for key in $(gh actions-cache list -R ${{ github.repository }} --key "prod-build-${{ github.head_ref || github.ref_name }}" --limit 100 | cut -f1); do
+            gh actions-cache delete "$key" -R ${{ github.repository }} --confirm
+          done
+        env:
+          GH_TOKEN: ${{ github.token }}
       - uses: ./.github/actions/cache-build
