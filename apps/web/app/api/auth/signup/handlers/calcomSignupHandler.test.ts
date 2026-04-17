@@ -66,11 +66,6 @@ vi.mock("@calcom/features/auth/signup/utils/prefillAvatar", () => ({ prefillAvat
 vi.mock("@calcom/features/auth/signup/utils/validateUsername", () => ({
   validateAndGetCorrectedUsernameAndEmail: vi.fn().mockResolvedValue({ isValid: true, username: "testuser" }),
 }));
-vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
-  getBillingProviderService: vi.fn().mockReturnValue({
-    createCustomer: vi.fn().mockResolvedValue({ stripeCustomerId: "cus_123" }),
-  }),
-}));
 vi.mock("@calcom/features/watchlist/lib/telemetry", () => ({ sentrySpan: {} }));
 vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", () => ({
   checkIfEmailIsBlockedInWatchlistController: vi.fn().mockResolvedValue(false),

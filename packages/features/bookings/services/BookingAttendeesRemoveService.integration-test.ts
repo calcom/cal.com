@@ -19,16 +19,6 @@ vi.mock("@calcom/emails/templates/attendee-cancelled-email", () => ({
   },
 }));
 
-const mockOnAttendeeRemoved = vi.fn().mockResolvedValue(undefined);
-
-const mockBookingEventHandlerService = {
-  onAttendeeRemoved: mockOnAttendeeRemoved,
-};
-
-const mockFeaturesRepository = {
-  checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
-};
-
 vi.mock("@calcom/trpc/server/routers/viewer/bookings/addGuests.handler", async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
@@ -49,10 +39,8 @@ describe("BookingAttendeesRemoveService.removeAttendee (Integration Tests)", () 
   const timestamp = Date.now();
   const bookingRepo = new BookingRepository(prisma);
   const service = new BookingAttendeesRemoveService({
-    bookingEventHandlerService: mockBookingEventHandlerService,
-    featuresRepository: mockFeaturesRepository,
     bookingAttendeeRepository: new PrismaBookingAttendeeRepository(prisma),
-  } as unknown as BookingAttendeesRemoveServiceDeps);
+  });
 
   let organizerId: number;
   let bookingId: number;
@@ -183,7 +171,6 @@ describe("BookingAttendeesRemoveService.removeAttendee (Integration Tests)", () 
       attendeeId: secondaryAttendeeId,
       user: testUser,
       emailsEnabled: true,
-      actionSource: "API_V2",
     });
 
     expect(result).toEqual({
@@ -205,18 +192,6 @@ describe("BookingAttendeesRemoveService.removeAttendee (Integration Tests)", () 
     });
     const responses = updatedBooking?.responses as { guests?: string[] } | null;
     expect(responses?.guests ?? []).not.toContain("secondary@test.com");
-
-    expect(mockOnAttendeeRemoved).toHaveBeenCalledWith(
-      expect.objectContaining({
-        bookingUid: `attendee-svc-booking-${timestamp}`,
-        auditData: expect.objectContaining({
-          attendees: expect.objectContaining({
-            old: expect.arrayContaining(["primary@test.com", "secondary@test.com"]),
-            new: expect.arrayContaining(["primary@test.com"]),
-          }),
-        }),
-      })
-    );
   });
 
   describe("primary attendee guard", () => {
@@ -227,7 +202,6 @@ describe("BookingAttendeesRemoveService.removeAttendee (Integration Tests)", () 
           attendeeId: primaryAttendeeId,
           user: testUser,
           emailsEnabled: true,
-          actionSource: "API_V2",
         })
       ).rejects.toThrow("cannot_remove_primary_attendee");
     });
@@ -241,7 +215,6 @@ describe("BookingAttendeesRemoveService.removeAttendee (Integration Tests)", () 
           attendeeId: 999999,
           user: testUser,
           emailsEnabled: true,
-          actionSource: "API_V2",
         })
       ).rejects.toThrow("attendee_not_found");
     });
@@ -300,7 +273,6 @@ describe("BookingAttendeesRemoveService.removeAttendee (Integration Tests)", () 
         attendeeId: emailsDisabledAttendeeId,
         user: testUser,
         emailsEnabled: false,
-        actionSource: "API_V2",
       });
 
       expect(mockSendEmail).not.toHaveBeenCalled();
@@ -360,7 +332,6 @@ describe("BookingAttendeesRemoveService.removeAttendee (Integration Tests)", () 
         attendeeId: plusAddressAttendeeId,
         user: testUser,
         emailsEnabled: false,
-        actionSource: "API_V2",
       });
 
       const updatedBooking = await prisma.booking.findUnique({

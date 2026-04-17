@@ -54,7 +54,7 @@ class BookingService {
 - **Caching Proxies**: Wrap repositories or services to add caching behavior transparently
 - **Decorators**: Add cross-cutting concerns (logging, metrics) without polluting domain logic
 
-## Cal.com's Type-Safe DI with moduleLoader
+## Cal.diy's Type-Safe DI with moduleLoader
 
 We use `@evyweb/ioctopus` to manage service and repository dependencies. The **moduleLoader pattern** provides type-safe dependency injection, ensuring that if a service adds a new dependency, TypeScript will catch missing dependencies at build time rather than runtime.
 
@@ -277,4 +277,4 @@ export function getMyService(): MyService {
 - **Automatic dependency resolution**: The moduleLoader automatically loads all dependencies recursively
 - **Self-documenting**: Each module declares its own dependencies explicitly
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

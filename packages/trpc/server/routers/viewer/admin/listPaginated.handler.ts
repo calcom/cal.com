@@ -72,7 +72,6 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
           username: true,
         },
       },
-      whitelistWorkflows: true,
     },
   });
 

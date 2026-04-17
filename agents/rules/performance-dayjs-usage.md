@@ -50,4 +50,4 @@ new Intl.DateTimeFormat(language).format(date);
 - Date formatting without timezone concerns
 - Performance-critical loops over dates
 
-Reference: [Cal.com Engineering Standards](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Standards](https://cal.com/blog/engineering-in-2026-and-beyond)

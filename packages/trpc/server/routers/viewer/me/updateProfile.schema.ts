@@ -1,8 +1,7 @@
-import { z } from "zod";
-
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 export type TUpdateUserMetadataAllowedKeys = {
   sessionTimeout?: number;
@@ -34,7 +33,6 @@ export type TUpdateProfileInputSchemaInput = {
   completedOnboarding?: boolean;
   locale?: string;
   timeFormat?: number;
-  disableImpersonation?: boolean;
   metadata?: z.infer<typeof userMetadata>;
   travelSchedules?: {
     id?: number;
@@ -69,7 +67,6 @@ export type TUpdateProfileInputSchema = {
   completedOnboarding?: boolean;
   locale?: string;
   timeFormat?: number;
-  disableImpersonation?: boolean;
   metadata?: z.infer<typeof userMetadata>;
   travelSchedules?: {
     id?: number;
@@ -108,7 +105,6 @@ export const ZUpdateProfileInputSchema: z.ZodType<
   completedOnboarding: z.boolean().optional(),
   locale: z.string().optional(),
   timeFormat: z.number().optional(),
-  disableImpersonation: z.boolean().optional(),
   metadata: userMetadata.optional(),
   travelSchedules: z
     .array(
