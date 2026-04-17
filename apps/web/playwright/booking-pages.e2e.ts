@@ -314,17 +314,21 @@ test.describe("pro user", () => {
     await Promise.all(promises);
   });
 
-  test("focuses the newly added guest email input", async ({ page }) => {
-    await page.click('[data-testid="event-type-link"]');
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await page.fill('[name="name"]', "test1234");
-    await page.fill('[name="email"]', "test1234@example.com");
+  test.describe("mobile", () => {
+    test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
-    await page.locator('[data-testid="add-guests"]').click();
-    await expect(page.locator('[id="guests.0"]')).toBeFocused();
+    test("focuses the newly added guest email input", async ({ page }) => {
+      await page.click('[data-testid="event-type-link"]');
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await page.fill('[name="name"]', "test1234");
+      await page.fill('[name="email"]', "test1234@example.com");
 
-    await page.locator('[data-testid="add-another-guest"]').click();
-    await expect(page.locator('[id="guests.1"]')).toBeFocused();
+      await page.locator('[data-testid="add-guests"]').click();
+      await expect(page.locator('[id="guests.0"]')).toBeFocused();
+
+      await page.locator('[data-testid="add-another-guest"]').click();
+      await expect(page.locator('[id="guests.1"]')).toBeFocused();
+    });
   });
 
   test("Time slots should be reserved when selected", async ({ page, browser }) => {
