@@ -344,6 +344,22 @@ describe("Cancel Booking", () => {
     ).rejects.toThrow("Cannot cancel a booking that has already ended");
   });
 
+  test("Should throw HttpError 404 when booking does not exist", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          uid: "non-existent-booking-uid",
+          cancelledBy: "organizer@example.com",
+        },
+      })
+    ).rejects.toMatchObject({
+      statusCode: 404,
+      message: "Booking not found",
+    });
+  });
+
   test("Should block canceling bookings without a cancellation reason when cancelledBy is set to the host", async () => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 
