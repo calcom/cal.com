@@ -203,7 +203,6 @@ export const NavigationItem: React.FC<{
         </Tooltip>
       ) : (
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
-          {/* Wrap in span so the tooltip trigger is not an <a>, preventing nested <a> elements */}
           <span className="block">
             <Link
               data-test-id={item.name}
