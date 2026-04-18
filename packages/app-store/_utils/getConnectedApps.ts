@@ -9,6 +9,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import type { TDependencyData } from "../_appRegistry";
 import { PaymentServiceMap } from "../payment.services.generated";
 import type { CredentialOwner } from "../types";
+import type { AppFrontendPayload } from "@calcom/types/App";
 import { getAppFromSlug } from "../utils";
 import getEnabledAppsFromCredentials from "./getEnabledAppsFromCredentials";
 
@@ -150,7 +151,35 @@ export async function getConnectedApps({
     enabledApps.map(async (rawApp) => {
       const { credentials, credential } = rawApp;
 
-      const safeApp = {
+      const safeApp: Pick<
+        AppFrontendPayload,
+        | "name"
+        | "slug"
+        | "description"
+        | "type"
+        | "categories"
+        | "logo"
+        | "publisher"
+        | "url"
+        | "docsUrl"
+        | "variant"
+        | "isGlobal"
+        | "isOAuth"
+        | "appData"
+        | "concurrentMeetings"
+        | "extendsFeature"
+        | "dependencies"
+        | "isTemplate"
+        | "dirName"
+        | "feeType"
+        | "price"
+        | "paid"
+        | "licenseRequired"
+        | "email"
+      > & {
+        enabled: boolean;
+        locationOption: typeof rawApp.locationOption;
+      } = {
         name: rawApp.name,
         slug: rawApp.slug,
         description: rawApp.description,
