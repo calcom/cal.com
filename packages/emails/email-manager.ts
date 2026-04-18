@@ -44,6 +44,9 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
+import AttendeePendingRescheduledEmail from "./templates/attendee-pending-rescheduled-email";
+import OrganizerPendingRescheduledEmail from "./templates/organizer-pending-rescheduled-email";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
@@ -282,11 +285,28 @@ export const sendReassignedEmailsAndSMS = async (args: {
 
 const _sendRescheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+    originalBookingStatus?: BookingStatus,
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
   const organizationSettings = await fetchOrganizationEmailSettings(calEvent.organizationId);
+
+  const wasPending = originalBookingStatus === BookingStatus.PENDING;
+
+  console.log('is Pending ? ', wasPending)
+
+  if(wasPending){
+
+    console.log('sending rescheduling mail ')
+    await Promise.all([
+      new OrganizerPendingRescheduledEmail({ calEvent }).sendEmail(),
+      ...calEvent.attendees.map((attendee) => new AttendeePendingRescheduledEmail(calEvent, attendee).sendEmail())
+    ])
+
+    console.log('sent rescheduling mail ')
+    return
+  }
 
   if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
     emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
