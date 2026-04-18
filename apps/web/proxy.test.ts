@@ -353,18 +353,6 @@ describe("Middleware Integration Tests", () => {
     });
   });
 
-  describe("Routing Forms", () => {
-    it("should rewrite legacy routing_forms URLs", async () => {
-      const req = createTestRequest({
-        url: `${WEBAPP_URL}/apps/routing_forms/form-id`,
-      });
-
-      const res = await callProxy(req);
-      expect(res).toBeDefined();
-      expectStatus(res, 200);
-    });
-  });
-
   describe("Header sanitization", () => {
     it("sanitizes non-ASCII request header values to prevent Vercel Runtime Malformed Response Header", async () => {
       const spy = vi.spyOn(NextResponse, "next");
@@ -416,9 +404,9 @@ describe("Middleware Integration Tests", () => {
   });
 
   describe("Multiple Features", () => {
-    it("should handle embed route with routing forms rewrite", async () => {
+    it("should handle embed route with query params", async () => {
       const req = createTestRequest({
-        url: `${WEBAPP_URL}/apps/routing_forms/form/embed?ui.color-scheme=light`,
+        url: `${WEBAPP_URL}/team/test/embed?ui.color-scheme=light`,
       });
 
       const res = await callProxy(req);

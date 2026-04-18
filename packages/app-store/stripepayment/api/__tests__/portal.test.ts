@@ -1,24 +1,16 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { NextApiRequest } from "next";
 import type { Session } from "next-auth";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   BillingPortalServiceFactory,
   TeamBillingPortalService,
-  OrganizationBillingPortalService,
   UserBillingPortalService,
 } from "../../lib/BillingPortalService";
 import * as customerModule from "../../lib/customer";
-import { validateAuthentication, buildReturnUrl } from "../portal";
+import { buildReturnUrl, validateAuthentication } from "../portal";
 
 // Mock dependencies
-vi.mock("@calcom/features/pbac/services/permission-check.service");
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("../../lib/customer");
 vi.mock("../../lib/server");
 vi.mock("../../lib/subscriptions");
@@ -26,20 +18,10 @@ vi.mock("@calcom/prisma", () => ({
   default: {},
 }));
 
-const mockPermissionService = vi.mocked(PermissionCheckService);
-const mockTeamRepository = vi.mocked(TeamRepository);
 const mockCustomerModule = vi.mocked(customerModule);
 
 interface RequestWithSession extends NextApiRequest {
   session?: Session | null;
-}
-
-interface MockPermissionService {
-  checkPermission: ReturnType<typeof vi.fn>;
-}
-
-interface MockTeamRepository {
-  findById: ReturnType<typeof vi.fn>;
 }
 
 describe("Portal API - Service-Based Architecture", () => {
@@ -118,41 +100,6 @@ describe("Portal API - Service-Based Architecture", () => {
   });
 
   describe("BillingPortalServiceFactory", () => {
-    let mockTeamRepo: MockTeamRepository;
-
-    beforeEach(() => {
-      mockTeamRepo = {
-        findById: vi.fn(),
-      };
-      mockTeamRepository.mockImplementation(function () {
-        return mockTeamRepo as unknown as TeamRepository;
-      });
-    });
-
-    it("should create OrganizationBillingPortalService for organizations", async () => {
-      const mockTeam = { id: 1, isOrganization: true, metadata: {} };
-      mockTeamRepo.findById.mockResolvedValue(mockTeam);
-
-      const service = await BillingPortalServiceFactory.createService(1);
-
-      expect(service).toBeInstanceOf(OrganizationBillingPortalService);
-    });
-
-    it("should create TeamBillingPortalService for regular teams", async () => {
-      const mockTeam = { id: 1, isOrganization: false, metadata: {} };
-      mockTeamRepo.findById.mockResolvedValue(mockTeam);
-
-      const service = await BillingPortalServiceFactory.createService(1);
-
-      expect(service).toBeInstanceOf(TeamBillingPortalService);
-    });
-
-    it("should throw error when team not found", async () => {
-      mockTeamRepo.findById.mockResolvedValue(null);
-
-      await expect(BillingPortalServiceFactory.createService(1)).rejects.toThrow("Team not found");
-    });
-
     it("should create UserBillingPortalService", () => {
       const service = BillingPortalServiceFactory.createUserService();
 
@@ -161,67 +108,11 @@ describe("Portal API - Service-Based Architecture", () => {
   });
 
   describe("TeamBillingPortalService", () => {
-    let service: TeamBillingPortalService;
-    let mockPermissionServiceInstance: MockPermissionService;
-
-    beforeEach(() => {
-      mockPermissionServiceInstance = {
-        checkPermission: vi.fn().mockResolvedValue(true),
-      };
-
-      vi.mocked(PermissionCheckService).mockImplementation(function () {
-        return mockPermissionServiceInstance as unknown as PermissionCheckService;
-      });
-
-      const mockTeamRepo: MockTeamRepository = {
-        findById: vi.fn(),
-      };
-      mockTeamRepository.mockImplementation(function () {
-        return mockTeamRepo as unknown as TeamRepository;
-      });
-
-      service = new TeamBillingPortalService();
-    });
-
-    it("should check team.manageBilling permission", async () => {
+    it("should return false for checkPermissions (EE feature removed)", async () => {
+      const service = new TeamBillingPortalService();
       const result = await service.checkPermissions(123, 456);
 
-      expect(mockPermissionServiceInstance.checkPermission).toHaveBeenCalledWith({
-        userId: 123,
-        teamId: 456,
-        permission: "team.manageBilling",
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      });
-      expect(result).toBe(true);
-    });
-  });
-
-  describe("OrganizationBillingPortalService", () => {
-    let service: OrganizationBillingPortalService;
-    let mockPermissionServiceInstance: MockPermissionService;
-
-    beforeEach(() => {
-      mockPermissionServiceInstance = {
-        checkPermission: vi.fn().mockResolvedValue(true),
-      };
-
-      vi.mocked(PermissionCheckService).mockImplementation(function () {
-        return mockPermissionServiceInstance as unknown as PermissionCheckService;
-      });
-
-      service = new OrganizationBillingPortalService();
-    });
-
-    it("should check organization.manageBilling permission", async () => {
-      const result = await service.checkPermissions(123, 456);
-
-      expect(mockPermissionServiceInstance.checkPermission).toHaveBeenCalledWith({
-        userId: 123,
-        teamId: 456,
-        permission: "organization.manageBilling",
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      });
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
   });
 

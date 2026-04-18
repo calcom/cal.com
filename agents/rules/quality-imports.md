@@ -9,7 +9,7 @@ tags: imports, exports, modules, app-store
 
 ## Named vs Default Exports
 
-When working with imports in the Cal.com codebase, particularly in app-store integrations, pay attention to whether modules use named exports or default exports.
+When working with imports in the Cal.diy codebase, particularly in app-store integrations, pay attention to whether modules use named exports or default exports.
 
 Many services like VideoApiAdapter, CalendarService, and PaymentService are exported as named exports, but the actual export name may differ from the generic service type.
 
@@ -26,7 +26,7 @@ import CalendarService from "./applecalendar/lib/CalendarService";
 
 ## Generated Files
 
-When fixing imports in Cal.com's generated files (like `packages/app-store/apps.browser-*.generated.tsx`), always check the actual exports in the source files first.
+When fixing imports in Cal.diy's generated files (like `packages/app-store/apps.browser-*.generated.tsx`), always check the actual exports in the source files first.
 
 For EventTypeAppCardInterface components, they likely use named exports rather than default exports, requiring:
 

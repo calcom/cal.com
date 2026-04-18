@@ -89,7 +89,6 @@ function buildDestinationCalendar(data: {
     createdAt: new Date(),
     updatedAt: new Date(),
     delegationCredentialId: null,
-    domainWideDelegationCredentialId: null,
   };
 }
 

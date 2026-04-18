@@ -14,8 +14,6 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
   return handleMarkHostNoShow({
     bookingUid,
     noShowHost,
-    actionSource: "WEBAPP",
-    impersonatedByUserUuid: null,
   });
 };
 

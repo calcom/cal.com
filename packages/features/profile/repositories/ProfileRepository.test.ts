@@ -1,15 +1,8 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { ProfileRepository, LookupTarget } from "./ProfileRepository";
-
-vi.mock("@calcom/features/ee/teams/lib/getParsedTeam", () => ({
-  getParsedTeam: <T>(org: T) => org,
-}));
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LookupTarget, ProfileRepository } from "./ProfileRepository";
 
 vi.mock("@calcom/lib/logger", () => ({
   default: {
@@ -33,7 +26,7 @@ describe("ProfileRepository.findByUpIdWithAuth - IDOR Security Fix", () => {
   beforeEach(async () => {
     vi.resetAllMocks();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     await prismock.reset();
 
     // Create User 1

@@ -1,4 +1,3 @@
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
@@ -27,6 +26,16 @@ async function getHandler(request: NextRequest) {
 
   try {
     const { action, token, bookingUid, userId } = querySchema.parse(queryParams);
+
+    if (action === DirectAction.REJECT) {
+      // Rejections should use POST method
+      return NextResponse.redirect(
+        new URL(
+          `/booking/${bookingUid}?error=${encodeURIComponent("Rejection requires POST method")}`,
+          WEBAPP_URL
+        )
+      );
+    }
 
     return await handleBookingAction(action, token, bookingUid, userId, request, undefined);
   } catch {
@@ -106,9 +115,6 @@ async function handleBookingAction(
         /** Ignored reason input unless we're rejecting */
         reason: action === DirectAction.REJECT ? reason : undefined,
         emailsEnabled: true,
-        actionSource: "MAGIC_LINK",
-        actor: makeUserActor(user.uuid),
-        impersonatedByUserUuid: null,
       },
     });
   } catch (e) {

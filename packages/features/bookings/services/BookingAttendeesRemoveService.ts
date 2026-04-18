@@ -1,10 +1,5 @@
 import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import type { BookingAuditContext } from "@calcom/features/booking-audit/lib/dto/types";
-import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getTranslation } from "@calcom/i18n/server";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -26,8 +21,6 @@ type RemoveAttendeeInput = {
   attendeeId: number;
   user: TUser;
   emailsEnabled?: boolean;
-  actionSource: ActionSource;
-  impersonatedByUserUuid?: string | null;
 };
 
 export type RemovedAttendee = {
@@ -39,8 +32,6 @@ export type RemovedAttendee = {
 };
 
 export type BookingAttendeesRemoveServiceDeps = {
-  bookingEventHandlerService: BookingEventHandlerService;
-  featuresRepository: FeaturesRepository;
   bookingAttendeeRepository: PrismaBookingAttendeeRepository;
 };
 
@@ -52,8 +43,6 @@ export class BookingAttendeesRemoveService {
     attendeeId,
     user,
     emailsEnabled = true,
-    actionSource,
-    impersonatedByUserUuid,
   }: RemoveAttendeeInput): Promise<RemovedAttendee> {
     const booking = await getBooking(bookingId);
     await validateUserPermissions(booking, user);
@@ -71,30 +60,6 @@ export class BookingAttendeesRemoveService {
     if (emailsEnabled) {
       this.sendCancellationEmail(attendeeToRemove, evt);
     }
-
-    const organizationId = user.organizationId ?? null;
-    const isBookingAuditEnabled = organizationId
-      ? await this.deps.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
-      : false;
-
-    const auditContext: BookingAuditContext = {
-      impersonatedBy: impersonatedByUserUuid ?? undefined,
-    };
-
-    await this.deps.bookingEventHandlerService.onAttendeeRemoved({
-      bookingUid: booking.uid,
-      actor: makeUserActor(user.uuid),
-      organizationId,
-      source: actionSource,
-      auditData: {
-        attendees: {
-          old: booking.attendees.map((a) => a.email),
-          new: remainingAttendees.map((a) => a.email),
-        },
-      },
-      context: auditContext,
-      isBookingAuditEnabled,
-    });
 
     return {
       id: attendeeToRemove.id,

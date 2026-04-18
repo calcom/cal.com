@@ -112,8 +112,15 @@ export async function createCRMEvent(payload: string): Promise<void> {
 
     const errorPerApp: Record<AppSlug, UnknownError> = {};
 
+    /** Common shape for parsed app data that may include CRM properties */
+    interface ParsedAppData {
+      appCategories?: string[];
+      enabled?: boolean;
+      credentialId?: number;
+    }
+
     // Parse apps and collect credential IDs for enabled CRM apps
-    const appInfoMap = new Map<string, { app: any; credentialId: number }>();
+    const appInfoMap = new Map<string, { app: ParsedAppData; credentialId: number }>();
     const credentialIds = new Set<number>();
 
     for (const appSlug of Object.keys(eventTypeAppMetadata)) {
@@ -131,7 +138,7 @@ export async function createCRMEvent(payload: string): Promise<void> {
         continue;
       }
 
-      const app = appParse.data;
+      const app = appParse.data as ParsedAppData;
       const hasCrmCategory =
         app.appCategories && app.appCategories.some((category: string) => category === "crm");
 

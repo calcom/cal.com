@@ -55,4 +55,4 @@ assignees: ""
 - If this issue has a `🚨 needs approval` label, don't start coding yet. Wait until a core member approves feature request by removing this label, then you can start coding.
   - For clarity: Non-core member issues automatically get the `🚨 needs approval` label.
   - Your feature ideas are invaluable to us! However, they undergo review to ensure alignment with the product's direction.
-  - Follow Best Practices lined out in our [Contributor Docs](https://github.com/calcom/cal.com/blob/main/CONTRIBUTING.md)
+  - Follow Best Practices lined out in our [Contributor Docs](https://github.com/calcom/cal.diy/blob/main/CONTRIBUTING.md)

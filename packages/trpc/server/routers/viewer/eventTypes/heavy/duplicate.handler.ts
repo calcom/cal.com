@@ -40,7 +40,6 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         },
         hosts: true,
         team: true,
-        workflows: true,
         webhooks: true,
         hashedLink: true,
         destinationCalendar: true,
@@ -92,7 +91,6 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventTypeColor,
       customReplyToEmail,
       metadata,
-      workflows,
       hashedLink,
       destinationCalendar,
 
@@ -202,15 +200,6 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       });
     }
 
-    if (workflows.length > 0) {
-      const relationCreateData = workflows.map((workflow) => {
-        return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
-      });
-
-      await prisma.workflowsOnEventTypes.createMany({
-        data: relationCreateData,
-      });
-    }
     if (destinationCalendar) {
       await setDestinationCalendarHandler({
         ctx,
@@ -225,17 +214,15 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventType: newEventType,
     };
   } catch (error) {
-    if (error instanceof TRPCError) {
-      throw error;
-    }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      
       if (Array.isArray(error.meta?.target) && error.meta?.target.includes("slug")) {
         throw new TRPCError({
           code: "CONFLICT",
           message: "duplicate_event_slug_conflict",
         });
       }
-
+      
       throw new TRPCError({
         code: "CONFLICT",
         message: "Unique constraint violation while creating a duplicate event.",

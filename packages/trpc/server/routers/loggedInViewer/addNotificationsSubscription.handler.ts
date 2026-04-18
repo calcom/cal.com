@@ -1,4 +1,12 @@
-import { subscriptionSchema } from "@calcom/features/instant-meeting/schema";
+import { z } from "zod";
+
+const subscriptionSchema = z.object({
+  endpoint: z.string().url(),
+  keys: z.object({
+    auth: z.string(),
+    p256dh: z.string(),
+  }),
+});
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
