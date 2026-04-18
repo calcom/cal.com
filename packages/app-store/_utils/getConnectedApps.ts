@@ -146,16 +146,45 @@ export async function getConnectedApps({
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
   });
-  //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
-    enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
-      const userCredentialIds = credentials.filter((c) => c.appId === app.slug && !c.teamId).map((c) => c.id);
+    enabledApps.map(async (rawApp) => {
+      const { credentials, credential } = rawApp;
+
+      const safeApp = {
+        name: rawApp.name,
+        slug: rawApp.slug,
+        description: rawApp.description,
+        type: rawApp.type,
+        categories: rawApp.categories,
+        logo: rawApp.logo,
+        publisher: rawApp.publisher,
+        url: rawApp.url,
+        docsUrl: rawApp.docsUrl,
+        variant: rawApp.variant,
+        isGlobal: rawApp.isGlobal,
+        isOAuth: rawApp.isOAuth,
+        appData: rawApp.appData,
+        concurrentMeetings: rawApp.concurrentMeetings,
+        extendsFeature: rawApp.extendsFeature,
+        dependencies: rawApp.dependencies,
+        isTemplate: rawApp.isTemplate,
+        dirName: rawApp.dirName,
+        feeType: rawApp.feeType,
+        price: rawApp.price,
+        paid: rawApp.paid,
+        licenseRequired: rawApp.licenseRequired,
+        email: rawApp.email,
+        enabled: rawApp.enabled,
+        locationOption: rawApp.locationOption,
+      };
+
+      const userCredentialIds = credentials.filter((c) => c.appId === safeApp.slug && !c.teamId).map((c) => c.id);
       const invalidCredentialIds = credentials
-        .filter((c) => c.appId === app.slug && c.invalid)
+        .filter((c) => c.appId === safeApp.slug && c.invalid)
         .map((c) => c.id);
       const teams = await Promise.all(
         credentials
-          .filter((c) => c.appId === app.slug && c.teamId)
+          .filter((c) => c.appId === safeApp.slug && c.teamId)
           .map(async (c) => {
             const team = userTeams.find((team) => team.id === c.teamId);
             if (!team) {
@@ -179,21 +208,21 @@ export async function getConnectedApps({
       // We need to know if app is payment type
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
-      if (credential && app.categories.includes("payment")) {
-        const paymentAppImportFn = PaymentServiceMap[app.dirName as keyof typeof PaymentServiceMap];
+      if (credential && safeApp.categories.includes("payment")) {
+        const paymentAppImportFn = PaymentServiceMap[safeApp.dirName as keyof typeof PaymentServiceMap];
         if (paymentAppImportFn) {
           const paymentApp = await paymentAppImportFn;
-                              if (paymentApp && "BuildPaymentService" in paymentApp && paymentApp?.BuildPaymentService) {
-                      const createPaymentService = paymentApp.BuildPaymentService;
-                      const paymentInstance = createPaymentService(credential);
+          if (paymentApp && "BuildPaymentService" in paymentApp && paymentApp?.BuildPaymentService) {
+            const createPaymentService = paymentApp.BuildPaymentService;
+            const paymentInstance = createPaymentService(credential);
             isSetupAlready = paymentInstance.isSetupAlready();
           }
         }
       }
 
       let dependencyData: TDependencyData = [];
-      if (app.dependencies?.length) {
-        dependencyData = app.dependencies.map((dependency) => {
+      if (safeApp.dependencies?.length) {
+        dependencyData = safeApp.dependencies.map((dependency) => {
           const dependencyInstalled = enabledApps.some(
             (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
           );
@@ -204,16 +233,16 @@ export async function getConnectedApps({
       }
 
       return {
-        ...app,
+        ...safeApp,
         ...(teams.length && {
           credentialOwner,
         }),
         userCredentialIds,
         invalidCredentialIds,
         teams,
-        isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
+        isInstalled: !!userCredentialIds.length || !!teams.length || safeApp.isGlobal,
         isSetupAlready,
-        ...(app.dependencies && { dependencyData }),
+        ...(safeApp.dependencies && { dependencyData }),
       };
     })
   );
