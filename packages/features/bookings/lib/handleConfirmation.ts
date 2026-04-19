@@ -154,14 +154,15 @@ export async function handleConfirmation(args: {
     } | null;
   }[] = [];
 
-  const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
-  const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
+  // meetingUrl for non-recurring bookings only (recurring occurrences each get their own below)
+const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
+const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
 
-  let acceptedBookings: {
-    oldStatus: BookingStatus;
-    uid: string;
-  }[];
-  if (recurringEventId) {
+let acceptedBookings: {
+  oldStatus: BookingStatus;
+  uid: string;
+}[];
+if (recurringEventId) {
     // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
     // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
     const unconfirmedRecurringBookings = await prisma.booking.findMany({
@@ -170,11 +171,16 @@ export async function handleConfirmation(args: {
         status: BookingStatus.PENDING,
       },
     });
-
     acceptedBookings = unconfirmedRecurringBookings.map((booking) => ({
       oldStatus: booking.status,
       uid: booking.uid,
     }));
+    // Derive the video call URL from the video reference created for this confirmation.
+    // Cal Video recurring series intentionally share one room URL across occurrences.
+    const videoReference = scheduleResult.referencesToCreate.find((ref) => ref.meetingUrl);
+
+
+    const occurrenceMeetingUrl = videoReference?.meetingUrl || meetingUrl;
 
     const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) =>
       prisma.booking.update({
@@ -189,9 +195,11 @@ export async function handleConfirmation(args: {
           paid,
           metadata: {
             ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
-            videoCallUrl: meetingUrl,
+            videoCallUrl: occurrenceMeetingUrl,
           },
         },
+
+
         select: {
           eventType: {
             select: {
@@ -400,8 +408,9 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const payload: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: eventType?.id,
@@ -411,21 +420,21 @@ export async function handleConfirmation(args: {
       ...(platformClientParams ? platformClientParams : {}),
     };
 
-    const promises = subscribersBookingCreated.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_CREATED,
-        new Date().toISOString(),
-        sub,
-        payload
-      ).catch((e) => {
-        tracingLogger.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
-          safeStringify(e)
-        );
-      })
-    );
-
+      return subscribersBookingCreated.map((sub) =>
+        sendPayload(
+          sub.secret,
+          WebhookTriggerEvents.BOOKING_CREATED,
+          new Date().toISOString(),
+          sub,
+          payload
+        ).catch((e) => {
+          tracingLogger.error(
+            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${updatedBooking.id}, bookingUid: ${updatedBooking.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
+            safeStringify(e)
+          );
+        })
+      );
+    });
     await Promise.all(promises);
   } catch (error) {
     // Silently fail
