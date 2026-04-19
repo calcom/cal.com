@@ -294,19 +294,35 @@ const _sendRescheduledEmailsAndSMS = async (
 
   const wasPending = originalBookingStatus === BookingStatus.PENDING;
 
-  console.log('is Pending ? ', wasPending)
+  if (wasPending) {
+    const attendeeCalEvent = {
+      ...calendarEvent,
+      ...(calendarEvent.hideCalendarNotes && { additionalNotes: undefined }),
+    };
 
-  if(wasPending){
+    if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+      emailsToSend.push(sendEmail(() => new OrganizerPendingRescheduledEmail({ calEvent: calendarEvent })));
 
-    console.log('sending rescheduling mail ')
-    await Promise.all([
-      new OrganizerPendingRescheduledEmail({ calEvent }).sendEmail(),
-      ...calEvent.attendees.map((attendee) => new AttendeePendingRescheduledEmail(calEvent, attendee).sendEmail())
-    ])
+      if (calendarEvent.team) {
+        for (const teamMember of calendarEvent.team.members) {
+          emailsToSend.push(
+            sendEmail(() => new OrganizerPendingRescheduledEmail({ calEvent: calendarEvent, teamMember }))
+          );
+        }
+      }
+    }
 
-    console.log('sent rescheduling mail ')
-    return
-  }
+    if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.RESCHEDULED)) {
+      emailsToSend.push(
+        ...calendarEvent.attendees.map((attendee) =>
+          sendEmail(() => new AttendeePendingRescheduledEmail(attendeeCalEvent, attendee))
+        )
+      );
+    }
+
+    await Promise.all(emailsToSend);
+    return;
+   }
 
   if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
     emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));

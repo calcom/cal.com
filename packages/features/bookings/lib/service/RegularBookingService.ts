@@ -2203,6 +2203,7 @@ async function handler(
           attendees: attendeesList,
           additionalNotes,
           originalRescheduledBooking,
+          rescheduleReason
         },
       });
       bookingEmailsAndSmsTaskerAction = BookingActionMap.requested;

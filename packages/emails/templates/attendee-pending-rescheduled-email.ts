@@ -15,17 +15,17 @@ export default class AttendeePendingRescheduledEmail extends AttendeeScheduledEm
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       subject: this.attendee.language.translate(
-        "event_type_has_been_rescheduled_on_time_date",
-        {
-          title: this.calEvent.title,
-          date: this.getFormattedDate(),
-        }
-      ),
+       "rescheduled_pending_event_type_subject",
+       {
+         title: this.calEvent.title,
+         date: this.getFormattedDate(),
+       }
+     ),
       html: await this.getHtml(this.calEvent, this.attendee),
       text: this.getTextBody(
-        "event_has_been_rescheduled",
-        "emailed_you_and_any_other_attendees"
-      ),
+       "rescheduled_pending_attendee_email_title",
+      "rescheduled_pending_attendee_email_subtitle"
+     ),
     };
   }
 
