@@ -400,33 +400,46 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
+  const promises = subscribersBookingCreated.flatMap((sub) =>
+  updatedBookings.map((updatedBooking) => {
+    const bookingMetadata =
+      updatedBooking.metadata && typeof updatedBooking.metadata === "object"
+        ? (updatedBooking.metadata as Record<string, unknown>)
+        : {};
+
+    const bookingVideoCallUrl =
+      typeof bookingMetadata.videoCallUrl === "string" ? bookingMetadata.videoCallUrl : undefined;
+
     const payload: EventPayloadType = {
       ...evt,
       ...eventTypeInfo,
-      bookingId,
-      eventTypeId: eventType?.id,
+      bookingId: updatedBooking.id,
+      uid: updatedBooking.uid,
+      startTime: updatedBooking.startTime.toISOString(),
+      endTime: updatedBooking.endTime.toISOString(),
       status: "ACCEPTED",
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
+      eventTypeId: eventType?.id,
+      smsReminderNumber: updatedBooking.smsReminderNumber || undefined,
+      metadata: bookingVideoCallUrl ? { videoCallUrl: bookingVideoCallUrl } : {},
       ...(platformClientParams ? platformClientParams : {}),
     };
 
-    const promises = subscribersBookingCreated.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_CREATED,
-        new Date().toISOString(),
-        sub,
-        payload
-      ).catch((e) => {
-        tracingLogger.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
-          safeStringify(e)
-        );
-      })
-    );
+    return sendPayload(
+      sub.secret,
+      WebhookTriggerEvents.BOOKING_CREATED,
+      new Date().toISOString(),
+      sub,
+      payload
+    ).catch((e) => {
+      tracingLogger.error(
+        `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${updatedBooking.id}, bookingUid: ${updatedBooking.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
+        safeStringify(e)
+      );
+    });
+  })
+);
 
-    await Promise.all(promises);
+await Promise.all(promises);
   } catch (error) {
     // Silently fail
     console.error(error);
