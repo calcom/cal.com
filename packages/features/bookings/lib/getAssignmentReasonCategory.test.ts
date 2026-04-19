@@ -5,14 +5,6 @@ import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { getAssignmentReasonCategory } from "./getAssignmentReasonCategory";
 
 describe("getAssignmentReasonCategory", () => {
-  it("returns 'routed' for ROUTING_FORM_ROUTING", () => {
-    expect(getAssignmentReasonCategory(AssignmentReasonEnum.ROUTING_FORM_ROUTING)).toBe("routed");
-  });
-
-  it("returns 'routed' for ROUTING_FORM_ROUTING_FALLBACK", () => {
-    expect(getAssignmentReasonCategory(AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK)).toBe("routed");
-  });
-
   it("returns 'reassigned' for REASSIGNED", () => {
     expect(getAssignmentReasonCategory(AssignmentReasonEnum.REASSIGNED)).toBe("reassigned");
   });

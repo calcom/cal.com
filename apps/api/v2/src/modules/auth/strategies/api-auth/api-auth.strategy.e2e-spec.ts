@@ -1,3 +1,25 @@
+import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import { ExecutionContext, HttpException } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { JwtService as NestJwtService } from "@nestjs/jwt";
+import { Test, TestingModule } from "@nestjs/testing";
+import { createRequest } from "node-mocks-http";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { MockedRedisService } from "test/mocks/mock-redis-service";
+import { randomString } from "test/utils/randomString";
+import {
+  ApiAuthGuardRequest,
+  ApiAuthStrategy,
+  ONLY_CLIENT_ID_PROVIDED_MESSAGE,
+  ONLY_CLIENT_SECRET_PROVIDED_MESSAGE,
+} from "./api-auth.strategy";
 import appConfig from "@/config/app";
 import { AuthMethods } from "@/lib/enums/auth-methods";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
@@ -13,31 +35,6 @@ import { ProfilesModule } from "@/modules/profiles/profiles.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { ExecutionContext, HttpException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ConfigModule } from "@nestjs/config";
-import { JwtService as NestJwtService } from "@nestjs/jwt";
-import { Test, TestingModule } from "@nestjs/testing";
-import { createRequest } from "node-mocks-http";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { MockedRedisService } from "test/mocks/mock-redis-service";
-import { randomString } from "test/utils/randomString";
-
-import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
-
-import {
-  ApiAuthGuardRequest,
-  ONLY_CLIENT_ID_PROVIDED_MESSAGE,
-  ONLY_CLIENT_SECRET_PROVIDED_MESSAGE,
-} from "./api-auth.strategy";
-import { ApiAuthStrategy } from "./api-auth.strategy";
 
 describe("ApiAuthStrategy", () => {
   let strategy: ApiAuthStrategy;
@@ -233,7 +230,7 @@ describe("ApiAuthStrategy", () => {
               authorization: `Bearer cal_test_}`,
             },
             get: (key: string) =>
-              ({ Authorization: `Bearer cal_test_badkey1234`, origin: "http://localhost:3000" }[key]),
+              ({ Authorization: `Bearer cal_test_badkey1234`, origin: "http://localhost:3000" })[key],
           }),
         }),
       } as ExecutionContext;
@@ -255,7 +252,7 @@ describe("ApiAuthStrategy", () => {
             headers: {
               [X_CAL_CLIENT_ID]: `${oAuthClient.id}gibberish`,
             },
-            get: (key: string) => ({ origin: "http://localhost:3000" }[key]),
+            get: (key: string) => ({ origin: "http://localhost:3000" })[key],
           }),
         }),
       } as ExecutionContext;
@@ -278,7 +275,7 @@ describe("ApiAuthStrategy", () => {
             headers: {
               [X_CAL_SECRET_KEY]: `${oAuthClient.secret}gibberish`,
             },
-            get: (key: string) => ({ origin: "http://localhost:3000" }[key]),
+            get: (key: string) => ({ origin: "http://localhost:3000" })[key],
           }),
         }),
       } as ExecutionContext;
@@ -303,7 +300,7 @@ describe("ApiAuthStrategy", () => {
               [X_CAL_SECRET_KEY]: `secret`,
             },
             get: (key: string) =>
-              ({ Authorization: `Bearer cal_test_badkey1234`, origin: "http://localhost:3000" }[key]),
+              ({ Authorization: `Bearer cal_test_badkey1234`, origin: "http://localhost:3000" })[key],
           }),
         }),
       } as ExecutionContext;
@@ -327,7 +324,7 @@ describe("ApiAuthStrategy", () => {
               [X_CAL_SECRET_KEY]: `gibberish`,
             },
             get: (key: string) =>
-              ({ Authorization: `Bearer cal_test_badkey1234`, origin: "http://localhost:3000" }[key]),
+              ({ Authorization: `Bearer cal_test_badkey1234`, origin: "http://localhost:3000" })[key],
           }),
         }),
       } as ExecutionContext;
@@ -346,7 +343,7 @@ describe("ApiAuthStrategy", () => {
       const context: ExecutionContext = {
         switchToHttp: () => ({
           getRequest: () => ({
-            get: (key: string) => ({ Authorization: ``, origin: "http://localhost:3000" }[key]),
+            get: (key: string) => ({ Authorization: ``, origin: "http://localhost:3000" })[key],
           }),
         }),
       } as ExecutionContext;

@@ -9,9 +9,8 @@ import { Header } from "@calcom/features/bookings/components/Header";
 import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
-import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { LargeCalendar } from "./components/LargeCalendar";
+import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesForSchedule";
 
@@ -22,7 +21,6 @@ import type {
 } from "../calendar-view/wrappers/CalendarViewPlatformWrapper";
 import { useAtomGetPublicEvent } from "../hooks/event-types/public/useAtomGetPublicEvent";
 import { useEventType } from "../hooks/event-types/public/useEventType";
-import { useTeamEventType } from "../hooks/event-types/public/useTeamEventType";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
@@ -43,8 +41,6 @@ export const EventTypeCalendarViewComponent = (
   }, [props.username]);
 
   const { isPending } = useEventType(username, props.eventSlug, isTeamEvent);
-
-  const { isPending: isTeamPending } = useTeamEventType(teamId, props.eventSlug, isTeamEvent);
 
   const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
 
@@ -69,13 +65,7 @@ export const EventTypeCalendarViewComponent = (
     bookerLayout,
   });
 
-  const { timezone: rawTimezone } = useTimePreferences();
-  const timezone = useStableTimezone(
-    rawTimezone,
-    event?.data?.restrictionScheduleId != null
-      ? { id: event.data.restrictionScheduleId, useBookerTimezone: event.data.useBookerTimezone }
-      : undefined
-  );
+  const { timezone } = useTimePreferences();
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
@@ -110,7 +100,7 @@ export const EventTypeCalendarViewComponent = (
       Boolean(teamId || username) &&
       Boolean(month) &&
       Boolean(timezone) &&
-      (isTeamEvent ? !isTeamPending : !isPending) &&
+      !isPending &&
       Boolean(event?.data?.id),
     orgSlug: undefined,
     eventTypeSlug: isDynamic ? "dynamic" : props.eventSlug || "",
@@ -119,7 +109,7 @@ export const EventTypeCalendarViewComponent = (
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
-  const availableTimeSlots= useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
+  const availableTimeSlots = useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
 
   return (
     <AtomsWrapper>

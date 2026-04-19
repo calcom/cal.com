@@ -1,8 +1,5 @@
-import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import { CreationSource } from "@calcom/prisma/enums";
-
+import type React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { OnboardingState } from "../../store/onboarding-store";
 import { useSubmitOnboarding } from "../useSubmitOnboarding";
 
@@ -10,7 +7,7 @@ vi.mock("react", async () => {
   const actual = await vi.importActual<typeof React>("react");
   return {
     ...actual,
-    useState: vi.fn((initial: any) => [initial, vi.fn()]),
+    useState: vi.fn((initial: boolean | string | null) => [initial, vi.fn()]),
   };
 });
 
@@ -18,12 +15,9 @@ vi.mock("@calcom/features/flags/context/provider", () => ({
   useFlagMap: vi.fn(() => ({})),
 }));
 
-vi.mock("@calcom/features/ee/organizations/hooks/useWelcomeModal", () => ({
-  setShowNewOrgModalFlag: vi.fn(),
-}));
-
+const mockShowToast = vi.fn();
 vi.mock("@calcom/ui/components/toast", () => ({
-  showToast: vi.fn(),
+  showToast: (...args: unknown[]) => mockShowToast(...args),
 }));
 
 vi.mock("@calcom/trpc/react", () => ({
@@ -39,31 +33,20 @@ vi.mock("@calcom/trpc/react", () => ({
 }));
 
 describe("useSubmitOnboarding", () => {
-  let mockMutateAsync: ReturnType<typeof vi.fn>;
   let mockResetOnboarding: ReturnType<typeof vi.fn>;
-  let mockUseMutation: ReturnType<typeof vi.fn>;
 
-  beforeEach(async () => {
-    mockMutateAsync = vi.fn();
+  beforeEach(() => {
     mockResetOnboarding = vi.fn();
-    mockUseMutation = vi.fn(() => ({
-      mutateAsync: mockMutateAsync,
-    }));
+    mockShowToast.mockClear();
 
-    // Mock window for skipToPersonal
     global.window = {
       location: {
         href: "",
       },
-    } as any;
-
-    const { trpc } = await import("@calcom/trpc/react");
-    vi.mocked(trpc.viewer.organizations.intentToCreateOrg.useMutation).mockImplementation(
-      mockUseMutation as any
-    );
+    } as unknown as Window & typeof globalThis;
   });
 
-  it("should submit teams with migration data correctly", async () => {
+  it("should submit teams with migration data and redirect to event-types for migrated teams", async () => {
     const hook = useSubmitOnboarding();
     const { submitOnboarding } = hook;
 
@@ -89,36 +72,16 @@ describe("useSubmitOnboarding", () => {
       resetOnboarding: mockResetOnboarding,
     } as unknown as OnboardingState;
 
-    mockMutateAsync.mockResolvedValue({
-      checkoutUrl: "https://stripe.com/checkout",
-    });
-
     await submitOnboarding(store, "user@example.com", store.invites);
 
-    expect(mockMutateAsync).toHaveBeenCalledWith({
-      name: "Test Org",
-      slug: "test-org",
-      bio: "Test bio",
-      logo: "logo.png",
-      brandColor: "#000000",
-      bannerUrl: "banner.png",
-      orgOwnerEmail: "user@example.com",
-      seats: null,
-      pricePerSeat: null,
-      isPlatform: false,
-      creationSource: CreationSource.WEBAPP,
-      teams: [
-        { id: 1, name: "Existing Team", isBeingMigrated: true, slug: "existing-team" },
-        { id: -1, name: "New Team", isBeingMigrated: false, slug: null },
-      ],
-      invitedMembers: [
-        { email: "invite@example.com", teamName: "New Team", teamId: -1, role: "MEMBER" },
-        { email: "migrated@example.com", teamId: 1, role: "MEMBER" },
-      ],
-    });
+    // After EE removal, intentToCreateOrg is a no-op stub returning {}
+    // No checkoutUrl → migration flow (has migrated teams) → redirects to event-types
+    expect(mockShowToast).toHaveBeenCalledWith("Organization created successfully!", "success");
+    expect(mockResetOnboarding).toHaveBeenCalled();
+    expect(window.location.href).toBe("/event-types?newOrganizationModal=true");
   });
 
-  it("should use teamId for invites to migrated teams", async () => {
+  it("should redirect to event-types when migrated teams exist", async () => {
     const hook = useSubmitOnboarding();
     const { submitOnboarding } = hook;
 
@@ -149,41 +112,14 @@ describe("useSubmitOnboarding", () => {
       resetOnboarding: mockResetOnboarding,
     } as unknown as OnboardingState;
 
-    mockMutateAsync.mockResolvedValue({
-      checkoutUrl: "https://stripe.com/checkout",
-    });
-
     await submitOnboarding(store, "user@example.com", store.invites);
 
-    expect(mockMutateAsync).toHaveBeenCalledWith({
-      name: "Test Org",
-      slug: "test-org",
-      bio: "Test bio",
-      logo: "logo.png",
-      brandColor: "#000000",
-      bannerUrl: "banner.png",
-      orgOwnerEmail: "user@example.com",
-      seats: null,
-      pricePerSeat: null,
-      isPlatform: false,
-      creationSource: CreationSource.WEBAPP,
-      teams: [
-        { id: 1, name: "Existing Team", isBeingMigrated: true, slug: "existing-team" },
-        { id: 2, name: "Another Existing Team", isBeingMigrated: true, slug: "another-existing-team" },
-        { id: -1, name: "New Team", isBeingMigrated: false, slug: null },
-      ],
-      invitedMembers: [
-        // Migrated team invite should use teamId
-        { email: "invite1@example.com", teamId: 1, teamName: undefined, role: "MEMBER" },
-        // New team invite should use teamName (note: implementation uses inviteRole from store, not invite.role)
-        { email: "invite2@example.com", teamName: "New Team", teamId: -1, role: "MEMBER" },
-        // Migrated team invite with different case should still use teamId
-        { email: "invite3@example.com", teamId: 2, teamName: undefined, role: "MEMBER" },
-      ],
-    });
+    expect(mockShowToast).toHaveBeenCalledWith("Organization created successfully!", "success");
+    expect(mockResetOnboarding).toHaveBeenCalled();
+    expect(window.location.href).toBe("/event-types?newOrganizationModal=true");
   });
 
-  it("should handle invites without teams correctly", async () => {
+  it("should redirect to event-types when migrated teams exist even with empty team invites", async () => {
     const hook = useSubmitOnboarding();
     const { submitOnboarding } = hook;
 
@@ -209,34 +145,14 @@ describe("useSubmitOnboarding", () => {
       resetOnboarding: mockResetOnboarding,
     } as unknown as OnboardingState;
 
-    mockMutateAsync.mockResolvedValue({
-      checkoutUrl: "https://stripe.com/checkout",
-    });
-
     await submitOnboarding(store, "user@example.com", store.invites);
 
-    expect(mockMutateAsync).toHaveBeenCalledWith({
-      name: "Test Org",
-      slug: "test-org",
-      bio: "Test bio",
-      logo: "logo.png",
-      brandColor: "#000000",
-      bannerUrl: "banner.png",
-      orgOwnerEmail: "user@example.com",
-      seats: null,
-      pricePerSeat: null,
-      isPlatform: false,
-      creationSource: CreationSource.WEBAPP,
-      teams: [{ id: 1, name: "Existing Team", isBeingMigrated: true, slug: "existing-team" }],
-      invitedMembers: [
-        // Invites without teams should have neither teamId nor teamName (note: implementation uses inviteRole from store)
-        { email: "invite1@example.com", teamId: undefined, teamName: undefined, role: "MEMBER" },
-        { email: "invite2@example.com", teamId: undefined, teamName: undefined, role: "MEMBER" },
-      ],
-    });
+    expect(mockShowToast).toHaveBeenCalledWith("Organization created successfully!", "success");
+    expect(mockResetOnboarding).toHaveBeenCalled();
+    expect(window.location.href).toBe("/event-types?newOrganizationModal=true");
   });
 
-  it("should handle teams with null slugs correctly", async () => {
+  it("should redirect to getting-started when no migrated teams exist", async () => {
     const hook = useSubmitOnboarding();
     const { submitOnboarding } = hook;
 
@@ -259,18 +175,11 @@ describe("useSubmitOnboarding", () => {
       resetOnboarding: mockResetOnboarding,
     } as unknown as OnboardingState;
 
-    mockMutateAsync.mockResolvedValue({
-      checkoutUrl: null,
-      organizationId: 123,
-    });
-
     await submitOnboarding(store, "user@example.com", []);
 
-    expect(mockMutateAsync).toHaveBeenCalledWith(
-      expect.objectContaining({
-        teams: [{ id: -1, name: "New Team", isBeingMigrated: false, slug: null }],
-        invitedMembers: [],
-      })
-    );
+    // Regular flow: no migrated teams → redirects to getting-started
+    expect(mockShowToast).toHaveBeenCalledWith("Organization created successfully!", "success");
+    expect(mockResetOnboarding).toHaveBeenCalled();
+    expect(window.location.href).toBe("/getting-started");
   });
 });

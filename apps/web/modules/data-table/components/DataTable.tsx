@@ -1,30 +1,27 @@
 "use client";
 
-import type { Row } from "@tanstack/react-table";
-import { flexRender } from "@tanstack/react-table";
-import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";
-import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
-import kebabCase from "lodash/kebabCase";
-import { useEffect, useState, memo, useMemo } from "react";
-
+import type { SeparatorRow } from "@calcom/features/data-table/lib/separator";
+import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Command, CommandList, CommandItem } from "@calcom/ui/components/command";
-import { ArrowDownIcon, ArrowUpIcon, CheckIcon, ChevronsUpDownIcon, EyeOffIcon } from "@coss/ui/icons";
-import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
+import { Command, CommandItem, CommandList } from "@calcom/ui/components/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import {
-  TableNew,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
+  TableNew,
   TableRow,
 } from "@calcom/ui/components/table";
-
-import { useColumnSizingVars } from "~/data-table/hooks/useColumnSizingVars";
+import { ArrowDownIcon, ArrowUpIcon, CheckIcon, ChevronsUpDownIcon, EyeOffIcon } from "@coss/ui/icons";
+import type { Header, HeaderGroup, Table as ReactTableType, Row } from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
+import { useVirtualizer, type VirtualItem, type Virtualizer } from "@tanstack/react-virtual";
+import kebabCase from "lodash/kebabCase";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useColumnResizing } from "~/data-table/hooks/useColumnResizing";
-import type { SeparatorRow } from "@calcom/features/data-table/lib/separator";
-import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
+import { useColumnSizingVars } from "~/data-table/hooks/useColumnSizingVars";
 
 export type DataTablePropsFromWrapper<TData> = {
   table: ReactTableType<TData>;

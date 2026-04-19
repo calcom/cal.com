@@ -353,7 +353,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
         <SettingsToggle
           toggleSwitchAtTheEnd={true}
           title={t("monthly_digest_email")}
-          description={t("monthly_digest_email_for_teams")}
+          description={t("monthly_digest_email")}
           disabled={mutation.isPending}
           checked={isReceiveMonthlyDigestEmailChecked}
           onCheckedChange={(checked) => {

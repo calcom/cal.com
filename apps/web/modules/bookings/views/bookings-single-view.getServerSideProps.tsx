@@ -1,13 +1,7 @@
-import { createRouterCaller } from "app/_trpc/context";
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
@@ -17,8 +11,10 @@ import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUi
 import prisma from "@calcom/prisma";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import { createRouterCaller } from "app/_trpc/context";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 const stringToBoolean = z
   .string()
@@ -114,8 +110,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
-  bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
-  bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
+  bookingInfo.startTime = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
+  bookingInfo.endTime = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
   eventTypeRaw.users = eventTypeRaw.hosts?.length
     ? eventTypeRaw.hosts.map((host) => host.user)
@@ -185,7 +181,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
   const eventTeamId = eventType.team?.id ?? eventType.parent?.teamId;
-  const isLoggedInUserTeamMember = !!(userId && eventTeamId && (await isTeamMember(userId, eventTeamId)));
+  const isLoggedInUserTeamMember = false;
 
   const canViewHiddenData = isLoggedInUserHost || isLoggedInUserTeamMember;
 
@@ -216,7 +212,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const { currentOrgDomain } = orgDomainConfig(context.req);
+  const currentOrgDomain = null;
+  const isValidOrgDomain = false;
 
   async function getInternalNotePresets(teamId: number | null) {
     if (!teamId || !canViewHiddenData) return [];

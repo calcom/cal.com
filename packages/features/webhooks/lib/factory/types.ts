@@ -1,6 +1,5 @@
 import type {
   BookingNoShowUpdatedPayload,
-  DelegationCredentialErrorPayloadType,
   EventPayloadType,
   OOOEntryPayloadType,
 } from "../dto/types";
@@ -95,6 +94,5 @@ export interface WebhookPayload {
     | RecordingPayload
     | MeetingPayload
     | InstantMeetingPayload
-    | NoShowWebhookPayload
-    | DelegationCredentialErrorPayloadType;
+    | NoShowWebhookPayload;
 }

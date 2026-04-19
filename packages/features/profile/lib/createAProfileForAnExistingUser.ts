@@ -1,8 +1,7 @@
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -66,7 +65,7 @@ export const createAProfileForAnExistingUser = async ({
     throw new Error(`Organization with id ${organizationId} doesn't have a slug`);
   }
 
-  const orgUrl = getOrgFullOrigin(orgSlug);
+  const orgUrl = WEBAPP_URL;
 
   if (org.isPlatform) {
     // We don't want redirects for Platform Organizations

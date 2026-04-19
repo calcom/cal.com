@@ -1,10 +1,10 @@
 # Authentication API Reference
 
-Detailed documentation for authentication methods in the Cal.com API v2.
+Detailed documentation for authentication methods in the Cal.diy API v2.
 
 ## Authentication Methods
 
-Cal.com API v2 supports two authentication methods:
+Cal.diy API v2 supports two authentication methods:
 
 1. **API Key Authentication** - For direct API access
 2. **OAuth/Platform Authentication** - For platform integrations managing users on behalf of others
@@ -15,7 +15,7 @@ The primary authentication method for most API consumers.
 
 ### Obtaining an API Key
 
-1. Log in to your Cal.com account
+1. Log in to your Cal.diy account
 2. Navigate to Settings > Developer > API Keys
 3. Click "Create new API key"
 4. Copy and securely store the generated key
@@ -31,7 +31,7 @@ Authorization: Bearer cal_live_abc123xyz...
 
 ### API Key Format
 
-All Cal.com API keys are prefixed with `cal_`:
+All Cal.diy API keys are prefixed with `cal_`:
 - `cal_live_...` - Production API keys
 - `cal_test_...` - Test/sandbox API keys (if available)
 
@@ -186,7 +186,7 @@ Common causes:
 
 4. **Use minimal permissions**: Request only the scopes/permissions your application needs
 
-5. **Monitor API usage**: Check your Cal.com dashboard for unusual activity
+5. **Monitor API usage**: Check your Cal.diy dashboard for unusual activity
 
 6. **Secure transmission**: Always use HTTPS for API requests
 
