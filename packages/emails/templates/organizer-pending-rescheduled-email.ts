@@ -17,19 +17,22 @@ export default class OrganizerPendingRescheduledEmail extends OrganizerScheduled
         true
       ),
       subject: this.calEvent.organizer.language.translate(
-        "event_type_has_been_rescheduled_on_time_date",
-        {
-          title: this.calEvent.title,
-          date: this.getFormattedDate(),
-        }
-      ),
+       "rescheduled_pending_event_type_subject",
+       {
+         title: this.calEvent.title,
+         date: this.getFormattedDate(),
+       }
+     ),
       html: await this.getHtml(
         { ...this.calEvent, attendeeSeatId: undefined },
         this.calEvent.organizer,
         this.teamMember
       ),
 
-      text: this.getTextBody("event_has_been_rescheduled"),
+      text: this.getTextBody(
+       "rescheduled_pending_organizer_email_title",
+       "rescheduled_pending_organizer_email_subtitle"
+     ),
     };
   }
 
