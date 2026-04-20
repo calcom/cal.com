@@ -48,7 +48,11 @@ export default async function handler(body: Record<string, string>) {
         where: { email: userEmail },
         select: { invitedTo: true },
       });
-      if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
+      if (
+        existingUser &&
+        existingUser.invitedTo !== null &&
+        existingUser.invitedTo !== foundToken.teamId
+      ) {
         return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
       }
     }

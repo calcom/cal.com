@@ -107,9 +107,13 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
         where: { email },
         select: { invitedTo: true },
       });
-      if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
-        return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
-      }
+        if (
+          existingUser &&
+          existingUser.invitedTo !== null &&
+          existingUser.invitedTo !== foundToken.teamId
+        ) {
+          return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+        }
     }
   } else {
     const usernameAndEmailValidation = await validateAndGetCorrectedUsernameAndEmail({

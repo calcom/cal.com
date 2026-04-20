@@ -998,10 +998,10 @@ export const getOptions = ({
           }
 
           // check if user was invited
+          // Invited placeholder users may already have a generated username; password/email verification
+          // are the reliable signals that account setup is incomplete and should be completed here.
           if (
-            !existingUserWithEmail.password?.hash &&
-            !existingUserWithEmail.emailVerified &&
-            !existingUserWithEmail.username
+            !existingUserWithEmail.password?.hash && !existingUserWithEmail.emailVerified
           ) {
             await prisma.user.update({
               where: {
