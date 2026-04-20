@@ -17,18 +17,22 @@ import type {
   TeamMember,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject } from "ics";
 import { createEvent } from "ics";
-import type { DAVAccount, DAVCalendar, DAVObject } from "tsdav";
+import type { DAVAccount, DAVCalendar, DAVObject, DAVClient } from "tsdav";
 import {
   createAccount,
   createCalendarObject,
+  createDAVClient,
   deleteCalendarObject,
   fetchCalendarObjects,
   fetchCalendars,
   getBasicAuthHeaders,
   updateCalendarObject,
+  DAVNamespace,
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
 import { getLocation, getRichDescription } from "./CalEventParser";
@@ -392,6 +396,7 @@ export default abstract class BaseCalendarService implements Calendar {
   protected integrationName = "";
   private log: typeof logger;
   private credential: CredentialPayload;
+  private client?: DAVClient;
 
   constructor(credential: CredentialPayload, integrationName: string, url?: string) {
     this.integrationName = integrationName;
@@ -463,23 +468,47 @@ export default abstract class BaseCalendarService implements Calendar {
         : undefined;
 
       // We create the event directly on iCal
+      // 1. If a specific destination calendar is requested, use it.
+      // 2. Else prefer the calendar identified as CALDAV:schedule-default-calendar-URL (RFC 6638 Section 9.2).
+      // 3. Else fall back to the first available calendar and log for debuggability.
+      let targetCalendars: IntegrationCalendar[];
+
+      if (mainHostDestinationCalendar?.externalId) {
+        targetCalendars = calendars.filter((c) => c.externalId === mainHostDestinationCalendar.externalId);
+      } else {
+        const defaultCalendar = calendars.find((c) => c.isDefault);
+        if (defaultCalendar) {
+          targetCalendars = [defaultCalendar];
+          this.log.debug(`CalDAV: Using schedule-default-calendar-URL calendar: ${defaultCalendar.externalId}`);
+        } else {
+          // RFC does not guarantee PROPFIND response order — log the fallback choice
+          targetCalendars = calendars.slice(0, 1);
+          this.log.warn(
+            `CalDAV: No default calendar found via schedule-default-calendar-URL. ` +
+              `Falling back to first available calendar: ${targetCalendars[0]?.externalId ?? "none"}`
+          );
+        }
+      }
+
+      if (targetCalendars.length === 0) {
+        // TODO: consider adding ErrorCode.NoTargetCalendarsFound for a more specific error
+        throw new ErrorWithCode(
+          ErrorCode.InternalServerError,
+          "No target calendars found to create CalDAV calendar entry"
+        );
+      }
+
       const responses = await Promise.all(
-        calendars
-          .filter((c) =>
-            mainHostDestinationCalendar?.externalId
-              ? c.externalId === mainHostDestinationCalendar.externalId
-              : true
-          )
-          .map((calendar) =>
-            createCalendarObject({
-              calendar: {
-                url: calendar.externalId,
-              },
-              filename: `${uid}.ics`,
-              iCalString: injectScheduleAgent(iCalStringWithTimezone),
-              headers: this.headers,
-            })
-          )
+        targetCalendars.map((calendar) =>
+          createCalendarObject({
+            calendar: {
+              url: calendar.externalId,
+            },
+            filename: `${uid}.ics`,
+            iCalString: injectScheduleAgent(iCalStringWithTimezone),
+            headers: this.headers,
+          })
+        )
       );
 
       if (responses.some((r) => !r.ok)) {
@@ -560,7 +589,7 @@ export default abstract class BaseCalendarService implements Calendar {
           if (response.status >= 200 && response.status < 300) {
             return {
               uid,
-              type: this.credentials.type,
+              type: this.credential.type,
               id: typeof calendarEvent.uid === "string" ? calendarEvent.uid : "-1",
               password: "",
               url: calendarEvent.url,
@@ -665,7 +694,7 @@ export default abstract class BaseCalendarService implements Calendar {
 
     const userId = this.getUserId(selectedCalendars);
     // we use the userId from selectedCalendars to fetch the user's timeZone from the database primarily for all-day events without any timezone information
-    const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
+    const userTimeZone = userId ? (await this.getUserTimezoneFromDB(userId)) ?? "Europe/London" : "Europe/London";
     const events: { start: string; end: string }[] = [];
     objects.forEach((object) => {
       if (!object || object.data == null || JSON.stringify(object.data) == "{}") return;
@@ -817,27 +846,38 @@ export default abstract class BaseCalendarService implements Calendar {
 
   async listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     try {
-      const account = await this.getAccount();
+      const client = await this.getClient();
 
-      const calendars = (await fetchCalendars({
-        account,
-        headers: this.headers,
-      })) /** @url https://github.com/natelindev/tsdav/pull/139 */ as (Omit<DAVCalendar, "displayName"> & {
+      const calendars = (await client.fetchCalendars()) /** @url https://github.com/natelindev/tsdav/pull/139 */ as (Omit<
+        DAVCalendar,
+        "displayName"
+      > & {
         displayName?: string | Record<string, unknown>;
       })[];
+
+      // Attempt to resolve the scheduling default calendar URL from the principal.
+      // This implements RFC 6638 Section 9.2: default calendar should be identified 
+      // via the CALDAV:schedule-default-calendar-URL property.
+      const defaultCalendarUrl = await this.resolveDefaultCalendarUrl(client);
 
       return calendars.reduce<IntegrationCalendar[]>((newCalendars, calendar) => {
         if (!calendar.components?.includes("VEVENT")) return newCalendars;
         const [mainHostDestinationCalendar] = event?.destinationCalendar ?? [];
+
+        const isDefault = defaultCalendarUrl
+          ? calendar.url === defaultCalendarUrl
+          : !!(calendar as any).props?.["schedule-default-calendar-URL"]; // fallback: check on the calendar object itself
+
         newCalendars.push({
           externalId: calendar.url,
           /** @url https://github.com/calcom/cal.diy/issues/7186 */
           name: typeof calendar.displayName === "string" ? calendar.displayName : "",
+          isDefault,
           primary: mainHostDestinationCalendar?.externalId
             ? mainHostDestinationCalendar.externalId === calendar.url
             : false,
           integration: this.integrationName,
-          email: this.credentials.username ?? "",
+          email: this.credentials["username"] ?? "",
         });
         return newCalendars;
       }, []);
@@ -1015,9 +1055,73 @@ export default abstract class BaseCalendarService implements Calendar {
       account: {
         serverUrl: this.url,
         accountType: DEFAULT_CALENDAR_TYPE,
-        credentials: this.credentials,
+        credentials: {
+          username: this.credentials["username"],
+          password: this.credentials["password"],
+        },
       },
       headers: this.headers,
     });
+  }
+
+  private async getClient(): Promise<DAVClient> {
+    if (this.client) return this.client;
+    this.client = await createDAVClient({
+      serverUrl: this.url,
+      credentials: {
+        username: this.credentials["username"],
+        password: this.credentials["password"],
+      },
+      authMethod: "Basic",
+      defaultAccountType: "caldav",
+    });
+    return this.client;
+  }
+
+  /**
+   * Resolves the scheduling default calendar URL from the principal properties.
+   * RFC 6638 Section 9.2: Checking schedule-default-calendar-URL property on the Inbox.
+   */
+  private async resolveDefaultCalendarUrl(client: DAVClient): Promise<string | undefined> {
+    try {
+      const principalUrl = await client.fetchPrincipalUrl();
+
+      // Priority 1: CALDAV:schedule-default-calendar-URL (RFC 6638 Section 9.2)
+      const principalProps = await client.propfind({
+        url: principalUrl,
+        props: [{
+          name: "schedule-default-calendar-URL",
+          namespace: DAVNamespace.CALDAV,
+        }],
+        depth: "0",
+      });
+
+      const defaultUrl = (principalProps?.[0] as any)?.props?.["schedule-default-calendar-URL"]?.href;
+      if (defaultUrl) {
+        this.log.debug(`CalDAV: Found default calendar via schedule-default-calendar-URL: ${defaultUrl}`);
+        return defaultUrl;
+      }
+
+      // Priority 2: CALDAV:calendar-user-address-set (Fallback)
+      const addressSetProps = await client.propfind({
+        url: principalUrl,
+        props: [{
+          name: "calendar-user-address-set",
+          namespace: DAVNamespace.CALDAV,
+        }],
+        depth: "0",
+      });
+
+      const fallbackUrl = (addressSetProps?.[0] as any)?.props?.["calendar-user-address-set"]?.href;
+      if (fallbackUrl) {
+        this.log.debug(`CalDAV: Found default calendar via calendar-user-address-set: ${fallbackUrl}`);
+        return fallbackUrl;
+      }
+
+      return undefined;
+    } catch (e) {
+      this.log.warn("CalDAV: Could not resolve default calendar URL from inbox/principal", e);
+      return undefined;
+    }
   }
 }
