@@ -86,6 +86,24 @@ export type GetAvailableSlotsResponse = Awaited<
   ReturnType<(typeof AvailableSlotsService)["prototype"]["_getAvailableSlots"]>
 >;
 
+export function getStartTimeForRollingWindowComputation({
+  startTime,
+  isRollingWindowPeriodType,
+  disableRollingWindowAdjustment,
+}: {
+  startTime: string;
+  isRollingWindowPeriodType: boolean;
+  disableRollingWindowAdjustment?: boolean;
+}): string {
+  const isStartTimeInPast = dayjs(startTime).isBefore(dayjs().subtract(1, "day").startOf("day"));
+
+  if (isStartTimeInPast || !isRollingWindowPeriodType || disableRollingWindowAdjustment) {
+    return startTime;
+  }
+
+  return dayjs(startTime).subtract(1, "month").toISOString();
+}
+
 export interface IAvailableSlotsService {
   oooRepo: PrismaOOORepository;
   scheduleRepo: ScheduleRepository;
@@ -569,7 +587,10 @@ export class AvailableSlotsService {
 
             const selectedDuration = (duration || eventType.length) ?? 0;
 
-            const { title: durationTitle, source: durationSource } = LimitSources.eventDurationLimit({ limit, unit });
+            const { title: durationTitle, source: durationSource } = LimitSources.eventDurationLimit({
+              limit,
+              unit,
+            });
 
             if (selectedDuration > limit) {
               limitManager.addBusyTime({
@@ -925,16 +946,15 @@ export class AvailableSlotsService {
     }
 
     const isRollingWindowPeriodType = eventType.periodType === PeriodType.ROLLING_WINDOW;
-    const startTimeAsIsoString = input.startTime;
-    const isStartTimeInPast = dayjs(startTimeAsIsoString).isBefore(dayjs().subtract(1, "day").startOf("day"));
 
     // If startTime is already sent in the past, we don't need to adjust it.
     // We assume that the client is already sending startTime as per their requirement.
     // Note: We could optimize it further to go back 1 month in past only for the 2nd month because that is what we are putting a hard limit at.
-    const startTimeAdjustedForRollingWindowComputation =
-      isStartTimeInPast || !isRollingWindowPeriodType
-        ? startTimeAsIsoString
-        : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
+    const startTimeAdjustedForRollingWindowComputation = getStartTimeForRollingWindowComputation({
+      startTime: input.startTime,
+      isRollingWindowPeriodType,
+      disableRollingWindowAdjustment: input.disableRollingWindowAdjustment,
+    });
 
     const loggerWithEventDetails = logger.getSubLogger({
       type: "json",
