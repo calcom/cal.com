@@ -431,6 +431,7 @@ describe("handleNewBooking - Booking Flags", () => {
               slotInterval: 45,
               length: 45,
               requiresConfirmation: true,
+              userId: 101,
               users: [
                 {
                   id: 101,

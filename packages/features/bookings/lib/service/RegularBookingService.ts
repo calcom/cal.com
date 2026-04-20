@@ -688,7 +688,7 @@ async function handler(
   // Security Fix: Only the event type owner or an admin can use the forceConfirm flag.
   let effectiveForceConfirm = false;
   if (forceConfirm) {
-    const isOwner = !!(userId && (eventType.userId === userId || eventType.users?.some((u) => u.id === userId)));
+    const isOwner = !!(userId && eventType.userId === userId);
     let callerIsOwnerOrAdmin = isOwner;
     if (!callerIsOwnerOrAdmin && userId) {
       const caller = await deps.prismaClient.user.findUnique({
