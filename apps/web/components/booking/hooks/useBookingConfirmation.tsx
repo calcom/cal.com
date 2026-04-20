@@ -42,7 +42,7 @@ export function useBookingConfirmation(options: UseBookingConfirmationOptions = 
       utils.viewer.me.bookingUnconfirmedCount.invalidate();
     },
     onError: (error) => {
-      if (error.data?.httpStatus === 409) {
+      if (error.data?.httpStatus === 409 && !pendingConfirmParams?.forceConfirm) {
         setForceConfirmDialogIsOpen(true);
         return;
       }
