@@ -441,7 +441,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
     vi.setSystemTime("2024-11-14T00:00:13Z");
   });
 
-  it("should sort as per availableUsers if no other criteria like weight/priority/calibration (TODO: make it independent of availableUsers order)", async () => {
+  it("should sort by user id if no other criteria like weight/priority/calibration", async () => {
     const [host1, host2, host3] = await Promise.all([
       createHostWithBookings({
         user: { email: "test-user1@example.com" },
@@ -475,7 +475,9 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
       routingFormResponse: null,
     });
 
-    expectLuckyUsers(luckyUsers, [user2, user1, user3]);
+    const expectedOrder = [user1, user2, user3].sort((a, b) => a.id - b.id)
+
+    expectLuckyUsers(luckyUsers, expectedOrder);
 
     const { users: luckyUsers2 } = await luckyUserService.getOrderedListOfLuckyUsers({
       availableUsers: [user3, user1, user2],
@@ -487,7 +489,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
       allRRHosts: [],
       routingFormResponse: null,
     });
-    expectLuckyUsers(luckyUsers2, [user3, user1, user2]);
+    expectLuckyUsers(luckyUsers2, expectedOrder);
   });
 
   describe("should sort as per weights", () => {
