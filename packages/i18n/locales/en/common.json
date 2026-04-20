@@ -2213,6 +2213,8 @@
   "fetching_calendars_error": "There was a problem fetching your calendars. Please <1>try again</1> or reach out to customer support.",
   "calendar_connection_fail": "Calendar connection failed",
   "booking_confirmation_success": "Booking confirmation succeeded",
+  "booking_conflict_exists": "This time slot conflicts with another accepted booking.",
+  "booking_has_no_user": "This booking has no assigned organizer.",
   "booking_rejection_success": "Booking rejection succeeded",
   "booking_tentative": "This booking is tentative",
   "booking_accept_intent": "Oops, I want to accept",
