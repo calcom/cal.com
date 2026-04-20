@@ -46,14 +46,17 @@ export default async function handler(body: Record<string, string>) {
     if (foundToken?.teamId) {
       const existingUser = await prisma.user.findUnique({
         where: { email: userEmail },
-        select: { invitedTo: true },
+        select: { invitedTo: true, emailVerified: true, password: { select: { hash: true } } },
       });
-      if (
-        existingUser &&
-        existingUser.invitedTo !== null &&
-        existingUser.invitedTo !== foundToken.teamId
-      ) {
-        return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+      if (existingUser) {
+        const isInvitedPlaceholderAccount =
+          existingUser.invitedTo === foundToken.teamId &&
+          !existingUser.password?.hash &&
+          !existingUser.emailVerified;
+
+        if (!isInvitedPlaceholderAccount) {
+          return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+        }
       }
     }
   } else {

@@ -102,19 +102,22 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
       isSignup: true,
     });
 
-    if (foundToken?.teamId) {
-      const existingUser = await prisma.user.findUnique({
-        where: { email },
-        select: { invitedTo: true },
-      });
-        if (
-          existingUser &&
-          existingUser.invitedTo !== null &&
-          existingUser.invitedTo !== foundToken.teamId
-        ) {
-          return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+      if (foundToken?.teamId) {
+        const existingUser = await prisma.user.findUnique({
+          where: { email },
+          select: { invitedTo: true, emailVerified: true, password: { select: { hash: true } } },
+        });
+        if (existingUser) {
+          const isInvitedPlaceholderAccount =
+            existingUser.invitedTo === foundToken.teamId &&
+            !existingUser.password?.hash &&
+            !existingUser.emailVerified;
+
+          if (!isInvitedPlaceholderAccount) {
+            return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
+          }
         }
-    }
+      }
   } else {
     const usernameAndEmailValidation = await validateAndGetCorrectedUsernameAndEmail({
       username,
