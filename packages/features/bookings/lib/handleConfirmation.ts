@@ -412,6 +412,9 @@ export async function handleConfirmation(args: {
       eventTypeId: eventType?.id,
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
+      // This is a single series-level webhook fired once on confirmation.
+      // It uses the first occurrence's URL. Webhook consumers needing per-occurrence
+      // URLs should query each booking's metadata.videoCallUrl from the database.
       metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
       ...(platformClientParams ? platformClientParams : {}),
     };
