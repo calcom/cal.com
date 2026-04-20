@@ -56,16 +56,6 @@ describe("getStartTimeForRollingWindowComputation", () => {
     ).toBe(dayjs(requestedStartTime).subtract(1, "month").toISOString());
   });
 
-  it("keeps the requested start time when rolling window adjustment is disabled", () => {
-    expect(
-      getStartTimeForRollingWindowComputation({
-        startTime: requestedStartTime,
-        isRollingWindowPeriodType: true,
-        disableRollingWindowAdjustment: true,
-      })
-    ).toBe(requestedStartTime);
-  });
-
   it("keeps the requested start time for non-rolling window requests", () => {
     expect(
       getStartTimeForRollingWindowComputation({

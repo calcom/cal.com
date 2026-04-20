@@ -54,26 +54,26 @@ describe("SlotsInputService_2024_09_04", () => {
     jest.clearAllMocks();
   });
 
-  it("defaults v2 slot requests to UTC and disables rolling window start adjustment", async () => {
+  it("defaults v2 slot requests to UTC without disabling rolling-window bounds checks", async () => {
     (eventTypeRepository.getEventTypeById as jest.Mock).mockResolvedValue({
       id: 123,
       slug: "discovery-call",
       teamId: null,
     });
 
-    await expect(
-      service.transformGetSlotsQuery({
-        type: "byEventTypeId",
-        eventTypeId: 123,
-        start: "2050-12-09",
-        end: "2050-12-10",
-      })
-    ).resolves.toMatchObject({
+    const transformedQuery = await service.transformGetSlotsQuery({
+      type: "byEventTypeId",
+      eventTypeId: 123,
+      start: "2050-12-09",
+      end: "2050-12-10",
+    });
+
+    expect(transformedQuery).toMatchObject({
       startTime: "2050-12-09T00:00:00.000Z",
       endTime: "2050-12-10T23:59:59.000Z",
       timeZone: "UTC",
-      disableRollingWindowAdjustment: true,
     });
+    expect(transformedQuery).not.toHaveProperty("disableRollingWindowAdjustment");
   });
 
   it("preserves an explicitly requested time zone", async () => {
@@ -93,7 +93,6 @@ describe("SlotsInputService_2024_09_04", () => {
       })
     ).resolves.toMatchObject({
       timeZone: "Europe/Rome",
-      disableRollingWindowAdjustment: true,
     });
   });
 });

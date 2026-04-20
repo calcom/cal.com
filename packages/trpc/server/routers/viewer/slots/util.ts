@@ -89,15 +89,13 @@ export type GetAvailableSlotsResponse = Awaited<
 export function getStartTimeForRollingWindowComputation({
   startTime,
   isRollingWindowPeriodType,
-  disableRollingWindowAdjustment,
 }: {
   startTime: string;
   isRollingWindowPeriodType: boolean;
-  disableRollingWindowAdjustment?: boolean;
 }): string {
   const isStartTimeInPast = dayjs(startTime).isBefore(dayjs().subtract(1, "day").startOf("day"));
 
-  if (isStartTimeInPast || !isRollingWindowPeriodType || disableRollingWindowAdjustment) {
+  if (isStartTimeInPast || !isRollingWindowPeriodType) {
     return startTime;
   }
 
@@ -953,7 +951,6 @@ export class AvailableSlotsService {
     const startTimeAdjustedForRollingWindowComputation = getStartTimeForRollingWindowComputation({
       startTime: input.startTime,
       isRollingWindowPeriodType,
-      disableRollingWindowAdjustment: input.disableRollingWindowAdjustment,
     });
 
     const loggerWithEventDetails = logger.getSubLogger({

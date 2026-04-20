@@ -27,7 +27,6 @@ export type InternalGetSlotsQuery = {
   orgSlug: string | null | undefined;
   rescheduleUid: string | null;
   rrHostSubsetIds?: number[];
-  disableRollingWindowAdjustment?: boolean;
 };
 
 export type InternalGetSlotsQueryWithRouting = InternalGetSlotsQuery & {
@@ -74,7 +73,6 @@ export class SlotsInputService_2024_09_04 {
       orgSlug,
       rescheduleUid,
       rrHostSubsetIds: query.rrHostSubsetIds,
-      disableRollingWindowAdjustment: true,
     };
   }
 
