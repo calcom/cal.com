@@ -241,3 +241,95 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
     </Dialog>
   );
 };
+
+export type CalibrationDialogCustomClassNames = {
+  container?: string;
+  label?: string;
+  confirmButton?: string;
+  calibrationInput?: InputClassNames;
+};
+
+export const CalibrationDialog = (
+  props: IDialog & { customClassNames?: CalibrationDialogCustomClassNames }
+) => {
+  const { t } = useLocale();
+  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames } = props;
+  const { getValues } = useFormContext<FormValues>();
+  const [newCalibration, setNewCalibration] = useState<number | undefined>();
+
+  const setCalibration = () => {
+    if (newCalibration !== undefined) {
+      const hosts: Host[] = getValues("hosts");
+      const hostGroups = getValues("hostGroups");
+      const rrHosts = hosts.filter((host) => !host.isFixed);
+      const groupedHosts = groupHostsByGroupId({ hosts: rrHosts, hostGroups });
+      const hostGroupToSort = groupedHosts[option.groupId ?? DEFAULT_GROUP_ID];
+
+      const updatedOptions = (hostGroupToSort ?? []).map((host) => {
+        const userOption = options.find((opt) => opt.value === host.userId.toString());
+        let manualCalibration = host.manualCalibration;
+        if (host.userId === parseInt(option.value, 10)) {
+          manualCalibration = newCalibration;
+        }
+        return {
+          avatar: userOption?.avatar ?? "",
+          label: userOption?.label ?? host.userId.toString(),
+          value: host.userId.toString(),
+          priority: host.priority,
+          weight: host.weight,
+          manualCalibration,
+          isFixed: host.isFixed,
+          groupId: host.groupId,
+        };
+      });
+
+      const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, option.groupId);
+      const otherGroupsOptions = otherGroupsHosts.map((host) => {
+        const userOption = options.find((opt) => opt.value === host.userId.toString());
+        return {
+          avatar: userOption?.avatar ?? "",
+          label: userOption?.label ?? host.userId.toString(),
+          value: host.userId.toString(),
+          priority: host.priority,
+          weight: host.weight,
+          manualCalibration: host.manualCalibration,
+          isFixed: host.isFixed,
+          groupId: host.groupId,
+        };
+      });
+
+      onChange([...otherGroupsOptions, ...updatedOptions]);
+    }
+    setIsOpenDialog(false);
+  };
+
+  return (
+    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+      <DialogContent title={t("set_calibration")} description={t("calibration_description")}>
+        <div className={classNames("mb-4 mt-2", customClassNames?.container)}>
+          <Label className={customClassNames?.label}>
+            {t("calibration_for_user", { userName: option.label })}
+          </Label>
+          <div className={classNames("w-36", customClassNames?.calibrationInput?.container)}>
+            <TextField
+              label={t("set_calibration")}
+              className={customClassNames?.calibrationInput?.input}
+              labelClassName={customClassNames?.calibrationInput?.label}
+              addOnClassname={customClassNames?.calibrationInput?.addOn}
+              value={newCalibration}
+              defaultValue={option.manualCalibration ?? 0}
+              type="number"
+              onChange={(e) => setNewCalibration(parseInt(e.target.value, 10))}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose onClick={() => setNewCalibration(undefined)} />
+          <Button onClick={setCalibration} className={customClassNames?.confirmButton}>
+            {t("confirm")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};

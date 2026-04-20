@@ -115,6 +115,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           userId: true,
           priority: true,
           weight: true,
+          manualCalibration: true,
           isFixed: true,
         },
       },
@@ -486,6 +487,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           isFixed: boolean;
           priority: number;
           weight: number;
+          manualCalibration?: number | null;
           groupId: string | null | undefined;
           scheduleId?: number | null | undefined;
           location?: {
@@ -502,6 +504,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
+          manualCalibration: host.manualCalibration ?? null,
           groupId: host.groupId,
           scheduleId: host.scheduleId ?? null,
         };
@@ -523,6 +526,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           isFixed: boolean | undefined;
           priority: number;
           weight: number;
+          manualCalibration?: number | null;
           scheduleId: number | null | undefined;
           groupId: string | null | undefined;
           location?: {
@@ -547,6 +551,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
+          manualCalibration: host.manualCalibration,
           scheduleId: host.scheduleId === undefined ? undefined : host.scheduleId,
           groupId: host.groupId,
         };

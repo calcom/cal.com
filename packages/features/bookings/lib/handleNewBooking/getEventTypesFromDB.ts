@@ -135,6 +135,7 @@ const getEventTypesFromDBSelect = {
       isFixed: true,
       priority: true,
       weight: true,
+      manualCalibration: true,
       createdAt: true,
       groupId: true,
       location: {

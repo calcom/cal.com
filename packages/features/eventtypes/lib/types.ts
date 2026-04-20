@@ -51,6 +51,7 @@ export type Host = {
   userId: number;
   priority: number;
   weight: number;
+  manualCalibration?: number | null;
   scheduleId?: number | null;
   groupId: string | null;
   location?: HostLocation | null;
@@ -249,6 +250,7 @@ export type HostInput = {
   isFixed?: boolean;
   priority?: number | null;
   weight?: number | null;
+  manualCalibration?: number | null;
   scheduleId?: number | null;
   groupId?: string | null;
   location?: HostLocationInput | null;

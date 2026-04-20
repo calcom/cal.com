@@ -50,6 +50,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     };
     createdAt: Date;
     weight?: number | null;
+    manualCalibration?: number | null;
   }[];
   meetingStartTime?: Date;
 }
@@ -228,7 +229,7 @@ export class LuckyUserService implements ILuckyUserService {
     allRRHostsCreatedInInterval,
     oooData,
   }: {
-    hosts: { userId: number; email: string; createdAt: Date }[];
+    hosts: { userId: number; email: string; createdAt: Date; manualCalibration?: number | null }[];
     allRRHostsBookingsOfInterval: PartialBooking[];
     allRRHostsCreatedInInterval: { userId: number; createdAt: Date }[];
     oooData: OOODataType;
@@ -303,7 +304,9 @@ export class LuckyUserService implements ILuckyUserService {
     return hosts.map((host) => ({
       ...host,
       calibration:
-        (newHostsWithCalibration.get(host.userId)?.calibration ?? 0) + (oooCalibration.get(host.userId) ?? 0),
+        (newHostsWithCalibration.get(host.userId)?.calibration ?? 0) +
+        (oooCalibration.get(host.userId) ?? 0) +
+        (host.manualCalibration ?? 0),
     }));
   }
 
@@ -347,7 +350,12 @@ export class LuckyUserService implements ILuckyUserService {
 
     const allHostsWithCalibration = this.getHostsWithCalibration({
       hosts: allRRHosts.map((host) => {
-        return { email: host.user.email, userId: host.user.id, createdAt: host.createdAt };
+        return {
+          email: host.user.email,
+          userId: host.user.id,
+          createdAt: host.createdAt,
+          manualCalibration: host.manualCalibration,
+        };
       }),
       allRRHostsBookingsOfInterval,
       allRRHostsCreatedInInterval,

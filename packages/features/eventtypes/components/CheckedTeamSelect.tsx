@@ -16,10 +16,15 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type {
+  CalibrationDialogCustomClassNames,
   PriorityDialogCustomClassNames,
   WeightDialogCustomClassNames,
 } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
-import { PriorityDialog, WeightDialog } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
+import {
+  CalibrationDialog,
+  PriorityDialog,
+  WeightDialog,
+} from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -27,6 +32,7 @@ export type CheckedSelectOption = {
   value: string;
   priority?: number;
   weight?: number;
+  manualCalibration?: number | null;
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
@@ -43,11 +49,13 @@ export type CheckedTeamSelectCustomClassNames = {
       name?: string;
       changePriorityButton?: string;
       changeWeightButton?: string;
+      changeCalibrationButton?: string;
       removeButton?: string;
     };
   };
   priorityDialog?: PriorityDialogCustomClassNames;
   weightDialog?: WeightDialogCustomClassNames;
+  calibrationDialog?: CalibrationDialogCustomClassNames;
 };
 export const CheckedTeamSelect = ({
   options = [],
@@ -67,6 +75,7 @@ export const CheckedTeamSelect = ({
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+  const [calibrationDialogOpen, setCalibrationDialogOpen] = useState(false);
 
   const [currentOption, setCurrentOption] = useState(value[0] ?? null);
 
@@ -152,18 +161,32 @@ export const CheckedTeamSelect = ({
                       </Button>
                     </Tooltip>
                     {isRRWeightsEnabled ? (
-                      <Button
-                        color="minimal"
-                        className={classNames(
-                          "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
-                          customClassNames?.selectedHostList?.listItem?.changeWeightButton
-                        )}
-                        onClick={() => {
-                          setWeightDialogOpen(true);
-                          setCurrentOption(option);
-                        }}>
-                        {option.weight ?? 100}%
-                      </Button>
+                      <>
+                        <Button
+                          color="minimal"
+                          className={classNames(
+                            "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
+                            customClassNames?.selectedHostList?.listItem?.changeWeightButton
+                          )}
+                          onClick={() => {
+                            setWeightDialogOpen(true);
+                            setCurrentOption(option);
+                          }}>
+                          {option.weight ?? 100}%
+                        </Button>
+                        <Button
+                          color="minimal"
+                          className={classNames(
+                            "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                            customClassNames?.selectedHostList?.listItem?.changeCalibrationButton
+                          )}
+                          onClick={() => {
+                            setCalibrationDialogOpen(true);
+                            setCurrentOption(option);
+                          }}>
+                          {getCalibrationLabel(t("set_calibration"), option.manualCalibration)}
+                        </Button>
+                      </>
                     ) : (
                       <></>
                     )}
@@ -203,6 +226,14 @@ export const CheckedTeamSelect = ({
             onChange={props.onChange}
             customClassNames={customClassNames?.weightDialog}
           />
+          <CalibrationDialog
+            isOpenDialog={calibrationDialogOpen}
+            setIsOpenDialog={setCalibrationDialogOpen}
+            option={currentOption}
+            options={options}
+            onChange={props.onChange}
+            customClassNames={customClassNames?.calibrationDialog}
+          />
         </>
       ) : (
         <></>
@@ -226,6 +257,12 @@ const getPriorityTextAndColor = (priority?: number) => {
     default:
       return { text: "medium", color: "text-gray-500" };
   }
+};
+
+const getCalibrationLabel = (baseLabel: string, manualCalibration?: number | null): string => {
+  if (manualCalibration == null || manualCalibration === 0) return baseLabel;
+  const sign = manualCalibration > 0 ? "+" : "";
+  return `${baseLabel} (${sign}${manualCalibration.toString()})`;
 };
 
 export default CheckedTeamSelect;
