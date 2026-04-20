@@ -8,12 +8,12 @@ const enum ThemeSupport {
   None = "none",
   // Entire App except Booking Pages
   App = "appConfigured",
-  // Booking Pages(including Routing Forms)
+  // Booking Pages
   Booking = "bookingConfigured",
 }
 
 /**
- * Returns a unique identifier that remains the same as long as we land on the public page for the same entity like event-type/routing-form/dynamic-group-booking etc
+ * Returns a unique identifier that remains the same as long as we land on the public page for the same entity like event-type/dynamic-group-booking etc
  * The theme stays same for same identifier.
  */
 export function getUniqueIdentifierForBookingPage({ pathname }: { pathname: string }) {
@@ -29,12 +29,8 @@ export function getUniqueIdentifierForBookingPage({ pathname }: { pathname: stri
   // Team booking page e.g. /team/sales and /team/sales/30mins
   // Organization Team booking page e.g. /sales and /sales/30mins - Same pattern as User Booking Page
   const startsWithTeam = pathTokens[0] === "team";
-  const isRoutingFormPage = pathTokens[0] === "forms";
   const isPrivateBookingPage = pathTokens[0] === "d";
   const isDynamicBookingPage = pathTokens[0].toLowerCase().split(/\+|%2B/).length > 1;
-  if (isRoutingFormPage) {
-    return pathTokens[1];
-  }
   if (isPrivateBookingPage) {
     return pathTokens[1];
   }

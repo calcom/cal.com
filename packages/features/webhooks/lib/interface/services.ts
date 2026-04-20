@@ -88,50 +88,6 @@ export interface IBookingScheduler {
 // Combined interface for backward compatibility (can be removed later)
 export interface IBookingWebhookService extends IBookingEventEmitter, IBookingScheduler {}
 
-// Form Event Emission Interface - Form event emission operations
-export interface IFormEventEmitter {
-  emitFormSubmitted(params: {
-    form: { id: string; name: string };
-    response: { id: number; data: Record<string, unknown> };
-    eventTypeId?: number | null;
-    userId?: number | null;
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void>;
-
-  emitFormSubmittedNoEvent(params: {
-    form: { id: string; name: string };
-    response: { id: number; data: Record<string, unknown> };
-    userId?: number | null;
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void>;
-}
-
-// Form Scheduling Interface - Form webhook scheduling operations
-export interface IFormScheduler {
-  scheduleDelayedFormWebhooks(params: {
-    responseId: number;
-    form: {
-      id: string;
-      name: string;
-      teamId?: number | null;
-    };
-    responses: Record<string, unknown>;
-    redirect?: Record<string, unknown>;
-    teamId?: number | null;
-    orgId?: number | null;
-    delayMinutes?: number;
-  }): Promise<void>;
-}
-
-// Combined interface for backward compatibility (can be removed later)
-export interface IFormWebhookService extends IFormEventEmitter, IFormScheduler {}
-
 export interface IRecordingWebhookService {
   emitRecordingReady(params: {
     evt: import("@calcom/types/Calendar").CalendarEvent;

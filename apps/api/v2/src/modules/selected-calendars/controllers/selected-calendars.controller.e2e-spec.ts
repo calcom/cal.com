@@ -12,7 +12,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsService } from "@/platform/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";

@@ -32,4 +32,4 @@ import { UserService } from "./services/UserService";
 import { Button } from "@calcom/ui/components/button";
 ```
 
-Reference: [Cal.com Engineering Standards](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Standards](https://cal.com/blog/engineering-in-2026-and-beyond)

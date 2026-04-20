@@ -197,4 +197,4 @@ class BookingRepository {
 - Keep methods generic and reusable: `findByUserIdIncludeAttendees` not `findBookingsForReporting`
 - No business logic in repositories - that belongs in Services
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

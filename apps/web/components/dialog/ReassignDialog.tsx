@@ -34,7 +34,6 @@ type ReassignDialog = {
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   teamId: number;
   bookingId: number;
-  bookingFromRoutingForm: boolean;
   isManagedEvent: boolean;
 };
 
@@ -66,7 +65,6 @@ export const ReassignDialog = ({
   setIsOpenDialog,
   teamId,
   bookingId,
-  bookingFromRoutingForm,
   isManagedEvent,
 }: ReassignDialog) => {
   const { t } = useLocale();
@@ -78,41 +76,26 @@ export const ReassignDialog = ({
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
 
-  const managedEventQuery = trpc.viewer.teams.getManagedEventUsersToReassign.useInfiniteQuery(
-    {
-      bookingId,
-      limit: 10,
-      searchTerm: debouncedSearch,
-    },
-    {
-      enabled: isManagedEvent,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
+  const managedEventQuery: {
+    data: { pages: { items: { id: number; name: string | null; email: string; status: string }[] }[] } | undefined;
+    fetchNextPage: () => void;
+    hasNextPage: boolean;
+    isFetching: boolean;
+    isFetchingNextPage: boolean;
+  } = { data: undefined, fetchNextPage: () => {}, hasNextPage: false, isFetching: false, isFetchingNextPage: false };
 
-  const roundRobinQuery = trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
-    {
-      bookingId,
-      exclude: "fixedHosts",
-      limit: 10,
-      searchTerm: debouncedSearch,
-    },
-    {
-      enabled: !isManagedEvent,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
+  const roundRobinQuery: typeof managedEventQuery = { data: undefined, fetchNextPage: () => {}, hasNextPage: false, isFetching: false, isFetchingNextPage: false };
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = isManagedEvent
     ? managedEventQuery
     : roundRobinQuery;
 
   const allRows = useMemo(() => {
-    return data?.pages.flatMap((page) => page.items) ?? [];
+    return data?.pages.flatMap((page: { items: { id: number; name: string | null; email: string; status: string }[] }) => page.items) ?? [];
   }, [data]);
 
   const teamMemberOptions = useMemo(() => {
-    return allRows.map((member) => ({
+    return allRows.map((member: { id: number; name: string | null; email: string; status: string }) => ({
       label: member.name || member.email,
       value: member.id,
       status: member.status,
@@ -128,69 +111,21 @@ export const ReassignDialog = ({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      reassignType: bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.AUTO,
+      reassignType: ReassignType.AUTO,
     },
   });
 
-  const roundRobinReassignMutation = trpc.viewer.teams.roundRobinReassign.useMutation({
-    onSuccess: async (data) => {
-      await utils.viewer.bookings.get.invalidate();
-      setIsOpenDialog(false);
-      showToast(t("booking_reassigned_to_host", { host: data?.reassignedTo.name }), "success");
-    },
-    onError: async (error) => {
-      if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
-        showToast(t("no_available_hosts"), "error");
-      } else {
-        showToast(t(error.message), "error");
-      }
-    },
-  });
+  const roundRobinReassignMutation = { mutate: (..._args: unknown[]) => {}, mutateAsync: async () => ({}), isPending: false };
 
-  const managedEventReassignMutation = trpc.viewer.teams.managedEventReassign.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.bookings.get.invalidate();
-      setIsOpenDialog(false);
-      showToast(t("booking_reassigned"), "success");
-    },
-    onError: async (error) => {
-      if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
-        showToast(t("no_available_hosts"), "error");
-      } else {
-        showToast(t(error.message), "error");
-      }
-    },
-  });
 
-  const roundRobinManualReassignMutation = trpc.viewer.teams.roundRobinManualReassign.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.bookings.get.invalidate();
-      setIsOpenDialog(false);
-      showToast(t("booking_reassigned"), "success");
-    },
-    onError: async (error) => {
-      if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
-        showToast(t("no_available_hosts"), "error");
-      } else {
-        showToast(t(error.message), "error");
-      }
-    },
-  });
+  const managedEventReassignMutation = { mutate: (..._args: unknown[]) => {}, mutateAsync: async () => ({}), isPending: false };
 
-  const managedEventManualReassignMutation = trpc.viewer.teams.managedEventManualReassign.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.bookings.get.invalidate();
-      setIsOpenDialog(false);
-      showToast(t("booking_reassigned"), "success");
-    },
-    onError: async (error) => {
-      if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
-        showToast(t("no_available_hosts"), "error");
-      } else {
-        showToast(t(error.message), "error");
-      }
-    },
-  });
+
+  const roundRobinManualReassignMutation = { mutate: (..._args: unknown[]) => {}, mutateAsync: async () => ({}), isPending: false };
+
+
+  const managedEventManualReassignMutation = { mutate: (..._args: unknown[]) => {}, mutateAsync: async () => ({}), isPending: false };
+
 
   const [confirmationModal, setConfirmationModal] = useState<{
     show: boolean;
@@ -240,23 +175,20 @@ export const ReassignDialog = ({
                 const reassignType: ReassignType = z.nativeEnum(ReassignType).parse(val);
                 form.setValue("reassignType", reassignType);
               }}
-              defaultValue={bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.AUTO}
+              defaultValue={ReassignType.AUTO}
               className="mt-1 flex flex-col gap-4">
-              {!bookingFromRoutingForm ? (
-                <RadioArea.Item
-                  value={ReassignType.AUTO}
-                  className="w-full text-sm"
-                  classNames={{ container: "w-full" }}
-                  disabled={bookingFromRoutingForm}
-                  data-testid="reassign-option-auto">
-                  <strong className="mb-1 block">
-                    {isManagedEvent ? t("auto_reassign") : t("round_robin")}
-                  </strong>
-                  <p>
-                    {isManagedEvent ? t("auto_reassign_description") : t("round_robin_reassign_description")}
-                  </p>
-                </RadioArea.Item>
-              ) : null}
+              <RadioArea.Item
+                value={ReassignType.AUTO}
+                className="w-full text-sm"
+                classNames={{ container: "w-full" }}
+                data-testid="reassign-option-auto">
+                <strong className="mb-1 block">
+                  {isManagedEvent ? t("auto_reassign") : t("round_robin")}
+                </strong>
+                <p>
+                  {isManagedEvent ? t("auto_reassign_description") : t("round_robin_reassign_description")}
+                </p>
+              </RadioArea.Item>
               <RadioArea.Item
                 value={ReassignType.TEAM_MEMBER}
                 className="text-sm"

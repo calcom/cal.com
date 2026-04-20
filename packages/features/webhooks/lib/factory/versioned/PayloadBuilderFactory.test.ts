@@ -13,7 +13,6 @@ describe("PayloadBuilderFactory", () => {
   beforeEach(() => {
     defaultBuilders = {
       booking: new V2021_10_20.BookingPayloadBuilder(),
-      form: new V2021_10_20.FormPayloadBuilder(),
       ooo: new V2021_10_20.OOOPayloadBuilder(),
       recording: new V2021_10_20.RecordingPayloadBuilder(),
       meeting: new V2021_10_20.MeetingPayloadBuilder(),
@@ -40,7 +39,6 @@ describe("PayloadBuilderFactory", () => {
     it("should register new version with complete builder set", () => {
       const newVersionBuilders: PayloadBuilderSet = {
         booking: new V2021_10_20.BookingPayloadBuilder(),
-        form: new V2021_10_20.FormPayloadBuilder(),
         ooo: new V2021_10_20.OOOPayloadBuilder(),
         recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
@@ -56,7 +54,6 @@ describe("PayloadBuilderFactory", () => {
     it("should allow overwriting existing version", () => {
       const newBuilders: PayloadBuilderSet = {
         booking: new V2021_10_20.BookingPayloadBuilder(),
-        form: new V2021_10_20.FormPayloadBuilder(),
         ooo: new V2021_10_20.OOOPayloadBuilder(),
         recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
@@ -85,18 +82,6 @@ describe("PayloadBuilderFactory", () => {
       bookingTriggers.forEach((trigger) => {
         const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, trigger);
         expect(builder).toBe(defaultBuilders.booking);
-      });
-    });
-
-    it("should route form events to form builder", () => {
-      const formTriggers = [
-        WebhookTriggerEvents.FORM_SUBMITTED,
-        WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
-      ];
-
-      formTriggers.forEach((trigger) => {
-        const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, trigger);
-        expect(builder).toBe(defaultBuilders.form);
       });
     });
 
@@ -169,10 +154,6 @@ describe("PayloadBuilderFactory", () => {
         WebhookVersionEnum.V_2021_10_20,
         WebhookTriggerEvents.BOOKING_CREATED
       );
-      const formBuilder = factory.getBuilder(
-        WebhookVersionEnum.V_2021_10_20,
-        WebhookTriggerEvents.FORM_SUBMITTED
-      );
       const oooBuilder = factory.getBuilder(
         WebhookVersionEnum.V_2021_10_20,
         WebhookTriggerEvents.OOO_CREATED
@@ -192,7 +173,6 @@ describe("PayloadBuilderFactory", () => {
 
       // Runtime verification
       expect(bookingBuilder).toBeDefined();
-      expect(formBuilder).toBeDefined();
       expect(oooBuilder).toBeDefined();
       expect(recordingBuilder).toBeDefined();
       expect(meetingBuilder).toBeDefined();
@@ -261,7 +241,6 @@ describe("PayloadBuilderFactory", () => {
     it("should support multiple versions simultaneously", () => {
       const v2Builders: PayloadBuilderSet = {
         booking: new V2021_10_20.BookingPayloadBuilder(),
-        form: new V2021_10_20.FormPayloadBuilder(),
         ooo: new V2021_10_20.OOOPayloadBuilder(),
         recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
