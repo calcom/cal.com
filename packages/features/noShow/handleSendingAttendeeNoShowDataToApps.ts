@@ -43,12 +43,15 @@ export default async function handleSendingAttendeeNoShowDataToApps(
 
   for (const slug in eventTypeAppMetadata) {
     if (noShowEnabledApps.includes(slug)) {
-      const app = eventTypeAppMetadata[slug as keyof typeof eventTypeAppMetadata];
+      const app = eventTypeAppMetadata[slug as keyof typeof eventTypeAppMetadata] as
+        | { appCategories?: string[]; credentialId?: number; enabled?: boolean }
+        | undefined;
 
-      const appCategory = app.appCategories[0];
+      if (!app) continue;
+      const appCategory = app.appCategories?.[0];
 
       if (appCategory === "crm") {
-        await handleCRMNoShow(bookingUid, app, attendees);
+        await handleCRMNoShow(bookingUid, app as z.infer<typeof eventTypeAppCardZod>, attendees);
       }
     }
   }

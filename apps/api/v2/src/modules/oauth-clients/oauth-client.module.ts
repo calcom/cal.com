@@ -1,11 +1,10 @@
-import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { CalendarsRepository } from "@/platform/calendars/calendars.repository";
+import { CalendarsCacheService } from "@/platform/calendars/services/calendars-cache.service";
+import { CalendarsService } from "@/platform/calendars/services/calendars.service";
+import { EventTypesModule_2024_04_15 } from "@/platform/event-types/event-types_2024_04_15/event-types.module";
+import { SchedulesModule_2024_04_15 } from "@/platform/schedules/schedules_2024_04_15/schedules.module";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { AuthModule } from "@/modules/auth/auth.module";
-import { BillingModule } from "@/modules/billing/billing.module";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthClientUsersController } from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
@@ -19,7 +18,6 @@ import { OAuthClientsOutputService } from "@/modules/oauth-clients/services/oaut
 import { OAuthClientsService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
-import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { ProfilesModule } from "@/modules/profiles/profiles.module";
 import { RedisModule } from "@/modules/redis/redis.module";
@@ -43,7 +41,6 @@ import { JwtService } from "@nestjs/jwt";
     EventTypesModule_2024_04_15,
     OrganizationsModule,
     StripeModule,
-    BillingModule,
     SchedulesModule_2024_04_15,
     ProfilesModule,
   ],
@@ -58,7 +55,6 @@ import { JwtService } from "@nestjs/jwt";
     CalendarsRepository,
     SelectedCalendarsRepository,
     OAuthClientUsersService,
-    OrganizationsTeamsService,
     OAuthClientsService,
     OAuthClientsInputService,
     OAuthClientsOutputService,

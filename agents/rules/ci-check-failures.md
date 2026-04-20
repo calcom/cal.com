@@ -9,7 +9,7 @@ tags: ci, debugging, workflow
 
 ## What to Focus On
 
-When reviewing CI check failures in Cal.com:
+When reviewing CI check failures in Cal.diy:
 
 1. **E2E tests can be flaky** and may fail intermittently
 2. **Focus only on CI failures that are directly related to your code changes**

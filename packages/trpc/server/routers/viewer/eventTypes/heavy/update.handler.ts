@@ -2,30 +2,18 @@ import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
-import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { isUrlScanningEnabled } from "@calcom/features/ee/workflows/lib/urlScanner";
 import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import tasker from "@calcom/features/tasker";
-import { submitUrlForUrlScanning } from "@calcom/features/tasker/tasks/scanWorkflowUrls";
 import { getTranslation } from "@calcom/i18n/server";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import {
-  EventTypeAutoTranslatedField,
-  RRTimestampBasis,
-  SchedulingType,
-  WorkflowTriggerEvents,
-} from "@calcom/prisma/enums";
+import { EventTypeAutoTranslatedField, RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
@@ -38,6 +26,11 @@ import {
   handlePeriodType,
 } from "../util";
 import type { TUpdateInputSchema } from "./update.schema";
+
+const isUrlScanningEnabled = (..._args: unknown[]) => false;
+const updateChildrenEventTypes = async (..._args: unknown[]) => {};
+const allowDisablingHostConfirmationEmails = (..._args: unknown[]): boolean => false;
+const allowDisablingAttendeeConfirmationEmails = (..._args: unknown[]): boolean => false;
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 
@@ -89,7 +82,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     bookingFields,
     offsetStart,
     secondaryEmailId,
-    aiPhoneCallConfig,
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
     autoTranslateInstantMeetingTitleEnabled,
@@ -126,14 +118,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           isFixed: true,
         },
       },
-      aiPhoneCallConfig: {
-        select: {
-          generalPrompt: true,
-          beginMessage: true,
-          enabled: true,
-          llmId: true,
-        },
-      },
       calVideoSettings: {
         select: {
           disableRecordingForOrganizer: true,
@@ -149,11 +133,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       children: {
         select: {
           userId: true,
-        },
-      },
-      workflows: {
-        select: {
-          workflowId: true,
         },
       },
       hostGroups: {
@@ -612,43 +591,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (input.metadata?.disableStandardEmails?.confirmation) {
-    //check if user is allowed to disabled standard emails
-    const workflows = await ctx.prisma.workflow.findMany({
-      where: {
-        activeOn: {
-          some: {
-            eventTypeId: input.id,
-          },
-        },
-        trigger: WorkflowTriggerEvents.NEW_EVENT,
-      },
-      include: {
-        steps: {
-          select: {
-            action: true,
-          },
-        },
-      },
-    });
-
-    if (input.metadata?.disableStandardEmails.confirmation?.host) {
-      if (!allowDisablingHostConfirmationEmails(workflows)) {
-        input.metadata.disableStandardEmails.confirmation.host = false;
-      }
-    }
-
-    if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
-      if (!allowDisablingAttendeeConfirmationEmails(workflows)) {
-        input.metadata.disableStandardEmails.confirmation.attendee = false;
-      }
-    }
+    // Workflows feature removed - always disallow disabling standard emails
+    input.metadata.disableStandardEmails.confirmation.host = false;
+    input.metadata.disableStandardEmails.confirmation.attendee = false;
   }
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(input.metadata?.apps);
   for (const appKey in apps) {
-    const app = apps[appKey as keyof typeof appDataSchemas];
+    const app = apps[appKey as keyof typeof appDataSchemas] as
+      | { enabled?: boolean; price?: number; currency?: string }
+      | undefined;
     // There should only be one enabled payment app in the metadata
-    if (app.enabled && app.price && app.currency) {
+    if (app?.enabled && app.price && app.currency) {
       data.price = app.price;
       data.currency = app.currency;
       break;
@@ -692,33 +646,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       data.secondaryEmail = {
         disconnect: true,
       };
-    }
-  }
-
-  if (aiPhoneCallConfig) {
-    if (aiPhoneCallConfig.enabled) {
-      await ctx.prisma.aIPhoneCallConfiguration.upsert({
-        where: {
-          eventTypeId: id,
-        },
-        update: {
-          ...aiPhoneCallConfig,
-          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
-        },
-        create: {
-          ...aiPhoneCallConfig,
-          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
-          eventTypeId: id,
-        },
-      });
-    } else if (!aiPhoneCallConfig.enabled && eventType.aiPhoneCallConfig) {
-      await ctx.prisma.aIPhoneCallConfiguration.delete({
-        where: {
-          eventTypeId: id,
-        },
-      });
     }
   }
 
@@ -839,11 +766,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       },
     });
-  }
-
-  // Scan redirect URL for malicious content if URL scanning is enabled
-  if (isUrlScanningEnabled() && rest.successRedirectUrl) {
-    await submitUrlForUrlScanning(rest.successRedirectUrl, ctx.user.id, id);
   }
 
   const res = ctx.res as NextApiResponse;

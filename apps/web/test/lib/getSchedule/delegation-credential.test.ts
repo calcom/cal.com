@@ -103,10 +103,26 @@ describe("getSchedule", () => {
         },
       });
 
-      // As per Google Calendar Availability, only 4PM(4-4:45PM) GMT slot would be available
-      expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
-        dateString: plus2DateString,
-      });
+      // With EE removal, delegation credentials are stubbed so Google Calendar busy times are not fetched.
+      // All slots in the user's availability window are returned.
+      expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots(
+        [
+          `04:00:00.000Z`,
+          `04:45:00.000Z`,
+          `05:30:00.000Z`,
+          `06:15:00.000Z`,
+          `07:00:00.000Z`,
+          `07:45:00.000Z`,
+          `08:30:00.000Z`,
+          `09:15:00.000Z`,
+          `10:00:00.000Z`,
+          `10:45:00.000Z`,
+          `11:30:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
     });
 
     test("fails to get schedule when user isn't part of the organization with Delegation credential", async () => {

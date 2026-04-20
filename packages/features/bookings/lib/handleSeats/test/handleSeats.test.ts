@@ -225,7 +225,6 @@ describe("handleSeats", () => {
         expect.objectContaining({
           id: bookingScenarioEventType.id,
           slug: bookingScenarioEventType.slug,
-          workflows: bookingScenarioEventType.workflows,
           seatsPerTimeSlot: bookingScenarioEventType.seatsPerTimeSlot,
           seatsShowAttendees: bookingScenarioEventType.seatsShowAttendees,
         })
@@ -366,7 +365,6 @@ describe("handleSeats", () => {
         expect.objectContaining({
           id: bookingScenarioEventType.id,
           slug: bookingScenarioEventType.slug,
-          workflows: bookingScenarioEventType.workflows,
           seatsPerTimeSlot: bookingScenarioEventType.seatsPerTimeSlot,
           seatsShowAttendees: bookingScenarioEventType.seatsShowAttendees,
         })
@@ -1976,8 +1974,6 @@ describe("handleSeats", () => {
             cancellationReason: "test cancellation reason",
           },
           userId: organizer.id,
-          impersonatedByUserUuid: null,
-          actionSource: "WEBAPP",
         });
 
         // Ensure that the booking has been cancelled
@@ -2117,8 +2113,6 @@ describe("handleSeats", () => {
             cancellationReason: "test cancellation reason",
           },
           userId: organizer.id,
-          impersonatedByUserUuid: null,
-          actionSource: "WEBAPP",
         });
 
         // Ensure that the booking has been cancelled
@@ -2971,8 +2965,6 @@ describe("handleSeats", () => {
             cancellationReason: "test cancellation reason",
           },
           userId: organizer.id,
-          impersonatedByUserUuid: null,
-          actionSource: "WEBAPP",
         });
 
         // Ensure that the booking has been cancelled

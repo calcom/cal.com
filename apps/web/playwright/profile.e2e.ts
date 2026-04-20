@@ -16,23 +16,6 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
-test.describe("Teams", () => {
-  test("Profile page is loaded for users in Organization", async ({ page, users }) => {
-    const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
-    const owner = await users.create(undefined, {
-      hasTeam: true,
-      isOrg: true,
-      hasSubteam: true,
-      teammates: teamMatesObj,
-    });
-    await owner.apiLogin();
-    await page.goto("/settings/my-account/profile");
-
-    // check if user avatar is loaded
-    await page.getByTestId("profile-upload-avatar").isVisible();
-  });
-});
-
 test.describe("Update Profile", () => {
   test("Cannot update a users email when existing user has same email (verification enabled)", async ({
     page,

@@ -10,11 +10,10 @@ import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components
 import { Label, Select, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 import type { Dispatch, SetStateAction } from "react";
 import type { Control, ControllerRenderProps } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
-
-import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 interface BookingData {
   uid: string;
@@ -265,13 +264,10 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
   const alreadyReported = existingReport?.hasReport ?? false;
 
   const teamIdForQuery = teamId ?? 0;
-  const { data: teamMembersData } = trpc.viewer.teams.listMembers.useQuery(
-    { teamId: teamIdForQuery, limit: 100 },
-    { enabled: !!teamId && isOpenDialog }
-  );
+  const teamMembersData = undefined as { members: Array<{ name: string | null; email: string }> } | undefined;
 
   const teamMemberOptions: TeamMemberOption[] =
-    teamMembersData?.members.map((member) => ({
+    teamMembersData?.members.map((member: { name: string | null; email: string }) => ({
       label: member.name || member.email,
       value: member.email,
       email: member.email,

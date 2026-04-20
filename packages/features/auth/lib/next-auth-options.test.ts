@@ -1,5 +1,4 @@
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
-import type { User } from "next-auth";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorCode } from "./ErrorCode";
 
@@ -74,6 +73,7 @@ vi.mock("@calcom/lib/logger", () => ({
       debug: vi.fn(),
       error: vi.fn(),
       info: vi.fn(),
+      warn: vi.fn(),
     })),
   },
 }));
@@ -107,9 +107,6 @@ const mockBuildCredentialCreateData = vi.fn();
 const mockUpdateProfilePhotoMicrosoft = vi.fn();
 const mockUpdateProfilePhotoGoogle = vi.fn();
 const mockGetIdentityProvider = vi.fn();
-const mockGetBillingProviderService = vi.fn();
-const mockHostedCalRef = { value: false };
-const mockValidateSamlAccountConversion = vi.fn();
 const mockWaitUntil = vi.fn();
 const mockPrismaUserFindFirst = vi.fn();
 const mockPrismaUserCreate = vi.fn();
@@ -148,45 +145,8 @@ vi.mock("@calcom/features/auth/lib/outlook", () => ({
   OUTLOOK_LOGIN_ENABLED: true,
 }));
 
-vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
-  getBillingProviderService: (...args: unknown[]) => mockGetBillingProviderService(...args),
-}));
-
-vi.mock("@calcom/features/auth/lib/samlAccountLinking", () => ({
-  validateSamlAccountConversion: (...args: unknown[]) => mockValidateSamlAccountConversion(...args),
-}));
-
-vi.mock("@calcom/features/ee/sso/lib/saml", () => ({
-  clientSecretVerifier: "mock-secret",
-  get hostedCal() {
-    return mockHostedCalRef.value;
-  },
-  isSAMLLoginEnabled: false,
-}));
-
-vi.mock("@calcom/features/ee/organizations/lib/orgDomains", () => ({
-  getOrgFullOrigin: vi.fn((slug: string) => `https://${slug}.cal.com`),
-  subdomainSuffix: vi.fn(() => ".cal.com"),
-}));
-
 vi.mock("@vercel/functions", () => ({
   waitUntil: (...args: unknown[]) => mockWaitUntil(...args),
-}));
-
-vi.mock("@calcom/features/ee/organizations/di/OrganizationRepository.container", () => ({
-  getOrganizationRepository: vi.fn(() => ({})),
-}));
-
-vi.mock("@calcom/features/ee/deployment/repositories/DeploymentRepository", () => ({
-  DeploymentRepository: vi.fn().mockImplementation(() => ({})),
-}));
-
-vi.mock("@calcom/features/ee/impersonation/lib/ImpersonationProvider", () => ({
-  default: vi.fn(),
-}));
-
-vi.mock("@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg", () => ({
-  default: vi.fn(),
 }));
 
 vi.mock("@calcom/lib/default-cookies", () => ({
@@ -229,14 +189,6 @@ vi.mock("./dub", () => ({
 
 vi.mock("../signup/utils/getOrgUsernameFromEmail", () => ({
   getOrgUsernameFromEmail: vi.fn((email: string) => email.split("@")[0]),
-}));
-
-vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
-  LicenseKeySingleton: {
-    getInstance: vi.fn().mockResolvedValue({
-      checkLicense: vi.fn().mockResolvedValue(true),
-    }),
-  },
 }));
 
 vi.mock("next-auth/providers/azure-ad", () => ({ default: vi.fn() }));
@@ -547,9 +499,6 @@ describe("Azure AD signIn callback", () => {
     (adapterModule.default as any).mockReturnValue({ linkAccount: mockLinkAccount });
     mockLinkAccount.mockResolvedValue(undefined);
 
-    mockGetBillingProviderService.mockReturnValue({
-      createCustomer: vi.fn().mockResolvedValue({ stripeCustomerId: "cus_test" }),
-    });
     mockWaitUntil.mockImplementation((p: Promise<any>) => p.catch(() => {}));
 
     const authModule = await import("./next-auth-options");
@@ -810,14 +759,6 @@ describe("Azure AD signIn callback", () => {
   });
 
   describe("Azure AD identity provider conversion (signIn callback)", () => {
-    beforeEach(() => {
-      mockHostedCalRef.value = true;
-    });
-
-    afterEach(() => {
-      mockHostedCalRef.value = false;
-    });
-
     it("CAL user with verified email converts to AZUREAD on Azure AD login", async () => {
       // No existing user with AZUREAD identity
       mockPrismaUserFindFirst
@@ -852,7 +793,7 @@ describe("Azure AD signIn callback", () => {
       expect(result).toBe(true);
     });
 
-    it("GOOGLE user converts to AZUREAD on Azure AD login", async () => {
+    it("GOOGLE user auto-merges on Azure AD login when email is verified", async () => {
       mockPrismaUserFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null).mockResolvedValueOnce({
         id: 51,
         email: "user@example.com",
@@ -870,12 +811,11 @@ describe("Azure AD signIn callback", () => {
         email: undefined,
       } as any);
 
-      // Google -> Azure AD conversion goes through the GOOGLE -> (SAML | AZUREAD) branch
-      expect(mockPrismaUserUpdate).toHaveBeenCalled();
+      // With isVerified=true and non-CAL provider, auto-merge path is taken (returns true directly)
       expect(result).toBe(true);
     });
 
-    it("AZUREAD user converts to GOOGLE on Google login", async () => {
+    it("AZUREAD user auto-merges on Google login when email is verified", async () => {
       mockPrismaUserFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null).mockResolvedValueOnce({
         id: 52,
         email: "user@example.com",
@@ -893,14 +833,7 @@ describe("Azure AD signIn callback", () => {
         email: undefined,
       } as any);
 
-      expect(mockPrismaUserUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            identityProvider: "GOOGLE",
-            identityProviderId: "google-conv-1",
-          }),
-        })
-      );
+      // With isVerified=true and non-CAL provider, auto-merge path is taken (returns true directly)
       expect(result).toBe(true);
     });
 
@@ -926,60 +859,6 @@ describe("Azure AD signIn callback", () => {
       } as any);
 
       expect(result).toBe("/auth/error?error=unverified-email");
-    });
-
-    it("AZUREAD user converts to SAML with validation", async () => {
-      mockPrismaUserFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null).mockResolvedValueOnce({
-        id: 54,
-        email: "user@example.com",
-        emailVerified: new Date(),
-        identityProvider: "AZUREAD",
-        password: null,
-        twoFactorEnabled: false,
-      });
-      mockValidateSamlAccountConversion.mockResolvedValue({ allowed: true });
-
-      const result = await signInCallback({
-        user: {
-          id: "1",
-          email: "user@example.com",
-          name: "User",
-          emailVerified: null,
-          samlTenant: "tenant-1",
-        },
-        account: { provider: "saml-idp", providerAccountId: "saml-conv-1", type: "credentials" as const },
-        profile: { email_verified: true } as any,
-        credentials: undefined,
-        email: undefined,
-      } as any);
-
-      // saml-idp is credentials type, so it returns true directly
-      expect(result).toBe(true);
-    });
-
-    it("AZUREAD to SAML blocked when SAML validation fails", async () => {
-      mockPrismaUserFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null).mockResolvedValueOnce({
-        id: 55,
-        email: "user@example.com",
-        emailVerified: new Date(),
-        identityProvider: "AZUREAD",
-        password: null,
-        twoFactorEnabled: false,
-      });
-      mockValidateSamlAccountConversion.mockResolvedValue({
-        allowed: false,
-        errorUrl: "/auth/error?error=saml-tenant-mismatch",
-      });
-
-      const result = await signInCallback({
-        user: { id: "1", email: "user@example.com", name: "User", emailVerified: null },
-        account: { provider: "saml", providerAccountId: "saml-block-1", type: "oauth" as const },
-        profile: { email_verified: true } as any,
-        credentials: undefined,
-        email: undefined,
-      } as any);
-
-      expect(result).toBe("/auth/error?error=saml-tenant-mismatch");
     });
   });
 });
@@ -1407,5 +1286,4 @@ describe("Azure AD JWT callback", () => {
       );
     });
   });
-
 });

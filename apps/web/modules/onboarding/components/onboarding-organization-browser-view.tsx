@@ -1,15 +1,13 @@
 "use client";
 
-import classNames from "classnames";
-import { AnimatePresence, motion } from "framer-motion";
-import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
-
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
+import classNames from "classnames";
+import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 // Helper function to darken a hex color
 const darkenColor = (hex: string, amount: number): string => {
@@ -40,7 +38,7 @@ export const OnboardingOrganizationBrowserView = ({
   const { t } = useLocale();
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
-  const displayUrl = slug ? `${slug}.${subdomainSuffix()}` : subdomainSuffix();
+  const displayUrl = slug ? `${slug}.${""}` : "";
 
   // Update CSS variables when brandColor changes
   useEffect(() => {
@@ -103,27 +101,27 @@ export const OnboardingOrganizationBrowserView = ({
   return (
     <div
       ref={containerRef}
-      className="bg-default border-subtle hidden h-full w-full flex-col overflow-hidden rounded-l-2xl border-y border-s xl:flex">
+      className="hidden h-full w-full flex-col overflow-hidden rounded-l-2xl border-subtle border-y border-s bg-default xl:flex">
       {/* Browser header */}
-      <div className="border-subtle bg-default flex min-w-0 shrink-0 items-center gap-3 rounded-t-2xl border-b p-3">
+      <div className="flex min-w-0 shrink-0 items-center gap-3 rounded-t-2xl border-subtle border-b bg-default p-3">
         {/* Navigation buttons */}
         <div className="flex shrink-0 items-center gap-4 opacity-50">
-          <Icon name="arrow-left" className="text-subtle h-4 w-4" />
-          <Icon name="arrow-right" className="text-subtle h-4 w-4" />
-          <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
+          <Icon name="arrow-left" className="h-4 w-4 text-subtle" />
+          <Icon name="arrow-right" className="h-4 w-4 text-subtle" />
+          <Icon name="rotate-cw" className="h-4 w-4 text-subtle" />
         </div>
-        <div className="bg-cal-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
-          <Icon name="lock" className="text-subtle h-4 w-4" />
-          <p className="text-default truncate text-sm font-medium leading-tight">{displayUrl}</p>
+        <div className="flex w-full min-w-0 items-center gap-2 rounded-[32px] bg-cal-muted px-3 py-2">
+          <Icon name="lock" className="h-4 w-4 text-subtle" />
+          <p className="truncate font-medium text-default text-sm leading-tight">{displayUrl}</p>
         </div>
-        <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
+        <Icon name="ellipsis-vertical" className="h-4 w-4 text-subtle" />
       </div>
       {/* Content */}
-      <div className="bg-cal-muted h-full pl-11 pt-11">
+      <div className="h-full bg-cal-muted pt-11 pl-11">
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}
-            className="bg-default border-muted flex h-full w-full flex-col overflow-hidden rounded-l-xl border-y border-s"
+            className="flex h-full w-full flex-col overflow-hidden rounded-l-xl border-muted border-y border-s bg-default"
             variants={containerVariants}
             initial="initial"
             animate="animate"
@@ -133,15 +131,15 @@ export const OnboardingOrganizationBrowserView = ({
               ease: "backOut",
             }}>
             {/* Organization Profile Header with Banner */}
-            <div className="border-subtle flex flex-col border-b">
+            <div className="flex flex-col border-subtle border-b">
               <div className="relative">
                 {/* Banner Image */}
-                <div className="border-subtle relative h-36 w-full overflow-hidden border-b">
+                <div className="relative h-36 w-full overflow-hidden border-subtle border-b">
                   {bannerUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={bannerUrl} alt={name || ""} className="h-full w-full object-cover" />
                   ) : (
-                    <div className="bg-emphasis h-full w-full" />
+                    <div className="h-full w-full bg-emphasis" />
                   )}
                 </div>
 
@@ -157,8 +155,8 @@ export const OnboardingOrganizationBrowserView = ({
               </div>
 
               {/* Organization Info */}
-              <div className="flex flex-col gap-2 px-4 pb-4 pt-12">
-                <h2 className="text-emphasis truncate text-xl font-semibold leading-tight">
+              <div className="flex flex-col gap-2 px-4 pt-12 pb-4">
+                <h2 className="truncate font-semibold text-emphasis text-xl leading-tight">
                   {name || t("organization_name")}
                 </h2>
                 <p
@@ -178,15 +176,15 @@ export const OnboardingOrganizationBrowserView = ({
                   <div className="flex items-center justify-between gap-3 px-5 py-4">
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <div className="flex items-center gap-1">
-                        <h3 className="text-default text-sm font-semibold leading-none">{event.title}</h3>
-                        <div className="bg-emphasis flex h-4 items-center justify-center gap-1 rounded-md px-1">
-                          <Icon name={event.icon} className="text-emphasis h-3 w-3" />
-                          <span className="text-emphasis text-xs font-medium leading-none">
+                        <h3 className="font-semibold text-default text-sm leading-none">{event.title}</h3>
+                        <div className="flex h-4 items-center justify-center gap-1 rounded-md bg-emphasis px-1">
+                          <Icon name={event.icon} className="h-3 w-3 text-emphasis" />
+                          <span className="font-medium text-emphasis text-xs leading-none">
                             {event.duration} {t("minute_timeUnit")}
                           </span>
                         </div>
                       </div>
-                      <p className="text-subtle text-sm font-medium leading-tight">{event.description}</p>
+                      <p className="font-medium text-sm text-subtle leading-tight">{event.description}</p>
                     </div>
                     <Button color="primary" size="sm" EndIcon="arrow-right" tabIndex={-1}>
                       {t("book_now")}

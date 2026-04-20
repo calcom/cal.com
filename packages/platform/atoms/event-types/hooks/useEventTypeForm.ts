@@ -1,9 +1,7 @@
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { locationsResolver } from "@calcom/app-store/locations";
-import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "@calcom/features/calAIPhone/promptTemplates";
-import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
-import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { stripChildrenForPayload } from "@calcom/features/eventtypes/lib/childrenEventType";
+import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
   EventTypeSetupProps,
   EventTypeUpdateInput,
@@ -86,7 +84,7 @@ export const useEventTypeForm = ({
       offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
-      periodCountCalendarDays: eventType.periodCountCalendarDays ? true : false,
+      periodCountCalendarDays: !!eventType.periodCountCalendarDays,
       schedulingType: eventType.schedulingType,
       requiresConfirmation: eventType.requiresConfirmation,
       canSendCalVideoTranscriptionEmails: eventType.canSendCalVideoTranscriptionEmails,
@@ -103,7 +101,6 @@ export const useEventTypeForm = ({
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       hostGroups: eventType.hostGroups || [],
       successRedirectUrl: eventType.successRedirectUrl || "",
-      redirectUrlOnNoRoutingFormResponse: eventType.redirectUrlOnNoRoutingFormResponse || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
@@ -127,18 +124,6 @@ export const useEventTypeForm = ({
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
       rrSegmentQueryValue: eventType.rrSegmentQueryValue,
-      aiPhoneCallConfig: {
-        generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
-        enabled: eventType.aiPhoneCallConfig?.enabled,
-        beginMessage: eventType.aiPhoneCallConfig?.beginMessage ?? DEFAULT_BEGIN_MESSAGE,
-        guestName: eventType.aiPhoneCallConfig?.guestName,
-        guestEmail: eventType.aiPhoneCallConfig?.guestEmail,
-        guestCompany: eventType.aiPhoneCallConfig?.guestCompany,
-        yourPhoneNumber: eventType.aiPhoneCallConfig?.yourPhoneNumber,
-        numberToCall: eventType.aiPhoneCallConfig?.numberToCall,
-        templateType: eventType.aiPhoneCallConfig?.templateType ?? "CUSTOM_TEMPLATE",
-        schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
-      },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
@@ -411,9 +396,6 @@ export const useEventTypeForm = ({
       multiplePrivateLinks: values.multiplePrivateLinks,
       disableCancelling: disabledCancelling,
       disableRescheduling: disabledRescheduling,
-      aiPhoneCallConfig: rest.aiPhoneCallConfig
-        ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
-        : undefined,
     } satisfies EventTypeUpdateInput;
     // Filter out undefined values
     const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {

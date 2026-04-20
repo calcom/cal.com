@@ -199,9 +199,7 @@ export function ShellMain(props: LayoutProps) {
 
 function MainContainer({
   isPlatformUser,
-  MobileNavigationContainer: MobileNavigationContainerProp = (
-    <MobileNavigationContainer isPlatformNavigation={isPlatformUser} />
-  ),
+  MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
   TopNavContainer: TopNavContainerProp = <TopNavContainer />,
   ...props
 }: LayoutProps) {

@@ -409,16 +409,6 @@ export class CreateBookingInput_2024_08_13 {
   rrHostSubsetIds?: number[];
 }
 
-export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
-  @ApiProperty({
-    type: Boolean,
-    description: "Flag indicating if the booking is an instant booking. Only available for team events.",
-    example: true,
-  })
-  @IsBoolean()
-  instant!: boolean;
-}
-
 export class CreateRecurringBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
   @ApiPropertyOptional({
     type: Number,

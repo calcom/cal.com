@@ -1,8 +1,4 @@
-import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils.server";
-import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
-import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import type { HostRepository } from "@calcom/features/host/repositories/HostRepository";
@@ -10,49 +6,19 @@ import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/Pris
 import { mergeOverlappingRanges } from "@calcom/features/schedules/lib/date-ranges";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
-import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { Prisma } from "@calcom/prisma/client";
-import type { User, Booking, SelectedCalendar } from "@calcom/prisma/client";
-import type { AttributeType } from "@calcom/prisma/enums";
-import { RRTimestampBasis, RRResetInterval } from "@calcom/prisma/enums";
+import type { Booking, SelectedCalendar, User } from "@calcom/prisma/client";
+import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getLuckyUser"] });
-const { getAttributesQueryValue } = acrossQueryValueCompatiblity;
 
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
   attendees: { email: string | null }[];
 };
 
 type PartialUser = Pick<User, "id" | "email">;
-export type RoutingFormResponse = {
-  response: Prisma.JsonValue;
-  chosenRouteId: string | null;
-  form: {
-    fields: Prisma.JsonValue;
-    routes: Prisma.JsonValue;
-  };
-};
-
-type AttributeWithWeights = {
-  name: string;
-  slug: string;
-  type: AttributeType;
-  id: string;
-  options: {
-    id: string;
-    value: string;
-    slug: string;
-    assignedUsers: {
-      weight: number | null;
-      member: {
-        userId: number;
-      };
-    }[];
-  }[];
-};
 
 type VirtualQueuesDataType = {
   chosenRouteId: string;
@@ -85,7 +51,6 @@ interface GetLuckyUserParams<T extends PartialUser> {
     createdAt: Date;
     weight?: number | null;
   }[];
-  routingFormResponse: RoutingFormResponse | null;
   meetingStartTime?: Date;
 }
 
@@ -186,7 +151,6 @@ export interface ILuckyUserService {
   hostRepository: HostRepository;
   oooRepository: PrismaOOORepository;
   userRepository: UserRepository;
-  attributeRepository: PrismaAttributeRepository;
 }
 
 export class LuckyUserService implements ILuckyUserService {
@@ -194,14 +158,12 @@ export class LuckyUserService implements ILuckyUserService {
   public hostRepository: HostRepository;
   public oooRepository: PrismaOOORepository;
   public userRepository: UserRepository;
-  public attributeRepository: PrismaAttributeRepository;
 
   constructor(deps: ILuckyUserService) {
     this.bookingRepository = deps.bookingRepository;
     this.hostRepository = deps.hostRepository;
     this.oooRepository = deps.oooRepository;
     this.userRepository = deps.userRepository;
-    this.attributeRepository = deps.attributeRepository;
   }
 
   private leastRecentlyBookedUser<T extends PartialUser>({
@@ -489,186 +451,6 @@ export class LuckyUserService implements ILuckyUserService {
     };
   }
 
-  private getAverageAttributeWeights<
-    T extends PartialUser & {
-      priority?: number | null;
-      weight?: number | null;
-    },
-  >(
-    allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
-    attributesQueryValueChild: Record<
-      string,
-      {
-        type?: string | undefined;
-        properties?:
-          | {
-              field?: string | null;
-              operator?: string | null;
-              value?: (string | string[])[];
-              valueSrc?: string[];
-            }
-          | undefined;
-      }
-    >,
-    attributeWithWeights: AttributeWithWeights
-  ) {
-    let averageWeightsHosts: { userId: number; weight: number }[] = [];
-
-    const fieldValueArray = Object.values(attributesQueryValueChild).map((child) => ({
-      field: child.properties?.field,
-      value: child.properties?.value,
-    }));
-
-    fieldValueArray.map((obj) => {
-      const attributeId = obj.field;
-      const allRRHostsWeights = new Map<number, number[]>();
-
-      if (attributeId === attributeWithWeights.id && obj.value) {
-        obj.value.forEach((valueItem) => {
-          const attributeOptions = Array.isArray(valueItem) ? valueItem : [valueItem];
-          attributeOptions.forEach((attributeOption: string) => {
-            const attributeOptionWithUsers = attributeWithWeights.options.find(
-              (option) => option.value.toLowerCase() === attributeOption.toLowerCase()
-            );
-
-            allRRHosts.forEach((rrHost) => {
-              const assignedUser = attributeOptionWithUsers?.assignedUsers.find(
-                (assignedUser) => rrHost.user.id === assignedUser.member.userId
-              );
-
-              if (allRRHostsWeights.has(rrHost.user.id)) {
-                allRRHostsWeights.get(rrHost.user.id)?.push(assignedUser?.weight ?? rrHost.weight ?? 100);
-              } else {
-                allRRHostsWeights.set(rrHost.user.id, [assignedUser?.weight ?? rrHost.weight ?? 100]);
-              }
-            });
-          });
-        });
-        averageWeightsHosts = Array.from(allRRHostsWeights.entries()).map(([userId, weights]) => {
-          const totalWeight = weights.reduce((acc, weight) => acc + weight, 0);
-          const averageWeight = totalWeight / weights.length;
-
-          return {
-            userId,
-            weight: averageWeight,
-          };
-        });
-      }
-    });
-    log.debug(
-      "getAverageAttributeWeights",
-      safeStringify({ allRRHosts, attributesQueryValueChild, attributeWithWeights, averageWeightsHosts })
-    );
-
-    return averageWeightsHosts;
-  }
-
-  private getAttributesForVirtualQueues(
-    response: Record<string, Pick<FormResponse[keyof FormResponse], "value">>,
-    attributesQueryValueChild: Record<
-      string,
-      {
-        type?: string | undefined;
-        properties?:
-          | {
-              field?: string | null;
-              operator?: string | null;
-              value?: (string | string[])[];
-              valueSrc?: string[];
-            }
-          | undefined;
-      }
-    >,
-    attributeWithWeights: { id: string }
-  ) {
-    let selectionOptions: Pick<VirtualQueuesDataType, "fieldOptionData">["fieldOptionData"] | undefined;
-
-    const fieldValueArray = Object.values(attributesQueryValueChild).map((child) => ({
-      field: child.properties?.field,
-      value: child.properties?.value,
-    }));
-
-    fieldValueArray.some((obj) => {
-      const attributeId = obj.field;
-
-      if (attributeId === attributeWithWeights.id && obj.value) {
-        obj.value.some((valueItem) => {
-          const attributeOptionIds = Array.isArray(valueItem) ? valueItem : [valueItem];
-          return attributeOptionIds.some((attributeOptionId: string) => {
-            const content = attributeOptionId.slice(1, -1);
-
-            const routingFormFieldId = content.includes("field:") ? content.split("field:")[1] : null;
-
-            if (routingFormFieldId) {
-              const fieldResponse = response[routingFormFieldId];
-              selectionOptions = { fieldId: routingFormFieldId, selectedOptionIds: fieldResponse.value };
-              return true;
-            }
-            return false;
-          });
-        });
-      }
-    });
-    return selectionOptions;
-  }
-
-  private async getQueueAndAttributeWeightData<T extends PartialUser & { priority?: number | null }>(
-    allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
-    routingFormResponse: RoutingFormResponse,
-    attributeWithWeights: AttributeWithWeights
-  ) {
-    let averageWeightsHosts: { userId: number; weight: number }[] = [];
-    const chosenRouteId = routingFormResponse?.chosenRouteId ?? undefined;
-
-    if (!chosenRouteId) return;
-
-    let fieldOptionData: { fieldId: string; selectedOptionIds: string | number | string[] } | undefined;
-    const routingForm = routingFormResponse?.form;
-
-    if (routingForm && routingFormResponse) {
-      const response = routingFormResponse.response as FormResponse;
-      const routes = zodRoutes.parse(routingForm.routes);
-      const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
-
-      if (chosenRoute && "attributesQueryValue" in chosenRoute) {
-        const parsedAttributesQueryValue = raqbQueryValueSchema.parse(chosenRoute.attributesQueryValue);
-
-        const attributesQueryValueWithLabel = getAttributesQueryValue({
-          attributesQueryValue: chosenRoute.attributesQueryValue,
-          attributes: [attributeWithWeights],
-          dynamicFieldValueOperands: {
-            fields: (routingFormResponse.form.fields as Fields) || [],
-            response,
-          },
-        });
-
-        const parsedAttributesQueryValueWithLabel = raqbQueryValueSchema.parse(attributesQueryValueWithLabel);
-
-        if (parsedAttributesQueryValueWithLabel && parsedAttributesQueryValueWithLabel.children1) {
-          averageWeightsHosts = this.getAverageAttributeWeights(
-            allRRHosts,
-            parsedAttributesQueryValueWithLabel.children1,
-            attributeWithWeights
-          );
-        }
-
-        if (parsedAttributesQueryValue && parsedAttributesQueryValue.children1) {
-          fieldOptionData = this.getAttributesForVirtualQueues(
-            response,
-            parsedAttributesQueryValue.children1,
-            attributeWithWeights
-          );
-        }
-      }
-    }
-
-    if (fieldOptionData) {
-      return { averageWeightsHosts, virtualQueuesData: { chosenRouteId, fieldOptionData } };
-    }
-
-    return;
-  }
-
   private async getCalendarBusyTimesOfInterval(
     usersWithCredentials: {
       id: number;
@@ -710,7 +492,6 @@ export class LuckyUserService implements ILuckyUserService {
   private async getBookingsOfInterval({
     eventTypeId,
     users,
-    virtualQueuesData,
     interval,
     includeNoShowInRRCalculation,
     rrTimestampBasis,
@@ -718,7 +499,6 @@ export class LuckyUserService implements ILuckyUserService {
   }: {
     eventTypeId: number;
     users: { id: number; email: string }[];
-    virtualQueuesData: VirtualQueuesDataType | null;
     interval: RRResetInterval;
     includeNoShowInRRCalculation: boolean;
     rrTimestampBasis: RRTimestampBasis;
@@ -729,7 +509,6 @@ export class LuckyUserService implements ILuckyUserService {
       users,
       startDate: getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),
       endDate: getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }),
-      virtualQueuesData,
       includeNoShowInRRCalculation,
       rrTimestampBasis,
     });
@@ -801,7 +580,6 @@ export class LuckyUserService implements ILuckyUserService {
         users: availableUsers.map((user) => {
           return { id: user.id, email: user.email };
         }),
-        virtualQueuesData: virtualQueuesData ?? null,
         interval,
         includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
         rrTimestampBasis,
@@ -810,7 +588,6 @@ export class LuckyUserService implements ILuckyUserService {
       this.getBookingsOfInterval({
         eventTypeId: eventType.id,
         users: notAvailableHosts,
-        virtualQueuesData: virtualQueuesData ?? null,
         interval,
         includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
         rrTimestampBasis,
@@ -821,7 +598,6 @@ export class LuckyUserService implements ILuckyUserService {
         users: allRRHosts.map((host) => {
           return { id: host.user.id, email: host.user.email };
         }),
-        virtualQueuesData: virtualQueuesData ?? null,
         interval,
         includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
         rrTimestampBasis,
@@ -851,7 +627,7 @@ export class LuckyUserService implements ILuckyUserService {
           const earliestStartTime = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1));
           if (start < earliestStartTime) start = earliestStartTime;
 
-          return end.getTime() < new Date().getTime() && isFullDayEvent(start, end);
+          return end.getTime() < Date.now() && isFullDayEvent(start, end);
         })
         .map((busyTime) => ({ start: new Date(busyTime.start), end: new Date(busyTime.end) }));
 
@@ -870,7 +646,7 @@ export class LuckyUserService implements ILuckyUserService {
       if (!oooEntriesGroupedByUserId.has(entry.userId)) {
         oooEntriesGroupedByUserId.set(entry.userId, []);
       }
-      oooEntriesGroupedByUserId.get(entry.userId)!.push({ start: entry.start, end: entry.end });
+      oooEntriesGroupedByUserId.get(entry.userId)?.push({ start: entry.start, end: entry.end });
     });
 
     const oooData: { userId: number; oooEntries: { start: Date; end: Date }[] }[] = [];
@@ -998,48 +774,13 @@ export class LuckyUserService implements ILuckyUserService {
     };
   }
 
-  public async prepareQueuesAndAttributesData<T extends PartialUser>({
-    eventType,
-    routingFormResponse,
-    allRRHosts,
-  }: Omit<GetLuckyUserParams<T>, "availableUsers">) {
-    let attributeWeights;
-    let virtualQueuesData;
-    const organizationId = eventType.team?.parentId;
-    log.debug("prepareQueuesAndAttributesData", safeStringify({ routingFormResponse, organizationId }));
-    if (routingFormResponse && organizationId) {
-      const routingForm = routingFormResponse?.form;
-      const routes = zodRoutes.parse(routingForm.routes);
-      const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
-
-      if (chosenRoute && "attributeIdForWeights" in chosenRoute) {
-        const attributeIdForWeights = chosenRoute.attributeIdForWeights;
-
-        if (attributeIdForWeights) {
-          const attributeWithEnabledWeights = await this.attributeRepository.findUniqueWithWeights({
-            teamId: organizationId,
-            attributeId: attributeIdForWeights,
-            isWeightsEnabled: true,
-          });
-
-          if (attributeWithEnabledWeights) {
-            const queueAndAtributeWeightData = await this.getQueueAndAttributeWeightData(
-              allRRHosts,
-              routingFormResponse,
-              attributeWithEnabledWeights as AttributeWithWeights
-            );
-            if (
-              queueAndAtributeWeightData?.averageWeightsHosts &&
-              queueAndAtributeWeightData?.virtualQueuesData
-            ) {
-              attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
-              virtualQueuesData = queueAndAtributeWeightData?.virtualQueuesData;
-            }
-          }
-        }
-      }
-    }
-    return { attributeWeights, virtualQueuesData };
+  public async prepareQueuesAndAttributesData<T extends PartialUser>(
+    _params: Omit<GetLuckyUserParams<T>, "availableUsers">
+  ) {
+    return {
+      attributeWeights: undefined,
+      virtualQueuesData: undefined,
+    };
   }
 
   public async getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(

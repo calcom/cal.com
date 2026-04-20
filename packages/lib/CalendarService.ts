@@ -831,7 +831,7 @@ export default abstract class BaseCalendarService implements Calendar {
         const [mainHostDestinationCalendar] = event?.destinationCalendar ?? [];
         newCalendars.push({
           externalId: calendar.url,
-          /** @url https://github.com/calcom/cal.com/issues/7186 */
+          /** @url https://github.com/calcom/cal.diy/issues/7186 */
           name: typeof calendar.displayName === "string" ? calendar.displayName : "",
           primary: mainHostDestinationCalendar?.externalId
             ? mainHostDestinationCalendar.externalId === calendar.url

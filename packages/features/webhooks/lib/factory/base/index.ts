@@ -12,11 +12,8 @@
  * 4. Register the new version in registry.ts
  */
 export { BaseBookingPayloadBuilder } from "./BaseBookingPayloadBuilder";
-export { BaseFormPayloadBuilder } from "./BaseFormPayloadBuilder";
 export { BaseMeetingPayloadBuilder } from "./BaseMeetingPayloadBuilder";
 export { BaseRecordingPayloadBuilder } from "./BaseRecordingPayloadBuilder";
 export { BaseOOOPayloadBuilder } from "./BaseOOOPayloadBuilder";
 export { BaseInstantMeetingBuilder } from "./BaseInstantMeetingBuilder";
-export { BaseDelegationPayloadBuilder } from "./BaseDelegationPayloadBuilder";
-
 export type { BookingExtraDataMap, BookingPayloadParams } from "./BaseBookingPayloadBuilder";

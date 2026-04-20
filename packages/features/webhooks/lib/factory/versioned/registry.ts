@@ -23,24 +23,20 @@ export { DEFAULT_WEBHOOK_VERSION } from "../../interface/IWebhookRepository";
  *
  * factory.registerVersion(WebhookVersion.V_2024_12_01, {
  *   booking: new V2024_12_01.BookingPayloadBuilder(),
- *   form: new V2024_12_01.FormPayloadBuilder(),
  *   ooo: new V2024_12_01.OOOPayloadBuilder(),
  *   recording: new V2024_12_01.RecordingPayloadBuilder(),
  *   meeting: new V2024_12_01.MeetingPayloadBuilder(),
  *   instantMeeting: new V2024_12_01.InstantMeetingBuilder(),
- *   delegation: new V2024_12_01.DelegationPayloadBuilder(),
  * });
  * ```
  */
 export function createPayloadBuilderFactory(): PayloadBuilderFactory {
   const defaultBuilders = {
     booking: new V2021_10_20.BookingPayloadBuilder(),
-    form: new V2021_10_20.FormPayloadBuilder(),
     ooo: new V2021_10_20.OOOPayloadBuilder(),
     recording: new V2021_10_20.RecordingPayloadBuilder(),
     meeting: new V2021_10_20.MeetingPayloadBuilder(),
     instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
-    delegation: new V2021_10_20.DelegationPayloadBuilder(),
   };
 
   const factory = new PayloadBuilderFactory(DEFAULT_WEBHOOK_VERSION, defaultBuilders);

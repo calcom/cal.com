@@ -16,8 +16,8 @@ import {
   sendChangeOfEmailVerification,
   sendEmailVerificationByCode,
 } from "@calcom/features/auth/lib/verifyEmail";
-import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
-import { verifyEmailCodeHandler } from "@calcom/trpc/server/routers/viewer/workflows/verifyEmailCode.handler";
+// sendSignupToOrganizationEmail removed (EE/org feature)
+// verifyEmailCodeHandler removed (EE/workflows feature)
 
 export { AttendeeVerifyEmail };
 
@@ -47,9 +47,25 @@ export { OrganizerRequestEmail };
 
 export { AttendeeRequestEmail };
 
-export { sendSignupToOrganizationEmail };
-
 export { sendEmailVerificationByCode };
 export { sendChangeOfEmailVerification };
 
-export { verifyEmailCodeHandler };
+// sendSignupToOrganizationEmail stub — org feature removed
+export async function sendSignupToOrganizationEmail(_args: {
+  usernameOrEmail: string;
+  team: { name: string; slug?: string | null; id?: number; parent?: unknown | null };
+  inviterName: string;
+  teamId: number;
+  isOrg: boolean;
+  translation?: unknown;
+}): Promise<void> {
+  // No-op: organization signup emails are not available in community edition
+}
+
+// verifyEmailCodeHandler stub — used by verified-resources service
+export async function verifyEmailCodeHandler(_opts: {
+  input: { code: string; email: string; teamId?: number };
+  ctx?: { user?: { id: number } };
+}): Promise<boolean> {
+  return false;
+}

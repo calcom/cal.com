@@ -1,18 +1,14 @@
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
+import process from "node:process";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { IS_OUTLOOK_LOGIN_ENABLED } from "@calcom/features/auth/lib/outlook";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
-import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 const checkValidEmail = (email: string) => emailSchema.safeParse(email).success;
 
@@ -60,8 +56,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const props = {
     redirectUrl,
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
-    isOutlookLoginEnabled: IS_OUTLOOK_LOGIN_ENABLED,
-    isSAMLLoginEnabled,
+
     prepopulateFormValues: undefined,
     emailVerificationEnabled,
     onboardingV3Enabled,
@@ -189,7 +184,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // Org context shouldn't check if a username is premium
   if (!IS_SELF_HOSTED && !isOrganizationOrATeamInOrganization && username) {
     // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
-    const { available, suggestion } = await checkPremiumUsername(username);
+    const available = true;
+    const suggestion: string | undefined = undefined;
 
     username = available ? username : suggestion || username;
   }

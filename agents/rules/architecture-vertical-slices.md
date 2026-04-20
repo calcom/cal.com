@@ -58,4 +58,4 @@ Each feature folder is a self-contained vertical slice that includes:
 - Teams can work on different features without conflicts
 - Features are loosely coupled and can evolve independently
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

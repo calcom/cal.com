@@ -1,44 +1,35 @@
-import type { TokenResponse, Connection, Field } from "@jsforce/jsforce-node";
-import jsforce from "@jsforce/jsforce-node";
-import { RRule } from "rrule";
-import { z } from "zod";
-
-import { RoutingFormResponseDataFactory } from "@calcom/app-store/routing-forms/lib/RoutingFormResponseDataFactory";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { getRedisService } from "@calcom/features/di/containers/Redis";
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaAssignmentReasonRepository } from "./repositories/PrismaAssignmentReasonRepository";
-import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormResponseRepository";
 import { prisma } from "@calcom/prisma";
-import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
+import type { CalEventResponses, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
-
-import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import { getRedisService } from "@calcom/features/di/containers/Redis";
-
+import type { Contact, CRM, CrmEvent } from "@calcom/types/CrmService";
+import type { Connection, Field, TokenResponse } from "@jsforce/jsforce-node";
+import jsforce from "@jsforce/jsforce-node";
+import { RRule } from "rrule";
+import { z } from "zod";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
-import { SalesforceRoutingTraceService } from "./tracing";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
-import { findFieldValueByIdentifier } from "../../routing-forms/lib/findFieldValueByIdentifier";
 import { default as appMeta } from "../config.json";
-import type { writeToRecordDataSchema, appDataSchema, writeToBookingEntry, RRSkipFieldRule } from "../zod";
+import type { appDataSchema, RRSkipFieldRule, writeToBookingEntry, writeToRecordDataSchema } from "../zod";
 import { RRSkipFieldRuleActionEnum } from "../zod";
 import {
-  SalesforceRecordEnum,
-  SalesforceFieldType,
-  WhenToWriteToRecord,
   DateFieldTypeData,
   RoutingReasons,
+  SalesforceFieldType,
+  SalesforceRecordEnum,
+  WhenToWriteToRecord,
 } from "./enums";
+import { PrismaAssignmentReasonRepository } from "./repositories/PrismaAssignmentReasonRepository";
 
 /**
  * Extended CRM interface with Salesforce-specific methods.
- * This interface is used by internal Salesforce modules (routing forms, etc.)
- * that need access to Salesforce-specific functionality beyond the generic CRM interface.
  */
 export interface SalesforceCRM extends CRM {
   findUserEmailFromLookupField(
@@ -54,12 +45,13 @@ export interface SalesforceCRM extends CRM {
 
   getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string): string;
 }
+
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
 import { getSalesforceTokenLifetime } from "./getSalesforceTokenLifetime";
 import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
 import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
-import getDominantAccountId from "./utils/getDominantAccountId";
 import type { GetDominantAccountIdInput } from "./utils/getDominantAccountId";
+import getDominantAccountId from "./utils/getDominantAccountId";
 
 class SFObjectToUpdateNotFoundError extends RetryableError {
   constructor(message: string) {
@@ -351,7 +343,7 @@ class SalesforceCRMService implements CRM {
     const writeToEventRecord = await this.generateWriteToEventBody(event);
     log.info(`Writing to event fields: ${Object.keys(writeToEventRecord)} `);
 
-    let ownerId: string | undefined = undefined;
+    let ownerId: string | undefined;
     if (event?.organizer?.email) {
       ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
     } else {
@@ -594,12 +586,6 @@ class SalesforceCRMService implements CRM {
           if (filtered.length > 0) {
             validatedFieldRules = filtered;
             log.info("Validated field rules", safeStringify({ validatedFieldRules }));
-            SalesforceRoutingTraceService.fieldRulesValidated({
-              recordType: recordToSearch,
-              configuredCount: appOptions.rrSkipFieldRules.length,
-              validCount: filtered.length,
-              validFields: filtered.map((r) => r.field),
-            });
           } else {
             log.warn(
               "No field rules matched existing fields",
@@ -607,11 +593,6 @@ class SalesforceCRMService implements CRM {
                 configuredFields: appOptions.rrSkipFieldRules.map((r) => r.field),
               })
             );
-            SalesforceRoutingTraceService.fieldRulesValidated({
-              recordType: recordToSearch,
-              configuredCount: appOptions.rrSkipFieldRules.length,
-              validCount: 0,
-            });
           }
         }
       }
@@ -661,8 +642,9 @@ class SalesforceCRMService implements CRM {
 
       if (records.length === 0) {
         // Build extra SELECT fields from validated field rules so we don't need a second query
-        const extraFields =
-          validatedFieldRules?.length ? ", " + validatedFieldRules.map((r) => r.field).join(", ") : "";
+        const extraFields = validatedFieldRules?.length
+          ? ", " + validatedFieldRules.map((r) => r.field).join(", ")
+          : "";
 
         // Handle Account record type
         if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
@@ -696,22 +678,12 @@ class SalesforceCRMService implements CRM {
         records = this.applyFieldRules(records, validatedFieldRules);
         if (records.length === 0) {
           log.info("All records filtered out by field rules");
-          SalesforceRoutingTraceService.allRecordsFilteredByFieldRules({
-            recordType: recordToSearch,
-          });
           return [];
         }
       }
 
       const isFreeEmailDomain = await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]);
       const includeOwnerData = (includeOwner || forRoundRobinSkip) && !isFreeEmailDomain;
-
-      if (isFreeEmailDomain && (includeOwner || forRoundRobinSkip)) {
-        SalesforceRoutingTraceService.ownerLookupSkipped({
-          reason: "Free email domain",
-          email: emailArray[0],
-        });
-      }
 
       const includeAccountRecordType = forRoundRobinSkip && recordToSearch === SalesforceRecordEnum.ACCOUNT;
       return records.map((record) => {
@@ -721,33 +693,6 @@ class SalesforceCRMService implements CRM {
           record?.attributes?.type !== SalesforceRecordEnum.ACCOUNT
             ? record?.Account?.Owner?.Email
             : record?.Owner?.Email;
-
-        // Trace owner lookup based on record type
-        if (includeOwnerData && record?.Id && record?.OwnerId) {
-          const recordType = record?.attributes?.type;
-          if (recordType === SalesforceRecordEnum.CONTACT) {
-            SalesforceRoutingTraceService.contactOwnerLookup({
-              contactId: record.Id,
-              ownerEmail: ownerEmail ?? null,
-              ownerId: record.OwnerId ?? null,
-            });
-          } else if (recordType === SalesforceRecordEnum.LEAD) {
-            SalesforceRoutingTraceService.leadOwnerLookup({
-              leadId: record.Id,
-              ownerEmail: ownerEmail ?? null,
-              ownerId: record.OwnerId ?? null,
-            });
-          } else if (
-            recordType === SalesforceRecordEnum.ACCOUNT ||
-            (includeAccountRecordType && record?.AccountId)
-          ) {
-            SalesforceRoutingTraceService.accountOwnerLookup({
-              accountId: record.AccountId || record.Id,
-              ownerEmail: ownerEmail ?? null,
-              ownerId: record.OwnerId ?? null,
-            });
-          }
-        }
 
         return {
           id: includeAccountRecordType ? record?.AccountId || "" : record?.Id || "",
@@ -776,7 +721,7 @@ class SalesforceCRMService implements CRM {
   }) {
     // Escape SOSL reserved characters: ? & | ! { } [ ] ( ) ^ ~ * : \ " ' + -
     // eslint-disable-next-line no-useless-escape
-    const escapedEmail = email.replace(/([?&|!{}[\]()^~*:\\"'+\-])/g, "\\$1");
+    const escapedEmail = email.replace(/([?&|!{}[\]()^~*:\\"'+-])/g, "\\$1");
     const searchResult = await conn.search(
       `FIND {${escapedEmail}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
     );
@@ -985,7 +930,7 @@ class SalesforceCRMService implements CRM {
         records: { WhoId: string }[];
       };
 
-      let salesforceAttendeeEmail: string | undefined = undefined;
+      let salesforceAttendeeEmail: string | undefined;
       // Figure out if the attendee is a contact or lead
       const contactQuery = (await conn.query(
         `SELECT Email FROM Contact WHERE Id = '${this.sanitizeSoqlValue(salesforceEvent.records[0].WhoId)}'`
@@ -1317,10 +1262,6 @@ class SalesforceCRMService implements CRM {
     const log = logger.getSubLogger({ prefix: [`[getAccountIdBasedOnEmailDomainOfContacts]:${email}`] });
     log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
 
-    SalesforceRoutingTraceService.searchingByWebsiteValue({
-      emailDomain,
-    });
-
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
       `SELECT Id, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
@@ -1333,10 +1274,6 @@ class SalesforceCRMService implements CRM {
         "Found account based on email domain",
         safeStringify({ emailDomain, accountWebsite: account.Website, accountId: account.Id })
       );
-      SalesforceRoutingTraceService.accountFoundByWebsite({
-        accountId: account.Id,
-        website: account.Website,
-      });
       return account.Id;
     }
 
@@ -1345,28 +1282,12 @@ class SalesforceCRMService implements CRM {
       `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${this.sanitizeSoqlValue(emailDomain)}' AND AccountId != null`
     );
 
-    SalesforceRoutingTraceService.searchingByContactEmailDomain({
-      emailDomain,
-      contactCount: response.records.length,
-    });
-
     const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
 
     if (accountId) {
       log.info("Found account based on other contacts", safeStringify({ accountId }));
-      const contactsUnderAccount = (response.records as { AccountId: string }[]).filter(
-        (r) => r.AccountId === accountId
-      );
-      SalesforceRoutingTraceService.accountSelectedByMostContacts({
-        accountId,
-        contactCount: contactsUnderAccount.length,
-      });
     } else {
       log.info("No account found");
-      SalesforceRoutingTraceService.noAccountFound({
-        email,
-        reason: "No account found by website or contact domain",
-      });
     }
 
     return accountId;
@@ -1632,15 +1553,7 @@ class SalesforceCRMService implements CRM {
     }
 
     let valueToWrite = fieldValue;
-    if (fieldValue.startsWith("{form:")) {
-      // Get routing from response
-      if (!bookingUid) {
-        log.error(`BookingUid not passed. Cannot get form responses without it`);
-        return;
-      }
-      const formValue = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId);
-      valueToWrite = formValue || "";
-    } else if (fieldValue.startsWith("{utm:")) {
+    if (fieldValue.startsWith("{utm:")) {
       if (!bookingUid) {
         log.error(`BookingUid not passed. Cannot get tracking values without it`);
         return;
@@ -1673,50 +1586,6 @@ class SalesforceCRMService implements CRM {
 
     // Trim incase the replacement values increased the length
     return fieldLength ? valueToWrite.substring(0, fieldLength) : valueToWrite;
-  }
-
-  private async getTextValueFromRoutingFormResponse(
-    fieldValue: string,
-    bookingUid: string,
-    recordId: string
-  ) {
-    const log = logger.getSubLogger({
-      prefix: [`[getTextValueFromRoutingFormResponse]: ${recordId} - bookingUid: ${bookingUid}`],
-    });
-
-    let value;
-
-    const regex = /\{form:(.*?)\}/;
-    const regexMatch = fieldValue.match(regex);
-    if (!regexMatch) {
-      log.error("Could not find regex match to {form:}");
-      return fieldValue;
-    }
-
-    const identifierField = regexMatch?.[1];
-    if (!identifierField) {
-      log.error(`Could not find matching regex string ${regexMatch}`);
-      return fieldValue;
-    }
-
-    const routingFormResponseDataFactory = new RoutingFormResponseDataFactory({
-      logger: log,
-      routingFormResponseRepo: new RoutingFormResponseRepository(),
-    });
-    const findFieldResult = findFieldValueByIdentifier(
-      await routingFormResponseDataFactory.createWithBookingUid(bookingUid),
-      identifierField
-    );
-    if (findFieldResult.success) {
-      value = findFieldResult.data;
-      return String(value);
-    }
-    log.error(
-      `Could not find field value for identifier ${identifierField} in bookingUid ${bookingUid}`,
-      `failed with error: ${findFieldResult.error}`
-    );
-    // If the field is not found, return the original field value
-    return fieldValue;
   }
 
   private async getTextValueFromBookingTracking(fieldValue: string, bookingUid: string) {
@@ -1908,12 +1777,6 @@ class SalesforceCRMService implements CRM {
     if (salesforceObject === SalesforceRecordEnum.ACCOUNT) {
       const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
 
-      SalesforceRoutingTraceService.lookupFieldQuery({
-        fieldName,
-        salesforceObject,
-        accountId: accountId ?? null,
-      });
-
       if (!accountId) return;
 
       const accountQuery = (await conn.query(
@@ -1935,11 +1798,6 @@ class SalesforceCRMService implements CRM {
       if (!userQuery.records.length) return;
 
       const user = userQuery.records[0] as { Email: string };
-
-      SalesforceRoutingTraceService.userQueryFromLookupField({
-        lookupFieldUserId,
-        userEmail: user.Email,
-      });
 
       return { email: user.Email, recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD };
     }

@@ -1,10 +1,5 @@
-import { keyBy } from "lodash";
-import type { GetServerSidePropsContext, NextApiResponse } from "next";
-
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
-import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
-import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
@@ -18,13 +13,21 @@ import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import type { JsonValue } from "@calcom/types/Json";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import type { JsonValue } from "@calcom/types/Json";
 import { TRPCError } from "@trpc/server";
+import { keyBy } from "lodash";
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
+import { type TUpdateProfileInputSchema, updateUserMetadataAllowedKeys } from "./updateProfile.schema";
 
-import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
+const getBillingProviderService = async (..._args: unknown[]) => ({
+  createCustomer: async (..._a: unknown[]) => null,
+  getCustomer: async (..._a: unknown[]) => null,
+  getSubscriptions: async (..._a: unknown[]): Promise<{ items: { data: { price: { id: string } }[] }; status: string }[]> => [],
+  updateCustomer: async (..._a: unknown[]) => null,
+});
+const updateNewTeamMemberEventTypes = async (..._args: unknown[]) => {};
 
 const log = logger.getSubLogger({ prefix: ["updateProfile"] });
 type UpdateProfileOptions = {
@@ -37,7 +40,7 @@ type UpdateProfileOptions = {
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
-  const billingService = getBillingProviderService();
+  const billingService = await getBillingProviderService();
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
   const featuresRepository = new FeaturesRepository(prisma);
@@ -305,7 +308,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   // Notify stripe about the change
-  if (updatedUser && updatedUser.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {
+  if (updatedUser?.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {
     const stripeCustomerId = `${updatedUser.metadata.stripeCustomerId}`;
     await billingService.updateCustomer({
       customerId: stripeCustomerId,

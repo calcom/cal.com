@@ -4,8 +4,8 @@ import type { z } from "zod";
 import type {
   SelectLikeComponentProps,
   TextLikeComponentProps,
-} from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
-import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
+} from "@calcom/features/form-builder/widget-types";
+import Widgets from "@calcom/features/form-builder/widgets";
 import PhoneInput from "@calcom/web/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { fieldSchema, variantsConfigSchema, FieldType } from "@calcom/prisma/zod-utils";

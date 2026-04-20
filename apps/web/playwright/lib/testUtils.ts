@@ -1,17 +1,16 @@
-import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
-import { expect } from "@playwright/test";
 import { createHash } from "node:crypto";
 import EventEmitter from "node:events";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createServer } from "node:http";
-import type { Messages } from "mailhog";
-import { totp } from "otplib";
-import { v4 as uuid } from "uuid";
-
+import process from "node:process";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-
+import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type { Messages } from "mailhog";
+import { totp } from "otplib";
+import { v4 as uuid } from "uuid";
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { CreateUsersFixture } from "../fixtures/users";
 import type { Fixtures } from "./fixtures";
@@ -30,9 +29,18 @@ export const IS_STRIPE_ENABLED = !!(
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
   process.env.STRIPE_CLIENT_ID &&
   process.env.STRIPE_PRIVATE_KEY &&
+  process.env.STRIPE_WEBHOOK_SECRET &&
   process.env.PAYMENT_FEE_FIXED &&
   process.env.PAYMENT_FEE_PERCENTAGE
 );
+
+export const IS_GOOGLE_CALENDAR_ENABLED = !!(
+  process.env.GOOGLE_API_CREDENTIALS &&
+  process.env.E2E_TEST_CALCOM_GCAL_KEYS &&
+  process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
+);
+
+export const IS_SENDGRID_ENABLED = !!process.env.SENDGRID_API_KEY;
 
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {

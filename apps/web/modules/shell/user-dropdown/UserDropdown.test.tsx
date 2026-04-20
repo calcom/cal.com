@@ -35,7 +35,7 @@ vi.mock("@calcom/web/components/settings/platform/hooks/useGetUserAttributes", (
   }),
 }));
 
-vi.mock("@calcom/web/modules/ee/support/lib/freshchat/FreshChatProvider", () => ({
+vi.mock("@calcom/web/modules/api-keys/support/lib/freshchat/FreshChatProvider", () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 

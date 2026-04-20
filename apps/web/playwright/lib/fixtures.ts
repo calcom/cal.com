@@ -15,11 +15,9 @@ import { createFeatureFixture } from "../fixtures/features";
 import { createOrgsFixture } from "../fixtures/orgs";
 import { createPaymentsFixture } from "../fixtures/payments";
 import { createBookingPageFixture } from "../fixtures/regularBookings";
-import { createRoutingFormsFixture } from "../fixtures/routingForms";
 import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";
 import { createWebhookPageFixture } from "../fixtures/webhooks";
-import { createWorkflowPageFixture } from "../fixtures/workflows";
 
 export interface Fixtures {
   page: Page;
@@ -31,9 +29,7 @@ export interface Fixtures {
   servers: ReturnType<typeof createServersFixture>;
   prisma: typeof prisma;
   emails: ReturnType<typeof createEmailsFixture>;
-  routingForms: ReturnType<typeof createRoutingFormsFixture>;
   bookingPage: ReturnType<typeof createBookingPageFixture>;
-  workflowPage: ReturnType<typeof createWorkflowPageFixture>;
   features: ReturnType<typeof createFeatureFixture>;
   eventTypePage: ReturnType<typeof createEventTypeFixture>;
   appsPage: ReturnType<typeof createAppsFixture>;
@@ -87,9 +83,6 @@ export const test = base.extend<Fixtures>({
   prisma: async ({}, use) => {
     await use(prisma);
   },
-  routingForms: async ({}, use) => {
-    await use(createRoutingFormsFixture());
-  },
   emails: async ({}, use) => {
     await use(createEmailsFixture());
   },
@@ -101,10 +94,6 @@ export const test = base.extend<Fixtures>({
     const features = createFeatureFixture(page);
     await features.init();
     await use(features);
-  },
-  workflowPage: async ({ page }, use) => {
-    const workflowPage = createWorkflowPageFixture(page);
-    await use(workflowPage);
   },
   eventTypePage: async ({ page }, use) => {
     const eventTypePage = createEventTypeFixture(page);

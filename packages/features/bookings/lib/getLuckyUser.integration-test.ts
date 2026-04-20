@@ -1,7 +1,6 @@
-import { describe, it, vi, expect, afterEach, beforeEach, beforeAll, afterAll } from "vitest";
-
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import prisma from "@calcom/prisma";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const luckyUserService = getLuckyUserService();
 let commonEventTypeId: number;
@@ -210,7 +209,6 @@ describe("getLuckyUser Integration tests", () => {
           team: {},
         },
         allRRHosts: [],
-        routingFormResponse: null,
       });
 
       expect(luckyUser.email).toBe(organizerThatDidntShowUp.email);
@@ -270,7 +268,6 @@ describe("getLuckyUser Integration tests", () => {
             team: {},
           },
           allRRHosts: [],
-          routingFormResponse: null,
         })
       ).resolves.toStrictEqual(organizerWhoseAttendeeDidntShowUp);
     });
@@ -371,7 +368,6 @@ describe("getLuckyUser Integration tests", () => {
             team: {},
           },
           allRRHosts: [],
-          routingFormResponse: null,
         })
       ).resolves.toStrictEqual(organizerWhoWasAttendeeAndDidntShowUp);
     });
@@ -434,7 +430,6 @@ describe("getLuckyUser Integration tests", () => {
             team: {},
           },
           allRRHosts: [],
-          routingFormResponse: null,
         })
       ).resolves.toStrictEqual(userWithBookingThatHappenedEarlier);
     });
@@ -532,7 +527,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           team: {},
         },
         allRRHosts,
-        routingFormResponse: null,
       });
 
       expectLuckyUsers(luckyUsers, [
@@ -552,7 +546,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           team: {},
         },
         allRRHosts,
-        routingFormResponse: null,
       });
       expectLuckyUsers(luckyUsers2, [
         // It has the highest weight and zero bookings.
@@ -619,7 +612,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           hostWithTwoBookingsAndWeight100,
           hostWithThreeBookingsAndWeight100,
         ],
-        routingFormResponse: null,
       };
 
       const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
@@ -702,7 +694,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           hostWithTwoBookingsInPreviousMonthAndWeight100,
           hostWithThreeBookingsInPreviousMonthAndWeight100,
         ],
-        routingFormResponse: null,
       };
 
       const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
@@ -778,7 +769,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           team: null,
         },
         allRRHosts: [host1, host2, host3],
-        routingFormResponse: null,
       };
 
       const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({

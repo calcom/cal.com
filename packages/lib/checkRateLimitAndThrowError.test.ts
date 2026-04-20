@@ -67,4 +67,21 @@ describe("checkRateLimitAndThrowError", () => {
 
     await expect(checkRateLimitAndThrowError({ rateLimitingType, identifier })).resolves.not.toThrow();
   });
+  it("should not return negative wait time when reset is in the past", async () => {
+    vi.mocked(rateLimiter).mockReturnValue(() => {
+      return {
+        limit: 10,
+        remaining: -1,
+        reset: Date.now() - 5000, // past time
+        success: false,
+      } as RatelimitResponse;
+    });
+
+    const identifier = "test-identifier";
+    const rateLimitingType = "core";
+
+    await expect(
+      checkRateLimitAndThrowError({ rateLimitingType, identifier })
+    ).rejects.toThrow("0 seconds");
+  });
 });

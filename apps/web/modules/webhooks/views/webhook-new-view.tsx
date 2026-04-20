@@ -79,7 +79,6 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
 
   return (
     <WebhookForm
-      noRoutingFormTriggers={false}
       onSubmit={onCreateWebhook}
       apps={installedApps?.items.map((app) => app.slug)}
       headerWrapper={(formMethods, children) => (

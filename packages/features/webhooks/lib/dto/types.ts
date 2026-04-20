@@ -1,5 +1,4 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, ConferenceData, Person } from "@calcom/types/Calendar";
 import type { WebhookVersion } from "../interface/IWebhookRepository";
@@ -182,7 +181,7 @@ export interface FormSubmittedDTO extends BaseEventDTO {
   };
   response: {
     id: number;
-    data: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+    data: Record<string, { value: string | string[]; label: string }>;
   };
 }
 
@@ -212,7 +211,7 @@ export interface FormSubmittedNoEventDTO extends BaseEventDTO {
   };
   response: {
     id: number;
-    data: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+    data: Record<string, { value: string | string[]; label: string }>;
   };
 }
 
@@ -335,12 +334,6 @@ export interface AfterGuestsNoShowDTO extends BaseEventDTO {
   };
 }
 
-export interface DelegationCredentialErrorDTO
-  extends BaseEventDTO,
-    Pick<DelegationCredentialErrorPayloadType, "error" | "credential" | "user"> {
-  triggerEvent: typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
-}
-
 export type WebhookEventDTO =
   | BookingCreatedDTO
   | BookingCancelledDTO
@@ -359,8 +352,7 @@ export type WebhookEventDTO =
   | MeetingEndedDTO
   | InstantMeetingDTO
   | AfterHostsNoShowDTO
-  | AfterGuestsNoShowDTO
-  | DelegationCredentialErrorDTO;
+  | AfterGuestsNoShowDTO;
 
 // Service layer interfaces
 export interface WebhookTriggerArgs {
@@ -547,24 +539,6 @@ export type OOOEntryPayloadType = {
       email?: string;
     } | null;
     uuid: string;
-  };
-};
-
-export type DelegationCredentialErrorPayloadType = {
-  error: {
-    type: string;
-    message: string;
-  };
-  credential: {
-    id: number;
-    type: string;
-    appId: string;
-    delegationCredentialId?: string;
-  };
-  user: {
-    id: number;
-    email: string;
-    organizationId?: number;
   };
 };
 

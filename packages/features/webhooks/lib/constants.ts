@@ -63,14 +63,8 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
     WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
   ] as const,
-  "routing-forms": [
-    WebhookTriggerEvents.FORM_SUBMITTED,
-    WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
-    WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
-  ] as const,
 };
 
 export const WEBHOOK_TRIGGER_EVENTS = [
   ...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP.core,
-  ...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP["routing-forms"],
 ] as const;

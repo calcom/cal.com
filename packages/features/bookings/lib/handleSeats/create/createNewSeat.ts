@@ -1,24 +1,18 @@
-import { cloneDeep } from "lodash";
-import { uuid } from "short-uuid";
-
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails/email-manager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-
+import { cloneDeep } from "lodash";
+import { uuid } from "short-uuid";
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
-import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } from "../types";
+import type { HandleSeatsResultBooking, NewSeatedBookingObject, SeatedBooking } from "../types";
 
 export type AddSeatInput = {
   bookingUid: string;
@@ -137,7 +131,6 @@ const createNewSeat = async (
     fullName,
     bookerEmail,
     responses,
-    workflows,
     bookerPhoneNumber,
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
@@ -210,14 +203,6 @@ const createNewSeat = async (
     isHostConfirmationEmailsDisabled = eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
     isAttendeeConfirmationEmailDisabled =
       eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
-
-    if (isHostConfirmationEmailsDisabled) {
-      isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-    }
-
-    if (isAttendeeConfirmationEmailDisabled) {
-      isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-    }
     await sendScheduledSeatsEmailsAndSMS(
       copyEvent,
       inviteeToAdd,
@@ -293,14 +278,14 @@ const createNewSeat = async (
     });
 
     resultBooking = { ...foundBooking };
-    resultBooking["message"] = "Payment required";
-    resultBooking["paymentUid"] = payment?.uid;
-    resultBooking["id"] = payment?.id;
+    resultBooking.message = "Payment required";
+    resultBooking.paymentUid = payment?.uid;
+    resultBooking.id = payment?.id;
   } else {
     resultBooking = { ...foundBooking };
   }
 
-  resultBooking["seatReferenceUid"] = evt.attendeeSeatId;
+  resultBooking.seatReferenceUid = evt.attendeeSeatId;
 
   return resultBooking;
 };
