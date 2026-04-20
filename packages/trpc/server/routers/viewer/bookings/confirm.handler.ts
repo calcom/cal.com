@@ -79,7 +79,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         select: {
           id: true,
           userId: true,
-          owner: { select: { id: true } },
           teamId: true,
           recurringEvent: true,
           title: true,
@@ -190,9 +189,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     const effectiveForceConfirm = forceConfirm && callerIsOwnerOrAdmin;
 
     if (!effectiveForceConfirm) {
+      // Defensive: booking.user is non-null (guarded earlier), which implies a non-null
+      // userId via the Prisma relation. Narrow the type explicitly before the conflict query
+      // so a null FK can never match all bookings without a userId.
       if (!booking.userId) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "booking_has_no_user" });
       }
+      // Scope intentionally limited to the primary organizer; team co-host conflict detection
+      // is out of scope for this PR and left to existing booking-creation guards.
       const conflict = await prisma.booking.findFirst({
         where: {
           userId: booking.userId,
