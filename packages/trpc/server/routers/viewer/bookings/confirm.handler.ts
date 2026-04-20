@@ -58,9 +58,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     emailsEnabled,
     platformClientParams,
     forceConfirm,
-    actionSource,
-    actor,
-    impersonatedByUserUuid,
   } = input;
 
   const booking = await prisma.booking.findUniqueOrThrow({
@@ -81,7 +78,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       eventType: {
         select: {
           id: true,
-          owner: true,
+          userId: true,
+          owner: { select: { id: true } },
           teamId: true,
           recurringEvent: true,
           title: true,
@@ -350,11 +348,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    const isEventOwner = !!(booking.eventType?.owner?.id && booking.eventType.owner.id === ctx.user.id);
+    const isEventOwner = !!(booking.eventType?.userId && booking.eventType.userId === ctx.user.id);
     const callerIsOwnerOrAdmin = isEventOwner || ctx.user.role === UserPermissionRole.ADMIN;
     const effectiveForceConfirm = forceConfirm && callerIsOwnerOrAdmin;
 
     if (!effectiveForceConfirm) {
+      if (!booking.userId) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "booking_has_no_user" });
+      }
       const conflict = await prisma.booking.findFirst({
         where: {
           userId: booking.userId,
