@@ -184,6 +184,34 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
   }
 
+  if (confirmed) {
+    const isEventOwner = !!(booking.eventType?.userId && booking.eventType.userId === ctx.user.id);
+    const callerIsOwnerOrAdmin = isEventOwner || ctx.user.role === UserPermissionRole.ADMIN;
+    const effectiveForceConfirm = forceConfirm && callerIsOwnerOrAdmin;
+
+    if (!effectiveForceConfirm) {
+      if (!booking.userId) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "booking_has_no_user" });
+      }
+      const conflict = await prisma.booking.findFirst({
+        where: {
+          userId: booking.userId,
+          status: BookingStatus.ACCEPTED,
+          id: { not: bookingId },
+          startTime: { lt: booking.endTime },
+          endTime: { gt: booking.startTime },
+        },
+        select: { id: true },
+      });
+      if (conflict) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "booking_conflict_exists",
+        });
+      }
+    }
+  }
+
   // If booking requires payment and is not paid, we don't allow confirmation
   if (confirmed && booking.payment.length > 0 && !booking.paid) {
     await prisma.booking.update({
@@ -348,32 +376,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    const isEventOwner = !!(booking.eventType?.userId && booking.eventType.userId === ctx.user.id);
-    const callerIsOwnerOrAdmin = isEventOwner || ctx.user.role === UserPermissionRole.ADMIN;
-    const effectiveForceConfirm = forceConfirm && callerIsOwnerOrAdmin;
-
-    if (!effectiveForceConfirm) {
-      if (!booking.userId) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "booking_has_no_user" });
-      }
-      const conflict = await prisma.booking.findFirst({
-        where: {
-          userId: booking.userId,
-          status: BookingStatus.ACCEPTED,
-          id: { not: bookingId },
-          startTime: { lt: booking.endTime },
-          endTime: { gt: booking.startTime },
-        },
-        select: { id: true },
-      });
-      if (conflict) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "booking_conflict_exists",
-        });
-      }
-    }
-
     const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
     const userWithCredentials = {
       ...user,
