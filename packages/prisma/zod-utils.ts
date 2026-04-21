@@ -1051,6 +1051,24 @@ export const variantsConfigSchema = z.object({
   ),
 });
 
+/**
+ * Schema for a conditional visibility rule. A field with a `showCondition` is only
+ * rendered and validated when the referenced parent field's response matches.
+ *
+ * `op` semantics:
+ * - "equals": parent response is a string strictly equal to `value` (string form)
+ * - "notEquals": parent response is not equal to `value` (string form)
+ * - "includes": parent response (array, or string compared as single-value array) contains `value`
+ * - "notIncludes": inverse of "includes"
+ *
+ * `value` is coerced to a string array at evaluation time; any match across values satisfies the rule.
+ */
+export const showConditionSchema = z.object({
+  fieldName: z.string().min(1),
+  op: z.enum(["equals", "notEquals", "includes", "notIncludes"]).default("equals"),
+  value: z.union([z.string(), z.array(z.string())]),
+});
+
 export const fieldSchema = baseFieldSchema.merge(
   z.object({
     variant: z.string().optional(),
@@ -1071,6 +1089,12 @@ export const fieldSchema = baseFieldSchema.merge(
     hideWhenJustOneOption: z.boolean().default(false).optional(),
 
     hidden: z.boolean().optional(),
+    /**
+     * Optional conditional visibility rule. When set, the field is only shown
+     * and validated when the referenced parent field's response matches.
+     * See #11900.
+     */
+    showCondition: showConditionSchema.optional(),
     editable: EditableSchema.default("user").optional(),
     sources: z
       .array(

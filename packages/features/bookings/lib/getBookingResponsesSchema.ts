@@ -1,5 +1,6 @@
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { type FieldZodCtx, fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
+import { isFieldShownByCondition } from "@calcom/features/form-builder/utils/showCondition";
 import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
 import logger from "@calcom/lib/logger";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -457,6 +458,12 @@ function preprocess<T extends z.ZodType>({
         const numOptions = bookingField.options?.length ?? 0;
         if (bookingField.hideWhenJustOneOption) {
           hidden = hidden || numOptions <= 1;
+        }
+        // A field gated by a `showCondition` is only validated when its parent
+        // response matches the rule. Otherwise we treat it as hidden so required
+        // conditional questions don't block submission when they aren't shown.
+        if (!isFieldShownByCondition(bookingField, responses as Record<string, unknown>)) {
+          hidden = true;
         }
         let isRequired = false;
         // If the field is hidden, then it can never be required

@@ -2520,4 +2520,75 @@ describe("getBookingResponsesPartialSchema - Prefill validation", () => {
 
     expect(parsedResponses.success).toBe(true);
   });
+
+  describe("showCondition (conditional questions, #11900)", () => {
+    const bookingFieldsWithConditional = [
+      { name: "name", type: "name", required: true },
+      { name: "email", type: "email", required: true },
+      {
+        name: "hearAbout",
+        type: "select",
+        required: true,
+        options: [
+          { label: "Web", value: "web" },
+          { label: "Social media", value: "social" },
+          { label: "Print", value: "print" },
+        ],
+      },
+      {
+        name: "sourceWebsite",
+        type: "text",
+        required: true,
+        showCondition: { fieldName: "hearAbout", op: "equals", value: "web" },
+      },
+    ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
+
+    test("skips required validation when the parent response does not match", async () => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: bookingFieldsWithConditional,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        name: "Test",
+        email: "test@test.com",
+        hearAbout: "print",
+      });
+      expect(parsedResponses.success).toBe(true);
+    });
+
+    test("enforces required validation when the parent response matches", async () => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: bookingFieldsWithConditional,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        name: "Test",
+        email: "test@test.com",
+        hearAbout: "web",
+      });
+      expect(parsedResponses.success).toBe(false);
+      if (!parsedResponses.success) {
+        expect(parsedResponses.error.issues[0]).toEqual(
+          expect.objectContaining({
+            code: "custom",
+            message: `{sourceWebsite}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`,
+          })
+        );
+      }
+    });
+
+    test("accepts the conditional value when its trigger is active", async () => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: bookingFieldsWithConditional,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        name: "Test",
+        email: "test@test.com",
+        hearAbout: "web",
+        sourceWebsite: "https://example.com",
+      });
+      expect(parsedResponses.success).toBe(true);
+    });
+  });
 });
