@@ -622,7 +622,7 @@ export class UserAvailabilityService {
       start: t.start.toISOString(),
       end: t.end.toISOString(),
       title: "Guest busy",
-      source: withSource ? "guest-availability" : "",
+      ...(withSource ? { source: "guest-availability" } : {}),
     }));
 
     const detailedBusyTimesWithSource: EventBusyDetails[] = [

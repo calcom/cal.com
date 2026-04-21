@@ -715,12 +715,13 @@ export class AvailableSlotsService {
       // Log at warn (not error) so operators can detect upstream regressions
       // without paging on a non-blocking code path. Structured payload keeps
       // the log bounded — no stack traces or large nested repository errors.
+      const codeVal = error instanceof Error ? (error as { code?: unknown }).code : undefined;
       const errorDetails =
         error instanceof Error
           ? {
               name: error.name,
               message: error.message,
-              code: "code" in error ? String((error as { code?: unknown }).code) : undefined,
+              ...(codeVal != null ? { code: String(codeVal) } : {}),
             }
           : { value: safeStringify(error) };
       log.warn("[getGuestBusyTimesForReschedule] degraded to empty result", {
