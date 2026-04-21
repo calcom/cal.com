@@ -619,8 +619,8 @@ export class UserAvailabilityService {
     }
 
     const guestBusyTimesFormatted: EventBusyDetails[] = (initialData?.guestBusyTimes ?? []).map((t) => ({
-      start: dayjs.utc(t.start).toISOString(),
-      end: dayjs.utc(t.end).toISOString(),
+      start: t.start.toISOString(),
+      end: t.end.toISOString(),
       title: "Guest busy",
       source: withSource ? "guest-availability" : "",
     }));
