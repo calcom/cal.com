@@ -177,36 +177,10 @@ export async function getBookings({
     });
 
     // 2. Attendee email matches one of the filtered users' emails
-    if (attendeeEmailsFromUserIdsFilter?.length) {
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter),
-        tables: ["Booking", "Attendee"],
-      });
-    }
-
     // 3. Seat reference attendee email matches one of the filtered users' emails
     if (attendeeEmailsFromUserIdsFilter?.length) {
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter),
-        tables: ["Booking", "Attendee", "BookingSeat"],
-      });
+      bookingQueries.push(buildAttendeeEmailQuery(kysely, attendeeEmailsFromUserIdsFilter, false));
+      bookingQueries.push(buildAttendeeEmailQuery(kysely, attendeeEmailsFromUserIdsFilter, true));
     }
   } else {
     // 1. Current user created bookings
@@ -222,78 +196,18 @@ export async function getBookings({
       tables: ["Booking"],
     });
     // 2. Current user is an attendee
-    bookingQueries.push({
-      query: kysely
-        .selectFrom("Booking")
-        .select("Booking.id")
-        .select("Booking.startTime")
-        .select("Booking.endTime")
-        .select("Booking.createdAt")
-        .select("Booking.updatedAt")
-        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .where("Attendee.email", "=", user.email),
-      tables: ["Booking", "Attendee"],
-    });
     // 3. Current user is an attendee via seats reference
-    bookingQueries.push({
-      query: kysely
-        .selectFrom("Booking")
-        .select("Booking.id")
-        .select("Booking.startTime")
-        .select("Booking.endTime")
-        .select("Booking.createdAt")
-        .select("Booking.updatedAt")
-        .innerJoin("BookingSeat", "BookingSeat.bookingId", "Booking.id")
-        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .where("Attendee.email", "=", user.email),
-      tables: ["Booking", "Attendee", "BookingSeat"],
-    });
+    bookingQueries.push(buildCurrentUserAttendeeQuery(kysely, user.email, false));
+    bookingQueries.push(buildCurrentUserAttendeeQuery(kysely, user.email, true));
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings where organization/team members are attendees
     // PERFORMANCE: Use subquery with team membership instead of materializing all emails (can be 400+ for large orgs)
-    if (teamIdsWithBookingPermission?.length) {
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "in", (eb) =>
-            eb
-              .selectFrom("users")
-              .select("users.email")
-              .innerJoin("Membership", "Membership.userId", "users.id")
-              .where("Membership.teamId", "in", teamIdsWithBookingPermission)
-          ),
-        tables: ["Booking", "Attendee"],
-      });
-    }
     // 5. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings where organization/team members are attendees via seatsReference
     // PERFORMANCE: Use subquery with team membership instead of materializing all emails
     if (teamIdsWithBookingPermission?.length) {
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .where("Attendee.email", "in", (eb) =>
-            eb
-              .selectFrom("users")
-              .select("users.email")
-              .innerJoin("Membership", "Membership.userId", "users.id")
-              .where("Membership.teamId", "in", teamIdsWithBookingPermission)
-          ),
-        tables: ["Booking", "Attendee", "BookingSeat"],
-      });
+      bookingQueries.push(buildTeamAttendeeQuery(kysely, teamIdsWithBookingPermission, false));
+      bookingQueries.push(buildTeamAttendeeQuery(kysely, teamIdsWithBookingPermission, true));
     }
 
     // 6. Scope depends on `user.orgId`:
@@ -997,6 +911,82 @@ async function getUserIdsFromTeamIds(prisma: PrismaClient, teamIds: number[]): P
     },
   });
   return Array.from(new Set(users.map((user) => user.id)));
+}
+
+function buildAttendeeEmailQuery(kysely: Kysely<DB>, emails: string[], withSeatReference: boolean = false) {
+  let query:BookingsUnionQuery = kysely
+    .selectFrom("Booking")
+    .select("Booking.id")
+    .select("Booking.startTime")
+    .select("Booking.endTime")
+    .select("Booking.createdAt")
+    .select("Booking.updatedAt")
+    .innerJoin("Attendee", "Attendee.bookingId", "Booking.id");
+
+  if (withSeatReference) {
+    query = query.innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId");
+  }
+ const tables: (keyof DB)[] = withSeatReference ? ["Booking", "Attendee", "BookingSeat"] : ["Booking", "Attendee"];
+  return {
+    query: query.where("Attendee.email", "in", emails),
+    tables
+  };
+}
+
+function buildCurrentUserAttendeeQuery(
+  kysely: Kysely<DB>,
+  userEmail: string,
+  withSeatReference: boolean = false
+) {
+  let query:BookingsUnionQuery = kysely
+    .selectFrom("Booking")
+    .select("Booking.id")
+    .select("Booking.startTime")
+    .select("Booking.endTime")
+    .select("Booking.createdAt")
+    .select("Booking.updatedAt");
+
+  if (withSeatReference) {
+    query = query.innerJoin("BookingSeat", "BookingSeat.bookingId", "Booking.id");
+  }
+
+  query = query
+    .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+    .where("Attendee.email", "=", userEmail);
+
+  const tables: (keyof DB)[] = withSeatReference ? ["Booking", "Attendee", "BookingSeat"] : ["Booking", "Attendee"];
+  return {
+    query,
+    tables
+  };
+}
+
+function buildTeamAttendeeQuery(kysely: Kysely<DB>, teamIds: number[], withSeatReference: boolean = false) {
+  let query = kysely
+    .selectFrom("Booking")
+    .select("Booking.id")
+    .select("Booking.startTime")
+    .select("Booking.endTime")
+    .select("Booking.createdAt")
+    .select("Booking.updatedAt")
+    .innerJoin("Attendee", "Attendee.bookingId", "Booking.id");
+
+  if (withSeatReference) {
+    query = query.innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId");
+  }
+
+  query = query.where("Attendee.email", "in", (eb) =>
+    eb
+      .selectFrom("users")
+      .select("users.email")
+      .innerJoin("Membership", "Membership.userId", "users.id")
+      .where("Membership.teamId", "in", teamIds)
+  );
+  const tables: (keyof DB)[] = withSeatReference ? ["Booking", "Attendee", "BookingSeat"] : ["Booking", "Attendee"];
+  return {
+    query,
+    tables
+  };
 }
 
 function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {
