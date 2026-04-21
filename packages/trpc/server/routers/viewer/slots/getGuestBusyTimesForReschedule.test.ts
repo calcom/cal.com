@@ -220,6 +220,9 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       });
 
       expect(mockDependencies.userRepo.findByEmails).toHaveBeenCalled();
+      // Proves the host branch executed end-to-end: early-return on attendee-initiated
+      // reschedules would short-circuit before the booking lookup fires.
+      expect(mockDependencies.bookingRepo.findByUserIdsAndDateRange).toHaveBeenCalled();
     });
 
     it("should check guest busy times when rescheduledBy is not provided (backwards compat)", async () => {

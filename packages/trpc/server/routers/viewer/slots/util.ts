@@ -682,6 +682,12 @@ export class AvailableSlotsService {
       // Only apply guest busy-time blocking for host-initiated reschedules.
       // When an attendee reschedules, they should see all available slots
       // without being constrained by other guests' schedules.
+      //
+      // Default-safe-for-attendee semantics: if rescheduledBy is present but
+      // doesn't match the host's email (e.g., attendee, admin-on-behalf, team
+      // member), we treat it as non-host-initiated and skip guest blocking.
+      // This favors booking-success surface over host intent when the initiator
+      // cannot be positively identified as the host.
       if (rescheduledBy) {
         const hostEmail = original.user?.email;
         const isHostReschedule = hostEmail && rescheduledBy.toLowerCase() === hostEmail.toLowerCase();
