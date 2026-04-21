@@ -2165,7 +2165,7 @@ export class BookingRepository implements IBookingRepository {
   }) {
     if (!userIds.length && !userEmails.length) return [];
 
-    return this.prismaClient.booking.findMany({
+    const rows = await this.prismaClient.booking.findMany({
       where: {
         status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
         AND: [{ startTime: { lt: dateTo } }, { endTime: { gt: dateFrom } }],
@@ -2186,5 +2186,13 @@ export class BookingRepository implements IBookingRepository {
         status: true,
       },
     });
+
+    // Dedupe by uid: the OR between userId and attendees.email can match the same
+    // booking twice (e.g., a guest who is both organizer and listed among attendees).
+    const unique = new Map<string, (typeof rows)[number]>();
+    for (const row of rows) {
+      if (!unique.has(row.uid)) unique.set(row.uid, row);
+    }
+    return Array.from(unique.values());
   }
 }
