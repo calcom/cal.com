@@ -213,9 +213,22 @@ describe("UserRepository", () => {
           where: { email: { in: ["user@example.com"], mode: "insensitive" } },
         })
       );
+      expect(mockPrismaClient.user.findMany).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          where: {
+            secondaryEmails: {
+              some: {
+                email: { in: ["user@example.com"], mode: "insensitive" },
+                emailVerified: { not: null },
+              },
+            },
+          },
+        })
+      );
     });
 
-    test("should return multiple distinct users", async () => {
+    test("should return multiple distinct users with their matched emails", async () => {
       mockPrismaClient.user.findMany
         .mockResolvedValueOnce([
           { id: 1, email: "user1@example.com" },
@@ -228,6 +241,12 @@ describe("UserRepository", () => {
       });
 
       expect(result).toHaveLength(2);
+      expect(result).toEqual(
+        expect.arrayContaining([
+          { id: 1, email: "user1@example.com", matchedEmails: ["user1@example.com"] },
+          { id: 2, email: "user2@example.com", matchedEmails: ["user2@example.com"] },
+        ])
+      );
     });
   });
 });
