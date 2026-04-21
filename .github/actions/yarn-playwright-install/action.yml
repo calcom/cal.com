@@ -38,9 +38,47 @@ runs:
           ${{ github.workspace }}/node_modules/playwright
         key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
 
-    # In default mode: run if playwright-cache missed
-    # In skip mode: run if playwright-cache-check missed (but cache restore step was also skipped)
+    - name: Determine if playwright install will run
+      id: should-install
+      shell: bash
+      run: |
+        if [[ "${{ inputs.skip-install-if-cache-hit }}" == "true" ]]; then
+          cache_hit="${{ steps.playwright-cache-check.outputs.cache-hit }}"
+        else
+          cache_hit="${{ steps.playwright-cache.outputs.cache-hit }}"
+        fi
+        if [[ "$cache_hit" == "true" ]]; then
+          echo "value=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "value=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    # When the caller uses yarn-install with skip-install-if-cache-hit, node_modules is never
+    # materialized on disk if all yarn caches hit (pure lookup). `yarn playwright install` needs
+    # node_modules to resolve the playwright bin, so restore it here (and fall back to a full
+    # install if that cache also missed) before running the install step.
+    - name: Restore node_modules for playwright install
+      if: ${{ steps.should-install.outputs.value == 'true' }}
+      id: nm-restore
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          **/node_modules/
+          !**/.next/node_modules/
+        key: ${{ runner.os }}-yarn-nm-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
+
+    - name: Yarn install (fallback when node_modules cache also missed)
+      if: ${{ steps.should-install.outputs.value == 'true' && steps.nm-restore.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: yarn install --inline-builds
+      env:
+        YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
+        YARN_ENABLE_GLOBAL_CACHE: "false"
+        YARN_INSTALL_STATE_PATH: .yarn/ci-cache/install-state.gz
+        YARN_NM_MODE: "hardlinks-local"
+        HUSKY: "0"
+
     - name: Yarn playwright install
-      if: ${{ (inputs.skip-install-if-cache-hit != 'true' && steps.playwright-cache.outputs.cache-hit != 'true') || (inputs.skip-install-if-cache-hit == 'true' && steps.playwright-cache-check.outputs.cache-hit != 'true') }}
+      if: ${{ steps.should-install.outputs.value == 'true' }}
       shell: bash
       run: yarn playwright install --with-deps
