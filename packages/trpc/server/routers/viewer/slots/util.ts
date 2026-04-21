@@ -713,11 +713,20 @@ export class AvailableSlotsService {
     } catch (error) {
       // Graceful degradation: never block rescheduling if guest lookup fails.
       // Log at warn (not error) so operators can detect upstream regressions
-      // without paging on a non-blocking code path.
-      log.warn(
-        "[getGuestBusyTimesForReschedule] degraded to empty result",
-        safeStringify({ rescheduleUid, error })
-      );
+      // without paging on a non-blocking code path. Structured payload keeps
+      // the log bounded — no stack traces or large nested repository errors.
+      const errorDetails =
+        error instanceof Error
+          ? {
+              name: error.name,
+              message: error.message,
+              code: "code" in error ? String((error as { code?: unknown }).code) : undefined,
+            }
+          : { value: safeStringify(error) };
+      log.warn("[getGuestBusyTimesForReschedule] degraded to empty result", {
+        rescheduleUid,
+        error: errorDetails,
+      });
       return [];
     }
   }
