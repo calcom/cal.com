@@ -618,12 +618,12 @@ export class UserAvailabilityService {
       };
     }
 
-    const guestBusyTimesFormatted = (initialData?.guestBusyTimes ?? []).map((t) => ({
+    const guestBusyTimesFormatted: EventBusyDetails[] = (initialData?.guestBusyTimes ?? []).map((t) => ({
       start: t.start.toISOString(),
       end: t.end.toISOString(),
       title: "Guest busy",
-      ...(withSource ? { source: "guest-availability" } : {}),
-    })) as EventBusyDetails[];
+      source: "guest-availability",
+    }));
 
     const detailedBusyTimesWithSource: EventBusyDetails[] = [
       ...busyTimes.map((a) => ({
