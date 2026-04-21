@@ -104,7 +104,12 @@ export const useScheduleForEvent = ({
 
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
-  const rescheduledBy = searchParams?.get("rescheduledBy");
+  const rawRescheduledBy = searchParams?.get("rescheduledBy");
+  // Lightweight client-side normalization: the server validates rescheduledBy
+  // as a non-empty email, so drop obviously malformed URL values (empty string,
+  // missing "@") to null before the query fires.
+  const rescheduledBy =
+    rawRescheduledBy && rawRescheduledBy.includes("@") ? rawRescheduledBy : null;
 
   const schedule = useSchedule({
     username: usernameFromStore ?? username,
