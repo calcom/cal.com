@@ -2,7 +2,7 @@
  * These e2e tests only aim to cover standard cases
  * Edge cases are currently handled in integration tests only
  */
-import { expect } from "@playwright/test";
+import { expect } from "@approxima/test";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";

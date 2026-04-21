@@ -1,5 +1,5 @@
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { expect } from "@playwright/test";
+import { expect } from "@approxima/test";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });

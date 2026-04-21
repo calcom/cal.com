@@ -1,7 +1,7 @@
 import path from "node:path";
 import type { PrismaClient } from "@calcom/prisma";
 import type { OAuthClientType } from "@calcom/prisma/enums";
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@approxima/test";
 import { test } from "../lib/fixtures";
 
 async function loginAsSeededAdminAndGoToOAuthSettings(page: Page) {

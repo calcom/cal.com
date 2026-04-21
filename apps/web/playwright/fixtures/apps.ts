@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Page } from "@approxima/test";
 
 import type { TApp } from "../apps/conferencing/types";
 import {

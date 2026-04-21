@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "@approxima/test";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 

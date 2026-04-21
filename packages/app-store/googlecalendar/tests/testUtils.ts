@@ -1,6 +1,6 @@
 import { calendar_v3 } from "@googleapis/calendar";
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
+import type { Page } from "@approxima/test";
+import { expect } from "@approxima/test";
 
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";

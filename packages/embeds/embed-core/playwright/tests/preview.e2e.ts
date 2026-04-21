@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "@approxima/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
 

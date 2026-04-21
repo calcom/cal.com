@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { expect } from "@playwright/test";
+import { expect } from "@approxima/test";
 import { v4 as uuidv4 } from "uuid";
 import { test } from "./lib/fixtures";
 import {

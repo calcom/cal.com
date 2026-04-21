@@ -150,6 +150,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@approxima/test": "0.0.2",
     "@babel/core": "7.26.10",
     "@biomejs/biome": "2.3.10",
     "@calcom/config": "workspace:*",

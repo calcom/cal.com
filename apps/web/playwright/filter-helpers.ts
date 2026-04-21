@@ -1,5 +1,5 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
+import type { Page } from "@approxima/test";
+import { expect } from "@approxima/test";
 import { submitAndWaitForResponse } from "playwright/lib/testUtils";
 
 // Helper function to get text within a specific table column

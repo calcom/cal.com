@@ -1,5 +1,5 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { expect } from "@playwright/test";
+import { expect } from "@approxima/test";
 import { test } from "./lib/fixtures";
 import { IS_STRIPE_ENABLED, submitAndWaitForResponse } from "./lib/testUtils";
 

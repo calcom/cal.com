@@ -1,5 +1,5 @@
 import { test } from "@calcom/web/playwright/lib/fixtures";
-import { expect } from "@playwright/test";
+import { expect } from "@approxima/test";
 import { deleteAllBookingsByEmail, ensureEmbedIframe, getBooking } from "../lib/testUtils";
 
 // Mobile viewport dimensions

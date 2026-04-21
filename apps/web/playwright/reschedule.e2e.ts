@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "@approxima/test";
 
 import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";

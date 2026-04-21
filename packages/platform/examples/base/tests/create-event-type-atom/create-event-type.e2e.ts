@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "@approxima/test";
 
 import { generateRandomText } from "../../src/lib/generateRandomText";
 

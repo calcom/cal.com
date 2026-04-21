@@ -1,5 +1,5 @@
 import { currentsReporter } from "@currents/playwright";
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices } from "@approxima/test";
 import dotenv from "dotenv";
 import path from "node:path"
 

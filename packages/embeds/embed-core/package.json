@@ -41,6 +41,7 @@
     "dist"
   ],
   "devDependencies": {
+    "@approxima/test": "0.0.2",
     "@biomejs/biome": "2.3.10",
     "@playwright/test": "1.57.0",
     "@tailwindcss/cli": "4.1.16",

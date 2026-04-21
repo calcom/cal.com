@@ -1,5 +1,5 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
+import type { Page } from "@approxima/test";
+import { expect } from "@approxima/test";
 import { JSDOM } from "jsdom";
 import type { Messages } from "mailhog";
 import type { createEmailsFixture } from "playwright/fixtures/emails";

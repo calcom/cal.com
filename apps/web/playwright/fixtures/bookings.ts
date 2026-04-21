@@ -1,4 +1,4 @@
-import type { Page, WorkerInfo } from "@playwright/test";
+import type { Page, WorkerInfo } from "@approxima/test";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 

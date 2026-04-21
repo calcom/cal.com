@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "@approxima/test";
 import { test } from "./lib/fixtures";
 import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 

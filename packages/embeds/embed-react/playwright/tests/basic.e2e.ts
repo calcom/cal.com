@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect } from "@approxima/test";
 
 import { getEmbedIframe } from "@calcom/embed-core/playwright/lib/testUtils";
  

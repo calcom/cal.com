@@ -1,6 +1,6 @@
 import { currentsReporter } from "@currents/playwright";
-import type { Frame, PlaywrightTestConfig } from "@playwright/test";
-import { devices, expect } from "@playwright/test";
+import type { Frame, PlaywrightTestConfig } from "@approxima/test";
+import { devices, expect } from "@approxima/test";
 import dotEnv from "dotenv";
 import * as os from "node:os";
 import * as path from "node:path";
