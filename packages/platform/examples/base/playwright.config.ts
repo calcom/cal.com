@@ -1,3 +1,4 @@
+import { currentsReporter } from "@currents/playwright";
 import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "node:path"
@@ -20,12 +21,15 @@ export default defineConfig({
   reporter: [
     ["list"],
     ["html", { outputFolder: "./test-results/reports/playwright-html-report", open: "never" }],
+    ...(process.env.CURRENTS_RECORD_KEY ? [currentsReporter()] : []),
   ],
   outputDir: "./test-results/results",
   use: {
     baseURL: "http://localhost:4322",
     locale: "en-US",
-    trace: "retain-on-failure",
+    trace: "on",
+    video: "on",
+    screenshot: "on",
     headless,
   },
   projects: [

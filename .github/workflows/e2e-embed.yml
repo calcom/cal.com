@@ -8,6 +8,8 @@ env:
   NODE_OPTIONS: --max-old-space-size=4096
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
   CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+  CURRENTS_RECORD_KEY: ${{ secrets.CURRENTS_RECORD_KEY }}
+  CURRENTS_PROJECT_ID: ${{ vars.CURRENTS_PROJECT_ID }}
   DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
   DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
@@ -91,9 +93,3 @@ jobs:
       - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: yarn e2e:embed --workers=4
-      - name: Upload Test Results
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: blob-report-embed-core
-          path: blob-report

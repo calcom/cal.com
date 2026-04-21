@@ -1,3 +1,4 @@
+import { currentsReporter } from "@currents/playwright";
 import type { Frame, PlaywrightTestConfig } from "@playwright/test";
 import { devices, expect } from "@playwright/test";
 import dotEnv from "dotenv";
@@ -101,16 +102,19 @@ const config: PlaywrightTestConfig = {
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
   reporter: [
-    [process.env.CI ? "blob" : "list"],
+    ["list"],
     ["html", { outputFolder: "./test-results/reports/playwright-html-report", open: "never" }],
     ["junit", { outputFile: "./test-results/reports/results.xml" }],
+    ...(process.env.CURRENTS_RECORD_KEY ? [currentsReporter()] : []),
   ],
   outputDir: path.join(outputDir, "results"),
   webServer,
   use: {
     baseURL: process.env.NEXT_PUBLIC_WEBAPP_URL,
     locale: "en-US",
-    trace: "retain-on-failure",
+    trace: "on",
+    video: "on",
+    screenshot: "on",
     headless,
   },
   projects: [
