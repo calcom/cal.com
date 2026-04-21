@@ -239,5 +239,51 @@ describe("BookingRepository", () => {
         })
       );
     });
+
+    it("should skip excludeUid filter when empty string is passed", async () => {
+      mockPrismaClient.booking.findMany.mockResolvedValue([]);
+
+      await repository.findByUserIdsAndDateRange({
+        userIds: [1],
+        userEmails: [],
+        dateFrom,
+        dateTo,
+        excludeUid: "",
+      });
+
+      const callArgs = mockPrismaClient.booking.findMany.mock.calls[0][0];
+      expect(callArgs.where).not.toHaveProperty("uid");
+    });
+
+    it("should dedupe by uid when OR branches surface the same booking twice", async () => {
+      mockPrismaClient.booking.findMany.mockResolvedValue([
+        {
+          uid: "booking-a",
+          startTime: new Date("2026-04-10T09:00:00Z"),
+          endTime: new Date("2026-04-10T10:00:00Z"),
+          title: "Team sync",
+          userId: 10,
+          status: "ACCEPTED",
+        },
+        {
+          uid: "booking-a",
+          startTime: new Date("2026-04-10T09:00:00Z"),
+          endTime: new Date("2026-04-10T10:00:00Z"),
+          title: "Team sync",
+          userId: 10,
+          status: "ACCEPTED",
+        },
+      ]);
+
+      const result = await repository.findByUserIdsAndDateRange({
+        userIds: [10],
+        userEmails: ["guest@example.com"],
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].uid).toBe("booking-a");
+    });
   });
 });

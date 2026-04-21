@@ -2175,7 +2175,7 @@ export class BookingRepository implements IBookingRepository {
             ? [{ attendees: { some: { email: { in: userEmails, mode: "insensitive" as const } } } }]
             : []),
         ],
-        ...(excludeUid ? { uid: { not: excludeUid } } : {}),
+        ...(excludeUid != null && excludeUid !== "" ? { uid: { not: excludeUid } } : {}),
       },
       select: {
         uid: true,
