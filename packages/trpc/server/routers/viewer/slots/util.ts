@@ -697,9 +697,9 @@ export class AvailableSlotsService {
       const calUsers = await this.dependencies.userRepo.findByEmails({ emails });
       if (!calUsers.length) return [];
 
-      // Only use Cal.com user emails for the booking query, not all attendee emails.
-      // This prevents pulling in bookings for non-Cal.com guests via the OR email filter.
-      const calUserEmails = calUsers.map((u) => u.email);
+      // Use the actual matched emails (primary and/or verified secondary) so bookings
+      // where a Cal.com user participates under a secondary address are still caught.
+      const calUserEmails = Array.from(new Set(calUsers.flatMap((u) => u.matchedEmails)));
 
       const guestBookings = await this.dependencies.bookingRepo.findByUserIdsAndDateRange({
         userIds: calUsers.map((u) => u.id),

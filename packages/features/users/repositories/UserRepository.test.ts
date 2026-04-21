@@ -145,18 +145,28 @@ describe("UserRepository", () => {
 
       const result = await repo.findByEmails({ emails: ["user@example.com"] });
 
-      expect(result).toEqual([{ id: 1, email: "user@example.com" }]);
+      expect(result).toEqual([
+        { id: 1, email: "user@example.com", matchedEmails: ["user@example.com"] },
+      ]);
       expect(mockPrismaClient.user.findMany).toHaveBeenCalledTimes(2);
     });
 
-    test("should look up users by secondary (verified) email", async () => {
+    test("should look up users by secondary (verified) email and return the matched address", async () => {
       mockPrismaClient.user.findMany
         .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([{ id: 2, email: "primary@example.com" }]);
+        .mockResolvedValueOnce([
+          {
+            id: 2,
+            email: "primary@example.com",
+            secondaryEmails: [{ email: "secondary@example.com" }],
+          },
+        ]);
 
       const result = await repo.findByEmails({ emails: ["secondary@example.com"] });
 
-      expect(result).toEqual([{ id: 2, email: "primary@example.com" }]);
+      expect(result).toEqual([
+        { id: 2, email: "primary@example.com", matchedEmails: ["secondary@example.com"] },
+      ]);
       expect(mockPrismaClient.user.findMany).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
@@ -172,15 +182,22 @@ describe("UserRepository", () => {
       );
     });
 
-    test("should deduplicate users found via both primary and secondary email", async () => {
+    test("should union primary and secondary matches for the same user", async () => {
       mockPrismaClient.user.findMany
         .mockResolvedValueOnce([{ id: 1, email: "user@example.com" }])
-        .mockResolvedValueOnce([{ id: 1, email: "user@example.com" }]);
+        .mockResolvedValueOnce([
+          {
+            id: 1,
+            email: "user@example.com",
+            secondaryEmails: [{ email: "alias@example.com" }],
+          },
+        ]);
 
       const result = await repo.findByEmails({ emails: ["user@example.com", "alias@example.com"] });
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe(1);
+      expect(result[0].matchedEmails.sort()).toEqual(["alias@example.com", "user@example.com"]);
     });
 
     test("should normalize emails to lowercase and deduplicate input", async () => {

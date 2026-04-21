@@ -1526,13 +1526,32 @@ export class UserRepository {
             },
           },
         },
-        select: { id: true, email: true },
+        select: {
+          id: true,
+          email: true,
+          secondaryEmails: {
+            where: {
+              email: { in: normalized, mode: "insensitive" },
+              emailVerified: { not: null },
+            },
+            select: { email: true },
+          },
+        },
       }),
     ]);
 
-    const seen = new Map<number, { id: number; email: string }>();
-    for (const u of [...byPrimary, ...bySecondary]) {
-      if (!seen.has(u.id)) seen.set(u.id, u);
+    const seen = new Map<number, { id: number; email: string; matchedEmails: string[] }>();
+    for (const u of byPrimary) {
+      seen.set(u.id, { id: u.id, email: u.email, matchedEmails: [u.email] });
+    }
+    for (const u of bySecondary) {
+      const existing = seen.get(u.id);
+      const secondaryMatches = u.secondaryEmails.map((s) => s.email);
+      if (existing) {
+        existing.matchedEmails = Array.from(new Set([...existing.matchedEmails, ...secondaryMatches]));
+      } else {
+        seen.set(u.id, { id: u.id, email: u.email, matchedEmails: secondaryMatches });
+      }
     }
     return Array.from(seen.values());
   }
