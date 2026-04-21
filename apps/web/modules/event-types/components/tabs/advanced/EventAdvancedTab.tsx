@@ -521,6 +521,7 @@ export const EventAdvancedTab = ({
   const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
+  const cancellationNoticeHoursLocked = shouldLockDisableProps("cancellationNoticeHours");
   const allowReschedulingCancelledBookingsLocked = shouldLockDisableProps(
     "allowReschedulingCancelledBookings"
   );
@@ -538,6 +539,7 @@ export const EventAdvancedTab = ({
   );
 
   const showOptimizedSlotsLocked = shouldLockDisableProps("showOptimizedSlots");
+  const strictDebounceLocked = shouldLockDisableProps("strictDebounce");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -737,6 +739,55 @@ export const EventAdvancedTab = ({
                   onChange(val);
                 }}
               />
+            )}
+          />
+
+          <Controller
+            name="cancellationNoticeHours"
+            render={({ field: { value, onChange } }) => (
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  value > 0 && "rounded-b-none"
+                )}
+                title={t("cancellation_notice_hours")}
+                data-testid="cancellation-notice-hours-toggle"
+                description={t("cancellation_notice_hours_description")}
+                checked={value > 0}
+                {...cancellationNoticeHoursLocked}
+                onCheckedChange={(val) => {
+                  onChange(val ? (eventType.cancellationNoticeHours > 0 ? eventType.cancellationNoticeHours : 24) : 0);
+                }}>
+                {value > 0 && (
+                  <div className="rounded-b-lg border border-subtle border-t-0 p-6">
+                    <Controller
+                      name="cancellationNoticeHours"
+                      render={({ field: { value: hoursValue, onChange: hoursOnChange }) => (
+                        <TextField
+                          name="cancellationNoticeHours"
+                          label={t("cancellation_notice_hours")}
+                          labelSrOnly
+                          type="number"
+                          min={1}
+                          step={1}
+                          placeholder="24"
+                          value={hoursValue || 24}
+                          disabled={cancellationNoticeHoursLocked.disabled}
+                          containerClassName="max-w-80"
+                          addOnSuffix={t("hours")}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            hoursOnChange(val > 0 ? val : 1);
+                          }}
+                          data-testid="cancellation-notice-hours-input"
+                        />
+                      )}
+                    />
+                  </div>
+                )}
+              </SettingsToggle>
             )}
           />
 
@@ -1455,6 +1506,22 @@ export const EventAdvancedTab = ({
             />
           );
         }}
+      />
+      <Controller
+        name="strictDebounce"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("strict_debounce")}
+            description={t("strict_debounce_description")}
+            checked={value}
+            {...strictDebounceLocked}
+            onCheckedChange={(e) => onChange(e)}
+            data-testid="strict-debounce-toggle"
+          />
+        )}
       />
       {isRoundRobinEventType && (
         <Controller

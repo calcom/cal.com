@@ -113,6 +113,7 @@ type Props = {
   requiresCancellationReason?: CancellationReasonRequirement | null;
   showErrorAsToast?: boolean;
   onCanceled?: () => void;
+  cancellationNoticeHours?: number | null;
 };
 
 export default function CancelBooking(props: Props) {
@@ -164,6 +165,19 @@ export default function CancelBooking(props: Props) {
   const isCancellationUserHost =
     props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
 
+  const isWithinCancellationNotice = ((): boolean => {
+    if (!props.cancellationNoticeHours || props.cancellationNoticeHours <= 0 || !booking?.startTime) {
+      return false;
+    }
+    const now = new Date();
+    const bookingStart = new Date(booking.startTime);
+    const timeUntilBooking = bookingStart.getTime() - now.getTime();
+    const cancellationNoticeMs = props.cancellationNoticeHours * 60 * 60 * 1000;
+    return timeUntilBooking > 0 && timeUntilBooking < cancellationNoticeMs;
+  })();
+
+  const isCancellationBlocked = !isCancellationUserHost && isWithinCancellationNotice;
+
   const isReasonRequired = isCancellationReasonRequired(
     props.requiresCancellationReason,
     isCancellationUserHost
@@ -175,7 +189,10 @@ export default function CancelBooking(props: Props) {
   const cancellationNoShowFeeNotAcknowledged =
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
   const canCancel =
-    !missingRequiredReason && !hostMissingInternalNote && !cancellationNoShowFeeNotAcknowledged;
+    !missingRequiredReason &&
+    !hostMissingInternalNote &&
+    !cancellationNoShowFeeNotAcknowledged &&
+    !isCancellationBlocked;
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- CancelBooking is not usually used in embed mode
@@ -260,6 +277,12 @@ export default function CancelBooking(props: Props) {
                 />
                 <p className="text-subtle ml-9 mt-2 text-sm">{t("contact_organizer")}</p>
               </div>
+            </div>
+          )}
+          {isCancellationBlocked && (
+            <div className="mb-4 flex items-center gap-2 text-error">
+              <InfoIcon className="h-4 w-4" />
+              <p className="text-sm font-medium">{t("cancellation_notice_exceeded")}</p>
             </div>
           )}
           <div className="flex flex-col-reverse rtl:space-x-reverse ">

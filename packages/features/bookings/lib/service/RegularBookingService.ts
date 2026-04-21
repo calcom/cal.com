@@ -89,6 +89,7 @@ import getBookingDataSchema from "../getBookingDataSchema";
 import type { LuckyUserService } from "../getLuckyUser";
 import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
+import { checkStrictDebounce } from "../handleNewBooking/checkStrictDebounce";
 import type { Booking } from "../handleNewBooking/createBooking";
 import { createBooking } from "../handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
@@ -606,6 +607,12 @@ async function handler(
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
       bookerEmail,
       offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
+    });
+
+    await checkStrictDebounce({
+      eventTypeId,
+      strictDebounce: eventType.strictDebounce ?? false,
+      bookerEmail,
     });
   }
 

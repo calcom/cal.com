@@ -50,6 +50,7 @@ interface ICancelBookingDialog {
   internalNotePresets?: { id: number; name: string; cancellationReason: string | null }[];
   eventTypeMetadata?: Record<string, unknown> | null;
   requiresCancellationReason?: CancellationReasonRequirement | null;
+  cancellationNoticeHours?: number | null;
 }
 
 export const CancelBookingDialog = (props: ICancelBookingDialog) => {
@@ -70,6 +71,7 @@ export const CancelBookingDialog = (props: ICancelBookingDialog) => {
     internalNotePresets = [],
     eventTypeMetadata,
     requiresCancellationReason,
+    cancellationNoticeHours,
   } = props;
 
   const utils = trpc.useUtils();
@@ -119,6 +121,7 @@ export const CancelBookingDialog = (props: ICancelBookingDialog) => {
           requiresCancellationReason={requiresCancellationReason}
           showErrorAsToast={true}
           onCanceled={handleCanceled}
+          cancellationNoticeHours={cancellationNoticeHours}
         />
       </DialogContent>
     </Dialog>

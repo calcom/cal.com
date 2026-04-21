@@ -41,4 +41,6 @@ export enum ErrorCode {
   BookerEmailRequiresLogin = "booker_email_requires_login",
   InvalidVerificationCode = "invalid_verification_code",
   UnableToValidateVerificationCode = "unable_to_validate_verification_code",
+  StrictDebounceExceeded = "strict_debounce_exceeded",
+  CancellationNoticeExceeded = "cancellation_notice_exceeded",
 }

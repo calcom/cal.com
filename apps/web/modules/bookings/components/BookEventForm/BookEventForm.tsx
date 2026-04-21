@@ -303,7 +303,11 @@ const getError = ({
   }
 
   const messageKey =
-    error.message === ErrorCode.BookerLimitExceeded ? "booker_upcoming_limit_reached" : error.message;
+    error.message === ErrorCode.BookerLimitExceeded
+      ? "booker_upcoming_limit_reached"
+      : error.message === ErrorCode.StrictDebounceExceeded
+        ? "strict_debounce_error"
+        : error.message;
 
   return error?.message ? (
     <>

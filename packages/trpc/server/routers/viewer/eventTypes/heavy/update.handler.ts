@@ -92,6 +92,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     calVideoSettings,
     hostGroups,
     enablePerHostLocations,
+    strictDebounce,
     ...rest
   } = input;
 
@@ -234,6 +235,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     seatsPerTimeSlot,
     maxLeadThreshold: isLoadBalancingDisabled ? null : rest.maxLeadThreshold,
     ...(enablePerHostLocations !== undefined && { enablePerHostLocations }),
+    ...(strictDebounce !== undefined && { strictDebounce }),
   };
   data.locations = locations ?? undefined;
 

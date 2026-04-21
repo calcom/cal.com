@@ -34,6 +34,7 @@ import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { isCancellationReasonRequired } from "./cancellationReason";
+import { isWithinMinimumCancellationNotice } from "./handleCancelBooking/isWithinMinimumCancellationNotice";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -139,6 +140,19 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
   const isCancellationUserHost =
     bookingToDelete.userId === userId || bookingToDelete.user.email === cancelledBy;
+
+  if (
+    !isCancellationUserHost &&
+    isWithinMinimumCancellationNotice(
+      bookingToDelete.startTime,
+      bookingToDelete.eventType?.cancellationNoticeHours ?? null
+    )
+  ) {
+    throw new HttpError({
+      statusCode: 403,
+      message: "Cancellation is not allowed within the minimum notice period before the event",
+    });
+  }
 
   const isReasonRequired = isCancellationReasonRequired(
     bookingToDelete.eventType?.requiresCancellationReason,

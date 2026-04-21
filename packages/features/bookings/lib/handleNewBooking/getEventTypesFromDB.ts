@@ -130,6 +130,7 @@ const getEventTypesFromDBSelect = {
     },
   },
   enablePerHostLocations: true,
+  strictDebounce: true,
   hosts: {
     select: {
       isFixed: true,

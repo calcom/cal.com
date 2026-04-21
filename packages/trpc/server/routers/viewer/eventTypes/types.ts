@@ -155,6 +155,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
       .nullable()
       .optional(),
     minimumRescheduleNotice: z.number().min(0).nullable().optional(),
+    cancellationNoticeHours: z.number().min(0).nullable().optional(),
     seatsShowAttendees: z.boolean().nullable().optional(),
     seatsShowAvailabilityCount: z.boolean().nullable().optional(),
     scheduleId: z.number().int().nullable().optional(),
@@ -205,6 +206,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     multiplePrivateLinks: z.array(z.union([z.string(), hashedLinkInputSchema])).optional(),
     hostGroups: z.array(hostGroupSchema).optional(),
     enablePerHostLocations: z.boolean().optional(),
+    strictDebounce: z.boolean().optional(),
   })
   .strict();
 

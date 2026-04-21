@@ -226,6 +226,8 @@ model EventType {
   disableRescheduling                      Boolean?               @default(false)
   /// @zod.number.min(0)
   minimumRescheduleNotice                  Int?
+  /// @zod.number.min(0)
+  cancellationNoticeHours                   Int                    @default(0)
   seatsShowAttendees                       Boolean?               @default(false)
   seatsShowAvailabilityCount               Boolean?               @default(true)
   schedulingType                           SchedulingType?
@@ -286,6 +288,7 @@ model EventType {
   rrHostSubsetEnabled           Boolean                        @default(false)
   requiresCancellationReason    CancellationReasonRequirement? @default(MANDATORY_HOST_ONLY)
   enablePerHostLocations        Boolean                        @default(false)
+  strictDebounce                Boolean                        @default(false)
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt

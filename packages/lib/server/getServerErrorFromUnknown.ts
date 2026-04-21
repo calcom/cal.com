@@ -155,6 +155,7 @@ export function getHttpStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.RequestBodyInvalid:
     case ErrorCode.ChargeCardFailure:
     case ErrorCode.CollectCardFailure:
+    case ErrorCode.StrictDebounceExceeded:
       return 400;
     // 409 Conflict
     case ErrorCode.NoAvailableUsersFound:

@@ -120,6 +120,7 @@ export type FormValues = {
   disabledCancelling: boolean;
   disabledRescheduling: boolean;
   minimumRescheduleNotice: number | null;
+  cancellationNoticeHours: number;
   periodType: PeriodType;
   /**
    * Number of days(Applicable only for ROLLING period type)
@@ -185,6 +186,7 @@ export type FormValues = {
   calVideoSettings?: CalVideoSettings;
   maxActiveBookingPerBookerOfferReschedule: boolean;
   enablePerHostLocations: boolean;
+  strictDebounce: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
@@ -368,6 +370,7 @@ export type EventTypeUpdateInput = {
   disableRescheduling?: boolean | null;
   requiresCancellationReason?: CancellationReasonRequirement | null;
   minimumRescheduleNotice?: number | null;
+  cancellationNoticeHours?: number;
   seatsShowAttendees?: boolean | null;
   seatsShowAvailabilityCount?: boolean | null;
   scheduleId?: number | null;
@@ -418,6 +421,7 @@ export type EventTypeUpdateInput = {
   multiplePrivateLinks?: (string | HashedLinkInput)[];
   hostGroups?: HostGroupInput[];
   enablePerHostLocations?: boolean;
+  strictDebounce?: boolean;
 };
 
 export type TabMap = {
