@@ -50,7 +50,6 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const planOrder: Record<PlanType, number> = {
     personal: 0,
     team: 1,
-    organization: 2,
   };
 
   // Calculate animation direction synchronously
@@ -75,9 +74,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
       });
     }
     startTransition(() => {
-      if (selectedPlan === "organization") {
-        router.push("/onboarding/organization/details");
-      } else if (selectedPlan === "team") {
+      if (selectedPlan === "team") {
         router.push("/onboarding/teams/details");
       } else if (selectedPlan === "personal") {
         router.push("/onboarding/personal/settings");
@@ -88,7 +85,6 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const planIconByType: Record<PlanType, IconName> = {
     personal: "user",
     team: "user",
-    organization: "users",
   };
 
   const allPlans = [
@@ -108,23 +104,9 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
       icon: planIconByType.team,
       variant: "team" as const,
     },
-    {
-      id: "organization" as PlanType,
-      title: t("onboarding_plan_organization_title"),
-      badge: t("onboarding_plan_organization_badge"),
-      description: t("onboarding_plan_organization_description"),
-      icon: planIconByType.organization,
-      variant: "organization" as const,
-    },
   ];
 
-  // Only show organization plan for company emails
-  const plans = allPlans.filter((plan) => {
-    if (plan.id === "organization") {
-      return false;
-    }
-    return true;
-  });
+  const plans = allPlans;
 
   const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
 

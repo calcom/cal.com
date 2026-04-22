@@ -1,37 +1,25 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { XIcon } from "@coss/ui/icons";
-
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useOnboardingStore } from "../store/onboarding-store";
 
 export const OnboardingContinuationPrompt = () => {
   const router = useRouter();
   const { t } = useLocale();
-  const { selectedPlan, organizationDetails, teamDetails, resetOnboarding } = useOnboardingStore();
+  const { selectedPlan, teamDetails, resetOnboarding } = useOnboardingStore();
   const [isVisible, setIsVisible] = useState(false);
   const [entityName, setEntityName] = useState<string>("");
-  const [entityType, setEntityType] = useState<"organization" | "team" | null>(null);
+  const [entityType, setEntityType] = useState<"team" | null>(null);
 
   useEffect(() => {
-    // Check for organization plan and data
-    const hasOrganizationPlan = selectedPlan === "organization";
-    const hasOrganizationData = organizationDetails.name?.trim() && organizationDetails.link?.trim();
-
-    // Check for team plan and data
     const hasTeamPlan = selectedPlan === "team";
     const hasTeamData = teamDetails.name?.trim() && teamDetails.slug?.trim();
 
-    // Show if either organization or team has data
-    if (hasOrganizationPlan && hasOrganizationData) {
-      setIsVisible(true);
-      setEntityName(organizationDetails.name);
-      setEntityType("organization");
-    } else if (hasTeamPlan && hasTeamData) {
+    if (hasTeamPlan && hasTeamData) {
       setIsVisible(true);
       setEntityName(teamDetails.name);
       setEntityType("team");
@@ -40,18 +28,14 @@ export const OnboardingContinuationPrompt = () => {
       setEntityName("");
       setEntityType(null);
     }
-  }, [selectedPlan, organizationDetails, teamDetails]);
+  }, [selectedPlan, teamDetails]);
 
   if (!isVisible || !entityName || !entityType) {
     return null;
   }
 
   const handleContinue = () => {
-    // Navigate to the next step based on plan type
-    if (entityType === "organization") {
-      // Organization flow: details -> brand -> teams -> invite
-      router.push("/onboarding/organization/brand");
-    } else if (entityType === "team") {
+    if (entityType === "team") {
       // Team flow: details -> invite
       router.push("/onboarding/teams/invite");
     }

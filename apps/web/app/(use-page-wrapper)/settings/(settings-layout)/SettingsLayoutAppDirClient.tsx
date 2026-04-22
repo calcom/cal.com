@@ -234,12 +234,6 @@ const getTabs = (
   for (const tab of tabs) {
     if (tab.name === "admin" && IS_CALCOM) {
       tab.children?.push({
-        name: "create_org",
-        href: "/settings/organizations/new",
-        trackingMetadata: { section: "admin", page: "create_org" },
-      });
-
-      tab.children?.push({
         name: "create_license_key",
         href: "/settings/license-key/new",
         trackingMetadata: { section: "admin", page: "create_license_key" },

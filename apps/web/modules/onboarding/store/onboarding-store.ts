@@ -1,7 +1,6 @@
-import type { PersistOptions } from "zustand/middleware";
 import { create } from "zustand";
+import type { PersistOptions } from "zustand/middleware";
 import { persist } from "zustand/middleware";
-
 import { onboardingIndexedDBStorage } from "./onboarding-storage";
 
 // Thresholds for detecting oversized images (in characters of base64 string)
@@ -18,7 +17,7 @@ function isOversizedImage(imageData: string | null, threshold: number): boolean 
   return imageData.length > threshold;
 }
 
-export type PlanType = "personal" | "team" | "organization";
+export type PlanType = "personal" | "team";
 export type InviteRole = "MEMBER" | "ADMIN";
 
 export interface OrganizationDetails {
