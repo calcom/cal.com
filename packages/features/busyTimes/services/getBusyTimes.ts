@@ -469,12 +469,11 @@ export class BusyTimesService {
       },
       eventTypeId,
       status: BookingStatus.ACCEPTED,
-      // FIXME: bookings that overlap on one side will never be counted
       startTime: {
-        gte: startTimeDate,
+        lt: endTimeDate,
       },
       endTime: {
-        lte: endTimeDate,
+        gt: startTimeDate,
       },
     };
 
