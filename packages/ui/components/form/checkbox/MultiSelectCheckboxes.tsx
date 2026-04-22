@@ -61,15 +61,31 @@ type MultiSelectionCheckboxesProps = {
 const MultiValue = ({
   index,
   getValue,
-  countText,
+  removeProps,
+  data,
+  isDisabled,
 }: {
   index: number;
   getValue: () => readonly Option[];
-  countText: string;
+  removeProps: React.HTMLAttributes<HTMLDivElement>;
+  data: Option;
+  isDisabled: boolean;
 }) => {
-  const { t } = useLocale();
-  const count = getValue().filter((option) => option.value !== "all").length;
-  return <>{!index && count !== 0 && <div>{t(countText, { count })}</div>}</>;
+  if (data.value === "all") return null;
+
+  return (
+    <span className="bg-subtle text-default inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium">
+      {data.label}
+      {!isDisabled && (
+        <div
+          {...removeProps}
+          className="text-muted hover:text-default ml-0.5 cursor-pointer"
+        >
+          ×
+        </div>
+      )}
+    </span>
+  );
 };
 
 export default function MultiSelectCheckboxes({
@@ -83,10 +99,16 @@ export default function MultiSelectCheckboxes({
   countText,
 }: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
   const additonalComponents = {
-    MultiValue: (props: MultiValueProps<Option, boolean, GroupBase<Option>>) => (
-      <MultiValue {...props} countText={countText || "selected"} />
-    ),
-  };
+  MultiValue: (props: MultiValueProps<Option, boolean, GroupBase<Option>>) => (
+    <MultiValue
+      index={props.index}
+      getValue={props.getValue}
+      removeProps={props.removeProps}
+      data={props.data}
+      isDisabled={props.isDisabled}
+    />
+  ),
+};
 
   const allOptions = [{ label: "Select all", value: "all" }, ...options];
 

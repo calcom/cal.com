@@ -72,7 +72,7 @@ import { CircleHelpIcon, InfoIcon, PhoneIcon } from "@coss/ui/icons";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { useHasActiveTeamPlan, useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-import { AgentConfigurationSheet }from "./agent-configuration/AgentConfigurationSheet";
+import { AgentConfigurationSheet } from "./agent-configuration/AgentConfigurationSheet";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 import { WebCallDialog } from "./WebCallDialog";
@@ -635,26 +635,34 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 name="activeOn"
                 control={form.control}
                 render={() => {
-                  return (
-                    <MultiSelectCheckbox
-                      options={allOptions}
-                      isDisabled={props.readOnly || form.getValues("selectAll")}
-                      className="w-full"
-                      setSelected={setSelectedOptions}
-                      selected={form.getValues("selectAll") ? allOptions : selectedOptions}
-                      setValue={(s: Option[]) => {
-                        form.setValue("activeOn", s, { shouldDirty: true });
-                      }}
-                      countText={
-                        isOrganization
-                          ? "count_team"
-                          : isFormTrigger(form.getValues("trigger"))
-                            ? "nr_routing_form"
-                            : "nr_event_type"
-                      }
-                    />
-                  );
-                }}
+  const activeOptions = form.getValues("selectAll") ? allOptions : selectedOptions;
+  const count = activeOptions.filter((o) => o.value !== "all").length;
+  const countKey = isOrganization
+    ? "count_team"
+    : isFormTrigger(form.getValues("trigger"))
+    ? "nr_routing_form"
+    : "nr_event_type";
+
+  return (
+    <>
+      <MultiSelectCheckbox
+        options={allOptions}
+        isDisabled={props.readOnly || form.getValues("selectAll")}
+        className="w-full"
+        setSelected={setSelectedOptions}
+        selected={activeOptions}
+        setValue={(s: Option[]) => {
+          form.setValue("activeOn", s, { shouldDirty: true });
+        }}
+      />
+      {count > 0 && (
+        <p className="text-subtle mt-1 text-xs">
+          {t(countKey, { count })}
+        </p>
+      )}
+    </>
+  );
+}}
               />
               {!hasCalAIAction(steps) && (
                 <div className="mt-1">
