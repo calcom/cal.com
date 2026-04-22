@@ -1,0 +1,14 @@
+{
+  "appHost": {
+    "path": "apphost.ts",
+    "language": "typescript/nodejs"
+  },
+  "sdk": {
+    "version": "13.3.0-preview.1.26221.2"
+  },
+  "channel": "daily",
+  "packages": {
+    "Aspire.Hosting.JavaScript": "13.3.0-preview.1.26221.2",
+    "Aspire.Hosting.PostgreSQL": "13.3.0-preview.1.26221.2"
+  }
+}

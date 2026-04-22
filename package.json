@@ -82,7 +82,9 @@
     "changesets-add": "yarn changeset add",
     "changesets-version": "yarn changeset version",
     "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build-npm --filter=@calcom/atoms && yarn changeset publish",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "aspire:start": "aspire run",
+    "aspire:build": "tsc -p tsconfig.apphost.json"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.10",
@@ -95,6 +97,7 @@
     "@snaplet/copycat": "4.1.0",
     "@testing-library/jest-dom": "5.17.0",
     "@testing-library/react": "16.0.1",
+    "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "4.0.16",
     "@vitest/ui": "4.0.16",
     "c8": "7.13.0",
@@ -112,6 +115,7 @@
     "prismock": "1.35.3",
     "resize-observer-polyfill": "1.5.1",
     "tsc-absolute": "1.0.0",
+    "tsx": "^4.21.0",
     "turbo": "2.7.1",
     "typescript": "5.9.3",
     "vitest": "4.0.16",
@@ -228,5 +232,8 @@
   "syncpack": {
     "filter": "^(?!@calcom).*",
     "semverRange": ""
+  },
+  "dependencies": {
+    "vscode-jsonrpc": "^8.2.0"
   }
 }
