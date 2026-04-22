@@ -1,5 +1,6 @@
 "use client";
 
+import process from "node:process";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -40,7 +41,6 @@ import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
-import { CompanyEmailOrganizationBanner } from "./components/CompanyEmailOrganizationBanner";
 
 interface DeleteAccountValues {
   totpCode: string;
@@ -135,7 +135,6 @@ const ProfileView = ({ user }: Props) => {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
-  const [isCompanyEmailAlertDismissed, setIsCompanyEmailAlertDismissed] = useState(false);
   const form = useForm<DeleteAccountValues>();
 
   const onDeleteMeSuccessMutation = async () => {
@@ -248,14 +247,6 @@ const ProfileView = ({ user }: Props) => {
     ],
   };
 
-  // Check if user should see company email alert
-  const shouldShowCompanyEmailAlert =
-    !isCompanyEmailAlertDismissed &&
-    !session.data?.user?.org?.id &&
-    !user.organization?.id &&
-    userEmail &&
-    false;
-
   return (
     <SettingsHeader
       title={t("profile")}
@@ -306,12 +297,6 @@ const ProfileView = ({ user }: Props) => {
         }
         isCALIdentityProvider={isCALIdentityProvider}
       />
-
-      {shouldShowCompanyEmailAlert && (
-        <div className="mt-6">
-          <CompanyEmailOrganizationBanner onDismissAction={() => setIsCompanyEmailAlertDismissed(true)} />
-        </div>
-      )}
 
       <div className="mt-6 rounded-lg rounded-b-none border border-subtle border-b-0 p-6">
         <Label className="mb-0 font-semibold text-base text-red-700">{t("danger_zone")}</Label>
