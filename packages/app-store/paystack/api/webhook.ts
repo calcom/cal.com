@@ -1,6 +1,3 @@
-import { buffer } from "micro";
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -9,10 +6,11 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
-
-import { appKeysSchema } from "../zod";
+import { buffer } from "micro";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { PaystackClient } from "../lib/PaystackClient";
 import { verifyWebhookSignature } from "../lib/verifyWebhookSignature";
+import { appKeysSchema } from "../zod";
 
 const log = logger.getSubLogger({ prefix: ["[paystackWebhook]"] });
 
@@ -143,11 +141,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         traceContext,
       });
     } catch (processingError) {
-      // Rollback so webhook retries can re-process this payment
-      await prisma.payment.update({
-        where: { id: payment.id },
-        data: { success: false },
-      });
+      // handlePaymentSuccess signals success by throwing HttpCode(200); only roll back on real failures
+      const isSuccessSentinel = processingError instanceof HttpCode && processingError.statusCode < 400;
+      if (!isSuccessSentinel) {
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { success: false },
+        });
+      }
       throw processingError;
     }
   } catch (_err) {

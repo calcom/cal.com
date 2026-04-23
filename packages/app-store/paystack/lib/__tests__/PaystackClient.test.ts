@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PAYSTACK_BASE_URL, PaystackClient } from "../PaystackClient";
 
-import { PaystackClient } from "../PaystackClient";
+const CALLBACK_URL = "https://example.com/payment/callback";
 
 describe("PaystackClient", () => {
   let client: PaystackClient;
@@ -34,11 +35,11 @@ describe("PaystackClient", () => {
         amount: 500000,
         currency: "NGN",
         reference: "cal_42_ref123",
-        callback_url: "https://cal.com/payment/callback",
+        callback_url: CALLBACK_URL,
         metadata: { bookingId: 42 },
       });
 
-      expect(fetch).toHaveBeenCalledWith("https://api.paystack.co/transaction/initialize", {
+      expect(fetch).toHaveBeenCalledWith(`${PAYSTACK_BASE_URL}/transaction/initialize`, {
         method: "POST",
         headers: {
           Authorization: "Bearer sk_test_xxxxx",
@@ -49,7 +50,7 @@ describe("PaystackClient", () => {
           amount: 500000,
           currency: "NGN",
           reference: "cal_42_ref123",
-          callback_url: "https://cal.com/payment/callback",
+          callback_url: CALLBACK_URL,
           metadata: { bookingId: 42 },
         }),
       });
@@ -77,7 +78,7 @@ describe("PaystackClient", () => {
           amount: 0,
           currency: "NGN",
           reference: "cal_42_ref123",
-          callback_url: "https://cal.com/payment/callback",
+          callback_url: CALLBACK_URL,
         })
       ).rejects.toThrow("Paystack API error: Invalid amount");
     });
@@ -106,15 +107,12 @@ describe("PaystackClient", () => {
 
       const result = await client.verifyTransaction("cal_42_ref123");
 
-      expect(fetch).toHaveBeenCalledWith(
-        "https://api.paystack.co/transaction/verify/cal_42_ref123",
-        {
-          method: "GET",
-          headers: {
-            Authorization: "Bearer sk_test_xxxxx",
-          },
-        }
-      );
+      expect(fetch).toHaveBeenCalledWith(`${PAYSTACK_BASE_URL}/transaction/verify/cal_42_ref123`, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer sk_test_xxxxx",
+        },
+      });
 
       expect(result).toEqual({
         status: "success",
@@ -146,7 +144,7 @@ describe("PaystackClient", () => {
 
       const result = await client.createRefund({ transaction: "cal_42_ref123" });
 
-      expect(fetch).toHaveBeenCalledWith("https://api.paystack.co/refund", {
+      expect(fetch).toHaveBeenCalledWith(`${PAYSTACK_BASE_URL}/refund`, {
         method: "POST",
         headers: {
           Authorization: "Bearer sk_test_xxxxx",

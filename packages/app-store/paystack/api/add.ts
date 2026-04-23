@@ -1,9 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import config from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -49,5 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(httpError.statusCode).json({ message: httpError.message });
   }
 
-  return res.status(200).json({ url: `/apps/paystack/setup${teamIdNumber ? `?teamId=${teamIdNumber}` : ""}` });
+  return res
+    .status(201)
+    .json({ url: `/apps/paystack/setup${teamIdNumber ? `?teamId=${teamIdNumber}` : ""}` });
 }

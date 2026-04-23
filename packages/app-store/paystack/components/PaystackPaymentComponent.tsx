@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-
 import { convertFromSmallestToPresentableCurrencyUnit } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Payment } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui/components/button";
+import { useState } from "react";
 
 interface PaystackPaymentData {
   access_code: string;
@@ -57,16 +56,14 @@ export default function PaystackPaymentComponent({
 
           // Backup verification — call our verify endpoint
           try {
-            await fetch(
-              `/api/integrations/paystack/verify?reference=${paymentData.reference}`
-            );
+            await fetch(`/api/integrations/paystack/verify?reference=${paymentData.reference}`);
           } catch {
             // Webhook will handle it if this fails
           }
 
-          // Redirect to booking confirmation
+          // replace() keeps the payment step out of browser history
           setTimeout(() => {
-            window.location.href = `/booking/${bookingUid}`;
+            window.location.replace(`/booking/${bookingUid}`);
           }, 2000);
         },
         onCancel: () => {
@@ -108,9 +105,7 @@ export default function PaystackPaymentComponent({
         {t("pay_with_paystack")}
       </Button>
 
-      {status === "idle" && (
-        <p className="text-subtle text-xs">{t("paystack_payment_prompt")}</p>
-      )}
+      {status === "idle" && <p className="text-subtle text-xs">{t("paystack_payment_prompt")}</p>}
     </div>
   );
 }
