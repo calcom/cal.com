@@ -49,8 +49,8 @@ export default function Index() {
         You are managing credentials for cal.com <strong>userId={userId}</strong> for{" "}
         <strong>appSlug={appSlug}</strong>. Update query params to manage a different user or app{" "}
       </p>
-      <button onClick={() => updateToken({ invalid: true })}>Give an invalid token to Cal.com</button>
-      <button onClick={() => updateToken()}>Give a valid token to Cal.com</button>
+      <button onClick={() => updateToken({ invalid: true })}>Give an invalid token to Cal.diy</button>
+      <button onClick={() => updateToken()}>Give a valid token to Cal.diy</button>
       <div>{data}</div>
     </div>
   );

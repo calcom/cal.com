@@ -22,13 +22,14 @@ const checkForMultiplePaymentApps = (
   let enabledPaymentApps = 0;
   for (const appKey in metadata?.apps) {
     const app = metadata?.apps[appKey as keyof typeof appDataSchemas];
+    if (!app) continue;
 
-    if ("appCategories" in app) {
+    if ("appCategories" in app && app.appCategories) {
       const isPaymentApp = app.appCategories.includes("payment");
-      if (isPaymentApp && app.enabled) {
+      if (isPaymentApp && "enabled" in app && app.enabled) {
         enabledPaymentApps++;
       }
-    } else if ("price" in app && app.enabled) {
+    } else if ("price" in app && "enabled" in app && app.enabled) {
       enabledPaymentApps++;
     }
   }

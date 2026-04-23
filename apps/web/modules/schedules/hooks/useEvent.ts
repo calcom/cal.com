@@ -6,7 +6,6 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
-import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
 
 export type useEventReturnType = ReturnType<typeof useEvent>;
 export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
@@ -72,7 +71,6 @@ export const useScheduleForEvent = ({
   isTeamEvent,
   useApiV2 = true,
   bookerLayout,
-  restrictionSchedule,
 }: {
   username?: string | null;
   eventSlug?: string | null;
@@ -94,15 +92,12 @@ export const useScheduleForEvent = ({
     extraDays: number;
     columnViewExtraDays: { current: number };
   };
-  restrictionSchedule?: { id: number | null; useBookerTimezone: boolean };
 }) => {
-  const { timezone: rawTimezone } = useBookerTime();
+  const { timezone } = useBookerTime();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStoreContext(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
-
-  const effectiveTimezone = useStableTimezone(rawTimezone, restrictionSchedule);
 
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
@@ -111,7 +106,7 @@ export const useScheduleForEvent = ({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId,
-    timezone: effectiveTimezone,
+    timezone,
     selectedDate,
     dayCount,
     rescheduleUid,

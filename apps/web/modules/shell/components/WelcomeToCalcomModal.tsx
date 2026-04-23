@@ -12,7 +12,6 @@ import { useWelcomeToCalcomModal } from "../hooks/useWelcomeToCalcomModal";
 const features = [
   "unlimited_calendars",
   "unlimited_event_types",
-  "workflows_feature",
   "integrate_with_favorite_apps",
   "accept_payments_via_stripe",
   "html_react_embed",
@@ -98,7 +97,7 @@ export function WelcomeToCalcomModal() {
         <div className="bg-muted border-subtle flex shrink-0 items-center justify-between rounded-b-2xl border-t px-8 py-6">
           <Button
             color="minimal"
-            href="https://cal.com/docs"
+            href="https://cal.diy"
             target="_blank"
             EndIcon="external-link"
             className="pointer-events-none opacity-0">

@@ -1,8 +1,7 @@
-import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import stripe from "./server";
 
 export async function getCustomerAndCheckoutSession(checkoutSessionId: string) {
-  const billingService = getBillingProviderService();
-  const checkoutSession = await billingService.getCheckoutSession(checkoutSessionId);
+  const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId);
   const customerOrCustomerId = checkoutSession.customer;
   let customerId = null;
 
@@ -17,7 +16,7 @@ export async function getCustomerAndCheckoutSession(checkoutSessionId: string) {
   } else {
     customerId = customerOrCustomerId.id;
   }
-  const stripeCustomer = await billingService.getCustomer(customerId);
+  const stripeCustomer = await stripe.customers.retrieve(customerId);
   if (stripeCustomer.deleted) {
     return { checkoutSession, stripeCustomer: null };
   }

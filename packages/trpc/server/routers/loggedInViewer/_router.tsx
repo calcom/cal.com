@@ -7,12 +7,10 @@ import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
 import { ZRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
-import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 
 type AppsRouterHandlerCache = {
   stripeCustomer?: typeof import("./stripeCustomer.handler").stripeCustomerHandler;
   eventTypeOrder?: typeof import("./eventTypeOrder.handler").eventTypeOrderHandler;
-  routingFormOrder?: typeof import("./routingFormOrder.handler").routingFormOrderHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
@@ -37,11 +35,6 @@ export const loggedInViewerRouter = router({
   eventTypeOrder: authedProcedure.input(ZEventTypeOrderInputSchema).mutation(async ({ ctx, input }) => {
     const { eventTypeOrderHandler } = await import("./eventTypeOrder.handler");
     return eventTypeOrderHandler({ ctx, input });
-  }),
-
-  routingFormOrder: authedProcedure.input(ZRoutingFormOrderInputSchema).mutation(async ({ ctx, input }) => {
-    const { routingFormOrderHandler } = await import("./routingFormOrder.handler");
-    return routingFormOrderHandler({ ctx, input });
   }),
 
   teamsAndUserProfilesQuery,

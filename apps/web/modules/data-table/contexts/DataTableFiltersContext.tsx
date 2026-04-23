@@ -1,9 +1,8 @@
 "use client";
 
+import type { ActiveFilters, FilterValue } from "@calcom/features/data-table/lib/types";
 import debounce from "lodash/debounce";
-import { createContext, useContext, useCallback, useMemo, useEffect } from "react";
-
-import type { FilterValue, ActiveFilters } from "@calcom/features/data-table/lib/types";
+import { createContext, useCallback, useContext, useEffect, useMemo } from "react";
 import { useDataTableSegment } from "./DataTableSegmentContext";
 import { useDataTableState } from "./DataTableStateContext";
 

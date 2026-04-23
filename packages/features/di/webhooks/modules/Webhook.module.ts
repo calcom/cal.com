@@ -3,7 +3,6 @@ import { UsersRepository } from "@calcom/features/users/users.repository";
 import { createPayloadBuilderFactory } from "@calcom/features/webhooks/lib/factory/versioned/registry";
 import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
-import { FormWebhookService } from "@calcom/features/webhooks/lib/service/FormWebhookService";
 import { OOOWebhookService } from "@calcom/features/webhooks/lib/service/OOOWebhookService";
 import { RecordingWebhookService } from "@calcom/features/webhooks/lib/service/RecordingWebhookService";
 import { WebhookNotificationHandler } from "@calcom/features/webhooks/lib/service/WebhookNotificationHandler";
@@ -45,10 +44,6 @@ webhookModule
     SHARED_TOKENS.TASKER,
     SHARED_TOKENS.LOGGER,
   ]);
-
-webhookModule
-  .bind(WEBHOOK_TOKENS.FORM_WEBHOOK_SERVICE)
-  .toClass(FormWebhookService, [WEBHOOK_TOKENS.WEBHOOK_NOTIFIER, WEBHOOK_TOKENS.WEBHOOK_SERVICE]);
 
 webhookModule
   .bind(WEBHOOK_TOKENS.RECORDING_WEBHOOK_SERVICE)

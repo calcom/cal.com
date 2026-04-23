@@ -1,27 +1,31 @@
 "use client";
 
-import classNames from "classnames";
-import dynamic from "next/dynamic";
-import type { FC } from "react";
-import { useEffect, useState } from "react";
-
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
+import classNames from "classnames";
+import dynamic from "next/dynamic";
+import type { FC } from "react";
+import { useEffect, useState } from "react";
 
-const StripePaymentComponent = dynamic(() => import("@calcom/features/ee/payments/components/Payment"), {
-  ssr: false,
-});
+
+type PaymentPageProps = {
+  payment: { id: number; success: boolean; refunded: boolean; amount: number; currency: string; paymentOption: string | null; data: Record<string, unknown>; appId?: string | null };
+  clientSecret?: string | null;
+  booking: { id: number; uid: string; title: string; startTime: string; endTime: string; status: string; paid: boolean; description?: string | null; location?: string | null };
+  eventType: { id: number; title: string; length: number; price: number; currency: string; metadata: Record<string, unknown> | null; successRedirectUrl?: string | null; forwardParamsSuccessRedirect?: boolean | null; recurringEvent?: unknown };
+  profile: { theme?: string | null; hideBranding?: boolean };
+  user?: { name?: string | null; username?: string | null } | null;
+};
 
 const PaypalPaymentComponent = dynamic(
   () =>
@@ -87,7 +91,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEmbed]);
+  }, [isEmbed, date.tz]);
 
   const eventName = props.booking.title;
 
@@ -95,36 +99,36 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
     <div className="h-screen">
       <main className="mx-auto max-w-3xl py-24">
         <div className="fixed inset-0 z-50 overflow-y-auto scroll-auto">
-          <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <div className="inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
               <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                 &#8203;
               </span>
               <div
                 className={classNames(
-                  "main bg-default border-subtle inline-block transform overflow-hidden rounded-lg border px-8 pb-4 pt-5 text-left align-bottom transition-all  sm:w-full sm:max-w-lg sm:py-6 sm:align-middle",
+                  "main inline-block transform overflow-hidden rounded-lg border border-subtle bg-default px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:max-w-lg sm:py-6 sm:align-middle",
                   isEmbed ? "" : "sm:my-8"
                 )}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
                 <div>
-                  <div className="bg-cal-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-cal-success">
                     <PayIcon currency={paymentAppData.currency} className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-emphasis text-2xl font-semibold leading-6" id="modal-headline">
+                    <h3 className="font-semibold text-2xl text-emphasis leading-6" id="modal-headline">
                       {paymentAppData.paymentOption === "HOLD" ? t("complete_your_booking") : t("payment")}
                     </h3>
-                    <div className="text-default mt-4 grid grid-cols-3 border-b border-t py-4 text-left dark:border-gray-900 dark:text-gray-300">
+                    <div className="mt-4 grid grid-cols-3 border-t border-b py-4 text-left text-default dark:border-gray-900 dark:text-gray-300">
                       <div className="font-medium">{t("what")}</div>
                       <div className="col-span-2 mb-6">{eventName}</div>
                       <div className="font-medium">{t("when")}</div>
                       <div className="col-span-2 mb-6">
                         {date.locale(i18n.language ?? "en").format("dddd, DD MMMM YYYY")}
                         <br />
-                        {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} {t("minute_timeUnit")}{" "}
+                        {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
                         <span className="text-subtle">({timezone})</span>
                       </div>
                       {props.booking.location && (
@@ -150,17 +154,10 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 </div>
                 <div>
                   {props.payment.success && !props.payment.refunded && (
-                    <div className="text-default mt-4 text-center dark:text-gray-300">{t("paid")}</div>
+                    <div className="mt-4 text-center text-default dark:text-gray-300">{t("paid")}</div>
                   )}
                   {props.payment.appId === "stripe" && !props.payment.success && (
-                    <StripePaymentComponent
-                      clientSecret={props.clientSecret}
-                      payment={props.payment}
-                      eventType={props.eventType}
-                      user={props.user}
-                      location={props.booking.location}
-                      booking={props.booking}
-                    />
+                    <div>{/* StripePaymentComponent removed */}</div>
                   )}
                   {props.payment.appId === "paypal" && !props.payment.success && (
                     <PaypalPaymentComponent payment={props.payment} />
@@ -175,11 +172,11 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                     <BtcpayPaymentComponent payment={props.payment} paymentPageProps={props} />
                   )}
                   {props.payment.refunded && (
-                    <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>
+                    <div className="mt-4 text-center text-default dark:text-gray-300">{t("refunded")}</div>
                   )}
                 </div>
                 {!props.profile.hideBranding && (
-                  <div className="text-muted dark:text-inverted mt-4 border-t pt-4 text-center text-xs dark:border-gray-900">
+                  <div className="mt-4 border-t pt-4 text-center text-muted text-xs dark:border-gray-900 dark:text-inverted">
                     <a href={`${WEBSITE_URL}/signup`}>
                       {t("create_booking_link_with_calcom", { appName: APP_NAME })}
                     </a>

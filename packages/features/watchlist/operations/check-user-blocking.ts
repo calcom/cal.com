@@ -11,7 +11,7 @@ const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({
  */
 export interface BlockableUser {
   email: string;
-  locked: boolean;
+  locked?: boolean;
 }
 
 export interface BlockingInfo {

@@ -1,30 +1,17 @@
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import { getAttributeSyncRuleService } from "@calcom/features/ee/integration-attribute-sync/di/AttributeSyncRuleService.container";
-import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getAttributeSyncFieldMappingService } from "@calcom/features/ee/integration-attribute-sync/di/AttributeSyncFieldMappingService.container";
 
 const log = logger.getSubLogger({ prefix: ["[salesforce/user-sync]"] });
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const {
-    instanceUrl,
-    orgId: sfdcOrgId,
-    salesforceUserId,
-    email,
-    changedFields,
-    timestamp,
-  } = req.body;
+  const { instanceUrl, orgId: sfdcOrgId, salesforceUserId, email, changedFields, timestamp } = req.body;
 
   log.info("Received user sync request", {
     instanceUrl,
@@ -80,63 +67,8 @@ export default async function handler(
   });
 
   if (!user) {
-    log.error(
-      `User not found for email ${email} and teamId ${credential.teamId}`
-    );
+    log.error(`User not found for email ${email} and teamId ${credential.teamId}`);
     return res.status(400).json({ error: "Invalid user" });
-  }
-
-  const organizationId = credential.teamId;
-
-  const integrationAttributeSyncService = getIntegrationAttributeSyncService();
-
-  const integrationAttributeSyncs =
-    await integrationAttributeSyncService.getAllByCredentialId(credential.id);
-
-  const attributeSyncRuleService = getAttributeSyncRuleService();
-  const attributeSyncFieldMappingService =
-    getAttributeSyncFieldMappingService();
-
-  const results = await Promise.allSettled(
-    integrationAttributeSyncs.map(async (sync) => {
-      // Only check rule if one exists - skip sync only if rule returns false
-      if (sync.attributeSyncRule) {
-        const shouldSyncApplyToUser =
-          await attributeSyncRuleService.shouldSyncApplyToUser({
-            user: {
-              id: user.id,
-              organizationId,
-            },
-            attributeSyncRule: sync.attributeSyncRule.rule,
-          });
-
-        if (!shouldSyncApplyToUser) return;
-      }
-
-      // Salesforce multi-select picklists use `;` as separator, convert to `,` for the service
-      const integrationFields = Object.fromEntries(
-        Object.entries(changedFields as Record<string, unknown>)
-          .filter(([, value]) => value != null)
-          .map(([key, value]) => [key, String(value).replaceAll(";", ",")])
-      );
-
-      await attributeSyncFieldMappingService.syncIntegrationFieldsToAttributes({
-        userId: user.id,
-        organizationId,
-        syncFieldMappings: sync.syncFieldMappings,
-        integrationFields,
-      });
-    })
-  );
-
-  const errors = results.filter(
-    (result): result is PromiseRejectedResult => result.status === "rejected"
-  );
-
-  if (errors.length > 0) {
-    log.error("Errors syncing user attributes", {
-      errors: errors.map((e) => e.reason),
-    });
   }
 
   return res.status(200).json({ success: true });

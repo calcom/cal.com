@@ -410,7 +410,7 @@ export const createEvent = async (
             safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
           );
           // @TODO: This code will be off till we can investigate an error with it
-          //https://github.com/calcom/cal.com/issues/3949
+          //https://github.com/calcom/cal.diy/issues/3949
           // await sendBrokenIntegrationEmail(calEvent, "calendar");
           return undefined;
         })
@@ -492,7 +492,7 @@ export const updateEvent = async (
           })
           .catch(async (e: { calError: string }) => {
             // @TODO: This code will be off till we can investigate an error with it
-            // @see https://github.com/calcom/cal.com/issues/3949
+            // @see https://github.com/calcom/cal.diy/issues/3949
             // await sendBrokenIntegrationEmail(calEvent, "calendar");
             log.error(
               "updateEvent failed",
