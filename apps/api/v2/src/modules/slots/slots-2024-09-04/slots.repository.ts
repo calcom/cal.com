@@ -3,6 +3,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { DateTime } from "luxon";
 import { v4 as uuid } from "uuid";
+import { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class SlotsRepository_2024_09_04 {
@@ -106,6 +107,82 @@ export class SlotsRepository_2024_09_04 {
     // note(Lauris): we have deleteMany because for some reason uid is not unique in the prisma schema
     return this.dbWrite.prisma.selectedSlots.deleteMany({
       where: { uid: { equals: uid } },
+    });
+  }
+
+  async withTransaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+    return this.dbWrite.prisma.$transaction(async (tx) => {
+      return fn(tx);
+    });
+  }
+
+  async getOverlappingSlotReservationWithTx(
+    tx: Prisma.TransactionClient,
+    eventTypeId: number,
+    startDate: string,
+    endDate: string
+  ) {
+    return tx.selectedSlots.findFirst({
+      where: {
+        eventTypeId,
+        AND: [
+          {
+            OR: [
+              { slotUtcStartDate: { lte: startDate }, slotUtcEndDate: { gt: startDate } },
+              { slotUtcStartDate: { lt: endDate }, slotUtcEndDate: { gte: endDate } },
+              { slotUtcStartDate: { lte: startDate }, slotUtcEndDate: { gte: endDate } },
+              { slotUtcStartDate: { gte: startDate }, slotUtcEndDate: { lte: endDate } },
+            ],
+          },
+          { releaseAt: { gt: DateTime.utc().toJSDate() } },
+        ],
+      },
+    });
+  }
+
+  async createSlotWithTx(
+    tx: Prisma.TransactionClient,
+    userId: number,
+    eventTypeId: number,
+    slotUtcStartDate: string,
+    slotUtcEndDate: string,
+    isSeat: boolean,
+    duration: number
+  ) {
+    const uid = uuid();
+    const reservationUntil = DateTime.utc().plus({ minutes: duration }).toISO();
+
+    return tx.selectedSlots.create({
+      data: {
+        uid,
+        userId,
+        eventTypeId,
+        slotUtcStartDate,
+        slotUtcEndDate,
+        releaseAt: reservationUntil,
+        isSeat,
+      },
+    });
+  }
+
+  async updateSlotWithTx(
+    tx: Prisma.TransactionClient,
+    eventTypeId: number,
+    slotUtcStartDate: string,
+    slotUtcEndDate: string,
+    id: number,
+    duration: number
+  ) {
+    const reservationUntil = DateTime.utc().plus({ minutes: duration }).toISO();
+
+    return tx.selectedSlots.update({
+      where: { id },
+      data: {
+        slotUtcStartDate,
+        slotUtcEndDate,
+        releaseAt: reservationUntil,
+        eventTypeId,
+      },
     });
   }
 }

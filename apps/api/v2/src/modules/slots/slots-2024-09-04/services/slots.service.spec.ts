@@ -30,7 +30,7 @@ describe("SlotsService_2024_09_04", () => {
         {
           provide: EventTypesRepository_2024_06_14,
           useValue: {
-            getEventTypeById: jest.fn(),
+            getEventTypeWithHosts: jest.fn(),
           },
         },
         {
@@ -113,7 +113,7 @@ describe("SlotsService_2024_09_04", () => {
 
     beforeEach(() => {
       // Setup shared mocks
-      (eventTypesRepository.getEventTypeById as jest.Mock).mockResolvedValue(sharedTestData.mockEventType);
+      (eventTypesRepository.getEventTypeWithHosts as jest.Mock).mockResolvedValue(sharedTestData.mockEventType);
       (availableSlotsService.getAvailableSlots as jest.Mock).mockResolvedValue(
         sharedTestData.mockSlotsResponse
       );
@@ -380,6 +380,49 @@ describe("SlotsService_2024_09_04", () => {
         }),
         ctx: {},
       });
+    });
+  });
+
+  describe("reserveSlot - concurrency safety", () => {
+    it("should not allow overlapping slot reservations", async () => {
+      const mockEventType = {
+        id: 1,
+        length: 30,
+        userId: 1,
+        hosts: [],
+        seatsPerTimeSlot: null,
+        schedulingType: "COLLECTIVE",
+      };
+
+      const input = {
+        eventTypeId: 1,
+        slotStart: new Date().toISOString(),
+        slotDuration: 30,
+      };
+
+      // Mock dependencies
+      (eventTypesRepository.getEventTypeWithHosts as jest.Mock).mockResolvedValue(mockEventType);
+
+      const createSlotMock = jest.fn().mockResolvedValue({ id: 1 });
+      const overlapMock = jest
+        .fn()
+        .mockResolvedValueOnce(null) // first call → no overlap
+        .mockResolvedValueOnce({ id: 1 }); // second call → overlap
+
+      (service as any).slotsRepository = {
+        withTransaction: async (fn: any) => {
+          const tx = {}; // dummy tx
+          return fn(tx);
+        },
+        getOverlappingSlotReservationWithTx: overlapMock,
+        createSlotWithTx: createSlotMock,
+      };
+
+      // First reservation should succeed
+      await expect(service.reserveSlot(input as any)).resolves.toBeDefined();
+
+      // Second reservation should fail
+      await expect(service.reserveSlot(input as any)).rejects.toThrow();
     });
   });
 });
