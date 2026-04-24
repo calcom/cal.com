@@ -1,5 +1,6 @@
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { type FieldZodCtx, fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
+import { DEFAULT_FREE_EMAIL_DOMAINS, isCommonFreeEmailDomain } from "@calcom/features/bookings/lib/emailValidation";
 import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
 import logger from "@calcom/lib/logger";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -162,14 +163,8 @@ async function superRefineField({
 
         // Check for corporate email requirement
         if (requireCorporateEmail) {
-          const freeEmailDomains = [
-            "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com",
-            "icloud.com", "mail.ru", "yandex.ru", "qq.com", "163.com",
-            "126.com", "sina.com", "sohu.com", "yeah.net", "tom.com",
-            "263.net", "aliyun.com", "foxmail.com", "live.com", "msn.com"
-          ];
           const emailDomain = bookerEmail.split('@')[1]?.toLowerCase();
-          if (freeEmailDomains.includes(emailDomain)) {
+          if (emailDomain && isCommonFreeEmailDomain(emailDomain)) {
             zodCtx.addIssue({
               code: z.ZodIssueCode.custom,
               message: m("corporate_email_required"),

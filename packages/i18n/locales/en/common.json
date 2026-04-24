@@ -822,6 +822,7 @@
   "require_corporate_email": "仅限企业邮箱预约",
   "description_require_corporate_email": "开启后，仅允许使用企业邮箱进行预约",
   "corporate_email_required": "该预约类型仅支持企业邮箱",
+  "invalid_email_domain": "该邮箱域名无效，请使用有效的企业邮箱",
   "lets_create_first_administrator_user": "Let's create the first administrator user.",
   "admin_user_created": "Administrator user setup",
   "admin_user_created_description": "You have already created an administrator user. You can now log in to your account.",

@@ -22,6 +22,7 @@ import type {
   CreateRegularBookingData,
 } from "@calcom/features/bookings/lib/dto/types";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { validateCorporateEmail } from "@calcom/features/bookings/lib/emailValidation";
 import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
@@ -593,15 +594,16 @@ async function handler(
 
   // Check if corporate email is required
   if (eventType.requireCorporateEmail) {
-    const freeEmailDomains = [
-      "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com",
-      "icloud.com", "mail.ru", "yandex.ru", "qq.com", "163.com",
-      "126.com", "sina.com", "sohu.com", "yeah.net", "tom.com",
-      "263.net", "aliyun.com", "foxmail.com", "live.com", "msn.com"
-    ];
-    const emailDomain = bookerEmail.split('@')[1]?.toLowerCase();
-    if (freeEmailDomains.includes(emailDomain)) {
-      throw new HttpError({ statusCode: 400, message: "corporate_email_required" });
+    const validationResult = await validateCorporateEmail(bookerEmail, {
+      requireCorporateEmail: true,
+      checkMxRecords: true,
+    });
+    
+    if (!validationResult.isValid) {
+      const errorMessage = validationResult.error === "invalid_email_domain" 
+        ? "invalid_email_domain" 
+        : "corporate_email_required";
+      throw new HttpError({ statusCode: 400, message: errorMessage });
     }
   }
 
