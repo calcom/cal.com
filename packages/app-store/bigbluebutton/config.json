@@ -1,0 +1,17 @@
+{
+  "/*": "This is the config for the BigBlueButton app",
+  "name": "BigBlueButton",
+  "slug": "bigbluebutton",
+  "type": "bigbluebutton_video",
+  "logo": "icon.svg",
+  "url": "https://bigbluebutton.org/",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Open source web conferencing system for online learning",
+  "isTemplate": false,
+  "__createdUsingCli": false,
+  "dependencies": [],
+  "concurrentMeetings": false
+}

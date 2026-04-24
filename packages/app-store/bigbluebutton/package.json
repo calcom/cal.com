@@ -1,0 +1,13 @@
+{
+  "name": "@calcom/bigbluebutton",
+  "version": "0.1.0",
+  "main": "./index.ts",
+  "description": "BigBlueButton integration for Cal.com",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@calcom/types": "*"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*"
+  }
+}
