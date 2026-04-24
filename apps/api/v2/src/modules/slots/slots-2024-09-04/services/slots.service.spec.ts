@@ -11,13 +11,14 @@ import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slo
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 
 describe("SlotsService_2024_09_04", () => {
+  let module: TestingModule;
   let service: SlotsService_2024_09_04;
   let eventTypesRepository: EventTypesRepository_2024_06_14;
   let availableSlotsService: AvailableSlotsService;
   let slotsInputService: SlotsInputService_2024_09_04;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         SlotsService_2024_09_04,
         {
@@ -383,8 +384,8 @@ describe("SlotsService_2024_09_04", () => {
     });
   });
 
-  describe("reserveSlot - concurrency safety", () => {
-    it("should not allow overlapping slot reservations", async () => {
+  describe("reserveSlot", () => {
+    it("should reject reservation when overlap is detected", async () => {
       const mockEventType = {
         id: 1,
         length: 30,
@@ -392,36 +393,33 @@ describe("SlotsService_2024_09_04", () => {
         hosts: [],
         seatsPerTimeSlot: null,
         schedulingType: "COLLECTIVE",
+        metadata: null,
       };
 
       const input = {
         eventTypeId: 1,
         slotStart: new Date().toISOString(),
-        slotDuration: 30,
       };
 
-      // Mock dependencies
       (eventTypesRepository.getEventTypeWithHosts as jest.Mock).mockResolvedValue(mockEventType);
 
       const createSlotMock = jest.fn().mockResolvedValue({ id: 1 });
       const overlapMock = jest
         .fn()
-        .mockResolvedValueOnce(null) // first call → no overlap
-        .mockResolvedValueOnce({ id: 1 }); // second call → overlap
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ id: 1 });
 
-      (service as any).slotsRepository = {
-        withTransaction: async (fn: any) => {
-          const tx = {}; // dummy tx
-          return fn(tx);
-        },
-        getOverlappingSlotReservationWithTx: overlapMock,
-        createSlotWithTx: createSlotMock,
+      const repo = module.get(SlotsRepository_2024_09_04) as any;
+
+      repo.withTransaction = async (fn: any) => {
+        const tx = {};
+        return fn(tx);
       };
 
-      // First reservation should succeed
-      await expect(service.reserveSlot(input as any)).resolves.toBeDefined();
+      repo.getOverlappingSlotReservationWithTx = overlapMock;
+      repo.createSlotWithTx = createSlotMock;
 
-      // Second reservation should fail
+      await expect(service.reserveSlot(input as any)).resolves.toBeDefined();
       await expect(service.reserveSlot(input as any)).rejects.toThrow();
     });
   });

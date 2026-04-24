@@ -110,10 +110,17 @@ export class SlotsRepository_2024_09_04 {
     });
   }
 
-  async withTransaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
-    return this.dbWrite.prisma.$transaction(async (tx) => {
-      return fn(tx);
-    });
+  async withTransaction<T>(
+    fn: (tx: Prisma.TransactionClient) => Promise<T>
+  ): Promise<T> {
+    return this.dbWrite.prisma.$transaction(
+      async (tx) => {
+        return fn(tx);
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      }
+    );
   }
 
   async getOverlappingSlotReservationWithTx(
