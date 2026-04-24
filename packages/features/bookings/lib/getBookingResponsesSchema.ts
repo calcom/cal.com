@@ -10,7 +10,7 @@ import z from "zod";
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
 type TranslationFunction = (key: string, options?: Record<string, unknown>) => string;
-type CommonParams = { bookingFields: BookingFields; view: View; translateFn?: TranslationFunction };
+type CommonParams = { bookingFields: BookingFields; view: View; translateFn?: TranslationFunction; requireCorporateEmail?: boolean };
 
 export const bookingResponse = dbReadResponseSchema;
 export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
@@ -94,6 +94,7 @@ async function superRefineField({
   zodCtx,
   translateFn,
   responses,
+  requireCorporateEmail,
 }: {
   field: NonNullable<BookingFields>[number];
   value: unknown;
@@ -103,6 +104,7 @@ async function superRefineField({
   zodCtx: FieldZodCtx;
   translateFn?: TranslationFunction;
   responses: Record<string, unknown>;
+  requireCorporateEmail?: boolean;
 }): Promise<void> {
   const stringSchema = z.string();
   const emailSchema = isPartialSchema ? z.string() : z.string().refine(emailSchemaRefinement);
@@ -156,6 +158,23 @@ async function superRefineField({
             code: z.ZodIssueCode.custom,
             message: m("require_emails_no_match_found_error_message"),
           });
+        }
+
+        // Check for corporate email requirement
+        if (requireCorporateEmail) {
+          const freeEmailDomains = [
+            "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com",
+            "icloud.com", "mail.ru", "yandex.ru", "qq.com", "163.com",
+            "126.com", "sina.com", "sohu.com", "yeah.net", "tom.com",
+            "263.net", "aliyun.com", "foxmail.com", "live.com", "msn.com"
+          ];
+          const emailDomain = bookerEmail.split('@')[1]?.toLowerCase();
+          if (freeEmailDomains.includes(emailDomain)) {
+            zodCtx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m("corporate_email_required"),
+            });
+          }
         }
       }
     }
@@ -311,17 +330,17 @@ const doesEmailMatchEntry = (bookerEmail: string, entry: string): boolean => {
 
   return bookerEmailLower.endsWith("@" + entry.toLowerCase());
 };
-export const getBookingResponsesPartialSchema = ({ bookingFields, view, translateFn }: CommonParams) => {
+export const getBookingResponsesPartialSchema = ({ bookingFields, view, translateFn, requireCorporateEmail }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
-  return preprocess({ schema, bookingFields, isPartialSchema: true, view, translateFn });
+  return preprocess({ schema, bookingFields, isPartialSchema: true, view, translateFn, requireCorporateEmail });
 };
 
 // Should be used when we know that not all fields responses are present
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
-export default function getBookingResponsesSchema({ bookingFields, view, translateFn }: CommonParams) {
+export default function getBookingResponsesSchema({ bookingFields, view, translateFn, requireCorporateEmail }: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view, translateFn });
+  return preprocess({ schema, bookingFields, isPartialSchema: false, view, translateFn, requireCorporateEmail });
 }
 
 // Should be used when we want to check if the optional fields are entered and valid as well
@@ -329,6 +348,7 @@ export function getBookingResponsesSchemaWithOptionalChecks({
   bookingFields,
   view,
   translateFn,
+  requireCorporateEmail,
 }: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
   return preprocess({
@@ -338,6 +358,7 @@ export function getBookingResponsesSchemaWithOptionalChecks({
     view,
     checkOptional: true,
     translateFn,
+    requireCorporateEmail,
   });
 }
 
@@ -383,6 +404,7 @@ function preprocess<T extends z.ZodType>({
   view: currentView,
   checkOptional = false,
   translateFn,
+  requireCorporateEmail,
 }: CommonParams & {
   schema: T;
   // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
@@ -390,6 +412,7 @@ function preprocess<T extends z.ZodType>({
   // - Even a field response itself can be partial so the content isn't validated e.g. a field with type="phone" can be given a partial phone number(e.g. Specifying the country code like +91)
   isPartialSchema: boolean;
   checkOptional?: boolean;
+  requireCorporateEmail?: boolean;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   const log = logger.getSubLogger({ prefix: ["getBookingResponsesSchema"] });
   const preprocessed = z.preprocess(
@@ -485,6 +508,7 @@ function preprocess<T extends z.ZodType>({
             zodCtx: fieldZodCtx,
             translateFn,
             responses,
+            requireCorporateEmail,
           });
         } catch (e) {
           if (!isPartialSchema) {

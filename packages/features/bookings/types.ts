@@ -66,6 +66,7 @@ export type BookerEvent = Pick<
   | "interfaceLanguage"
   | "team"
   | "owner"
+  | "requireCorporateEmail"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;

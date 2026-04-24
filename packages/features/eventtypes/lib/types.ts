@@ -106,6 +106,7 @@ export type FormValues = {
   requiresConfirmationWillBlockSlot: boolean;
   requiresConfirmationForFreeEmail: boolean;
   requiresBookerEmailVerification: boolean;
+  requireCorporateEmail: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
   hidden: boolean;
@@ -351,6 +352,7 @@ export type EventTypeUpdateInput = {
   requiresConfirmationWillBlockSlot?: boolean;
   requiresConfirmationForFreeEmail?: boolean;
   requiresBookerEmailVerification?: boolean;
+  requireCorporateEmail?: boolean;
   canSendCalVideoTranscriptionEmails?: boolean;
   autoTranslateDescriptionEnabled?: boolean;
   autoTranslateInstantMeetingTitleEnabled?: boolean;

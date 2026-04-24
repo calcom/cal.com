@@ -88,6 +88,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     lockedTimeZone: true,
     requiresConfirmation: true,
     autoTranslateDescriptionEnabled: true,
+    requireCorporateEmail: true,
     fieldTranslations: {
       select: {
         translatedText: true,

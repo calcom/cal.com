@@ -206,6 +206,7 @@ model EventType {
   requiresConfirmationWillBlockSlot  Boolean                @default(false)
   requiresConfirmationForFreeEmail   Boolean                @default(false)
   requiresBookerEmailVerification    Boolean                @default(false)
+  requireCorporateEmail              Boolean                @default(false)
   canSendCalVideoTranscriptionEmails Boolean                @default(true)
 
   autoTranslateDescriptionEnabled          Boolean                @default(false)

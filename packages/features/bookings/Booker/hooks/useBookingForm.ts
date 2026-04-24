@@ -49,6 +49,7 @@ export const useBookingForm = ({
             bookingFields: event.bookingFields,
             view: rescheduleUid ? "reschedule" : "booking",
             translateFn: (key: string, options?: Record<string, unknown>) => t(key, options ?? {}),
+            requireCorporateEmail: event.requireCorporateEmail,
           })
         : // Fallback until event is loaded.
           z.object({}),

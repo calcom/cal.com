@@ -591,6 +591,20 @@ async function handler(
     throw error;
   }
 
+  // Check if corporate email is required
+  if (eventType.requireCorporateEmail) {
+    const freeEmailDomains = [
+      "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com",
+      "icloud.com", "mail.ru", "yandex.ru", "qq.com", "163.com",
+      "126.com", "sina.com", "sohu.com", "yeah.net", "tom.com",
+      "263.net", "aliyun.com", "foxmail.com", "live.com", "msn.com"
+    ];
+    const emailDomain = bookerEmail.split('@')[1]?.toLowerCase();
+    if (freeEmailDomains.includes(emailDomain)) {
+      throw new HttpError({ statusCode: 400, message: "corporate_email_required" });
+    }
+  }
+
   const spamCheckService = getSpamCheckService();
 
   const eventTypeOrganizationId =

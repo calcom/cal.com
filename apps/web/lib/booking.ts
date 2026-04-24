@@ -47,6 +47,7 @@ export const getEventTypesFromDB = async (id: number) => {
       minimumRescheduleNotice: true,
       disableGuests: true,
       timeZone: true,
+      requireCorporateEmail: true,
       profile: {
         select: {
           organizationId: true,

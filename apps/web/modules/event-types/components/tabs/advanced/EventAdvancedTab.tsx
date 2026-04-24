@@ -519,6 +519,7 @@ export const EventAdvancedTab = ({
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
   const hideOrganizerEmailLocked = shouldLockDisableProps("hideOrganizerEmail");
   const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
+  const requireCorporateEmailLocked = shouldLockDisableProps("requireCorporateEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
   const allowReschedulingCancelledBookingsLocked = shouldLockDisableProps(
@@ -850,6 +851,22 @@ export const EventAdvancedTab = ({
             {...requiresBookerEmailVerificationProps}
             description={t("description_requires_booker_email_verification")}
             descriptionClassName={customClassNames?.bookerEmailVerification?.description}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+      <Controller
+        name="requireCorporateEmail"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("require_corporate_email")}
+            data-testid="require-corporate-email"
+            {...requireCorporateEmailLocked}
+            description={t("description_require_corporate_email")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
