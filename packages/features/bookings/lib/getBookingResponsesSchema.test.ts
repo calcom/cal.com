@@ -10,6 +10,7 @@ const CUSTOM_EMAIL_VALIDATION_ERROR_MSG = "email_validation_error";
 const CUSTOM_URL_VALIDATION_ERROR_MSG = "url_validation_error";
 const CUSTOM_EMAIL_EXCLUDED_ERROR_MSG = "exclude_emails_match_found_error_message";
 const CUSTOM_EMAIL_REQUIRED_ERROR_MSG = "require_emails_no_match_found_error_message";
+const CUSTOM_CORPORATE_EMAIL_ERROR_MSG = "corporate_email_required";
 const ZOD_REQUIRED_FIELD_ERROR_MSG = "Required";
 
 function expectResponsesToBe(
@@ -1104,6 +1105,443 @@ describe("getBookingResponsesSchema", () => {
           expect.objectContaining({
             code: "custom",
             message: `{email}${CUSTOM_EMAIL_REQUIRED_ERROR_MSG}`,
+          })
+        );
+      });
+    });
+
+    describe("corporate email requirement validation", () => {
+      test("should fail if requireCorporateEmail is true and email is from free provider (gmail.com)", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@gmail.com",
+        });
+
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{email}${CUSTOM_CORPORATE_EMAIL_ERROR_MSG}`,
+          })
+        );
+      });
+
+      test("should fail if requireCorporateEmail is true and email is from free provider (qq.com)", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@qq.com",
+        });
+
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{email}${CUSTOM_CORPORATE_EMAIL_ERROR_MSG}`,
+          })
+        );
+      });
+
+      test("should fail if requireCorporateEmail is true and email is from free provider (163.com)", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@163.com",
+        });
+
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{email}${CUSTOM_CORPORATE_EMAIL_ERROR_MSG}`,
+          })
+        );
+      });
+
+      test("should fail if requireCorporateEmail is true and email is from free provider (outlook.com)", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@outlook.com",
+        });
+
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{email}${CUSTOM_CORPORATE_EMAIL_ERROR_MSG}`,
+          })
+        );
+      });
+
+      test("should pass if requireCorporateEmail is true and email is a corporate email", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@company.com",
+        });
+
+        expectResponsesToBe(parsedResponses, {
+          name: "test",
+          email: "user@company.com",
+        });
+      });
+
+      test("should pass if requireCorporateEmail is true and email is from a custom corporate domain", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "employee@mycompany.io",
+        });
+
+        expectResponsesToBe(parsedResponses, {
+          name: "test",
+          email: "employee@mycompany.io",
+        });
+      });
+
+      test("should pass if requireCorporateEmail is false and email is from free provider", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: false,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@gmail.com",
+        });
+
+        expectResponsesToBe(parsedResponses, {
+          name: "test",
+          email: "user@gmail.com",
+        });
+      });
+
+      test("should pass if requireCorporateEmail is not provided and email is from free provider", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@gmail.com",
+        });
+
+        expectResponsesToBe(parsedResponses, {
+          name: "test",
+          email: "user@gmail.com",
+        });
+      });
+
+      test("should be case insensitive when checking email domain", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "USER@GMAIL.COM",
+        });
+
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{email}${CUSTOM_CORPORATE_EMAIL_ERROR_MSG}`,
+          })
+        );
+      });
+
+      test("should fail if requireCorporateEmail is true and email is from free provider (yahoo.com)", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@yahoo.com",
+        });
+
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{email}${CUSTOM_CORPORATE_EMAIL_ERROR_MSG}`,
+          })
+        );
+      });
+
+      test("should fail if requireCorporateEmail is true and email is from free provider (hotmail.com)", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@hotmail.com",
+        });
+
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{email}${CUSTOM_CORPORATE_EMAIL_ERROR_MSG}`,
+          })
+        );
+      });
+
+      test("should fail if requireCorporateEmail is true and email is from free provider (icloud.com)", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@icloud.com",
+        });
+
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{email}${CUSTOM_CORPORATE_EMAIL_ERROR_MSG}`,
+          })
+        );
+      });
+
+      test("should fail if requireCorporateEmail is true and email is from free provider (foxmail.com)", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@foxmail.com",
+        });
+
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{email}${CUSTOM_CORPORATE_EMAIL_ERROR_MSG}`,
+          })
+        );
+      });
+
+      test("should fail if requireCorporateEmail is true and email is from free provider (sina.com)", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+          requireCorporateEmail: true,
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "test",
+          email: "user@sina.com",
+        });
+
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{email}${CUSTOM_CORPORATE_EMAIL_ERROR_MSG}`,
           })
         );
       });
