@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   release:
-    if: github.repository == 'calcom/cal.com' # prevent this action from running on forks
+    if: github.repository == 'calcom/cal.diy' # prevent this action from running on forks
     name: Release
     runs-on: ubuntu-latest
     steps:

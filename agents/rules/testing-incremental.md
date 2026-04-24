@@ -9,7 +9,7 @@ tags: testing, debugging, workflow
 
 ## One File at a Time
 
-When fixing failing tests in the Cal.com repository, take an incremental approach by addressing one file at a time rather than attempting to fix all issues simultaneously.
+When fixing failing tests in the Cal.diy repository, take an incremental approach by addressing one file at a time rather than attempting to fix all issues simultaneously.
 
 This methodical approach makes it easier to identify and resolve specific issues without getting overwhelmed by the complexity of multiple failing tests across different files.
 

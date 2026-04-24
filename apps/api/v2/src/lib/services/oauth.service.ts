@@ -3,7 +3,6 @@ import { OAuthService as BaseOAuthService } from "@calcom/platform-libraries";
 import { Injectable } from "@nestjs/common";
 import { PrismaAccessCodeRepository } from "@/lib/repositories/prisma-access-code.repository";
 import { PrismaOAuthClientRepository } from "@/lib/repositories/prisma-oauth-client.repository";
-import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import type { OAuth2ExchangeInput } from "@/modules/auth/oauth2/inputs/exchange.input";
 import { OAuth2ExchangeConfidentialInput } from "@/modules/auth/oauth2/inputs/exchange.input";
 import type { OAuth2RefreshInput } from "@/modules/auth/oauth2/inputs/refresh.input";
@@ -14,13 +13,11 @@ import type { OAuth2TokenInput } from "@/modules/auth/oauth2/inputs/token.input.
 export class OAuthService extends BaseOAuthService {
   constructor(
     accessCodeRepository: PrismaAccessCodeRepository,
-    oAuthClientRepository: PrismaOAuthClientRepository,
-    teamsRepository: PrismaTeamRepository
+    oAuthClientRepository: PrismaOAuthClientRepository
   ) {
     super({
       accessCodeRepository: accessCodeRepository,
       oAuthClientRepository: oAuthClientRepository,
-      teamsRepository: teamsRepository,
     });
   }
 

@@ -1,11 +1,7 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
-import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { BookingAttendeesRemoveService } from "@calcom/features/bookings/services/BookingAttendeesRemoveService";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -31,7 +27,6 @@ type AddAttendeeInput = {
   attendee: Attendee;
   user: TUser;
   emailsEnabled?: boolean;
-  actionSource: ActionSource;
 };
 
 export type CreatedAttendee = {
@@ -49,12 +44,9 @@ type RemoveAttendeeInput = {
   attendeeId: number;
   user: TUser;
   emailsEnabled?: boolean;
-  actionSource: ActionSource;
 };
 
 export type BookingAttendeesServiceDeps = {
-  bookingEventHandlerService: BookingEventHandlerService;
-  featuresRepository: FeaturesRepository;
   bookingRepository: BookingRepository;
   bookingAttendeesRemoveService: BookingAttendeesRemoveService;
 };
@@ -99,7 +91,6 @@ export class BookingAttendeesService {
     attendee,
     user,
     emailsEnabled = true,
-    actionSource,
   }: AddAttendeeInput): Promise<CreatedAttendee> {
     const booking = await getBooking(bookingId);
 
@@ -137,22 +128,6 @@ export class BookingAttendeesService {
     if (emailsEnabled) {
       await this.sendAttendeeNotification(evt, booking, attendeeEmail);
     }
-
-    const organizationId = user.organizationId ?? null;
-    const isBookingAuditEnabled = organizationId
-      ? await this.deps.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
-      : false;
-
-    await this.deps.bookingEventHandlerService.onAttendeeAdded({
-      bookingUid: booking.uid,
-      actor: makeUserActor(user.uuid),
-      organizationId,
-      source: actionSource,
-      auditData: {
-        added: [attendeeEmail],
-      },
-      isBookingAuditEnabled,
-    });
 
     const createdAttendee = updatedBooking.attendees.find(
       (a) => a.email.toLowerCase() === attendeeEmail.toLowerCase()

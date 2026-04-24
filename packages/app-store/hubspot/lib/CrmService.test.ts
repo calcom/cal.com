@@ -553,7 +553,7 @@ describe("HubspotCalendarService", () => {
         onBookingWriteToEventObjectFields: {
           custom_source: {
             fieldType: CrmFieldType.TEXT,
-            value: "Cal.com Booking",
+            value: "Cal.diy Booking",
             whenToWrite: WhenToWrite.EVERY_BOOKING,
           },
         },
@@ -571,7 +571,7 @@ describe("HubspotCalendarService", () => {
       await service.createEvent(event, contacts);
 
       const createCall = mockHubspotClient.crm.objects.meetings.basicApi.create.mock.calls[0][0];
-      expect(createCall.properties.custom_source).toBe("Cal.com Booking");
+      expect(createCall.properties.custom_source).toBe("Cal.diy Booking");
     });
 
     it("should include custom text field with booking response placeholder", async () => {

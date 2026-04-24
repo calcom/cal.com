@@ -12,7 +12,7 @@ import {
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { Test, TestingModule } from "@nestjs/testing";
 import { UnifiedCalendarsFreebusyService } from "./unified-calendars-freebusy.service";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsService } from "@/platform/calendars/services/calendars.service";
 
 describe("UnifiedCalendarsFreebusyService (integration with real platform-libraries types)", () => {
   let service: UnifiedCalendarsFreebusyService;

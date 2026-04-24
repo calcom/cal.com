@@ -21,7 +21,6 @@ import { Select } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 
 import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
-import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
 
 interface IDialog {
   isOpenDialog: boolean;
@@ -211,7 +210,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent title={t("set_weight")} description={<WeightDescription t={t} />}>
+      <DialogContent title={t("set_weight")} description={t("weights_description")}>
         <div className={classNames("mb-4 mt-2", customClassNames?.container)}>
           <Label className={customClassNames?.label}>
             {t("weight_for_user", { userName: option.label })}

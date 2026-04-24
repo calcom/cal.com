@@ -1,7 +1,6 @@
-import { describe, it, vi, expect, afterEach, beforeEach, beforeAll, afterAll } from "vitest";
-
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import prisma from "@calcom/prisma";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const luckyUserService = getLuckyUserService();
 let commonEventTypeId: number;
@@ -210,7 +209,6 @@ describe("getLuckyUser Integration tests", () => {
           team: {},
         },
         allRRHosts: [],
-        routingFormResponse: null,
       });
 
       expect(luckyUser.email).toBe(organizerThatDidntShowUp.email);
@@ -270,7 +268,6 @@ describe("getLuckyUser Integration tests", () => {
             team: {},
           },
           allRRHosts: [],
-          routingFormResponse: null,
         })
       ).resolves.toStrictEqual(organizerWhoseAttendeeDidntShowUp);
     });
@@ -371,7 +368,6 @@ describe("getLuckyUser Integration tests", () => {
             team: {},
           },
           allRRHosts: [],
-          routingFormResponse: null,
         })
       ).resolves.toStrictEqual(organizerWhoWasAttendeeAndDidntShowUp);
     });
@@ -434,7 +430,6 @@ describe("getLuckyUser Integration tests", () => {
             team: {},
           },
           allRRHosts: [],
-          routingFormResponse: null,
         })
       ).resolves.toStrictEqual(userWithBookingThatHappenedEarlier);
     });
@@ -446,7 +441,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
     vi.setSystemTime("2024-11-14T00:00:13Z");
   });
 
-  it("should sort as per availableUsers if no other criteria like weight/priority/calibration (TODO: make it independent of availableUsers order)", async () => {
+  it("should sort by user id if no other criteria like weight/priority/calibration", async () => {
     const [host1, host2, host3] = await Promise.all([
       createHostWithBookings({
         user: { email: "test-user1@example.com" },
@@ -480,7 +475,9 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
       routingFormResponse: null,
     });
 
-    expectLuckyUsers(luckyUsers, [user2, user1, user3]);
+    const expectedOrder = [user1, user2, user3].sort((a, b) => a.id - b.id)
+
+    expectLuckyUsers(luckyUsers, expectedOrder);
 
     const { users: luckyUsers2 } = await luckyUserService.getOrderedListOfLuckyUsers({
       availableUsers: [user3, user1, user2],
@@ -492,7 +489,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
       allRRHosts: [],
       routingFormResponse: null,
     });
-    expectLuckyUsers(luckyUsers2, [user3, user1, user2]);
+    expectLuckyUsers(luckyUsers2, expectedOrder);
   });
 
   describe("should sort as per weights", () => {
@@ -532,7 +529,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           team: {},
         },
         allRRHosts,
-        routingFormResponse: null,
       });
 
       expectLuckyUsers(luckyUsers, [
@@ -552,7 +548,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           team: {},
         },
         allRRHosts,
-        routingFormResponse: null,
       });
       expectLuckyUsers(luckyUsers2, [
         // It has the highest weight and zero bookings.
@@ -619,7 +614,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           hostWithTwoBookingsAndWeight100,
           hostWithThreeBookingsAndWeight100,
         ],
-        routingFormResponse: null,
       };
 
       const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
@@ -702,7 +696,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           hostWithTwoBookingsInPreviousMonthAndWeight100,
           hostWithThreeBookingsInPreviousMonthAndWeight100,
         ],
-        routingFormResponse: null,
       };
 
       const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
@@ -778,7 +771,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
           team: null,
         },
         allRRHosts: [host1, host2, host3],
-        routingFormResponse: null,
       };
 
       const { users: luckyUsers, perUserData } = await luckyUserService.getOrderedListOfLuckyUsers({
