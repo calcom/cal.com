@@ -128,11 +128,13 @@ export class SlotsRepository_2024_09_04 {
     tx: Prisma.TransactionClient,
     eventTypeId: number,
     startDate: string,
-    endDate: string
+    endDate: string,
+    excludeId?: number
   ) {
     return tx.selectedSlots.findFirst({
       where: {
         eventTypeId,
+        ...(excludeId && { id: { not: excludeId } }),
         AND: [
           {
             OR: [
