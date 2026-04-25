@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
 import type { PrefillAndIframeAttrsConfig } from "@calcom/embed-core";
-
+import { useEffect, useRef } from "react";
 import useEmbed from "./useEmbed";
 
 type CalProps = {
@@ -32,28 +30,26 @@ const Cal = function Cal(props: CalProps) {
     }
     initializedRef.current = true;
     const element = ref.current;
+
     if (namespace) {
-      Cal("init", namespace, {
-        ...initConfig,
-        origin: calOrigin,
-      });
-      Cal.ns[namespace]("inline", {
-        elementOrSelector: element,
-        calLink,
-        config,
-      });
+      Cal("init", namespace, { ...initConfig, origin: calOrigin });
+      Cal.ns[namespace]("inline", { elementOrSelector: element, calLink, config });
     } else {
-      Cal("init", {
-        ...initConfig,
-        origin: calOrigin,
-      });
-      Cal("inline", {
-        elementOrSelector: element,
-        calLink,
-        config,
-      });
+      Cal("init", { ...initConfig, origin: calOrigin });
+      Cal("inline", { elementOrSelector: element, calLink, config });
     }
-  }, [Cal, calLink, config, namespace, calOrigin, initConfig]);
+  }, [Cal, calLink, namespace, calOrigin]);
+
+  useEffect(() => {
+    if (!Cal || !initializedRef.current || !config) {
+      return;
+    }
+    if (namespace) {
+      Cal.ns[namespace]("ui", config);
+    } else {
+      Cal("ui", config);
+    }
+  }, [Cal, namespace, config]);
 
   if (!Cal) {
     return null;
