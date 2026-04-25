@@ -13,7 +13,12 @@ import logger from "@calcom/lib/logger";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { EventTypeAutoTranslatedField, RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
+import {
+  EventTypeAutoTranslatedField,
+  MembershipRole,
+  RRTimestampBasis,
+  SchedulingType,
+} from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
@@ -454,9 +459,104 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   let hostLocationDeletions: { userId: number; eventTypeId: number }[] = [];
 
   if (teamId && hosts) {
-    // check if all hosts can be assigned (memberships that have accepted invite)
-    const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
-    const teamMemberIdSet = new Set(teamMemberIds);
+    // Process email-based invites (userId === 0 means pending invite by email)
+    const emailInvites = hosts.filter((host) => host.userId === 0 && host.email);
+
+    if (emailInvites.length > 0) {
+      const emailsToInvite = Array.from(new Set(emailInvites.map((h) => h.email!).filter(Boolean)));
+
+      if (emailsToInvite.length) {
+        const teamInfo = await ctx.prisma.team.findUnique({
+          where: { id: teamId },
+          select: { name: true, parent: { select: { id: true } } },
+        });
+
+        for (const email of emailsToInvite) {
+          // Find existing user or create a placeholder
+          let user = await ctx.prisma.user.findUnique({
+            where: { email },
+            select: { id: true, email: true },
+          });
+
+          if (!user) {
+            // Create a minimal placeholder user that will complete signup via the invite link
+            user = await ctx.prisma.user.create({
+              data: {
+                email,
+                username: null,
+                completedOnboarding: false,
+              },
+              select: { id: true, email: true },
+            });
+          }
+
+          // Create pending membership if not already a member
+          const existingMembership = await ctx.prisma.membership.findUnique({
+            where: { userId_teamId: { userId: user.id, teamId } },
+          });
+
+          if (!existingMembership) {
+            await ctx.prisma.membership.create({
+              data: {
+                userId: user.id,
+                teamId,
+                role: MembershipRole.MEMBER,
+                accepted: false,
+              },
+            });
+          }
+
+          // Send invite email
+          try {
+            const { getTranslation: getT } = await import("@calcom/i18n/server");
+            const inviteeTranslation = await getT(ctx.user.locale ?? "en", "common");
+            const { sendTeamInviteEmail } = await import("@calcom/emails/organization-email-service");
+            const inviteToken = await ctx.prisma.verificationToken.create({
+              data: {
+                identifier: email,
+                token: crypto.randomUUID(),
+                expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+                teamId,
+              },
+            });
+
+            await sendTeamInviteEmail({
+              language: inviteeTranslation,
+              from: ctx.user.name ?? ctx.user.email,
+              to: email,
+              teamName: teamInfo?.name ?? "",
+              joinLink: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/signup?token=${inviteToken.token}&callbackUrl=/getting-started`,
+              isCalcomMember: false,
+              isAutoJoin: false,
+              isOrg: false,
+              parentTeamName: undefined,
+              isExistingUserMovedToOrg: false,
+              prevLink: null,
+              newLink: null,
+            });
+          } catch (e) {
+            logger.error("Failed to send team invite email", e);
+          }
+
+          // Update the host entry with the real userId
+          hosts.forEach((host) => {
+            if (host.userId === 0 && host.email === email) {
+              host.userId = user!.id;
+            }
+          });
+        }
+      }
+    }
+
+    // Remove any hosts that still have userId === 0 (invite creation failed)
+    hosts = hosts.filter((host) => host.userId !== 0);
+
+    // check if all hosts can be assigned — allow pending members too (just-invited)
+    const allTeamMembers = await ctx.prisma.membership.findMany({
+      where: { teamId },
+      select: { userId: true },
+    });
+    const teamMemberIdSet = new Set(allTeamMembers.map((m) => m.userId));
     if (!hosts.every((host) => teamMemberIdSet.has(host.userId)) && !eventType.team?.parentId) {
       throw new TRPCError({
         code: "FORBIDDEN",

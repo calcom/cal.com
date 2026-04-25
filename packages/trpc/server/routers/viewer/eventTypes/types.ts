@@ -62,6 +62,7 @@ const hostLocationSchema = z.object({
 
 const hostSchema: z.ZodType<HostInput> = z.object({
   userId: z.number(),
+  email: z.string().email().optional(),
   profileId: z.number().or(z.null()).optional(),
   isFixed: z.boolean().optional(),
   priority: z.number().min(0).max(4).optional().nullable(),

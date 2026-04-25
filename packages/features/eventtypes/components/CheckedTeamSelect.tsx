@@ -3,6 +3,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import type { Options, Props } from "react-select";
+import CreatableSelect from "react-select/creatable";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
@@ -49,12 +50,18 @@ export type CheckedTeamSelectCustomClassNames = {
   priorityDialog?: PriorityDialogCustomClassNames;
   weightDialog?: WeightDialogCustomClassNames;
 };
+
+const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
   isRRWeightsEnabled,
   customClassNames,
   groupId,
+  isCreatable,
+  isValidNewOption,
+  formatCreateLabel,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   options?: Options<CheckedSelectOption>;
@@ -63,6 +70,9 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
   groupId: string | null;
+  isCreatable?: boolean;
+  isValidNewOption?: (inputValue: string) => boolean;
+  formatCreateLabel?: (inputValue: string) => string;
 }) => {
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
@@ -82,23 +92,68 @@ export const CheckedTeamSelect = ({
     props.onChange(newValueAllGroups);
   };
 
+  const handleCreateOption = (inputValue: string) => {
+    const newEmails = inputValue
+      .split(",")
+      .map((e) => e.trim())
+      .filter((e) => isValidEmail(e));
+    const newOptions: CheckedSelectOption[] = newEmails.map((email) => ({
+      label: email,
+      value: email,
+      avatar: "",
+      isFixed: false,
+      groupId: groupId,
+    }));
+    handleSelectChange([...valueFromGroup, ...newOptions]);
+  };
+
+  const selectProps = {
+    name: props.name,
+    placeholder: props.placeholder || t("select"),
+    isSearchable: true,
+    options,
+    value: valueFromGroup,
+    onChange: handleSelectChange,
+    isMulti: true as const,
+    className: customClassNames?.hostsSelect?.select,
+    innerClassNames: {
+      ...customClassNames?.hostsSelect?.innerClassNames,
+      control: "rounded-md",
+    },
+    ...props,
+  };
+
   return (
     <>
-      <Select
-        {...props}
-        name={props.name}
-        placeholder={props.placeholder || t("select")}
-        isSearchable={true}
-        options={options}
-        value={valueFromGroup}
-        onChange={handleSelectChange}
-        isMulti
-        className={customClassNames?.hostsSelect?.select}
-        innerClassNames={{
-          ...customClassNames?.hostsSelect?.innerClassNames,
-          control: "rounded-md",
-        }}
-      />
+      {isCreatable ? (
+        <CreatableSelect
+          {...selectProps}
+          onCreateOption={handleCreateOption}
+          isValidNewOption={
+            isValidNewOption ??
+            ((inputValue) => {
+              const parts = inputValue
+                .split(",")
+                .map((s) => s.trim())
+                .filter((s) => s.length > 0);
+              return parts.length > 0 && parts.every((part) => isValidEmail(part));
+            })
+          }
+          formatCreateLabel={formatCreateLabel ?? ((inputValue) => `${t("invite")} ${inputValue}`)}
+          getNewOptionData={(inputValue) => ({
+            label: inputValue,
+            value: inputValue,
+            avatar: "",
+            isFixed: false,
+            groupId: groupId,
+          })}
+          classNames={{
+            control: () => "rounded-md",
+          }}
+        />
+      ) : (
+        <Select {...selectProps} />
+      )}
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul
@@ -116,16 +171,7 @@ export const CheckedTeamSelect = ({
                 `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
                 customClassNames?.selectedHostList?.listItem?.container
               )}>
-              {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
-              {isPlatform && (
-                <Icon
-                  name="user"
-                  className={classNames(
-                    "mt-0.5 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.avatar
-                  )}
-                />
-              )}
+              <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
               <p
                 className={classNames(
                   "text-emphasis my-auto ms-3 text-sm",

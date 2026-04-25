@@ -49,6 +49,7 @@ export type HostLocation = {
 export type Host = {
   isFixed: boolean;
   userId: number;
+  email?: string;
   priority: number;
   weight: number;
   scheduleId?: number | null;
@@ -245,6 +246,7 @@ export type HostLocationInput = {
 
 export type HostInput = {
   userId: number;
+  email?: string;
   profileId?: number | null;
   isFixed?: boolean;
   priority?: number | null;
