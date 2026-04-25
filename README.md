@@ -358,6 +358,9 @@ Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1
 ### Docker
 
 The Docker image can be found on DockerHub at [https://hub.docker.com/r/calcom/cal.diy](https://hub.docker.com/r/calcom/cal.diy).
+> [!WARNING]
+> The pre-built Docker image is currently unavailable on Docker Hub due to a CI/CD pipeline misconfiguration (see [#28995](https://github.com/calcom/cal.diy/issues/28995)).
+> Until this is resolved, please follow the [Building from source with Docker](#building-from-source-with-docker) instructions below instead.
 
 **Note for ARM Users**: Use the {version}-arm suffix for pulling images. Example: `docker pull calcom/cal.diy:v5.6.19-arm`.
 
