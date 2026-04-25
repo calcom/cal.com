@@ -77,7 +77,7 @@ export default function BBBSetup() {
                     showToast(t("keys_have_been_saved"), "success");
                     router.push(json.url);
                   } else {
-                    showToast(json.message, "error");
+                    showToast(json?.message ?? t("something_went_wrong"), "error");
                   }
                 } catch {
                   showToast(t("something_went_wrong"), "error");
@@ -139,7 +139,7 @@ export default function BBBSetup() {
               <p className="text-lg text-default mt-5 font-bold">
                 {t("bigbluebutton_getting_started")}
               </p>
-              <p className="font-semi mt-2 text-sm">
+              <p className="font-semibold mt-2 text-sm">
                 {t("bigbluebutton_getting_started_description")}
               </p>
               <ol className="text-default mt-3 list-inside list-decimal space-y-2 text-sm">

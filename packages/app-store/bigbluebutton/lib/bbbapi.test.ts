@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { BBBApi } from "./bbbapi";
-import { bbbError } from "./types";
+import { Action, bbbError } from "./types";
 
 const mockOptions = {
   url: "https://bbb.example.com/bigbluebutton/api",
@@ -14,7 +14,7 @@ describe("BBBApi", () => {
     it("appends checksum to URL params", () => {
       const api = new BBBApi(mockOptions);
       const params = new URLSearchParams({ meetingID: "test-123" });
-      const url = api.createUrl("create" as never, params);
+      const url = api.createUrl(Action.CREATE, params);
 
       expect(url).toContain("checksum=");
       expect(url).toContain("meetingID=test-123");
@@ -23,7 +23,7 @@ describe("BBBApi", () => {
     it("handles URL with trailing slash", () => {
       const api = new BBBApi({ ...mockOptions, url: "https://bbb.example.com/bigbluebutton/api/" });
       const params = new URLSearchParams();
-      const url = api.createUrl("create" as never, params);
+      const url = api.createUrl(Action.CREATE, params);
 
       expect(url).not.toContain("//create");
     });
@@ -31,7 +31,7 @@ describe("BBBApi", () => {
     it("handles URL without trailing slash", () => {
       const api = new BBBApi({ ...mockOptions, url: "https://bbb.example.com/bigbluebutton/api" });
       const params = new URLSearchParams();
-      const url = api.createUrl("create" as never, params);
+      const url = api.createUrl(Action.CREATE, params);
 
       expect(url).toContain("bigbluebutton/api/create");
     });

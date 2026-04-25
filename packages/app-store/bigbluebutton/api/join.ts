@@ -61,9 +61,11 @@ async function joinHandler(req: NextApiRequest, res: NextApiResponse) {
   if (data.booking.status !== BookingStatus.ACCEPTED)
     throw new HttpError({ statusCode: 400, message: "Booking is not confirmed" });
 
+  const sessionUserId = req.session?.user?.id;
   const isOwner =
-    data?.booking.eventType?.userId === req.session?.user?.id ||
-    data?.booking.eventType?.team?.members?.some((member) => member.userId === req.session?.user?.id);
+    !!sessionUserId &&
+    (data.booking.eventType?.userId === sessionUserId ||
+      !!data.booking.eventType?.team?.members?.some((member) => member.userId === sessionUserId));
 
   const parsedKey = bbbEncryptedSchema.safeParse(data.credential.key);
   if (!parsedKey.success) throw new HttpError({ statusCode: 400, message: "Invalid meeting configuration" });
@@ -72,8 +74,14 @@ async function joinHandler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 500, message: "Missing encryption key" });
   }
 
-  const decryptedOptions = symmetricDecrypt(parsedKey.data.private, process.env.CALENDSO_ENCRYPTION_KEY);
-  const bbbOptions = bbbOptionsSchema.safeParse(JSON.parse(decryptedOptions));
+  let decryptedJson: unknown;
+  try {
+    const decryptedOptions = symmetricDecrypt(parsedKey.data.private, process.env.CALENDSO_ENCRYPTION_KEY);
+    decryptedJson = JSON.parse(decryptedOptions);
+  } catch {
+    throw new HttpError({ statusCode: 400, message: "Invalid meeting configuration" });
+  }
+  const bbbOptions = bbbOptionsSchema.safeParse(decryptedJson);
   if (!bbbOptions.success)
     throw new HttpError({ statusCode: 400, message: "Invalid meeting configuration" });
 
@@ -81,7 +89,9 @@ async function joinHandler(req: NextApiRequest, res: NextApiResponse) {
   if (!(await bbb.checkValidOptions()))
     throw new HttpError({ statusCode: 400, message: "Invalid BigBlueButton configuration" });
 
-  await bbb.createMeeting(meetingID, data.booking.title);
+  const create = await bbb.createMeeting(meetingID, data.booking.title);
+  if (!create.success)
+    throw new HttpError({ statusCode: 500, message: create.message ?? "Could not create meeting" });
 
   const role = isOwner ? Role.MODERATOR : Role.VIEWER;
   const named = isOwner

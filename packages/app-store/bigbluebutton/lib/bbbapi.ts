@@ -24,11 +24,15 @@ const xmlParser = new XMLParser({
 });
 
 const withFetch = async (url: string, init?: RequestInit | undefined) => {
-  const response = await fetch(url, init).catch((_err) => {
+  const response = await fetch(url, init).catch((err) => {
+    log.warn(`[BBB] fetch failed: ${err}`);
     throw new BBBError(bbbError.CANNOT_REACH_SERVER);
   });
 
-  if (!response.ok) throw new BBBError(bbbError.CANNOT_REACH_SERVER);
+  if (!response.ok) {
+    log.warn(`[BBB] non-OK response: ${response.status} ${response.statusText}`);
+    throw new BBBError(bbbError.SERVER_ERROR, `HTTP ${response.status}`);
+  }
 
   const responseBody = await response.text();
 
@@ -128,7 +132,7 @@ export class BBBApi {
         meetingID: meetingId,
         fullName: name,
         role,
-        redirect: true,
+        redirect: false,
       });
       const workaround = JSON.parse(JSON.stringify(schema));
       const params = new URLSearchParams(workaround);

@@ -34,9 +34,9 @@ const BigBlueButtonAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     updateMeeting: async (bookingRef: PartialReference, _e: CalendarEvent): Promise<VideoCallData> => {
       return Promise.resolve({
         type: metadata.type,
-        id: bookingRef.meetingId as string,
-        password: bookingRef.meetingPassword as string,
-        url: bookingRef.meetingUrl as string,
+        id: bookingRef.meetingId ?? "",
+        password: bookingRef.meetingPassword ?? "",
+        url: bookingRef.meetingUrl ?? "",
       });
     },
     deleteMeeting: async (): Promise<void> => {

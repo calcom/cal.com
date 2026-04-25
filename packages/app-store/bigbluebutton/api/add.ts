@@ -23,8 +23,9 @@ async function postHandler(req: NextApiRequest) {
   const session = checkSession(req);
   await checkInstalled(metadata.slug, session.user?.id);
   const body = req.body;
-  const teamIdParam = req.query.teamId;
-  const teamId = teamIdParam && !isNaN(Number(teamIdParam)) ? Number(teamIdParam) : undefined;
+  const teamIdParam = typeof req.query.teamId === "string" ? req.query.teamId : undefined;
+  const parsedTeamId = teamIdParam ? parseInt(teamIdParam, 10) : NaN;
+  const teamId = Number.isFinite(parsedTeamId) && parsedTeamId > 0 ? parsedTeamId : undefined;
 
   const schema = bbbOptionsSchema.safeParse(body);
   if (!schema.success) {
