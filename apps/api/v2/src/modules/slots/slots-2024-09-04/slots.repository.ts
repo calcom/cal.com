@@ -33,10 +33,11 @@ export class SlotsRepository_2024_09_04 {
     });
   }
 
-  async getOverlappingSlotReservation(eventTypeId: number, startDate: string, endDate: string) {
+  async getOverlappingSlotReservation(eventTypeId: number, startDate: string, endDate: string, excludeId?: number) {
     return this.dbRead.prisma.selectedSlots.findFirst({
       where: {
         eventTypeId,
+        ...(excludeId && { id: { not: excludeId } }),
         AND: [
           {
             OR: [
