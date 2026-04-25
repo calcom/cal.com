@@ -5,6 +5,7 @@
 import alby_config_json from "./alby/config.json";
 import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
+import { metadata as bigbluebutton__metadata_ts } from "./bigbluebutton/_metadata";
 import attio_config_json from "./attio/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
@@ -121,6 +122,7 @@ export const appStoreMetadata = {
   autocheckin: autocheckin_config_json,
   "baa-for-hipaa": baa_for_hipaa_config_json,
   basecamp3: basecamp3_config_json,
+  bigbluebutton: bigbluebutton__metadata_ts,
   bolna: bolna_config_json,
   btcpayserver: btcpayserver_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,

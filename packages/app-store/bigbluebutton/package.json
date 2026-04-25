@@ -1,0 +1,8 @@
+{
+  "name": "@calcom/bigbluebutton",
+  "version": "0.0.0",
+  "description": "BigBlueButton is a free, open-source web conferencing system designed for virtual learning. Connect your self-hosted BigBlueButton server to automatically create meeting rooms for your bookings.",
+  "main": "./index.ts",
+  "private": true,
+  "license": "MIT"
+}
