@@ -102,7 +102,7 @@ ${getRichDescription(this.calEvent, this.t)}
   }
 
   public getFormattedDate() {
-    const inviteeTimeFormat = this.calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
+    const inviteeTimeFormat = this.attendee.timeFormat || TimeFormat.TWELVE_HOUR;
 
     return `${this.getInviteeStart(inviteeTimeFormat)} - ${this.getInviteeEnd(inviteeTimeFormat)}, ${this.t(
       this.getInviteeStart("dddd").toLowerCase()
