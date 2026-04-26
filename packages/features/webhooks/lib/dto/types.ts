@@ -173,18 +173,6 @@ export interface OOOCreatedDTO extends BaseEventDTO {
   };
 }
 
-export interface FormSubmittedDTO extends BaseEventDTO {
-  triggerEvent: typeof WebhookTriggerEvents.FORM_SUBMITTED;
-  form: {
-    id: string;
-    name: string;
-  };
-  response: {
-    id: number;
-    data: Record<string, { value: string | string[]; label: string }>;
-  };
-}
-
 export interface RecordingReadyDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.RECORDING_READY;
   evt: CalendarEvent;
@@ -200,18 +188,6 @@ export interface TranscriptionGeneratedDTO extends BaseEventDTO {
       link: string;
     }>;
     recording?: string;
-  };
-}
-
-export interface FormSubmittedNoEventDTO extends BaseEventDTO {
-  triggerEvent: typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT;
-  form: {
-    id: string;
-    name: string;
-  };
-  response: {
-    id: number;
-    data: Record<string, { value: string | string[]; label: string }>;
   };
 }
 
@@ -344,8 +320,6 @@ export type WebhookEventDTO =
   | BookingPaymentInitiatedDTO
   | BookingNoShowDTO
   | OOOCreatedDTO
-  | FormSubmittedDTO
-  | FormSubmittedNoEventDTO
   | RecordingReadyDTO
   | TranscriptionGeneratedDTO
   | MeetingStartedDTO

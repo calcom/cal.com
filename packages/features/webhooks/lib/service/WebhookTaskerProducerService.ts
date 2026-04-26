@@ -5,7 +5,6 @@ import type { ILogger } from "../interface/infrastructure";
 import type {
   IWebhookProducerService,
   QueueBookingWebhookParams,
-  QueueFormWebhookParams,
   QueueOOOWebhookParams,
   QueuePaymentWebhookParams,
   QueueRecordingWebhookParams,
@@ -71,29 +70,6 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
 
   async queueBookingNoShowUpdatedWebhook(params: QueueBookingWebhookParams): Promise<void> {
     await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, params);
-  }
-
-  async queueFormSubmittedWebhook(params: QueueFormWebhookParams): Promise<void> {
-    const operationId = params.operationId || uuidv4();
-
-    this.log.debug("Queueing form webhook task", {
-      operationId,
-      triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
-      formId: params.formId,
-    });
-
-    const taskPayload: WebhookTaskPayload = {
-      operationId,
-      triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
-      formId: params.formId,
-      teamId: params.teamId,
-      userId: params.userId,
-      oAuthClientId: params.oAuthClientId,
-      metadata: params.metadata,
-      timestamp: new Date().toISOString(),
-    };
-
-    await this.queueTask(operationId, taskPayload);
   }
 
   async queueRecordingReadyWebhook(params: QueueRecordingWebhookParams): Promise<void> {

@@ -4,14 +4,6 @@ import type {
   OOOEntryPayloadType,
 } from "../dto/types";
 
-export interface FormSubmittedPayload {
-  formId: string;
-  formName: string;
-  teamId?: number | null;
-  redirect?: Record<string, unknown>;
-  responses: Record<string, unknown>;
-}
-
 export interface RecordingPayload {
   downloadLink?: string;
   downloadLinks?: {
@@ -90,7 +82,6 @@ export interface WebhookPayload {
     | EventPayloadType
     | OOOEntryPayloadType
     | BookingNoShowUpdatedPayload
-    | FormSubmittedPayload
     | RecordingPayload
     | MeetingPayload
     | InstantMeetingPayload

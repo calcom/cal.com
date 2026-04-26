@@ -47,24 +47,6 @@ export interface QueuePaymentWebhookParams extends BaseQueueWebhookParams {
 }
 
 /**
- * Parameters for queueing form-related webhooks
- * Used for: FORM_SUBMITTED
- */
-export interface QueueFormWebhookParams extends BaseQueueWebhookParams {
-  /** Form ID (required) */
-  formId: string;
-
-  /** Team ID */
-  teamId?: number | null;
-
-  /** User ID */
-  userId?: number;
-
-  /** OAuth Client ID (for platform webhooks) */
-  oAuthClientId?: string | null;
-}
-
-/**
  * Parameters for queueing recording-related webhooks
  * Used for: RECORDING_READY, RECORDING_TRANSCRIPTION_GENERATED
  */
@@ -157,11 +139,6 @@ export interface IWebhookProducerService {
    * Queue a webhook delivery task for BOOKING_NO_SHOW_UPDATED event
    */
   queueBookingNoShowUpdatedWebhook(params: QueueBookingWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for FORM_SUBMITTED event
-   */
-  queueFormSubmittedWebhook(params: QueueFormWebhookParams): Promise<void>;
 
   /**
    * Queue a webhook delivery task for RECORDING_READY event
