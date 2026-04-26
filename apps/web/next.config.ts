@@ -249,11 +249,6 @@ const nextConfig = (phase: string): NextConfig => {
       "@coss/ui",
     ],
     modularizeImports: {
-      "@calcom/web/modules/insights/components": {
-        transform: "@calcom/web/modules/insights/components/{{member}}",
-        skipDefaultConversion: true,
-        preventFullImport: true,
-      },
       lodash: {
         transform: "lodash/{{member}}",
       },

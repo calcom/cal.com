@@ -27,7 +27,6 @@ export function NotFound({ host }: { host: string }) {
   const { username, pageType, url } = getPageInfo(pathname);
   const isBookingSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isBookingSuccessPage;
-  const isInsights = pathname?.startsWith("/insights");
 
   useLayoutEffect(() => {
     if (typeof window !== "undefined") {
@@ -49,33 +48,6 @@ export function NotFound({ host }: { host: string }) {
       href: `${WEBSITE_URL}/blog`,
     },
   ];
-
-  /**
-   * If we're on 404 and the route is insights it means it is disabled
-   * TODO: Abstract this for all disabled features
-   **/
-  if (isInsights) {
-    return (
-      <div className="min-h-screen bg-white px-4" data-testid="404-page">
-        <main className="mx-auto max-w-xl pt-16 pb-6 sm:pt-24">
-          <div className="text-center">
-            <p className="font-semibold text-black text-sm uppercase tracking-wide">{t("error_404")}</p>
-            <h1 className="mt-2 font-cal font-extrabold text-4xl text-gray-900 sm:text-5xl">
-              {t("feature_currently_disabled") ?? "Feature is currently disabled"}
-            </h1>
-          </div>
-          <div className="mt-12">
-            <div className="mt-8">
-              <Link href={WEBSITE_URL} className="font-medium text-base text-black hover:text-gray-500">
-                {t("or_go_back_home")}
-                <span aria-hidden="true"> &rarr;</span>
-              </Link>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-default px-4" data-testid="404-page">
