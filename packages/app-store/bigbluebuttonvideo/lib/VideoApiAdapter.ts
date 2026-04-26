@@ -121,9 +121,11 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       // moderator access can be obtained by re-joining with moderatorPW via the BBB server directly.
       const url = buildJoinUrl(bbbUrl, bbbSecret, meetingID, "Guest", attendeePW);
 
+      // Store moderatorPW in the id field as a composite "meetingID|moderatorPW" so
+      // deleteMeeting can retrieve the moderator password required by the BBB end API.
       return {
         type: metadata.type,
-        id: meetingID,
+        id: `${meetingID}|${moderatorPW}`,
         password: attendeePW,
         url,
       };
@@ -137,9 +139,10 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       if (!bbbUrl || !bbbSecret) return;
 
       try {
-        // We need the moderatorPW to end a meeting, but we only stored the attendeePW.
-        // Attempt to end without password — BBB 2.6+ allows ending with just meetingID for admins.
-        await bbbApiCall(bbbUrl, bbbSecret, "end", { meetingID: uid });
+        // The uid is stored as "meetingID|moderatorPW" (set in createMeeting).
+        // The BBB end API requires password=moderatorPW to authorise the end request.
+        const [meetingID, moderatorPW] = uid.split("|");
+        await bbbApiCall(bbbUrl, bbbSecret, "end", { meetingID, password: moderatorPW });
       } catch {
         // Meeting may have already ended naturally; this is acceptable.
       }
