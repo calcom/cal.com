@@ -303,6 +303,21 @@ export class CalendarAuth {
 
     return new calendar_v3.Calendar({
       auth: googleAuthClient,
+      // Google's rate-limit errors can return either 403 (rateLimitExceeded) or 429.
+      // gaxios defaults only retry GET/HEAD/PUT/OPTIONS/DELETE and skip 403, so PATCH
+      // requests that hit a transient rate limit are silently abandoned. Explicitly configure
+      // retry to cover PATCH and POST as well, and add 403 to the retried status range.
+      retryConfig: {
+        retry: 3,
+        httpMethodsToRetry: ["GET", "HEAD", "PUT", "OPTIONS", "DELETE", "PATCH", "POST"],
+        statusCodesToRetry: [
+          [100, 199],
+          [403, 403],
+          [429, 429],
+          [500, 599],
+        ],
+        retryDelay: 1000,
+      },
     });
   }
 }
