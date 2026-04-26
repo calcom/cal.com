@@ -71,7 +71,7 @@ To get a local copy up and running, please follow these simple steps.
 
 ### Prerequisites
 
-Here is what you need to be able to run Cal.diy.
+Here’s what you need to run Cal.diy.
 
 - Node.js (Version: >=18.x)
 - PostgreSQL (Version: >=13.x)
@@ -89,7 +89,8 @@ Here is what you need to be able to run Cal.diy.
    git clone https://github.com/calcom/cal.diy.git
    ```
 
-   > If you are on Windows, run the following command on `gitbash` with admin privileges: <br> > `git clone -c core.symlinks=true https://github.com/calcom/cal.diy.git` <br>
+   > If you are on Windows, run the following command in Git Bash with admin privileges:
+   > `git clone -c core.symlinks=true https://github.com/calcom/cal.diy.git`
 
 2. Go to the project folder
 
@@ -116,7 +117,7 @@ Here is what you need to be able to run Cal.diy.
  > rm packages/prisma/.env && cp .env packages/prisma/.env
  > ```
 
-5. Setup Node
+5. Set up Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
 
    ```sh
@@ -201,7 +202,7 @@ for Logger level to be set at info, for example.
    <details>
    <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick local DB</summary>
 
-   1. [Download](https://www.postgresql.org/download/) and install postgres in your local (if you don't have it already).
+   1. [Download](https://www.postgresql.org/download/) and install PostgreSQL locally (if you don't have it already).
 
    2. Create your own local db by executing `createDB <DB name>`
 
@@ -653,7 +654,7 @@ Unlike Cal.com's "Open Core" model, Cal.diy has **no commercial/enterprise code*
 
 ## Enabling Content Security Policy
 
-- Set CSP_POLICY="non-strict" env variable, which enables [Strict CSP](https://web.dev/strict-csp/) except for unsafe-inline in style-src . If you have some custom changes in your instance, you might have to make some code change to make your instance CSP compatible. Right now it enables strict CSP only on login page and on other SSR pages it is enabled in Report only mode to detect possible issues. On, SSG pages it is still not supported.
+- Set CSP_POLICY="non-strict" env variable, which enables [Strict CSP](https://web.dev/strict-csp/) except for `unsafe-inline` in `style-src`. If you have custom changes in your instance, you may need to modify your code to make it CSP-compatible. Currently, strict CSP is enabled only on the login page. On other SSR pages, it is enabled in report-only mode to detect potential issues. It is not yet supported on SSG pages.
 
 ## Integrations
 
@@ -673,8 +674,8 @@ Unlike Cal.com's "Open Core" model, Cal.diy has **no commercial/enterprise code*
 
 #### _Adding google calendar to Cal.diy App Store_
 
-After adding Google credentials, you can now Google Calendar App to the app store.
-You can repopulate the App store by running
+After adding Google credentials, you can now add the Google Calendar app to the App Store.
+You can repopulate the App Store by running
 
 ```
 cd packages/prisma
