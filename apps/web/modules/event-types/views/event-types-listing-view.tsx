@@ -921,7 +921,7 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
       <TextField
         className="max-w-64"
         addOnLeading={<SearchIcon className="h-4 w-4 text-subtle" />}
-        containerClassName="max-w-64 focus:ring-offset-0!"
+        containerClassName="max-w-64 focus:ring-offset-0! *:mb-0"
         type="search"
         value={searchTerm}
         autoComplete="false"
