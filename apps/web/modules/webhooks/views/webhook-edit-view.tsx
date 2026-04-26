@@ -6,10 +6,14 @@ import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberU
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 import { toastManager } from "@coss/ui/components/toast";
+import type { TRPCClientErrorLike } from "@trpc/client";
 import { useRouter } from "next/navigation";
-import type { WebhookFormSubmitData } from "../components/WebhookForm";
+import type { ReactNode } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import type { WebhookFormSubmitData, WebhookFormValues } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
 import { WebhookVersionCTA } from "../components/WebhookVersionCTA";
 import { WebhookFormHeader } from "./webhook-form-header";
@@ -18,7 +22,6 @@ import { WebhookFormSkeleton } from "./webhook-form-skeleton";
 type WebhookProps = {
   id: string;
   userId: number | null;
-  teamId: number | null;
   subscriberUrl: string;
   payloadTemplate: string | null;
   active: boolean;
@@ -28,7 +31,7 @@ type WebhookProps = {
   version: WebhookVersion;
 };
 
-export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
+export function EditWebhookView({ webhook }: { webhook?: WebhookProps }): JSX.Element {
   const { t } = useLocale();
   const router = useRouter();
   const { data: installedApps, isPending } = trpc.viewer.apps.integrations.useQuery(
@@ -44,12 +47,12 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
     enabled: !!webhook,
   });
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
-    onSuccess() {
+    onSuccess(): void {
       toastManager.add({ title: t("webhook_updated_successfully"), type: "success" });
       router.push("/settings/developer/webhooks");
       revalidateWebhooksList();
     },
-    onError(error) {
+    onError(error: TRPCClientErrorLike<AppRouter>): void {
       toastManager.add({ title: error.message, type: "error" });
     },
   });
@@ -59,19 +62,18 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
   return (
     <WebhookForm
       webhook={webhook}
-      headerWrapper={(formMethods, children) => (
+      headerWrapper={(formMethods: UseFormReturn<WebhookFormValues>, children: ReactNode): JSX.Element => (
         <>
           <WebhookFormHeader titleKey="edit_webhook" CTA={<WebhookVersionCTA formMethods={formMethods} />} />
           {children}
         </>
       )}
-      onSubmit={(values: WebhookFormSubmitData) => {
+      onSubmit={(values: WebhookFormSubmitData): void => {
         if (
           subscriberUrlReserved({
             subscriberUrl: values.subscriberUrl,
             id: webhook.id,
             webhooks,
-            teamId: webhook.teamId ?? undefined,
             userId: webhook.userId ?? undefined,
             platform: webhook.platform ?? undefined,
           })
@@ -81,7 +83,11 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
         }
 
         if (values.changeSecret) {
-          values.secret = values.newSecret.trim().length ? values.newSecret : null;
+          if (values.newSecret.trim().length) {
+            values.secret = values.newSecret;
+          } else {
+            values.secret = null;
+          }
         }
 
         if (!values.payloadTemplate) {

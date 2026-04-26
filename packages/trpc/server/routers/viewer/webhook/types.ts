@@ -6,5 +6,4 @@ export const webhookIdAndEventTypeIdSchema = z.object({
   id: z.string().optional(),
   webhookId: z.string().optional(),
   eventTypeId: z.number().optional(),
-  teamId: z.number().optional(),
 });

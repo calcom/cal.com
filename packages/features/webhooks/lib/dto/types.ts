@@ -469,7 +469,6 @@ export interface PaymentData {
 export interface WebhookForReservationCheck {
   id: string;
   subscriberUrl: string;
-  teamId: number | null;
   userId: number | null;
   eventTypeId: number | null;
   platform: boolean;
