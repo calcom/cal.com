@@ -36,6 +36,7 @@ const integrationsApiUnavailable = {
   "discord-video": z.literal("integrations:discord_video"),
   "demodesk-video": z.literal("integrations:demodesk_video"),
   "campfire-video": z.literal("integrations:campfire_video"),
+  bigbluebutton: z.literal("integrations:bigbluebutton"),
 };
 
 export const integrationsApiToInternalMappingSchema = {
@@ -74,6 +75,7 @@ const OrganizerIntegrationSchema = z.object({
     integrationsApiToInternalMappingSchema["discord-video"],
     integrationsApiToInternalMappingSchema["demodesk-video"],
     integrationsApiToInternalMappingSchema["campfire-video"],
+    integrationsApiToInternalMappingSchema["bigbluebutton"],
   ]),
   link: z.string().url().optional(),
   credentialId: z.number().optional(),
