@@ -301,17 +301,6 @@ export interface MeetingEndedDTO extends BaseEventDTO {
   };
 }
 
-export interface InstantMeetingDTO extends BaseEventDTO {
-  triggerEvent: typeof WebhookTriggerEvents.INSTANT_MEETING;
-  title: string;
-  body: string;
-  icon?: string;
-  url?: string;
-  actions?: { action: string; title: string; type: string; image: string | null }[];
-  requireInteraction?: boolean;
-  type: string;
-}
-
 export interface AfterHostsNoShowDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW;
   bookingId: number;
@@ -350,7 +339,6 @@ export type WebhookEventDTO =
   | TranscriptionGeneratedDTO
   | MeetingStartedDTO
   | MeetingEndedDTO
-  | InstantMeetingDTO
   | AfterHostsNoShowDTO
   | AfterGuestsNoShowDTO;
 
