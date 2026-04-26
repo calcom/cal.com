@@ -166,8 +166,7 @@ class ProtonCalendarService implements Calendar {
         const event = new ICAL.Event(vevent);
         const title = String(vevent.getFirstPropertyValue("summary") || "Busy");
         const dtstartProperty = vevent.getFirstProperty("dtstart");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
+        const tzidFromDtstart = dtstartProperty ? dtstartProperty.getParameter("tzid") : undefined;
 
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
         const timezone = dtstart ? dtstart.timezone : undefined;

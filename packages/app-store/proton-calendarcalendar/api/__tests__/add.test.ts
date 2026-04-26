@@ -48,7 +48,7 @@ describe("isValidProtonUrl", () => {
     expect(isValidProtonUrl("file:///etc/passwd")).toBe(false);
   });
 
-  it("accepts URLs with credentials in userinfo when hostname is valid", () => {
-    expect(isValidProtonUrl("https://user:pass@calendar.proton.me/ics")).toBe(true);
+  it("rejects URLs with credentials in userinfo", () => {
+    expect(isValidProtonUrl("https://user:pass@calendar.proton.me/ics")).toBe(false);
   });
 });

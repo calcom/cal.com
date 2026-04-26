@@ -15,6 +15,7 @@ export function isValidProtonUrl(urlString: string): boolean {
   try {
     const url = new URL(urlString);
     if (url.protocol !== "https:") return false;
+    if (url.username || url.password) return false;
     return ALLOWED_HOSTNAMES.includes(url.hostname);
   } catch {
     return false;
@@ -23,6 +24,16 @@ export function isValidProtonUrl(urlString: string): boolean {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
+    if (!req.session?.user?.id) {
+      return res.status(401).json({ message: "You must be logged in" });
+    }
+
+    const encryptionKey = process.env.CALENDSO_ENCRYPTION_KEY;
+    if (!encryptionKey) {
+      log.error("CALENDSO_ENCRYPTION_KEY is not set");
+      return res.status(500).json({ message: "Server is not configured to store credentials" });
+    }
+
     const { urls } = req.body;
 
     if (!Array.isArray(urls) || urls.length === 0) {
@@ -37,10 +48,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    if (!req.session?.user?.id) {
-      return res.status(401).json({ message: "You must be logged in" });
-    }
-
     const user = await prisma.user.findFirstOrThrow({
       where: {
         id: req.session.user.id,
@@ -53,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = {
       type: appConfig.type,
-      key: symmetricEncrypt(JSON.stringify({ urls }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
+      key: symmetricEncrypt(JSON.stringify({ urls }), encryptionKey),
       userId: user.id,
       teamId: null,
       appId: appConfig.slug,
@@ -90,4 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     return res.status(200).json({ url: "/apps/proton-calendar/setup" });
   }
+
+  res.setHeader("Allow", "GET, POST");
+  return res.status(405).json({ message: "Method not allowed" });
 }
