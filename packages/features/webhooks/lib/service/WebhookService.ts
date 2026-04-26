@@ -1,10 +1,9 @@
 import { createHmac } from "node:crypto";
-
+import process from "node:process";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { WebhookSubscriber, WebhookDeliveryResult } from "../dto/types";
+import type { WebhookDeliveryResult, WebhookSubscriber } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
-import type { ITasker, ILogger } from "../interface/infrastructure";
+import type { ILogger, ITasker } from "../interface/infrastructure";
 import type { IWebhookRepository, IWebhookService } from "../interface/services";
 
 export class WebhookService implements IWebhookService {
@@ -300,7 +299,6 @@ export class WebhookService implements IWebhookService {
     trigger: WebhookTriggerEvents,
     payload: WebhookPayload,
     scheduledAt: Date,
-    options?: { teamId?: number | number[] | null; orgId?: number | null },
     subscribers?: WebhookSubscriber[],
     isDryRun = false
   ): Promise<void> {
@@ -312,8 +310,6 @@ export class WebhookService implements IWebhookService {
         userId: null,
         eventTypeId: null,
         triggerEvent: trigger,
-        teamId: options?.teamId,
-        orgId: options?.orgId,
         oAuthClientId: undefined,
       }));
 

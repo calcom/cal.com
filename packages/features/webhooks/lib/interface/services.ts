@@ -19,8 +19,6 @@ export interface GetSubscribersOptions {
   userId?: number | null;
   eventTypeId?: number | null;
   triggerEvent: WebhookTriggerEvents;
-  teamId?: number | number[] | null;
-  orgId?: number | null;
   oAuthClientId?: string | null;
 }
 
@@ -57,7 +55,6 @@ export interface IWebhookScheduler {
     trigger: WebhookTriggerEvents,
     payload: WebhookPayload,
     scheduledAt: Date,
-    options?: { teamId?: number | number[] | null; orgId?: number | null },
     subscribers?: WebhookSubscriber[],
     isDryRun?: boolean
   ): Promise<void>;

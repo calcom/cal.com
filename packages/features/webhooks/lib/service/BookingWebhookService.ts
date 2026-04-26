@@ -1,32 +1,31 @@
 import dayjs from "@calcom/dayjs";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
 import type {
-  BookingCreatedDTO,
   BookingCancelledDTO,
-  BookingRequestedDTO,
-  BookingRescheduledDTO,
+  BookingCreatedDTO,
+  BookingNoShowDTO,
   BookingPaidDTO,
   BookingPaymentInitiatedDTO,
-  BookingNoShowDTO,
   BookingRejectedDTO,
+  BookingRequestedDTO,
+  BookingRescheduledDTO,
   WebhookSubscriber,
 } from "../dto/types";
-import type { IWebhookService, IBookingWebhookService } from "../interface/services";
-import type { ITasker, ILogger } from "../interface/infrastructure";
+import type { ILogger, ITasker } from "../interface/infrastructure";
+import type { IBookingWebhookService, IWebhookService } from "../interface/services";
 import type { IWebhookNotifier } from "../interface/webhook";
 import type {
-  BookingCreatedParams,
   BookingCancelledParams,
-  BookingRequestedParams,
-  BookingRescheduledParams,
+  BookingCreatedParams,
+  BookingNoShowParams,
   BookingPaidParams,
   BookingPaymentInitiatedParams,
-  BookingNoShowParams,
   BookingRejectedParams,
-  ScheduleMeetingWebhooksParams,
+  BookingRequestedParams,
+  BookingRescheduledParams,
   CancelScheduledMeetingWebhooksParams,
+  ScheduleMeetingWebhooksParams,
   ScheduleNoShowWebhooksParams,
 } from "../types/params";
 
@@ -243,8 +242,6 @@ export class BookingWebhookService implements IBookingWebhookService {
       userId: params.booking.userId,
       eventTypeId: params.booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-      teamId: params.teamId,
-      orgId: params.orgId,
       oAuthClientId: params.oAuthClientId,
     });
 
@@ -252,8 +249,6 @@ export class BookingWebhookService implements IBookingWebhookService {
       userId: params.booking.userId,
       eventTypeId: params.booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId: params.teamId,
-      orgId: params.orgId,
       oAuthClientId: params.oAuthClientId,
     });
 
@@ -347,8 +342,6 @@ export class BookingWebhookService implements IBookingWebhookService {
         userId: params.triggerForUser ? params.organizerUser.id : null,
         eventTypeId: params.booking.eventTypeId,
         triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-        teamId: params.teamId,
-        orgId: params.orgId,
         oAuthClientId: params.oAuthClientId,
       });
 
@@ -378,8 +371,6 @@ export class BookingWebhookService implements IBookingWebhookService {
         userId: params.triggerForUser ? params.organizerUser.id : null,
         eventTypeId: params.booking.eventTypeId,
         triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-        teamId: params.teamId,
-        orgId: params.orgId,
         oAuthClientId: params.oAuthClientId,
       });
 

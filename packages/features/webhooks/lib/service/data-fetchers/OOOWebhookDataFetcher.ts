@@ -28,8 +28,6 @@ export class OOOWebhookDataFetcher implements IWebhookDataFetcher {
       triggerEvent: payload.triggerEvent,
       userId: payload.userId,
       eventTypeId: undefined,
-      teamId: payload.teamId,
-      orgId: undefined,
       oAuthClientId: payload.oAuthClientId,
     };
   }

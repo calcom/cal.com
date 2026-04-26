@@ -1,14 +1,13 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import type { PayloadBuilderFactory } from "../../factory/versioned/PayloadBuilderFactory";
 import type { IWebhookDataFetcher } from "../../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../../interface/IWebhookRepository";
 import { WebhookVersion } from "../../interface/IWebhookRepository";
 import type { ILogger } from "../../interface/infrastructure";
 import type { IWebhookService } from "../../interface/services";
-import type { PayloadBuilderFactory } from "../../factory/versioned/PayloadBuilderFactory";
-import type { WebhookTaskPayload } from "../../types/webhookTask";
 import { WebhookTaskConsumer } from "../../service/WebhookTaskConsumer";
+import type { WebhookTaskPayload } from "../../types/webhookTask";
 
 /**
  * Unit Tests for WebhookTaskConsumer
@@ -36,7 +35,6 @@ describe("WebhookTaskConsumer", () => {
       getSubscribers: vi.fn().mockResolvedValue([]),
       getWebhookById: vi.fn(),
       findByWebhookId: vi.fn(),
-      findByOrgIdAndTrigger: vi.fn(),
       getFilteredWebhooksForUser: vi.fn(),
     } as unknown as IWebhookRepository;
 
@@ -47,8 +45,6 @@ describe("WebhookTaskConsumer", () => {
         triggerEvent: payload.triggerEvent,
         userId: "userId" in payload ? payload.userId : undefined,
         eventTypeId: "eventTypeId" in payload ? payload.eventTypeId : undefined,
-        teamId: "teamId" in payload ? payload.teamId : undefined,
-        orgId: "orgId" in payload ? payload.orgId : undefined,
         oAuthClientId: "oAuthClientId" in payload ? payload.oAuthClientId : undefined,
       })),
     });
@@ -136,8 +132,6 @@ describe("WebhookTaskConsumer", () => {
         triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
         userId: 789,
         eventTypeId: 456,
-        teamId: undefined,
-        orgId: undefined,
         oAuthClientId: undefined,
       });
 
@@ -181,8 +175,6 @@ describe("WebhookTaskConsumer", () => {
         triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
         userId: undefined,
         eventTypeId: 789,
-        teamId: 111,
-        orgId: 222,
         oAuthClientId: "oauth-client-123",
       });
 
