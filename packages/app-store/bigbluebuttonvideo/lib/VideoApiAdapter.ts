@@ -61,19 +61,9 @@ async function bbbApiCall(
 /**
  * Generates a BigBlueButton join URL for an attendee.
  */
-function buildJoinUrl(
-  baseUrl: string,
-  secret: string,
-  meetingID: string,
-  fullName: string,
-  password: string
-): string {
-  const params = {
-    meetingID,
-    fullName,
-    password,
-    redirect: "true",
-  };
+function buildJoinUrl(baseUrl: string, secret: string, meetingID: string, password: string): string {
+  // Omit fullName so BBB prompts each user for their name on entry.
+  const params = { meetingID, password, redirect: "true" };
   const queryString = new URLSearchParams(params).toString();
   const checksum = bbbChecksum("join", queryString, secret);
   return `${baseUrl}/join?${queryString}&checksum=${checksum}`;
@@ -116,10 +106,8 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         record: "false",
       });
 
-      // The public URL uses attendeePW so attendees join without moderator privileges.
-      // The organizer's cal.diy booking confirmation will show the same join link;
-      // moderator access can be obtained by re-joining with moderatorPW via the BBB server directly.
-      const url = buildJoinUrl(bbbUrl, bbbSecret, meetingID, "Guest", attendeePW);
+      // Attendee join URL — BBB will prompt each user for their name on entry.
+      const url = buildJoinUrl(bbbUrl, bbbSecret, meetingID, attendeePW);
 
       // Store moderatorPW in the id field as a composite "meetingID|moderatorPW" so
       // deleteMeeting can retrieve the moderator password required by the BBB end API.
