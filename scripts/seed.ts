@@ -1072,68 +1072,6 @@ async function main() {
     },
   });
 
-  const admin = await createUserAndEventType({
-    user: {
-      email: "admin@example.com",
-      /** To comply with admin password requirements  */
-      password: "ADMINadmin2022!",
-      username: "admin",
-      name: "Admin Example",
-      role: "ADMIN",
-    },
-  });
-
-  const clientId = process.env.SEED_OAUTH2_CLIENT_ID;
-  const clientSecret = process.env.SEED_OAUTH2_CLIENT_SECRET_HASHED;
-
-  if (clientId && clientSecret) {
-    await createOAuthClientForUser(admin.id, {
-      clientId,
-      clientSecret,
-      name: "atoms examples app oauth 2 client",
-      purpose: "test atoms examples app with oauth 2",
-      redirectUri: "http://localhost:4321",
-      websiteUrl: "http://localhost:4321",
-      enablePkce: false,
-    });
-  }
-
-  await createPlatformAndSetupUser({
-    teamInput: {
-      name: "Platform Team",
-      slug: "platform-admin-team",
-      isPlatform: true,
-      isOrganization: true,
-      eventTypes: {
-        createMany: {
-          data: [
-            {
-              title: "Collective Seeded Team Event",
-              slug: "collective-seeded-team-event",
-              length: 15,
-              schedulingType: "COLLECTIVE",
-            },
-            {
-              title: "Round Robin Seeded Team Event",
-              slug: "round-robin-seeded-team-event",
-              length: 15,
-              schedulingType: "ROUND_ROBIN",
-            },
-          ],
-        },
-      },
-      createdAt: new Date(),
-    },
-    user: {
-      email: "platform@example.com",
-      /** To comply with admin password requirements  */
-      password: "PLATFORMadmin2024!",
-      username: "platform",
-      name: "Platform Admin",
-      role: "USER",
-    },
-  });
-
   const pro2UserTeam = await createUserAndEventType({
     user: {
       email: "teampro2@example.com",
@@ -1160,6 +1098,32 @@ async function main() {
       name: "Team Pro Example 4",
     },
   });
+
+  const admin = await createUserAndEventType({
+    user: {
+      email: "admin@example.com",
+      /** To comply with admin password requirements  */
+      password: "ADMINadmin2022!",
+      username: "admin",
+      name: "Admin Example",
+      role: "ADMIN",
+    },
+  });
+
+  const clientId = process.env.SEED_OAUTH2_CLIENT_ID;
+  const clientSecret = process.env.SEED_OAUTH2_CLIENT_SECRET_HASHED;
+
+  if (clientId && clientSecret) {
+    await createOAuthClientForUser(admin.id, {
+      clientId,
+      clientSecret,
+      name: "atoms examples app oauth 2 client",
+      purpose: "test atoms examples app with oauth 2",
+      redirectUri: "http://localhost:4321",
+      websiteUrl: "http://localhost:4321",
+      enablePkce: false,
+    });
+  }
 
   if (process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD) {
     await createUserAndEventType({
