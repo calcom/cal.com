@@ -36,7 +36,7 @@ const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
 
 const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
   if (seconds <= 0) return event;
-  event.startDate.second -= seconds;
+  event.startDate.adjust(0, 0, 0, -seconds);
   return event;
 };
 
@@ -139,7 +139,7 @@ class ProtonCalendarService implements Calendar {
     const calendars = await this.fetchCalendars();
 
     const userId = this.getUserId(selectedCalendars);
-    const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
+    const userTimeZone = (userId ? await this.getUserTimezoneFromDB(userId) : undefined) ?? "Europe/London";
     const events: { start: string; end: string; title: string }[] = [];
 
     calendars.forEach(({ vcalendar }) => {
@@ -256,7 +256,7 @@ class ProtonCalendarService implements Calendar {
             }
             currentStart = dayjs(currentEvent.startDate.toJSDate());
 
-            if (currentStart.isBetween(start, end) === true) {
+            if (currentStart.isBetween(start, end, null, "[)") === true) {
               events.push({
                 start: currentStart.toISOString(),
                 end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
