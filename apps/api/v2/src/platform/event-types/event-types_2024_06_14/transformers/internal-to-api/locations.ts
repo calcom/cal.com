@@ -44,6 +44,7 @@ const internalToApiIntegrationsMapping: Record<string, OutputIntegration_2024_06
   "integrations:discord_video": "discord-video",
   "integrations:demodesk_video": "demodesk-video",
   "integrations:campfire_video": "campfire-video",
+  "integrations:bigbluebutton": "bigbluebutton",
 };
 
 export function transformLocationsInternalToApi(internalLocations: InternalLocation[] | undefined) {
