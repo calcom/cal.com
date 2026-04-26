@@ -43,7 +43,7 @@ export const isBrowserLocale24h = () => {
   }
   
   const formatter = new Intl.DateTimeFormat(undefined, { hour: "numeric" });
-  const hourCycle = (formatter.resolvedOptions() as any).hourCycle;
+  const hourCycle = (formatter.resolvedOptions() as { hourCycle?: string }).hourCycle;
 
   const is24h = hourCycle === "h23" || hourCycle === "h24";
 
