@@ -1,4 +1,3 @@
-import process from "node:process";
 import { enrichUserWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import {
@@ -6,6 +5,7 @@ import {
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { getTranslation } from "@calcom/i18n/server";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -15,8 +15,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const getBookerBaseUrl = async (_orgSlug?: string | number | null): Promise<string> =>
-  process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
+const getBookerBaseUrl = async (_orgSlug?: string | number | null): Promise<string> => WEBAPP_URL;
 
 async function getEventType(id: number) {
   return prisma.eventType.findUnique({
