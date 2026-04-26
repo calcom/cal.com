@@ -1477,6 +1477,23 @@ export const EventAdvancedTab = ({
         />
       )}
 
+      {isTeamEventType && (
+        <Controller
+          name="metadata.addTeamMembersAsOptionalGuests"
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName="text-sm"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+              title={t("add_team_members_as_optional_guests")}
+              description={t("add_team_members_as_optional_guests_description")}
+              checked={value ?? false}
+              onCheckedChange={(e) => onChange(e)}
+            />
+          )}
+        />
+      )}
+
       {team?.parentId && (
         <>
           <Controller

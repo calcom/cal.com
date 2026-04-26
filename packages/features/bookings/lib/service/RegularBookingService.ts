@@ -1433,6 +1433,24 @@ async function handler(
           }
         : undefined
     )
+    .withOptionalAttendees(
+      isTeamEventType && eventType.metadata?.addTeamMembersAsOptionalGuests
+        ? await Promise.all(
+            users
+              .filter((user) => user.email !== organizerUser.email)
+              .map(async (user) => ({
+                id: user.id,
+                name: user.name ?? "",
+                email: user.email ?? "",
+                timeZone: user.timeZone,
+                language: {
+                  translate: await getTranslation(user.locale ?? "en", "common"),
+                  locale: user.locale ?? "en",
+                },
+              }))
+          )
+        : undefined
+    )
     .withHideBranding(
       await getEventTypeService().shouldHideBrandingForEventType(eventType.id, {
         team: eventType.team

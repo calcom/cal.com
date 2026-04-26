@@ -173,6 +173,22 @@ class GoogleCalendarService implements Calendar {
       attendees.push(...teamAttendeesWithoutCurrentUser);
     }
 
+    if (event.optionalAttendees && event.optionalAttendees.length > 0) {
+      const optionalAttendeesForCalendar = event.optionalAttendees
+        .filter(
+          (member) =>
+            member.email !== this.credential.user?.email &&
+            !attendees.some((a) => a.email === member.email)
+        )
+        .map((m) => ({
+          email: m.email,
+          displayName: m.name,
+          responseStatus: "tentative",
+          optional: true,
+        }));
+      attendees.push(...optionalAttendeesForCalendar);
+    }
+
     return attendees;
   };
 

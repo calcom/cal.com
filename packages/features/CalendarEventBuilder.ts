@@ -453,6 +453,17 @@ export class CalendarEventBuilder {
     return this;
   }
 
+  withOptionalAttendees(optionalAttendees?: Person[]) {
+    if (!optionalAttendees || optionalAttendees.length === 0) {
+      return this;
+    }
+    this.event = {
+      ...this.event,
+      optionalAttendees,
+    };
+    return this;
+  }
+
   withRecurring(recurringEvent?: { count: number; freq: number; interval: number }) {
     this.event = {
       ...this.event,
