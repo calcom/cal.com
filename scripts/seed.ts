@@ -1185,69 +1185,6 @@ async function main() {
     });
   }
 
-  await createPlatformAndSetupUser({
-    teamInput: {
-      name: "Platform Team",
-      slug: "platform-admin-team",
-      isPlatform: true,
-      isOrganization: true,
-      eventTypes: {
-        createMany: {
-          data: [
-            {
-              title: "Collective Seeded Team Event",
-              slug: "collective-seeded-team-event",
-              length: 15,
-              schedulingType: "COLLECTIVE",
-            },
-            {
-              title: "Round Robin Seeded Team Event",
-              slug: "round-robin-seeded-team-event",
-              length: 15,
-              schedulingType: "ROUND_ROBIN",
-            },
-          ],
-        },
-      },
-      createdAt: new Date(),
-    },
-    user: {
-      email: "platform@example.com",
-      /** To comply with admin password requirements  */
-      password: "PLATFORMadmin2024!",
-      username: "platform",
-      name: "Platform Admin",
-      role: "USER",
-    },
-  });
-
-  const pro2UserTeam = await createUserAndEventType({
-    user: {
-      email: "teampro2@example.com",
-      password: "teampro2",
-      username: "teampro2",
-      name: "Team Pro Example 2",
-    },
-  });
-
-  const pro3UserTeam = await createUserAndEventType({
-    user: {
-      email: "teampro3@example.com",
-      password: "teampro3",
-      username: "teampro3",
-      name: "Team Pro Example 3",
-    },
-  });
-
-  const pro4UserTeam = await createUserAndEventType({
-    user: {
-      email: "teampro4@example.com",
-      password: "teampro4",
-      username: "teampro4",
-      name: "Team Pro Example 4",
-    },
-  });
-
   if (process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD) {
     await createUserAndEventType({
       user: {
