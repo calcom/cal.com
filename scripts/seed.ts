@@ -974,6 +974,33 @@ async function main() {
     },
   });
 
+  const pro2UserTeam = await createUserAndEventType({
+    user: {
+      email: "teampro2@example.com",
+      password: "teampro2",
+      username: "teampro2",
+      name: "Team Pro Example 2",
+    },
+  });
+
+  const pro3UserTeam = await createUserAndEventType({
+    user: {
+      email: "teampro3@example.com",
+      password: "teampro3",
+      username: "teampro3",
+      name: "Team Pro Example 3",
+    },
+  });
+
+  const pro4UserTeam = await createUserAndEventType({
+    user: {
+      email: "teampro4@example.com",
+      password: "teampro4",
+      username: "teampro4",
+      name: "Team Pro Example 4",
+    },
+  });
+
   const admin = await createUserAndEventType({
     user: {
       email: "admin@example.com",
