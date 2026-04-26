@@ -16,11 +16,11 @@ describe("isBrowserLocale24h", () => {
 
   it("returns true for 24h hourCycle", () => {
     vi.spyOn(Intl, "DateTimeFormat").mockImplementation(
-      function () {
+      function (): Intl.DateTimeFormat {
         return {
           resolvedOptions: () => ({ hourCycle: "h23" }),
-        } as any;
-      } as any
+        } as unknown as Intl.DateTimeFormat;
+      }
     );
 
     expect(isBrowserLocale24h()).toBe(true);
@@ -28,11 +28,11 @@ describe("isBrowserLocale24h", () => {
 
   it("returns false for 12h hourCycle", () => {
     vi.spyOn(Intl, "DateTimeFormat").mockImplementation(
-      function () {
+      function (): Intl.DateTimeFormat {
         return {
           resolvedOptions: () => ({ hourCycle: "h12" }),
-        } as any;
-      } as any
+        } as unknown as Intl.DateTimeFormat;
+      }
     );
 
     expect(isBrowserLocale24h()).toBe(false);
