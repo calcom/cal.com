@@ -30,7 +30,7 @@ async function bbbApiCall(
 ): Promise<Record<string, string | undefined>> {
   const queryString = new URLSearchParams(params).toString();
   const checksum = bbbChecksum(action, queryString, secret);
-  const url = `${baseUrl}/api/${action}?${queryString}&checksum=${checksum}`;
+  const url = `${baseUrl}/${action}?${queryString}&checksum=${checksum}`;
 
   const response = await fetch(url, {
     headers: { "Content-Type": "application/xml" },
@@ -76,7 +76,7 @@ function buildJoinUrl(
   };
   const queryString = new URLSearchParams(params).toString();
   const checksum = bbbChecksum("join", queryString, secret);
-  return `${baseUrl}/api/join?${queryString}&checksum=${checksum}`;
+  return `${baseUrl}/join?${queryString}&checksum=${checksum}`;
 }
 
 const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
