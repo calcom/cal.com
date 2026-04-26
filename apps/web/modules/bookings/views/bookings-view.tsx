@@ -1,13 +1,9 @@
 "use client";
 
-import { ColumnFilterType, type SystemFilterSegment } from "@calcom/features/data-table";
 import { DataTableProvider } from "~/data-table/DataTableProvider";
-import { useSegments } from "~/data-table/hooks/useSegments";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import { BookingListContainer } from "../components/BookingListContainer";
 import { useActiveFiltersValidator } from "../hooks/useActiveFiltersValidator";
 import { useBookingsView } from "../hooks/useBookingsView";
@@ -29,37 +25,8 @@ type BookingsProps = {
   bookingAuditEnabled: boolean;
 };
 
-function useSystemSegments(userId?: number) {
-  const { t } = useLocale();
-
-  const systemSegments: SystemFilterSegment[] = useMemo(() => {
-    if (!userId) return [];
-
-    return [
-      {
-        id: "my_bookings",
-        name: t("my_bookings"),
-        type: "system",
-        activeFilters: [
-          {
-            f: "userId",
-            v: {
-              type: ColumnFilterType.MULTI_SELECT,
-              data: [userId],
-            },
-          },
-        ],
-        perPage: 10,
-      },
-    ];
-  }, [userId, t]);
-
-  return systemSegments;
-}
-
 export default function Bookings(props: BookingsProps) {
   const pathname = usePathname();
-  const systemSegments = useSystemSegments(props.userId);
   const validateActiveFilters = useActiveFiltersValidator({
     canReadOthersBookings: props.permissions.canReadOthersBookings,
   });
@@ -67,8 +34,6 @@ export default function Bookings(props: BookingsProps) {
   return (
     <DataTableProvider
       tableIdentifier={pathname}
-      useSegments={useSegments}
-      systemSegments={systemSegments}
       validateActiveFilters={validateActiveFilters}>
       <BookingsContent {...props} />
     </DataTableProvider>
@@ -77,11 +42,6 @@ export default function Bookings(props: BookingsProps) {
 
 function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditEnabled }: BookingsProps) {
   const [view] = useBookingsView({ bookingsV3Enabled });
-  const router = useRouter();
-  const handleOptInSuccess = useCallback(() => {
-    router.refresh();
-  }, [router]);
-  const optInBanner = null;
 
   return (
     <div className={classNames(view === "calendar" && "-mb-8")}>
@@ -100,6 +60,6 @@ function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditE
           bookingsV3Enabled={bookingsV3Enabled}
         />
       )}
-          </div>
+    </div>
   );
 }

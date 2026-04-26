@@ -24,14 +24,12 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DataTableFilters,
-  DataTableSegment,
   DataTableToolbar,
   DataTableWrapper,
 } from "~/data-table/components";
 import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { useFilterValue } from "~/data-table/hooks/useFilterValue";
-import { useSegments } from "~/data-table/hooks/useSegments";
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 import type { BookingRedirectForm } from "./types";
@@ -82,7 +80,7 @@ export default function OutOfOfficeEntriesList({
         </div>
       }>
       <div className="border-subtle rounded-b-lg border border-t-0 px-4 py-6 sm:px-6">
-        <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
+        <DataTableProvider tableIdentifier={pathname}>
           <OutOfOfficeEntriesListContent
             onOpenCreateDialog={onOpenCreateDialog}
             onOpenEditDialog={onOpenEditDialog}
@@ -341,8 +339,6 @@ function OutOfOfficeEntriesListContent({
         ToolbarRight={
           <>
             <DataTableFilters.ClearFiltersButton />
-            <DataTableSegment.SaveButton />
-            <DataTableSegment.Select />
           </>
         }
         EmptyView={

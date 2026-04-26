@@ -37,7 +37,6 @@ import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   DataTableFilters,
-  DataTableSegment,
   DataTableSelectionBar,
   DataTableToolbar,
   DataTableWrapper,
@@ -45,7 +44,6 @@ import {
 import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { useSegments } from "~/data-table/hooks/useSegments";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DynamicLink } from "./BulkActions/DynamicLink";
 import { EventTypesList } from "./BulkActions/EventTypesList";
@@ -162,7 +160,7 @@ function UserListTable(props: UserListTableProps): JSX.Element | null {
   const pathname = usePathname();
   if (!pathname) return null;
   return (
-    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider tableIdentifier={pathname} defaultPageSize={25}>
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
@@ -686,8 +684,6 @@ function UserListTableContent({
         ToolbarRight={
           <>
             <DataTableFilters.ClearFiltersButton />
-            <DataTableSegment.SaveButton />
-            <DataTableSegment.Select />
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
