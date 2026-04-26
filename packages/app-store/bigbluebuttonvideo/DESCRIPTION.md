@@ -8,7 +8,7 @@ You need a BigBlueButton server (self-hosted or via a provider). Once you have y
 
 1. Install the app
 2. Go to **Settings → Apps → BigBlueButton**
-3. Enter your BigBlueButton server URL (e.g., `https://bbb.example.com`)
+3. Enter your BigBlueButton API base URL (e.g., `https://bbb.example.com/bigbluebutton/api`)
 4. Enter your shared secret (found in `/etc/bigbluebutton/bbb-web.properties` or via `bbb-conf --secret`)
 
 ## Using BigBlueButton

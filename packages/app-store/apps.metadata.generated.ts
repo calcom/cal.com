@@ -9,6 +9,7 @@ import attio_config_json from "./attio/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
+import { metadata as bigbluebuttonvideo__metadata_ts } from "./bigbluebuttonvideo/_metadata";
 import bolna_config_json from "./bolna/config.json";
 import btcpayserver_config_json from "./btcpayserver/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
@@ -52,7 +53,6 @@ import ics_feedcalendar_config_json from "./ics-feedcalendar/config.json";
 import insihts_config_json from "./insihts/config.json";
 import intercom_config_json from "./intercom/config.json";
 import jelly_config_json from "./jelly/config.json";
-import { metadata as bigbluebuttonvideo__metadata_ts } from "./bigbluebuttonvideo/_metadata";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
 import lindy_config_json from "./lindy/config.json";
@@ -122,6 +122,7 @@ export const appStoreMetadata = {
   autocheckin: autocheckin_config_json,
   "baa-for-hipaa": baa_for_hipaa_config_json,
   basecamp3: basecamp3_config_json,
+  bigbluebuttonvideo: bigbluebuttonvideo__metadata_ts,
   bolna: bolna_config_json,
   btcpayserver: btcpayserver_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
@@ -165,7 +166,6 @@ export const appStoreMetadata = {
   insihts: insihts_config_json,
   intercom: intercom_config_json,
   jelly: jelly_config_json,
-  bigbluebuttonvideo: bigbluebuttonvideo__metadata_ts,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
   lindy: lindy_config_json,

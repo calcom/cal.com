@@ -34,6 +34,7 @@ async function bbbApiCall(
 
   const response = await fetch(url, {
     headers: { "Content-Type": "application/xml" },
+    signal: AbortSignal.timeout(10000),
   });
 
   if (!response.ok) {
@@ -99,8 +100,14 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       const attendeePW = uuidv4().replace(/-/g, "").substring(0, 12);
       const moderatorPW = uuidv4().replace(/-/g, "").substring(0, 12);
 
+      // Sanitize title: strip control characters, trim, and cap length for BBB API.
+      const meetingName = (event.title || "Meeting")
+        .replace(/[\x00-\x1F]/g, " ")
+        .trim()
+        .substring(0, 200);
+
       await bbbApiCall(bbbUrl, bbbSecret, "create", {
-        name: event.title,
+        name: meetingName,
         meetingID,
         attendeePW,
         moderatorPW,
@@ -109,10 +116,10 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         record: "false",
       });
 
-      // The meeting URL is the moderator join link; attendees use the attendeePW.
-      // We store attendeePW as the password so attendee join links can be generated.
-      const organizerName = event.organizer.name ?? "Organizer";
-      const url = buildJoinUrl(bbbUrl, bbbSecret, meetingID, organizerName, moderatorPW);
+      // The public URL uses attendeePW so attendees join without moderator privileges.
+      // The organizer's cal.diy booking confirmation will show the same join link;
+      // moderator access can be obtained by re-joining with moderatorPW via the BBB server directly.
+      const url = buildJoinUrl(bbbUrl, bbbSecret, meetingID, "Guest", attendeePW);
 
       return {
         type: metadata.type,

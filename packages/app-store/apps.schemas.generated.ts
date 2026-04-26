@@ -4,6 +4,7 @@
 **/
 import { appDataSchema as alby_zod_ts } from "./alby/zod";
 import { appDataSchema as basecamp3_zod_ts } from "./basecamp3/zod";
+import { appDataSchema as bigbluebuttonvideo_zod_ts } from "./bigbluebuttonvideo/zod";
 import { appDataSchema as btcpayserver_zod_ts } from "./btcpayserver/zod";
 import { appDataSchema as closecom_zod_ts } from "./closecom/zod";
 import { appDataSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
@@ -21,7 +22,6 @@ import { appDataSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appDataSchema as insihts_zod_ts } from "./insihts/zod";
 import { appDataSchema as intercom_zod_ts } from "./intercom/zod";
 import { appDataSchema as jelly_zod_ts } from "./jelly/zod";
-import { appDataSchema as bigbluebuttonvideo_zod_ts } from "./bigbluebuttonvideo/zod";
 import { appDataSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
 import { appDataSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appDataSchema as lyra_zod_ts } from "./lyra/zod";
@@ -56,6 +56,7 @@ import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appDataSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,
+  bigbluebuttonvideo: bigbluebuttonvideo_zod_ts,
   btcpayserver: btcpayserver_zod_ts,
   closecom: closecom_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
@@ -73,7 +74,6 @@ export const appDataSchemas = {
   insihts: insihts_zod_ts,
   intercom: intercom_zod_ts,
   jelly: jelly_zod_ts,
-  bigbluebuttonvideo: bigbluebuttonvideo_zod_ts,
   jitsivideo: jitsivideo_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
   lyra: lyra_zod_ts,
