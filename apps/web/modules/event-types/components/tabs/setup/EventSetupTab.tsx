@@ -178,7 +178,7 @@ export const EventSetupTab = (
             className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
-                <span className="inline-block min-w-0 max-w-24 overflow-hidden text-ellipsis whitespace-nowrap md:max-w-56">
+                <span className="flex items-center h-full min-w-0 max-w-24 overflow-hidden text-ellipsis whitespace-nowrap md:max-w-56 text-sm leading-[1.5] relative top-[1px]">
                   {urlPrefix}/
                   {!isManagedEventType
                     ? team
