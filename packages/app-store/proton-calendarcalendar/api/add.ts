@@ -11,7 +11,8 @@ const log = logger.getSubLogger({ prefix: ["app:proton-calendar:add"] });
 
 const ALLOWED_HOSTNAMES = ["calendar.proton.me", "calendar.protonmail.com"];
 
-export function isValidProtonUrl(urlString: string): boolean {
+export function isValidProtonUrl(urlString: unknown): boolean {
+  if (typeof urlString !== "string") return false;
   try {
     const url = new URL(urlString);
     if (url.protocol !== "https:") return false;

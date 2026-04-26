@@ -240,6 +240,39 @@ END:VCALENDAR`;
       expect(events).toHaveLength(0);
     });
 
+    it("filters specific recurring instance cancelled via RECURRENCE-ID", async () => {
+      const recurrenceIdCancelIcs = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:recurring-1
+DTSTART:20240115T100000Z
+DTEND:20240115T110000Z
+SUMMARY:Weekly standup
+RRULE:FREQ=DAILY;COUNT=3
+END:VEVENT
+BEGIN:VEVENT
+UID:recurring-1
+RECURRENCE-ID:20240116T100000Z
+DTSTART:20240116T100000Z
+DTEND:20240116T110000Z
+SUMMARY:Weekly standup
+STATUS:CANCELLED
+END:VEVENT
+END:VCALENDAR`;
+      mockFetchResponse(recurrenceIdCancelIcs);
+      const service = BuildCalendarService(mockCredential);
+      const events = await service.getAvailability({
+        dateFrom: "2024-01-15T00:00:00Z",
+        dateTo: "2024-01-18T00:00:00Z",
+        selectedCalendars: [{ userId: 1, integration: "proton-calendar_calendar", externalId: "url" }],
+      });
+
+      const dates = events.map((e) => new Date(e.start).toISOString().slice(8, 10));
+      expect(dates).toContain("15");
+      expect(dates).not.toContain("16");
+      expect(dates).toContain("17");
+    });
+
     it("uses 'Busy' as fallback title when SUMMARY is missing", async () => {
       const noSummaryIcs = `BEGIN:VCALENDAR
 VERSION:2.0

@@ -45,6 +45,9 @@ class ProtonCalendarService implements Calendar {
   protected integrationName = "proton-calendar_calendar";
 
   constructor(credential: CredentialPayload) {
+    if (!credential.key) {
+      throw new Error("Missing Proton Calendar credential key");
+    }
     const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
     this.urls = urls;
   }
