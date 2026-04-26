@@ -704,12 +704,12 @@ async function seedApiKey(userId: number, apiKey: string) {
   console.log(`🔑 Created seeded API Key: ${apiKeyPrefix}${apiKey}`);
 }
 
-async function ensureAcmeOwnerHasApiKeySeeded() {
-  const owner1AcmeUser = await prisma.user.findFirst({
-    where: { email: "owner1-acme@example.com" },
+async function ensureProUserHasApiKeySeeded() {
+  const proUser = await prisma.user.findFirst({
+    where: { email: "pro@example.com" },
   });
-  if (owner1AcmeUser) {
-    await seedApiKey(owner1AcmeUser.id, "0123456789abcdef0123456789abcdef");
+  if (proUser) {
+    await seedApiKey(proUser.id, "0123456789abcdef0123456789abcdef");
   }
 }
 
@@ -1591,7 +1591,7 @@ async function main() {
 
   // Routing forms feature removed - routing form seeding no longer needed
 
-  await ensureAcmeOwnerHasApiKeySeeded();
+  await ensureProUserHasApiKeySeeded();
   await seedPerHostLocationsInAcmeOrg();
 }
 
