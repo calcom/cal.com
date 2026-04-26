@@ -396,6 +396,36 @@ END:VCALENDAR`;
       expect(events[0].title).toBe("Timezone meeting");
     });
 
+    it("creates synthetic VTIMEZONE per distinct TZID in feeds without one", async () => {
+      const multiTzIcs = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:tz-a
+DTSTART;TZID=Etc/GMT-2:20240115T100000
+DTEND;TZID=Etc/GMT-2:20240115T110000
+SUMMARY:Event in GMT+2
+END:VEVENT
+BEGIN:VEVENT
+UID:tz-b
+DTSTART;TZID=Etc/GMT-5:20240115T140000
+DTEND;TZID=Etc/GMT-5:20240115T150000
+SUMMARY:Event in GMT+5
+END:VEVENT
+END:VCALENDAR`;
+      mockFetchResponse(multiTzIcs);
+      const service = BuildCalendarService(mockCredential);
+      const events = await service.getAvailability({
+        dateFrom: "2024-01-14T00:00:00Z",
+        dateTo: "2024-01-16T00:00:00Z",
+        selectedCalendars: [{ userId: 1, integration: "proton-calendar_calendar", externalId: "url" }],
+      });
+
+      expect(events).toHaveLength(2);
+      const titles = events.map((e) => e.title);
+      expect(titles).toContain("Event in GMT+2");
+      expect(titles).toContain("Event in GMT+5");
+    });
+
     it("handles daily recurring events within date range", async () => {
       const dailyIcs = `BEGIN:VCALENDAR
 VERSION:2.0

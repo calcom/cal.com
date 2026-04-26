@@ -188,19 +188,21 @@ class ProtonCalendarService implements Calendar {
 
         const tzid: string | undefined = tzidFromDtstart || (isUTC ? "UTC" : timezone);
 
-        if (!vcalendar.getFirstSubcomponent("vtimezone")) {
-          const timezoneToUse = tzid || userTimeZone;
-          if (timezoneToUse) {
+        const timezoneToUse = tzid || userTimeZone;
+        if (timezoneToUse) {
+          const allVtimezones = vcalendar.getAllSubcomponents("vtimezone");
+          const hasMatchingTz = allVtimezones.some(
+            (vtz) => vtz.getFirstPropertyValue("tzid") === timezoneToUse
+          );
+          if (!hasMatchingTz) {
             try {
               const timezoneComp = new ICAL.Component("vtimezone");
               timezoneComp.addPropertyWithValue("tzid", timezoneToUse);
               const standard = new ICAL.Component("standard");
 
-              const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(timezoneToUse).format("Z");
-              const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(timezoneToUse).format("Z");
-
-              standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
-              standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
+              const utcOffset = dayjs(event.startDate.toJSDate()).tz(timezoneToUse).format("Z");
+              standard.addPropertyWithValue("tzoffsetfrom", utcOffset);
+              standard.addPropertyWithValue("tzoffsetto", utcOffset);
               standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
               timezoneComp.addSubcomponent(standard);
               vcalendar.addSubcomponent(timezoneComp);
@@ -214,10 +216,6 @@ class ProtonCalendarService implements Calendar {
         if (tzid) {
           const allVtimezones = vcalendar.getAllSubcomponents("vtimezone");
           vtimezone = allVtimezones.find((vtz) => vtz.getFirstPropertyValue("tzid") === tzid);
-        }
-
-        if (!vtimezone) {
-          vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
         }
 
         applyTravelDuration(event, getTravelDurationInSeconds(vevent));
