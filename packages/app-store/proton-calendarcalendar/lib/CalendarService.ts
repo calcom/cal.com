@@ -139,9 +139,8 @@ class ProtonCalendarService implements Calendar {
     const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string; title: string }[] = [];
 
-    const cancelledInstances = new Set<string>();
-
     calendars.forEach(({ vcalendar }) => {
+      const cancelledInstances = new Set<string>();
       const vevents = vcalendar.getAllSubcomponents("vevent");
 
       for (const vevent of vevents) {

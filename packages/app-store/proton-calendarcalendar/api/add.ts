@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!isValidProtonUrl(url)) {
         return res
           .status(400)
-          .json({ message: "Invalid URL. Only HTTPS links from calendar.proton.me are accepted." });
+          .json({ message: "Invalid URL. Only HTTPS links from calendar.proton.me or calendar.protonmail.com are accepted." });
       }
     }
 
