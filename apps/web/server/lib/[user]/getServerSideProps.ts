@@ -107,7 +107,17 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
     // EXAMPLE - context.params: { orgSlug: 'acme', user: 'member0+owner1' }
     // EXAMPLE - context.query: { redirect: 'undefined', orgRedirection: 'undefined', user: 'member0+owner1' }
-    const originalQueryString = new URLSearchParams(context.query as Record<string, string>).toString();
+    // Next.js query values can be string | string[]; casting to Record<string,string> silently
+    // joins arrays with commas. Build the search string manually to preserve repeated params.
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(context.query)) {
+      if (Array.isArray(value)) {
+        for (const v of value) params.append(key, v);
+      } else if (value !== undefined) {
+        params.append(key, value);
+      }
+    }
+    const originalQueryString = params.toString();
     const destinationWithQuery = `${destinationUrl}?${originalQueryString}`;
     log.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
     return {
