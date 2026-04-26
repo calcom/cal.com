@@ -26,19 +26,40 @@ function parseArgs() {
   };
  
   const mode = (get("--mode") ?? "many-bookings") as Mode;
-  const bookingsPerEventType = parseInt(get("--bookings") ?? "100", 10);
-  const startFrom = parseInt(get("--start-from") ?? "0", 10);
-  const tillUser = parseInt(get("--till-user") ?? "20", 10);
-
-  if (!["many-bookings", "many-users"].includes(mode)) {
+  if (mode !== "many-bookings" && mode !== "many-users") {
     console.error(`Invalid --mode "${mode}". Must be many-bookings or many-users.`);
     process.exit(1);
   }
+ 
+  const parseNonNegativeInt = (flag: string, raw: string | undefined, fallback: number) => {
+    const n = parseInt(raw ?? String(fallback), 10);
+    if (!Number.isFinite(n) || n < 0) {
+      console.error(`Invalid ${flag} "${raw}". Must be a non-negative integer.`);
+      process.exit(1);
+    }
+    return n;
+  };
+ 
+  const bookingsPerEventType = parseNonNegativeInt("--bookings", get("--bookings"), 100);
+  const startFrom = parseNonNegativeInt("--start-from", get("--start-from"), 0);
+  const tillUser = parseNonNegativeInt("--till-user", get("--till-user"), 20);
+  const dryRun = args.includes("--dry-run");
+ 
+  if (mode === "many-users" && tillUser <= startFrom) {
+    console.error(`--till-user (${tillUser}) must be greater than --start-from (${startFrom}).`);
+    process.exit(1);
+  }
 
-  const config = { mode, bookingsPerEventType, startFrom, tillUser };
-
+  const config = { mode, bookingsPerEventType, startFrom, tillUser, dryRun };
+ 
+  if (dryRun) {
+    console.log("Resolved config (dry-run):\n", JSON.stringify(config, null, 2));
+    process.exit(0);
+  }
+ 
   return config;
 }
+
  
 async function createManyDifferentUsersWithDifferentEventTypesAndBookings({
   tillUser,
@@ -219,6 +240,11 @@ async function main() {
   }
 }
  
-main();
+main()
+.then(() => process.exit(0))
+.catch((err) => {
+  console.error(err)
+  process.exit(1)
+});
  
 
