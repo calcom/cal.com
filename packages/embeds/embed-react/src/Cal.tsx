@@ -26,6 +26,8 @@ const Cal = function Cal(props: CalProps) {
   const initializedRef = useRef(false);
   const Cal = useEmbed(embedJsUrl);
   const ref = useRef<HTMLDivElement>(null);
+
+  // Initialize the embed once on first mount.
   useEffect(() => {
     if (!Cal || initializedRef.current || !ref.current) {
       return;
@@ -53,7 +55,26 @@ const Cal = function Cal(props: CalProps) {
         config,
       });
     }
-  }, [Cal, calLink, config, namespace, calOrigin, initConfig]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally runs once; config updates handled separately
+  }, [Cal, calLink, namespace, calOrigin, initConfig]);
+
+  // Propagate config prop changes to the already-initialized embed via the `ui` command.
+  // The initialization effect above only runs once, so config changes would otherwise be lost.
+  useEffect(() => {
+    if (!Cal || !initializedRef.current) {
+      return;
+    }
+    // Extract the subset of config fields that the `ui` command accepts.
+    const { theme, layout } = config ?? {};
+    if (theme === undefined && layout === undefined) {
+      return;
+    }
+    if (namespace) {
+      Cal.ns[namespace]("ui", { theme, layout });
+    } else {
+      Cal("ui", { theme, layout });
+    }
+  }, [Cal, namespace, config]);
 
   if (!Cal) {
     return null;
