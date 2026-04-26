@@ -654,7 +654,7 @@ Unlike Cal.com's "Open Core" model, Cal.diy has **no commercial/enterprise code*
 
 ## Enabling Content Security Policy
 
-- Set CSP_POLICY="non-strict" env variable, which enables [Strict CSP](https://web.dev/strict-csp/) except for `unsafe-inline` in `style-src`. If you have some custom changes in your instance, you might have to make some code change to make your instance CSP compatible. Right now it enables strict CSP only on login page and on other SSR pages it is enabled in Report only mode to detect possible issues. On, SSG pages it is still not supported.
+- Set CSP_POLICY="non-strict" env variable, which enables [Strict CSP](https://web.dev/strict-csp/) except for `unsafe-inline` in `style-src`. If you have custom changes in your instance, you may need to modify your code to make it CSP-compatible. Currently, strict CSP is enabled only on the login page. On other SSR pages, it is enabled in report-only mode to detect potential issues. It is not yet supported on SSG pages.
 
 ## Integrations
 
