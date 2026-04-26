@@ -4,6 +4,8 @@
 import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type {
   Calendar,
@@ -46,10 +48,19 @@ class ProtonCalendarService implements Calendar {
 
   constructor(credential: CredentialPayload) {
     if (!credential.key) {
-      throw new Error("Missing Proton Calendar credential key");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Missing Proton Calendar credential key");
     }
-    const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
-    this.urls = urls;
+    try {
+      const parsed = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
+      const { urls } = parsed;
+      if (!Array.isArray(urls) || !urls.every((u: unknown) => typeof u === "string")) {
+        throw new Error("urls must be a string array");
+      }
+      this.urls = urls;
+    } catch (error) {
+      log.error("Failed to parse Proton Calendar credential key", error);
+      this.urls = [];
+    }
   }
 
   createEvent(_event: CalendarEvent, _credentialId: number): Promise<NewCalendarEventType> {
@@ -171,12 +182,11 @@ class ProtonCalendarService implements Calendar {
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         const tzidFromDtstart = dtstartProperty ? dtstartProperty.getParameter("tzid") : undefined;
 
-        const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
-        const timezone = dtstart ? dtstart.timezone : undefined;
+        const dtstart = vevent.getFirstPropertyValue<ICAL.Time | undefined>("dtstart");
+        const timezone = dtstart?.timezone;
         const isUTC = timezone === "Z";
 
-        const tzid: string | undefined =
-          tzidFromDtstart || vevent?.getFirstPropertyValue("tzid") || (isUTC ? "UTC" : timezone);
+        const tzid: string | undefined = tzidFromDtstart || (isUTC ? "UTC" : timezone);
 
         if (!vcalendar.getFirstSubcomponent("vtimezone")) {
           const timezoneToUse = tzid || userTimeZone;
@@ -281,7 +291,7 @@ class ProtonCalendarService implements Calendar {
       }
     });
 
-    return Promise.resolve(events);
+    return events;
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {

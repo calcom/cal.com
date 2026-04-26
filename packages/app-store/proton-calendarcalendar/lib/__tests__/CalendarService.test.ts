@@ -14,6 +14,7 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import BuildCalendarService from "../CalendarService";
 
@@ -94,6 +95,31 @@ function mockFetchResponse(body: string, ok = true, status = 200) {
 describe("ProtonCalendarService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe("constructor", () => {
+    it("throws when credential key is missing", () => {
+      const credentialWithoutKey = { ...mockCredential, key: null };
+      expect(() => BuildCalendarService(credentialWithoutKey)).toThrow(
+        "Missing Proton Calendar credential key"
+      );
+    });
+
+    it("degrades gracefully when credential data is malformed", async () => {
+      vi.mocked(symmetricDecrypt).mockReturnValueOnce("not-valid-json");
+      const service = BuildCalendarService(mockCredential);
+      mockFetchResponse(SIMPLE_ICS);
+      const calendars = await service.listCalendars();
+      expect(calendars).toHaveLength(0);
+    });
+
+    it("degrades gracefully when urls is not a string array", async () => {
+      vi.mocked(symmetricDecrypt).mockReturnValueOnce(JSON.stringify({ urls: [123, null] }));
+      const service = BuildCalendarService(mockCredential);
+      mockFetchResponse(SIMPLE_ICS);
+      const calendars = await service.listCalendars();
+      expect(calendars).toHaveLength(0);
+    });
   });
 
   describe("createEvent", () => {
@@ -315,6 +341,83 @@ END:VCALENDAR`;
       });
 
       expect(events).toEqual([]);
+    });
+
+    it("handles events with unrecognized travel duration gracefully", async () => {
+      const travelIcs = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:travel-1
+DTSTART:20240115T100000Z
+DTEND:20240115T110000Z
+SUMMARY:Meeting with travel
+X-APPLE-TRAVEL-DURATION:PT1800S
+END:VEVENT
+END:VCALENDAR`;
+      mockFetchResponse(travelIcs);
+      const service = BuildCalendarService(mockCredential);
+      const events = await service.getAvailability({
+        dateFrom: "2024-01-15T00:00:00Z",
+        dateTo: "2024-01-16T00:00:00Z",
+        selectedCalendars: [],
+      });
+
+      expect(events).toHaveLength(1);
+      expect(events[0].title).toBe("Meeting with travel");
+    });
+
+    it("handles events with explicit VTIMEZONE", async () => {
+      const tzIcs = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VTIMEZONE
+TZID:CustomTZ
+BEGIN:STANDARD
+TZOFFSETFROM:+0000
+TZOFFSETTO:+0000
+DTSTART:19700101T000000
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:tz-event-1
+DTSTART;TZID=CustomTZ:20240115T100000
+DTEND;TZID=CustomTZ:20240115T110000
+SUMMARY:Timezone meeting
+END:VEVENT
+END:VCALENDAR`;
+      mockFetchResponse(tzIcs);
+      const service = BuildCalendarService(mockCredential);
+      const events = await service.getAvailability({
+        dateFrom: "2024-01-15T00:00:00Z",
+        dateTo: "2024-01-16T00:00:00Z",
+        selectedCalendars: [{ userId: 1, integration: "proton-calendar_calendar", externalId: "url" }],
+      });
+
+      expect(events).toHaveLength(1);
+      expect(events[0].title).toBe("Timezone meeting");
+    });
+
+    it("handles daily recurring events within date range", async () => {
+      const dailyIcs = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:daily-1
+DTSTART:20240115T100000Z
+DTEND:20240115T110000Z
+SUMMARY:Daily standup
+RRULE:FREQ=DAILY;COUNT=5
+END:VEVENT
+END:VCALENDAR`;
+      mockFetchResponse(dailyIcs);
+      const service = BuildCalendarService(mockCredential);
+      const events = await service.getAvailability({
+        dateFrom: "2024-01-15T00:00:00Z",
+        dateTo: "2024-01-20T00:00:00Z",
+        selectedCalendars: [],
+      });
+
+      expect(events).toHaveLength(5);
+      const dates = events.map((e) => new Date(e.start).getUTCDate());
+      expect(dates).toEqual([15, 16, 17, 18, 19]);
     });
   });
 });
