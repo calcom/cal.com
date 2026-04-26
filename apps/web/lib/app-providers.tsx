@@ -1,7 +1,7 @@
 /**
  * PAGES ROUTER ONLY - Used exclusively by Next.js Pages Router (_app.tsx)
  *
- * Currently only serves the /router endpoint (routing forms redirect page).
+ * Legacy Pages Router support only.
  * DO NOT add new features here - this file will be deprecated once we remove apps/web/pages.
  *
  * For App Router, use app-providers-app-dir.tsx instead.
