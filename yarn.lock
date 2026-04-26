@@ -2964,6 +2964,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/proton-calendar@workspace:packages/app-store/proton-calendarcalendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/proton-calendar@workspace:packages/app-store/proton-calendarcalendar"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/prisma": "workspace:*"
+    "@calcom/types": "workspace:*"
+    "@calcom/ui": "workspace:*"
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+    react-hook-form: ^7.0.0
+  languageName: unknown
+  linkType: soft
+
 "@calcom/qr_code@workspace:packages/app-store/qr_code":
   version: 0.0.0-use.local
   resolution: "@calcom/qr_code@workspace:packages/app-store/qr_code"

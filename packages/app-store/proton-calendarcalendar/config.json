@@ -1,0 +1,15 @@
+{
+  "name": "Proton Calendar",
+  "title": "Proton Calendar",
+  "slug": "proton-calendar",
+  "dirName": "proton-calendarcalendar",
+  "type": "proton-calendar_calendar",
+  "logo": "icon.svg",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Import your Proton Calendar availability into Cal.diy via ICS share link.",
+  "isTemplate": false,
+  "__createdUsingCli": false
+}
