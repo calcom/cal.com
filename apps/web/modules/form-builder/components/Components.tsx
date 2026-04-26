@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { z } from "zod";
 
 import type {
@@ -248,6 +248,16 @@ export const Components: Record<FieldType, Component> = {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
+      const newlyAddedIndexRef = useRef<number | null>(null);
+      const newFieldRef = useRef<HTMLInputElement | null>(null);
+
+      useEffect(() => {
+        if (newlyAddedIndexRef.current !== null && newFieldRef.current) {
+          newFieldRef.current.focus();
+          newlyAddedIndexRef.current = null;
+        }
+      });
+
       return (
         <>
           {value.length ? (
@@ -259,6 +269,7 @@ export const Components: Record<FieldType, Component> = {
                 {value.map((field, index) => (
                   <li key={index}>
                     <EmailField
+                      ref={index === newlyAddedIndexRef.current ? newFieldRef : undefined}
                       id={`${props.name}.${index}`}
                       disabled={readOnly}
                       value={value[index]}
@@ -294,6 +305,7 @@ export const Components: Record<FieldType, Component> = {
                   StartIcon="user-plus"
                   className="my-2.5"
                   onClick={() => {
+                    newlyAddedIndexRef.current = value.length;
                     value.push("");
                     setValue(value);
                   }}>
@@ -312,6 +324,7 @@ export const Components: Record<FieldType, Component> = {
               variant="button"
               StartIcon="user-plus"
               onClick={() => {
+                newlyAddedIndexRef.current = 0;
                 value.push("");
                 setValue(value);
               }}
