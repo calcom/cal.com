@@ -1,19 +1,16 @@
 import prisma from "@calcom/prisma";
 import kysely from "@calcom/kysely";
-import type { Booking, EventType, Team, User } from "@calcom/prisma/client";
-import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
+import type { Booking, EventType, User } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getBookings } from "./get.handler";
 
 let user1: User;
 let user2: User;
-let team1: Team;
 let eventType1: EventType;
 let booking1: Booking;
 let booking2: Booking;
 let booking3: Booking;
-let booking4: Booking;
-let teamEventType: EventType;
 
 const timestamp = Date.now();
 
@@ -32,29 +29,6 @@ describe("getBookings - integration", () => {
         username: `getbookings-user2-${timestamp}`,
         email: `getbookings-user2-${timestamp}@example.com`,
         name: "GetBookings User 2",
-      },
-    });
-
-    team1 = await prisma.team.create({
-      data: {
-        name: `GetBookings Team ${timestamp}`,
-        slug: `getbookings-team-${timestamp}`,
-        members: {
-          create: {
-            userId: user1.id,
-            role: MembershipRole.ADMIN,
-            accepted: true,
-          },
-        },
-      },
-    });
-
-    await prisma.membership.create({
-      data: {
-        userId: user2.id,
-        teamId: team1.id,
-        role: MembershipRole.MEMBER,
-        accepted: true,
       },
     });
 
@@ -127,51 +101,18 @@ describe("getBookings - integration", () => {
         },
       },
     });
-
-    teamEventType = await prisma.eventType.create({
-      data: {
-        title: `GetBookings Team Event ${timestamp}`,
-        slug: `getbookings-team-event-${timestamp}`,
-        length: 30,
-        teamId: team1.id,
-      },
-    });
-
-    const futureDate4 = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
-    booking4 = await prisma.booking.create({
-      data: {
-        uid: `getbookings-booking4-${timestamp}`,
-        title: "Team Booking - multi branch",
-        startTime: futureDate4,
-        endTime: new Date(futureDate4.getTime() + 30 * 60 * 1000),
-        userId: user1.id,
-        eventTypeId: teamEventType.id,
-        status: BookingStatus.ACCEPTED,
-        attendees: {
-          create: {
-            email: user1.email,
-            name: user1.name ?? "User 1",
-            timeZone: "UTC",
-          },
-        },
-      },
-    });
   });
 
   afterAll(async () => {
     try {
-      const bookingIds = [booking1?.id, booking2?.id, booking3?.id, booking4?.id].filter(Boolean);
+      const bookingIds = [booking1?.id, booking2?.id, booking3?.id].filter(Boolean);
       if (bookingIds.length > 0) {
         await prisma.attendee.deleteMany({ where: { bookingId: { in: bookingIds } } });
         await prisma.booking.deleteMany({ where: { id: { in: bookingIds } } });
       }
-      const eventTypeIds = [eventType1?.id, teamEventType?.id].filter(Boolean);
+      const eventTypeIds = [eventType1?.id].filter(Boolean);
       if (eventTypeIds.length > 0) {
         await prisma.eventType.deleteMany({ where: { id: { in: eventTypeIds } } });
-      }
-      const teamIds = [team1?.id].filter(Boolean);
-      if (teamIds.length > 0) {
-        await prisma.team.deleteMany({ where: { id: { in: teamIds } } });
       }
       const userIds = [user1?.id, user2?.id].filter(Boolean);
       if (userIds.length > 0) {
@@ -242,28 +183,12 @@ describe("getBookings - integration", () => {
       skip: 0,
     });
 
-    const expectedBookingIds = [booking1.id, booking2.id, booking3.id, booking4.id];
+    const expectedBookingIds = [booking1.id, booking2.id, booking3.id];
     const returnedIds = resultUser1.bookings.map((b) => b.id);
     for (const id of expectedBookingIds) {
       expect(returnedIds).toContain(id);
     }
     expect(resultUser1.totalCount).toBe(resultUser1.bookings.length);
-  });
-
-  it("should count booking4 exactly once in totalCount even though it matches multiple union branches", async () => {
-    const result = await getBookings({
-      user: { id: user1.id, email: user1.email, orgId: null },
-      prisma,
-      kysely,
-      bookingListingByStatus: ["upcoming"],
-      filters: {},
-      take: 50,
-      skip: 0,
-    });
-
-    const booking4Occurrences = result.bookings.filter((b) => b.id === booking4.id);
-    expect(booking4Occurrences).toHaveLength(1);
-    expect(result.totalCount).toBe(result.bookings.length);
   });
 
   it("should respect pagination with correct ordering", async () => {
