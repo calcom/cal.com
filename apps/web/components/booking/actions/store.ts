@@ -7,8 +7,6 @@ export type BookingActionsStore = {
   // Dialog states
   rejectionDialogIsOpen: boolean;
   chargeCardDialogIsOpen: boolean;
-  viewRecordingsDialogIsOpen: boolean;
-  meetingSessionDetailsDialogIsOpen: boolean;
   isNoShowDialogOpen: boolean;
   isOpenRescheduleDialog: boolean;
   isOpenReassignDialog: boolean;
@@ -22,8 +20,6 @@ export type BookingActionsStore = {
   // Dialog setters
   setRejectionDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setChargeCardDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setViewRecordingsDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setMeetingSessionDetailsDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsNoShowDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsOpenRescheduleDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setIsOpenReassignDialog: React.Dispatch<React.SetStateAction<boolean>>;
@@ -40,8 +36,6 @@ export const createBookingActionsStore = () => {
     // Initial dialog states
     rejectionDialogIsOpen: false,
     chargeCardDialogIsOpen: false,
-    viewRecordingsDialogIsOpen: false,
-    meetingSessionDetailsDialogIsOpen: false,
     isNoShowDialogOpen: false,
     isOpenRescheduleDialog: false,
     isOpenReassignDialog: false,
@@ -60,16 +54,6 @@ export const createBookingActionsStore = () => {
     setChargeCardDialogIsOpen: (isOpen) =>
       set((state) => ({
         chargeCardDialogIsOpen: typeof isOpen === "function" ? isOpen(state.chargeCardDialogIsOpen) : isOpen,
-      })),
-    setViewRecordingsDialogIsOpen: (isOpen) =>
-      set((state) => ({
-        viewRecordingsDialogIsOpen:
-          typeof isOpen === "function" ? isOpen(state.viewRecordingsDialogIsOpen) : isOpen,
-      })),
-    setMeetingSessionDetailsDialogIsOpen: (isOpen) =>
-      set((state) => ({
-        meetingSessionDetailsDialogIsOpen:
-          typeof isOpen === "function" ? isOpen(state.meetingSessionDetailsDialogIsOpen) : isOpen,
       })),
     setIsNoShowDialogOpen: (isOpen) =>
       set((state) => ({
