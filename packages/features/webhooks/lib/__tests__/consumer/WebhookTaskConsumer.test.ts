@@ -1,14 +1,13 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import type { PayloadBuilderFactory } from "../../factory/versioned/PayloadBuilderFactory";
 import type { IWebhookDataFetcher } from "../../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../../interface/IWebhookRepository";
 import { WebhookVersion } from "../../interface/IWebhookRepository";
 import type { ILogger } from "../../interface/infrastructure";
 import type { IWebhookService } from "../../interface/services";
-import type { PayloadBuilderFactory } from "../../factory/versioned/PayloadBuilderFactory";
-import type { WebhookTaskPayload } from "../../types/webhookTask";
 import { WebhookTaskConsumer } from "../../service/WebhookTaskConsumer";
+import type { WebhookTaskPayload } from "../../types/webhookTask";
 
 /**
  * Unit Tests for WebhookTaskConsumer
@@ -64,10 +63,6 @@ describe("WebhookTaskConsumer", () => {
       ]),
       createMockFetcher([WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED, WebhookTriggerEvents.BOOKING_PAID]),
       createMockFetcher([WebhookTriggerEvents.FORM_SUBMITTED]),
-      createMockFetcher([
-        WebhookTriggerEvents.RECORDING_READY,
-        WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
-      ]),
       createMockFetcher([WebhookTriggerEvents.OOO_CREATED]),
     ];
 

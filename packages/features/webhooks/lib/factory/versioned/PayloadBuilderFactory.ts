@@ -8,8 +8,6 @@ import type {
   MeetingEndedDTO,
   MeetingStartedDTO,
   OOOCreatedDTO,
-  RecordingReadyDTO,
-  TranscriptionGeneratedDTO,
   WebhookEventDTO,
 } from "../../dto/types";
 import type { WebhookVersion } from "../../interface/IWebhookRepository";
@@ -32,11 +30,6 @@ export interface IOOOPayloadBuilder extends IPayloadBuilder<OOOCreatedDTO> {
   build(dto: OOOCreatedDTO): WebhookPayload;
 }
 
-export interface IRecordingPayloadBuilder
-  extends IPayloadBuilder<RecordingReadyDTO | TranscriptionGeneratedDTO> {
-  build(dto: RecordingReadyDTO | TranscriptionGeneratedDTO): WebhookPayload;
-}
-
 export interface IMeetingPayloadBuilder
   extends IPayloadBuilder<MeetingStartedDTO | MeetingEndedDTO | AfterHostsNoShowDTO | AfterGuestsNoShowDTO> {
   build(
@@ -51,7 +44,6 @@ export interface IInstantMeetingBuilder extends IPayloadBuilder<InstantMeetingDT
 export interface PayloadBuilderSet {
   booking: IBookingPayloadBuilder;
   ooo: IOOOPayloadBuilder;
-  recording: IRecordingPayloadBuilder;
   meeting: IMeetingPayloadBuilder;
   instantMeeting: IInstantMeetingBuilder;
 }
@@ -82,9 +74,9 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
   // OOO events
   [WebhookTriggerEvents.OOO_CREATED]: "ooo",
 
-  // Recording events
-  [WebhookTriggerEvents.RECORDING_READY]: "recording",
-  [WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED]: "recording",
+  // Recording feature removed, mapped to booking until enum cleanup lands.
+  [WebhookTriggerEvents.RECORDING_READY]: "booking",
+  [WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED]: "booking",
 
   // Meeting events
   [WebhookTriggerEvents.MEETING_STARTED]: "meeting",
@@ -117,10 +109,6 @@ export type PaymentTriggerEvents =
   | typeof WebhookTriggerEvents.BOOKING_PAID;
 
 export type OOOTriggerEvents = typeof WebhookTriggerEvents.OOO_CREATED;
-
-export type RecordingTriggerEvents =
-  | typeof WebhookTriggerEvents.RECORDING_READY
-  | typeof WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED;
 
 export type MeetingTriggerEvents =
   | typeof WebhookTriggerEvents.MEETING_STARTED
@@ -190,7 +178,6 @@ export class PayloadBuilderFactory {
    */
   getBuilder(version: WebhookVersion, triggerEvent: BookingTriggerEvents): IBookingPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: OOOTriggerEvents): IOOOPayloadBuilder;
-  getBuilder(version: WebhookVersion, triggerEvent: RecordingTriggerEvents): IRecordingPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: MeetingTriggerEvents): IMeetingPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: InstantMeetingTriggerEvents): IInstantMeetingBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: WebhookTriggerEvents): IPayloadBuilder<WebhookEventDTO>;

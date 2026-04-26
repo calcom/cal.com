@@ -1,21 +1,15 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "node:crypto";
-import { headers } from "next/headers";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-
-import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import process from "node:process";
 import {
   sendDailyVideoRecordingEmails,
   sendDailyVideoTranscriptEmails,
 } from "@calcom/emails/daily-video-emails";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import {
   getAllTranscriptsAccessLinkFromMeetingId,
   submitBatchProcessorTranscriptionJob,
 } from "@calcom/features/conferencing/lib/videoClient";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -25,15 +19,15 @@ import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
 import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";
 import { getCalendarEvent } from "@calcom/web/lib/daily-webhook/getCalendarEvent";
 import {
+  batchProcessorJobFinishedSchema,
   meetingEndedSchema,
   recordingReadySchema,
-  batchProcessorJobFinishedSchema,
   testRequestSchema,
 } from "@calcom/web/lib/daily-webhook/schema";
-import {
-  triggerRecordingReadyWebhook,
-  triggerTranscriptionGeneratedWebhook,
-} from "@calcom/web/lib/daily-webhook/triggerWebhooks";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
@@ -101,35 +95,16 @@ export async function postHandler(request: NextRequest) {
 
       const bookingRepository = new BookingRepository(prisma);
 
-      const [evt, updateRecordStatus, downloadLink, teamId] = await Promise.all([
+      const [evt, downloadLink] = await Promise.all([
         getCalendarEvent(booking),
-        bookingRepository.updateRecordedStatus({
-          bookingUid: booking.uid,
-          isRecorded: true,
-        }),
         getProxyDownloadLinkOfCalVideo(recording_id),
-        getTeamIdFromEventType({
-          eventType: {
-            team: { id: booking?.eventType?.teamId ?? null },
-            parentId: booking?.eventType?.parentId ?? null,
-          },
-        }),
       ]);
+      await bookingRepository.updateRecordedStatus({
+        bookingUid: booking.uid,
+        isRecorded: true,
+      });
 
       const tasks = [
-        {
-          fn: triggerRecordingReadyWebhook({
-            evt,
-            downloadLink,
-            booking: {
-              userId: booking?.user?.id,
-              eventTypeId: booking.eventTypeId,
-              eventTypeParentId: booking.eventType?.parentId,
-              teamId,
-            },
-          }),
-          errorMsg: "trigger recording ready webhook",
-        },
         {
           fn: submitBatchProcessorTranscriptionJob(recording_id),
           errorMsg: "submit transcription batch processor job",
@@ -183,40 +158,6 @@ export async function postHandler(request: NextRequest) {
       if (!batchProcessorJobFinishedResponse.success) {
         return NextResponse.json({ message: "Invalid Payload" }, { status: 400 });
       }
-
-      const { id, input } = batchProcessorJobFinishedResponse.data.payload;
-      const roomName = await getRoomNameFromRecordingId(input.recordingId);
-
-      const bookingReference = await getBookingReference(roomName);
-
-      const booking = await getBooking(bookingReference.bookingId as number);
-
-      const teamId = await getTeamIdFromEventType({
-        eventType: {
-          team: { id: booking?.eventType?.teamId ?? null },
-          parentId: booking?.eventType?.parentId ?? null,
-        },
-      });
-
-      const [evt, recording, batchProcessorJobAccessLink] = await Promise.all([
-        getCalendarEvent(booking),
-        getProxyDownloadLinkOfCalVideo(input.recordingId),
-        getBatchProcessorJobAccessLink(id),
-      ]);
-
-      await triggerTranscriptionGeneratedWebhook({
-        evt,
-        downloadLinks: {
-          transcription: batchProcessorJobAccessLink.transcription,
-          recording,
-        },
-        booking: {
-          userId: booking?.user?.id,
-          eventTypeId: booking.eventTypeId,
-          eventTypeParentId: booking.eventType?.parentId,
-          teamId,
-        },
-      });
 
       return NextResponse.json({ message: "Success" });
     } else {

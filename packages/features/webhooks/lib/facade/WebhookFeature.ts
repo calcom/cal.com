@@ -1,10 +1,5 @@
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
-import type {
-  IBookingWebhookService,
-  IOOOWebhookService,
-  IRecordingWebhookService,
-  IWebhookService,
-} from "../interface/services";
+import type { IBookingWebhookService, IOOOWebhookService, IWebhookService } from "../interface/services";
 import type { IWebhookProducerService } from "../interface/WebhookProducerService";
 import type { IWebhookNotifier } from "../interface/webhook";
 import type { WebhookTaskConsumer } from "../service/WebhookTaskConsumer";
@@ -18,7 +13,7 @@ import type { WebhookTaskConsumer } from "../service/WebhookTaskConsumer";
  * - Producer: Lightweight service for queueing webhook tasks
  * - Consumer: Heavy service for processing webhook tasks
  * - Core: Low-level webhook service (repository, processing, scheduling)
- * - Event-specific services: Booking, Form, Recording, OOO webhooks
+ * - Event-specific services: Booking and OOO webhooks
  * - Notifier: High-level notification handler
  * - Repository: Direct data access (use sparingly)
  *
@@ -84,15 +79,6 @@ export interface WebhookFeature {
    * - BOOKING_NO_SHOW_UPDATED
    */
   booking: IBookingWebhookService;
-
-  /**
-   * Recording Webhook Service
-   *
-   * Handle recording-related webhook events:
-   * - RECORDING_READY
-   * - RECORDING_TRANSCRIPTION_GENERATED
-   */
-  recording: IRecordingWebhookService;
 
   /**
    * Out-of-Office (OOO) Webhook Service

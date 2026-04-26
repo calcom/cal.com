@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import customTemplate, { hasTemplateIntegration } from "@calcom/features/webhooks/lib/integrationTemplate";
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
@@ -11,15 +8,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
-import { TextArea } from "@calcom/ui/components/form";
-import { ToggleGroup } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
-
-
+import { Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui/components/form";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
 
 export type TWebhook = RouterOutputs["viewer"]["webhook"]["list"][number];
@@ -55,13 +46,8 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
     { value: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, label: "booking_no_show_updated" },
     { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
     { value: WebhookTriggerEvents.MEETING_STARTED, label: "meeting_started" },
-    { value: WebhookTriggerEvents.RECORDING_READY, label: "recording_ready" },
     { value: WebhookTriggerEvents.INSTANT_MEETING, label: "instant_meeting" },
     { value: WebhookTriggerEvents.OOO_CREATED, label: "ooo_created" },
-    {
-      value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
-      label: "recording_transcription_generated",
-    },
     { value: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW, label: "after_hosts_cal_video_no_show" },
     {
       value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
