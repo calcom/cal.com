@@ -64,6 +64,7 @@ class ProtonCalendarService implements Calendar {
   }
 
   createEvent(_event: CalendarEvent, _credentialId: number): Promise<NewCalendarEventType> {
+    log.warn("createEvent called on read-only Proton Calendar");
     return Promise.resolve({
       uid: _event.uid || "",
       type: this.integrationName,
@@ -75,7 +76,10 @@ class ProtonCalendarService implements Calendar {
   }
 
   deleteEvent(_uid: string, _event: CalendarEvent, _externalCalendarId?: string): Promise<unknown> {
-    return Promise.resolve();
+    log.warn("deleteEvent called on read-only Proton Calendar");
+    return Promise.resolve({
+      additionalInfo: { calWarnings: ["Proton Calendar is read-only"] },
+    });
   }
 
   updateEvent(
@@ -83,6 +87,7 @@ class ProtonCalendarService implements Calendar {
     _event: CalendarEvent,
     _externalCalendarId?: string
   ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
+    log.warn("updateEvent called on read-only Proton Calendar");
     return Promise.resolve({
       uid: _event.uid || "",
       type: this.integrationName,
@@ -222,7 +227,9 @@ class ProtonCalendarService implements Calendar {
 
         if (event.isRecurring()) {
           let iterations = MAX_RECURRENCE_ITERATIONS;
-          if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
+          const dominated = ["HOURLY", "SECONDLY", "MINUTELY"];
+          const recurrenceTypes = event.getRecurrenceTypes();
+          if (Object.keys(recurrenceTypes).some((freq) => dominated.includes(freq))) {
             continue;
           }
 
@@ -245,11 +252,13 @@ class ProtonCalendarService implements Calendar {
           ) {
             iterations -= 1;
 
+            currentEvent = undefined;
             try {
               currentEvent = event.getOccurrenceDetails(current);
             } catch (error) {
               if (error instanceof Error && error.message !== currentError) {
                 currentError = error.message;
+                log.error("Recurrence expansion error", error);
               }
             }
             if (!currentEvent) continue;

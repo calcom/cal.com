@@ -150,11 +150,12 @@ describe("ProtonCalendarService", () => {
   });
 
   describe("deleteEvent", () => {
-    it("resolves without error", async () => {
+    it("resolves with read-only warning", async () => {
       const service = BuildCalendarService(mockCredential);
-      await expect(
-        service.deleteEvent("uid", {} as Parameters<typeof service.deleteEvent>[1])
-      ).resolves.toBeUndefined();
+      const result = await service.deleteEvent("uid", {} as Parameters<typeof service.deleteEvent>[1]);
+      expect(result).toMatchObject({
+        additionalInfo: { calWarnings: ["Proton Calendar is read-only"] },
+      });
     });
   });
 
@@ -341,6 +342,28 @@ END:VCALENDAR`;
       });
 
       expect(events).toEqual([]);
+    });
+
+    it("skips HOURLY recurrence rules", async () => {
+      const hourlyIcs = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:hourly-1
+DTSTART:20240115T100000Z
+DTEND:20240115T103000Z
+SUMMARY:Hourly ping
+RRULE:FREQ=HOURLY;COUNT=24
+END:VEVENT
+END:VCALENDAR`;
+      mockFetchResponse(hourlyIcs);
+      const service = BuildCalendarService(mockCredential);
+      const events = await service.getAvailability({
+        dateFrom: "2024-01-15T00:00:00Z",
+        dateTo: "2024-01-16T00:00:00Z",
+        selectedCalendars: [],
+      });
+
+      expect(events).toHaveLength(0);
     });
 
     it("handles events with unrecognized travel duration gracefully", async () => {
