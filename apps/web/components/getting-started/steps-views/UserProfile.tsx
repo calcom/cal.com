@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import posthog from "posthog-js";
 
+import logger from "@calcom/lib/logger";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -25,6 +26,8 @@ type FormData = {
 interface UserProfileProps {
   user: RouterOutputs["viewer"]["me"]["get"];
 }
+
+const log = logger.getSubLogger({ prefix: ["UserProfile"] });
 
 const UserProfile = ({ user }: UserProfileProps) => {
   const { t } = useLocale();
@@ -63,7 +66,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
           );
         }
       } catch (error) {
-        console.error(error);
+        log.error("Failed to create default event types during onboarding", error);
       }
 
       posthog.capture("onboarding_completed");
