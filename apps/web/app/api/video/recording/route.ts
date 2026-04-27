@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/features/conferencing/lib/videoClient";
+import logger from "@calcom/lib/logger";
 import { verifyVideoToken } from "@calcom/lib/videoTokens";
+
+const log = logger.getSubLogger({ prefix: ["[api/video/recording]"] });
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -23,7 +26,7 @@ export async function GET(request: Request) {
     }
     return NextResponse.redirect(recordingLink.download_link, { status: 302 });
   } catch (error) {
-    console.error("Failed to get recording:", error);
+    log.error("Failed to get recording:", error);
     return new Response("Failed to get recording", { status: 500 });
   }
 }
