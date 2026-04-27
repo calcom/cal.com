@@ -1,6 +1,9 @@
+import logger from "@calcom/lib/logger";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { tasker } from "../../../tasker";
+
+const log = logger.getSubLogger({ prefix: ["handleAnalyticsEvents"] });
 
 interface HandleAnalyticsEventsProps {
   credentials: CredentialForCalendarService[];
@@ -40,6 +43,6 @@ export const handleAnalyticsEvents = async ({
       },
     });
   } catch (err) {
-    console.error("Error sending dub lead: ", err);
+    log.error("Error sending dub lead: ", err);
   }
 };
