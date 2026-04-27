@@ -1,5 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import { HolidayRepository } from "@calcom/features/holidays/repositories/HolidayRepository";
+import logger from "@calcom/lib/logger";
+
+const log = logger.getSubLogger({ prefix: ["HolidayServiceCachingProxy"] });
 
 import { GOOGLE_HOLIDAY_CALENDARS, HOLIDAY_CACHE_DAYS } from "./constants";
 import {
@@ -58,7 +61,7 @@ export class HolidayServiceCachingProxy {
         })),
       });
     } catch (error) {
-      console.error(`Failed to refresh holiday cache for ${countryCode}:`, error);
+      log.error(`Failed to refresh holiday cache for ${countryCode}:`, error);
     }
   }
 
