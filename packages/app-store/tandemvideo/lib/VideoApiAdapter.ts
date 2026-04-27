@@ -53,7 +53,7 @@ const loadConfiguration = async () => {
 const tandemAuth = async (credential: CredentialPayload) => {
   const configuration = await loadConfiguration();
   const credentialKey = credential.key as unknown as TandemToken;
-  const isTokenValid = (token: TandemToken) => token && token.access_token && token.expiry_date < Date.now();
+  const isTokenValid = (token: TandemToken) => token && token.access_token && token.expiry_date > Date.now();
 
   const refreshAccessToken = async (refreshToken: string) => {
     const result = await fetch(`${configuration.baseUrl}/api/v1/oauth/v2/token`, {
@@ -86,7 +86,7 @@ const tandemAuth = async (credential: CredentialPayload) => {
 
   return {
     getToken: () =>
-      !isTokenValid(credentialKey)
+      isTokenValid(credentialKey)
         ? Promise.resolve(credentialKey.access_token)
         : refreshAccessToken(credentialKey.refresh_token),
   };
