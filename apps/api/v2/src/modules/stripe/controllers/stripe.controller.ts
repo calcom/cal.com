@@ -15,6 +15,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { HttpService } from "@nestjs/axios";
 import {
   Controller,
+  Logger,
   Query,
   UseGuards,
   Get,
@@ -39,6 +40,8 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 })
 @DocsTags("Stripe")
 export class StripeController {
+  private readonly logger = new Logger(StripeController.name);
+
   constructor(
     private readonly stripeService: StripeService,
     private readonly tokensRepository: TokensRepository,
@@ -139,7 +142,7 @@ export class StripeController {
       return await this.stripeService.saveStripeAccount(decodedCallbackState, code, userId);
     } catch (error) {
       if (error instanceof Error) {
-        console.error(error.message);
+        this.logger.error(error.message);
       }
       return {
         url: decodedCallbackState.onErrorReturnTo ?? "",
