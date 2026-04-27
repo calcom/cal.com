@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
 import { sendOrganizerRequestReminderEmail } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -96,7 +97,7 @@ async function postHandler(request: NextRequest) {
       const { user } = booking;
       const name = user?.name || user?.username;
       if (!user || !name || !user.timeZone) {
-        console.error(`Booking ${booking.id} is missing required properties for booking reminder`, { user });
+        logger.error(`Booking ${booking.id} is missing required properties for booking reminder`, { user });
         continue;
       }
 
