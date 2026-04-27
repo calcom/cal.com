@@ -4,6 +4,7 @@
 import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import logger from "@calcom/lib/logger";
 import type {
   Calendar,
   CalendarEvent,
@@ -40,6 +41,8 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
+const log = logger.getSubLogger({ prefix: ["ics-feedcalendar/CalendarService"] });
+
 class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
   protected integrationName = "ics-feed_calendar";
@@ -50,7 +53,7 @@ class ICSFeedCalendarService implements Calendar {
   }
 
   createEvent(_event: CalendarEvent, _credentialId: number): Promise<NewCalendarEventType> {
-    console.warn("createEvent called on ICS (read-only) feed");
+    log.warn("createEvent called on ICS (read-only) feed");
     return Promise.resolve({
       uid: _event.uid || "",
       type: this.integrationName,
@@ -62,7 +65,7 @@ class ICSFeedCalendarService implements Calendar {
   }
 
   deleteEvent(_uid: string, _event: CalendarEvent, _externalCalendarId?: string): Promise<unknown> {
-    console.warn("deleteEvent called on ICS (read-only) feed");
+    log.warn("deleteEvent called on ICS (read-only) feed");
     return Promise.resolve();
   }
 
@@ -71,7 +74,7 @@ class ICSFeedCalendarService implements Calendar {
     _event: CalendarEvent,
     _externalCalendarId?: string
   ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
-    console.warn("updateEvent called on ICS (read-only) feed");
+    log.warn("updateEvent called on ICS (read-only) feed");
     return Promise.resolve({
       uid: _event.uid || "",
       type: this.integrationName,
@@ -97,7 +100,7 @@ class ICSFeedCalendarService implements Calendar {
             vcalendar: new ICAL.Component(jcalData),
           };
         } catch (e) {
-          console.error("Error parsing calendar object: ", e);
+          log.error("Error parsing calendar object: ", e);
           return null;
         }
       })
@@ -193,10 +196,10 @@ class ICSFeedCalendarService implements Calendar {
               vcalendar.addSubcomponent(timezoneComp);
             } catch (e) {
               // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
-              console.log("error in adding vtimezone", e);
+              log.warn("error in adding vtimezone", e);
             }
           } else {
-            console.error("No timezone found");
+            log.error("No timezone found");
           }
         }
 
@@ -216,7 +219,7 @@ class ICSFeedCalendarService implements Calendar {
         if (event.isRecurring()) {
           let maxIterations = 365;
           if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
-            console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
+            log.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
             return;
           }
 
@@ -269,7 +272,7 @@ class ICSFeedCalendarService implements Calendar {
             }
           }
           if (maxIterations <= 0) {
-            console.warn("could not find any occurrence for recurring event in 365 iterations");
+            log.warn("could not find any occurrence for recurring event in 365 iterations");
           }
           return;
         }
