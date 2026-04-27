@@ -24,7 +24,6 @@ export async function sendWebhook(payload: string): Promise<void> {
     );
     await sendPayload(secretKey, triggerEvent, createdAt, webhook, data);
   } catch (error) {
-    console.error(error);
     throw error;
   }
 }
