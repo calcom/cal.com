@@ -36,7 +36,7 @@ describe("Tests for DatePicker Component", () => {
     });
 
     expect(selectedDate).toBeTruthy();
-    await expect(selectedDate).not.toHaveClass("opacity-50");
+    await expect(selectedDate).not.toHaveAttribute("aria-disabled", "true");
   });
   test("Should respect minDate prop", async () => {
     const testDate = new Date("2024-02-20");
@@ -48,9 +48,9 @@ describe("Tests for DatePicker Component", () => {
     const dateButton = getByTestId("pick-date");
     fireEvent.click(dateButton);
 
-    const disabledDates = getAllByRole("gridcell").filter((cell) => cell.classList.contains("opacity-50"));
+    const disabledDates = getAllByRole("gridcell").filter((cell) => cell.getAttribute("aria-disabled") === "true");
     expect(disabledDates.length).toBeGreaterThan(0);
-    await expect(disabledDates[0]).toHaveAttribute("disabled");
+    await expect(disabledDates[0]).toHaveAttribute("aria-disabled", "true");
   });
 
   test("Should respect disabled prop", () => {
