@@ -3,6 +3,7 @@ import { useState } from "react";
 import posthog from "posthog-js";
 
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/InstallAppButtonWithoutPlanCheck";
+import logger from "@calcom/lib/logger";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,6 +26,8 @@ interface IAppConnectionItem {
   dependencyData?: TDependencyData;
 }
 
+const log = logger.getSubLogger({ prefix: ["AppConnectionItem"] });
+
 const AppConnectionItem = (props: IAppConnectionItem) => {
   const { title, logo, type, installed, isDefault, defaultInstall, slug } = props;
   const { t } = useLocale();
@@ -35,7 +38,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
     },
     onError: (error) => {
       showToast(t("something_went_wrong"), "error");
-      console.error(error);
+      log.error("Failed to set default conferencing app", error);
     },
   });
   const dependency = props.dependencyData?.find((data) => !data.installed);
