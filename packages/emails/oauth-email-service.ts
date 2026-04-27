@@ -1,3 +1,4 @@
+import logger from "@calcom/lib/logger";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 
 import type { OAuthClientNotification } from "./templates/admin-oauth-client-notification";
@@ -15,7 +16,7 @@ const sendEmail = async (prepare: () => BaseEmail) => {
     return await email.sendEmail();
   } catch (e) {
     const errorName = e instanceof Error ? e.name : "UnknownError";
-    console.error(
+    logger.error(
       `${email?.constructor?.name ?? "Email"}.sendEmail oauth-email-service failed (${errorName})`,
       e
     );
