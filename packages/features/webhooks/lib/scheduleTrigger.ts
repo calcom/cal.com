@@ -315,7 +315,7 @@ export async function scheduleTrigger({
       },
     });
   } catch (error) {
-    console.error("Error cancelling scheduled jobs", error);
+    log.error("Error cancelling scheduled jobs", error);
   }
 }
 
@@ -372,7 +372,7 @@ async function _deleteWebhookScheduledTriggers({
       }
     }
   } catch (error) {
-    console.error("Error deleting webhookScheduledTriggers ", error);
+    log.error("Error deleting webhookScheduledTriggers", error);
   }
 }
 
