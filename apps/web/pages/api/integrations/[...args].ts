@@ -5,6 +5,7 @@ import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwI
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
@@ -80,7 +81,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (!res.writableEnded) res.status(200);
     return;
   } catch (error) {
-    console.error(error);
+    logger.error("Integration handler error", { error });
     const httpError = getServerErrorFromUnknown(error);
     return res.status(httpError.statusCode).json({ message: httpError.message });
   }
