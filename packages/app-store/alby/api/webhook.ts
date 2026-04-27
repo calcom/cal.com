@@ -8,8 +8,11 @@ import { albyCredentialKeysSchema } from "@calcom/app-store/alby/lib";
 import parseInvoice from "@calcom/app-store/alby/lib/parseInvoice";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
+
+const log = logger.getSubLogger({ prefix: ["alby/webhook"] });
 
 export const config = {
   api: {
@@ -29,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const parseHeaders = webhookHeadersSchema.safeParse(headers);
     if (!parseHeaders.success) {
-      console.error(parseHeaders.error);
+      log.error("Failed to parse webhook headers", parseHeaders.error);
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
 
@@ -37,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const parse = eventSchema.safeParse(JSON.parse(bodyAsString));
     if (!parse.success) {
-      console.error(parse.error);
+      log.error("Failed to parse webhook event payload", parse.error);
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
 
@@ -77,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const parseCredentials = albyCredentialKeysSchema.safeParse(key);
     if (!parseCredentials.success) {
-      console.error(parseCredentials.error);
+      log.error("Failed to parse alby credentials", parseCredentials.error);
       throw new HttpCode({ statusCode: 500, message: "Credentials not valid" });
     }
 
@@ -100,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
-    console.error(`Webhook Error: ${err.message}`);
+    log.error(`Webhook Error: ${err.message}`);
     return res.status(err.statusCode).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.cause?.stack,
