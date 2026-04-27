@@ -902,9 +902,10 @@ export default abstract class BaseCalendarService implements Calendar {
               },
             });
 
-            return responseWithoutExpand.find(
-              (obj) => obj.url === calendarObject.url && obj.etag === calendarObject.etag
-            );
+            // Match by URL only — some CalDAV servers (e.g. Nextcloud) may return a
+            // different ETag on the second request, so matching on both URL and ETag
+            // would silently drop the object and cause busy events to not block slots.
+            return responseWithoutExpand.find((obj) => obj.url === calendarObject.url);
           }
           return calendarObject;
         })
@@ -916,8 +917,10 @@ export default abstract class BaseCalendarService implements Calendar {
       (promise): promise is PromiseFulfilledResult<(DAVObject | undefined)[]> =>
         promise.status === "fulfilled"
     );
-    const flatResult = fulfilledPromises.flatMap((promise) => promise.value).filter((obj) => obj !== null);
-    return flatResult as DAVObject[];
+    const flatResult = fulfilledPromises
+      .flatMap((promise) => promise.value)
+      .filter((obj): obj is DAVObject => obj != null);
+    return flatResult;
   }
 
   private async getEvents(
