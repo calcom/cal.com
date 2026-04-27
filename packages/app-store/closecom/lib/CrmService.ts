@@ -202,11 +202,11 @@ class CloseComCRMService implements CRM {
   }
 
   getAppOptions() {
-    console.log("No options implemented");
+    return undefined;
   }
 
   async handleAttendeeNoShow() {
-    console.log("Not implemented");
+    return;
   }
 }
 
