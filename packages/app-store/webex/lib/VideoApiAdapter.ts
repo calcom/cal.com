@@ -44,7 +44,7 @@ const webexTokenSchema = z.object({
   expiry_date: z.number(),
 });
 type WebexToken = z.infer<typeof webexTokenSchema>;
-const isTokenValid = (token: WebexToken) => token.expiry_date < Date.now();
+const isTokenValid = (token: WebexToken) => token.expiry_date > Date.now();
 
 /** @link https://developer.webex.com/docs/integrations#using-the-refresh-token */
 const webexRefreshedTokenSchema = z.object({
@@ -117,7 +117,7 @@ const webexAuth = (credential: CredentialPayload) => {
         return Promise.reject("Webex credential keys parsing error");
       }
 
-      return !isTokenValid(credentialKey)
+      return isTokenValid(credentialKey)
         ? Promise.resolve(credentialKey.access_token)
         : refreshAccessToken(credentialKey.refresh_token);
     },
