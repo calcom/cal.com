@@ -153,7 +153,7 @@ export async function authorizeCredentials(
 ): Promise<User | null> {
   log.debug("CredentialsProvider:credentials:authorize", safeStringify({ credentials }));
   if (!credentials) {
-    console.error(`For some reason credentials are missing`);
+    log.error(`For some reason credentials are missing`);
     throw new Error(ErrorCode.InternalServerError);
   }
 
@@ -188,7 +188,7 @@ export async function authorizeCredentials(
 
   if (user.twoFactorEnabled && credentials.backupCode) {
     if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-      console.error("Missing encryption key; cannot proceed with backup code login.");
+      log.error("Missing encryption key; cannot proceed with backup code login.");
       throw new Error(ErrorCode.InternalServerError);
     }
 
@@ -216,18 +216,18 @@ export async function authorizeCredentials(
     }
 
     if (!user.twoFactorSecret) {
-      console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+      log.error(`Two factor is enabled for user ${user.id} but they have no secret`);
       throw new Error(ErrorCode.InternalServerError);
     }
 
     if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-      console.error(`"Missing encryption key; cannot proceed with two factor login."`);
+      log.error(`Missing encryption key; cannot proceed with two factor login.`);
       throw new Error(ErrorCode.InternalServerError);
     }
 
     const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
     if (secret.length !== 32) {
-      console.error(
+      log.error(
         `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
       );
       throw new Error(ErrorCode.InternalServerError);
@@ -252,7 +252,7 @@ export async function authorizeCredentials(
     if (user.identityProvider !== IdentityProvider.CAL) return role;
 
     if (process.env.NEXT_PUBLIC_IS_E2E) {
-      console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
+      log.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
       return role;
     }
 
