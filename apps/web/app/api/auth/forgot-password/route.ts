@@ -2,12 +2,15 @@ import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetReq
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import getIP from "@calcom/lib/getIP";
+import logger from "@calcom/lib/logger";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import prisma from "@calcom/prisma";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+
+const log = logger.getSubLogger({ prefix: ["forgot-password"] });
 
 async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
@@ -30,10 +33,10 @@ async function handler(req: NextRequest) {
       select: { name: true, email: true, locale: true },
     });
     // Don't leak info about whether the user exists
-    if (user) passwordResetRequest(user).catch(console.error);
+    if (user) passwordResetRequest(user).catch((err) => log.error("Failed to send password reset email", { err }));
     return NextResponse.json({ message: "password_reset_email_sent" }, { status: 201 });
   } catch (reason) {
-    console.error(reason);
+    log.error("Unable to create password reset request", { reason });
     return NextResponse.json({ message: "Unable to create password reset request" }, { status: 500 });
   }
 }
