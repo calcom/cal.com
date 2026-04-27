@@ -1,4 +1,5 @@
 // It's ensured that this file does not import any client-side code
+import logger from "@calcom/lib/logger";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -14,7 +15,8 @@ const sendEmail = (prepare: () => BaseEmail) => {
       const email = prepare();
       resolve(email.sendEmail());
     } catch (e) {
-      reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
+      logger.error(`${prepare.constructor.name}.sendEmail failed`, e);
+      reject(e);
     }
   });
 };
