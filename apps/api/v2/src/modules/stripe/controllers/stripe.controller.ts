@@ -20,6 +20,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Logger,
   Redirect,
   Req,
   BadRequestException,
@@ -39,6 +40,8 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 })
 @DocsTags("Stripe")
 export class StripeController {
+  private readonly logger = new Logger(StripeController.name);
+
   constructor(
     private readonly stripeService: StripeService,
     private readonly tokensRepository: TokensRepository,
@@ -139,7 +142,7 @@ export class StripeController {
       return await this.stripeService.saveStripeAccount(decodedCallbackState, code, userId);
     } catch (error) {
       if (error instanceof Error) {
-        console.error(error.message);
+        this.logger.error(`Stripe save callback error: ${error.message}`, error.stack);
       }
       return {
         url: decodedCallbackState.onErrorReturnTo ?? "",
