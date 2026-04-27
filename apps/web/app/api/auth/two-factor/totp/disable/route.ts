@@ -9,11 +9,14 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import logger from "@calcom/lib/logger";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
+const log = logger.getSubLogger({ prefix: ["totp/disable"] });
 
 async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
@@ -24,7 +27,7 @@ async function handler(req: NextRequest) {
   }
 
   if (!session.user?.id) {
-    console.error("Session is missing a user id.");
+    log.error("Session is missing a user id.");
     return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
   }
 
@@ -36,7 +39,7 @@ async function handler(req: NextRequest) {
   const user = await prisma.user.findUnique({ where: { id: session.user.id }, include: { password: true } });
 
   if (!user) {
-    console.error(`Session references user that no longer exists.`);
+    log.error(`Session references user that no longer exists.`);
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
@@ -58,7 +61,7 @@ async function handler(req: NextRequest) {
   // If user has 2FA and using backup code
   if (user.twoFactorEnabled && body.backupCode) {
     if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-      console.error("Missing encryption key; cannot proceed with backup code login.");
+      log.error("Missing encryption key; cannot proceed with backup code login.");
       throw new Error(ErrorCode.InternalServerError);
     }
 
@@ -83,18 +86,18 @@ async function handler(req: NextRequest) {
     }
 
     if (!user.twoFactorSecret) {
-      console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+      log.error(`Two factor is enabled for user ${user.id} but they have no secret`);
       throw new Error(ErrorCode.InternalServerError);
     }
 
     if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-      console.error("Missing encryption key; cannot proceed with two factor login.");
+      log.error("Missing encryption key; cannot proceed with two factor login.");
       throw new Error(ErrorCode.InternalServerError);
     }
 
     const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
     if (secret.length !== 32) {
-      console.error(
+      log.error(
         `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
       );
       throw new Error(ErrorCode.InternalServerError);
