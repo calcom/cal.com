@@ -108,7 +108,7 @@ const logFailedResults = (results: PromiseSettledResult<unknown>[]) => {
   const failed = results.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
   if (failed.length < 1) return;
   const failedMessage = failed.map((r) => r.reason);
-  console.error("Failed to update no-show status", failedMessage.join(","));
+  logger.error(`Failed to update no-show status: ${failedMessage.join(",")}`);
 };
 
 type ResponsePayloadResult = {
