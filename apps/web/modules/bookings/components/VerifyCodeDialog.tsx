@@ -82,8 +82,12 @@ export const VerifyCodeDialog = ({
 
   useEffect(() => setValue(""), [isOpenDialog]);
 
+  // dark:[-webkit-text-fill-color:currentColor] is needed to override the browser's
+  // default autofill text color in dark mode. Without the restriction to dark: the
+  // overridden currentColor can resolve to the parent's white foreground in a
+  // light-themed embed, making the digit invisible against a white input background.
   const digitClassName =
-    "h-12 w-12 text-center text-xl! text-emphasis caret-emphasis [-webkit-text-fill-color:currentColor]";
+    "h-12 w-12 text-center text-xl! text-emphasis caret-emphasis dark:[-webkit-text-fill-color:currentColor]";
 
   return (
     <Dialog
