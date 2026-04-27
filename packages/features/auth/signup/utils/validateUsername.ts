@@ -1,5 +1,8 @@
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+
+const log = logger.getSubLogger({ prefix: ["validateUsername"] });
 
 export const getUsernameForOrgMember = async ({
   email,
@@ -102,10 +105,6 @@ export const validateAndGetCorrectedUsernameInTeam = async (
       },
     });
 
-    console.log("validateAndGetCorrectedUsernameInTeam", {
-      teamId,
-      team,
-    });
     const organization = team?.isOrganization ? team : team?.parent;
     if (organization) {
       // Organization context -> org-context username check
@@ -122,7 +121,7 @@ export const validateAndGetCorrectedUsernameInTeam = async (
       return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
     }
   } catch (error) {
-    console.error(error);
+    log.error("validateAndGetCorrectedUsernameInTeam failed", { teamId }, error);
     return { isValid: false, username: undefined, email: undefined };
   }
 };
