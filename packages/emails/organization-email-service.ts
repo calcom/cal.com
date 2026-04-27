@@ -1,3 +1,5 @@
+import logger from "@calcom/lib/logger";
+
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 
 import type { TeamInvite } from "./templates/team-invite-email";
@@ -17,7 +19,8 @@ const sendEmail = (prepare: () => BaseEmail) => {
       const email = prepare();
       resolve(email.sendEmail());
     } catch (e) {
-      reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
+      logger.error(`${prepare.constructor.name}.sendEmail failed`, e);
+      reject(e);
     }
   });
 };
