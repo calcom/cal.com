@@ -1,3 +1,4 @@
+import { logger } from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../../types";
@@ -57,7 +58,7 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
       },
     });
   } catch (e) {
-    console.log(e);
+    logger.error("Failed to get schedule by event type slug", { error: e, userId: ctx.user.id });
     return {
       id: -1,
       name: "No schedules found",
