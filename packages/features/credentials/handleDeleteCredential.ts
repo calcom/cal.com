@@ -164,8 +164,8 @@ const handleDeleteCredential = async ({
           apps,
         });
 
-        await prisma.$transaction(async () => {
-          await prisma.eventType.update({
+        await prisma.$transaction(async (tx) => {
+          await tx.eventType.update({
             where: {
               id: eventType.id,
             },
@@ -193,8 +193,8 @@ const handleDeleteCredential = async ({
           apps,
         });
 
-        await prisma.$transaction(async () => {
-          await prisma.eventType.update({
+        await prisma.$transaction(async (tx) => {
+          await tx.eventType.update({
             where: {
               id: eventType.id,
             },
@@ -212,7 +212,7 @@ const handleDeleteCredential = async ({
           // Only cancel unpaid pending bookings that:
           // 1. Are in the future (startTime > now) - don't cancel old bookings
           // 2. Have failed payments associated with the payment app being deleted
-          const unpaidBookings = await prisma.booking.findMany({
+          const unpaidBookings = await tx.booking.findMany({
             where: {
               userId: userId,
               eventTypeId: eventType.id,
@@ -287,7 +287,7 @@ const handleDeleteCredential = async ({
           const unpaidBookingsPaymentIds = unpaidBookings.flatMap((booking) =>
             booking.payment.map((payment) => payment.id)
           );
-          await prisma.booking.updateMany({
+          await tx.booking.updateMany({
             where: {
               id: {
                 in: unpaidBookingsIds,
@@ -301,21 +301,21 @@ const handleDeleteCredential = async ({
           for (const paymentId of unpaidBookingsPaymentIds) {
             await deletePayment(paymentId, credential);
           }
-          await prisma.payment.deleteMany({
+          await tx.payment.deleteMany({
             where: {
               id: {
                 in: unpaidBookingsPaymentIds,
               },
             },
           });
-          await prisma.attendee.deleteMany({
+          await tx.attendee.deleteMany({
             where: {
               bookingId: {
                 in: unpaidBookingsIds,
               },
             },
           });
-          await prisma.bookingReference.updateMany({
+          await tx.bookingReference.updateMany({
             where: {
               bookingId: {
                 in: unpaidBookingsIds,
