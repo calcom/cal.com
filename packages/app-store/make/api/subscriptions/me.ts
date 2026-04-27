@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           username: true,
         },
       });
-      res.status(201).json(user);
+      res.status(200).json(user);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Unable to get User." });
