@@ -74,9 +74,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               },
             },
           });
-          if (!credential) {
-            return res.status(404).json({ message: "Missing vital credential" });
-          }
 
           // Getting total hours of sleep seconds/60/60 = hours
           const userWithMetadata = await prisma.user.findFirst({
