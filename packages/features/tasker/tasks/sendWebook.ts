@@ -2,6 +2,9 @@ import { z } from "zod";
 
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import logger from "@calcom/lib/logger";
+
+const log = logger.getSubLogger({ prefix: ["[features/tasker/tasks] sendWebhook"] });
 
 const sendWebhookPayloadSchema = z.object({
   secretKey: z.string().nullable(),
@@ -24,7 +27,7 @@ export async function sendWebhook(payload: string): Promise<void> {
     );
     await sendPayload(secretKey, triggerEvent, createdAt, webhook, data);
   } catch (error) {
-    console.error(error);
+    log.error("sendWebhook failed", error);
     throw error;
   }
 }
