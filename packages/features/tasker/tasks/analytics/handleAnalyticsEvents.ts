@@ -1,5 +1,7 @@
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import logger from "@calcom/lib/logger";
+
 import { tasker } from "../../../tasker";
 
 interface HandleAnalyticsEventsProps {
@@ -19,7 +21,7 @@ export const handleAnalyticsEvents = async ({
   bookingInfo,
   isTeamEventType,
 }: HandleAnalyticsEventsProps) => {
-  const { dub_id } = await rawBookingData;
+  const { dub_id } = rawBookingData;
 
   if (!dub_id || typeof dub_id !== "string") return;
 
@@ -40,6 +42,6 @@ export const handleAnalyticsEvents = async ({
       },
     });
   } catch (err) {
-    console.error("Error sending dub lead: ", err);
+    logger.error("Error sending dub lead", { err });
   }
 };
