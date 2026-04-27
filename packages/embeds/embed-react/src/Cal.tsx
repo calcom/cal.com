@@ -26,6 +26,11 @@ const Cal = function Cal(props: CalProps) {
   const initializedRef = useRef(false);
   const Cal = useEmbed(embedJsUrl);
   const ref = useRef<HTMLDivElement>(null);
+
+  // Initialization effect: runs once per calLink/namespace/calOrigin change.
+  // The initializedRef guard prevents double-initialization (e.g. React StrictMode),
+  // but it is intentionally NOT in the dependency array so that config-only
+  // changes are handled by the separate update effect below.
   useEffect(() => {
     if (!Cal || initializedRef.current || !ref.current) {
       return;
@@ -53,7 +58,31 @@ const Cal = function Cal(props: CalProps) {
         config,
       });
     }
-  }, [Cal, calLink, config, namespace, calOrigin, initConfig]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- config updates are handled in the effect below
+  }, [Cal, calLink, namespace, calOrigin, initConfig]);
+
+  // Config update effect: propagates config prop changes to an already-initialized
+  // embed via the `ui` command. Skips the very first render (handled above).
+  useEffect(() => {
+    if (!Cal || !initializedRef.current || !config) {
+      return;
+    }
+    const { theme, ...rest } = config as PrefillAndIframeAttrsConfig & { theme?: string };
+    const uiPayload: Record<string, unknown> = {};
+    if (theme !== undefined) {
+      uiPayload.theme = theme;
+    }
+    // Spread remaining ui-compatible fields (e.g. cssVarsPerTheme, styles)
+    Object.assign(uiPayload, rest);
+    if (Object.keys(uiPayload).length === 0) {
+      return;
+    }
+    if (namespace) {
+      Cal.ns[namespace]("ui", uiPayload);
+    } else {
+      Cal("ui", uiPayload);
+    }
+  }, [Cal, config, namespace]);
 
   if (!Cal) {
     return null;
