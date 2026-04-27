@@ -1,6 +1,10 @@
 import type { Invoice } from "@getalby/sdk/dist/types";
 import { Webhook } from "svix";
 
+import logger from "@calcom/lib/logger";
+
+const log = logger.getSubLogger({ prefix: ["alby", "parseInvoice"] });
+
 export default function parseInvoice(
   body: string,
   headers: {
@@ -16,7 +20,7 @@ export default function parseInvoice(
   } catch (err) {
     // Looks like alby might sent multiple webhooks for the same invoice but it should only work once
     // TODO: remove the Alby webhook when uninstalling the Alby app
-    console.error(err);
+    log.error("Failed to verify alby webhook signature", err);
   }
   return null;
 }
