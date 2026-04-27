@@ -334,7 +334,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
   }
 
   if (checkoutSessionId) {
-    console.log("Created user but missing payment", checkoutSessionId);
+    log.warn("Created user but missing payment", { checkoutSessionId });
     return NextResponse.json(
       { message: "Created user but missing payment", checkoutSessionId },
       { status: 402 }
