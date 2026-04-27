@@ -65,7 +65,7 @@ export async function handleErrorsJson<Type>(response: Response): Promise<Type> 
   }
 
   if (!response.ok && (response.status < 200 || response.status >= 300)) {
-    response.json().then(console.log);
+    response.json().then(console.error);
     throw Error(response.statusText);
   }
 
@@ -78,7 +78,7 @@ export function handleErrorsRaw(response: Response) {
     return "{}";
   }
   if (!response.ok || response.status < 200 || response.status >= 300) {
-    response.text().then(console.log);
+    response.text().then(console.error);
     throw Error(response.statusText);
   }
   return response.text();
