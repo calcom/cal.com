@@ -2,8 +2,11 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
+import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+
+const log = logger.getSubLogger({ prefix: ["WebPushContext"] });
 
 interface WebPushContextProps {
   permission: NotificationPermission;
@@ -45,7 +48,7 @@ export function WebPushProvider({ children }: ProviderProps) {
         }
       })
       .catch((error) => {
-        console.error("Service Worker registration failed:", error);
+        log.error("Service Worker registration failed:", error);
       });
   }, []);
 
@@ -70,7 +73,7 @@ export function WebPushProvider({ children }: ProviderProps) {
             showToast("Notifications enabled successfully", "success");
           }
         } catch (error) {
-          console.error("Failed to subscribe:", error);
+          log.error("Failed to subscribe:", error);
           if (
             error instanceof DOMException &&
             error.name === "InvalidAccessError" &&
@@ -97,7 +100,7 @@ export function WebPushProvider({ children }: ProviderProps) {
             showToast("Notifications disabled successfully", "success");
           }
         } catch (error) {
-          console.error("Failed to unsubscribe:", error);
+          log.error("Failed to unsubscribe:", error);
           showToast("Failed to disable notifications", "error");
         } finally {
           setIsLoading(false);
