@@ -1,6 +1,9 @@
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { findValidApiKey } from "../../../_utils/findValidApiKey";
+
+const log = logger.getSubLogger({ prefix: ["make", "subscriptions", "me"] });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
@@ -25,9 +28,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           username: true,
         },
       });
-      res.status(201).json(user);
+      res.status(200).json(user);
     } catch (error) {
-      console.error(error);
+      log.error("Failed to fetch user for Make /subscriptions/me", error);
       return res.status(500).json({ message: "Unable to get User." });
     }
   }
