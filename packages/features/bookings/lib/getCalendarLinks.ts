@@ -5,6 +5,7 @@ import type { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
 import type { Prisma } from "@calcom/prisma/client";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -226,7 +227,7 @@ export const getCalendarLinks = ({
       location: videoCallUrl ?? null,
     });
   } catch (error) {
-    console.error("Error generating ICS file", error);
+    logger.error("Error generating ICS file", error);
   }
 
   return [
