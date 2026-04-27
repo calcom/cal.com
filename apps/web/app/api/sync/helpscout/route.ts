@@ -8,6 +8,7 @@ import getRawBody from "raw-body";
 import z from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
+import logger from "@calcom/lib/logger";
 import { default as webPrisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -91,7 +92,7 @@ async function postHandler(request: NextRequest) {
       `,
     });
   } catch (error) {
-    console.error("Error processing HelpScout request:", error);
+    logger.error("Error processing HelpScout request:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
