@@ -4,9 +4,12 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import type { Fields } from "@calcom/features/bookings/lib/getBookingFields";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { convertToSmallestCurrencyUnit } from "@calcom/lib/currencyConversions";
+import logger from "@calcom/lib/logger";
 import type { AppCategories, Prisma, EventType, PaymentOption } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+
+const log = logger.getSubLogger({ prefix: ["handlePayment"] });
 
 const isPaymentService = (
   x: unknown
@@ -54,13 +57,13 @@ const handlePayment = async ({
 
   const paymentAppImportFn = PaymentServiceMap[key as keyof typeof PaymentServiceMap];
   if (!paymentAppImportFn) {
-    console.warn(`payment app not implemented for key: ${key}`);
+    log.warn(`payment app not implemented for key: ${key}`);
     return null;
   }
 
   const paymentAppModule = await paymentAppImportFn;
   if (!isPaymentService(paymentAppModule)) {
-    console.warn(`payment App service not found for key: ${key}`);
+    log.warn(`payment App service not found for key: ${key}`);
     return null;
   }
   const createPaymentService = paymentAppModule.BuildPaymentService;
@@ -191,13 +194,13 @@ const handlePayment = async ({
   }
 
   if (!paymentData) {
-    console.error("Payment data is null");
+    log.error("Payment data is null");
     throw new Error("Payment data is null");
   }
   try {
     await paymentInstance.afterPayment(evt, booking, paymentData, selectedEventType?.metadata);
   } catch (e) {
-    console.error(e);
+    log.error("afterPayment hook failed", e);
   }
   return paymentData;
 };
