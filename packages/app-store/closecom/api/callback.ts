@@ -3,9 +3,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+
+const log = logger.getSubLogger({ prefix: ["closecom/callback"] });
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -79,7 +82,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     return res.redirect(redirectAfterSuccess);
   } catch (error) {
-    console.error("Error getting close.com access token", error);
+    log.error("Error getting close.com access token", error);
     return res.redirect(`${redirectAfterSuccessOrError}?error=Error getting close.com access token`);
   }
 }
