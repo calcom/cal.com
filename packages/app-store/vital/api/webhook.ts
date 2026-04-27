@@ -156,7 +156,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ body: req.body });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
-    console.error(`Webhook Error: ${err.message}`);
+    logger.error(`Webhook Error: ${err.message}`);
     res.status(err.statusCode).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.cause?.stack,
