@@ -71,7 +71,7 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
         // Avoid following redirect
         redirect: "manual",
       }).catch((error) => {
-        console.error(`Webhook trigger for subscriber url ${job.subscriberUrl} failed with error: ${error}`);
+        logger.error(`Webhook trigger for subscriber url ${job.subscriberUrl} failed with error: ${error}`);
       })
     );
 
