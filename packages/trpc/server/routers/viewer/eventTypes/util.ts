@@ -1,6 +1,7 @@
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { PeriodType } from "@calcom/prisma/enums";
@@ -10,6 +11,8 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import authedProcedure from "../../../procedures/authedProcedure";
 import type { TUpdateInputSchema } from "./types";
+
+const log = logger.getSubLogger({ prefix: ["eventTypeUtils"] });
 
 type PermissionString = string;
 class PermissionCheckService {
@@ -85,7 +88,7 @@ export const eventOwnerProcedure = authedProcedure
     })();
 
     if (!isAllowed) {
-      console.warn(
+      log.warn(
         `User ${ctx.user.id} attempted to an create an event for users ${input.users.join(", ")}.`
       );
       throw new TRPCError({ code: "FORBIDDEN" });
@@ -185,7 +188,7 @@ export const createEventPbacProcedure = (
         })();
 
         if (!isAllowed) {
-          console.warn(
+          log.warn(
             `User ${ctx.user.id} attempted to assign event ${event.id} to users ${input.users.join(", ")}.`
           );
           throw new TRPCError({
