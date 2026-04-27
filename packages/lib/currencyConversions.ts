@@ -1,3 +1,5 @@
+import logger from "@calcom/lib/logger";
+
 const zeroDecimalCurrencies = [
   "BIF",
   "CLP",
@@ -52,7 +54,7 @@ export const getCurrencySymbol = (currencyCode: string): string => {
   } catch {
     // Ideally we would not reach here, but if for some reason we reach here, we return
     // $ as default currency
-    console.warn(`Failed to get currency symbol for ${currencyCode}, falling back to $`);
+    logger.warn(`Failed to get currency symbol for ${currencyCode}, falling back to $`);
     return "$";
   }
 };
