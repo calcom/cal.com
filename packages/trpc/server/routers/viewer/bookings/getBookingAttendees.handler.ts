@@ -25,9 +25,5 @@ export const getBookingAttendeesHandler = async ({ ctx: _ctx, input }: GetBookin
     },
   });
 
-  if (!bookingSeat) {
-    throw new Error("Booking not found");
-  }
-
   return bookingSeat.booking._count.seatsReferences;
 };
