@@ -115,7 +115,8 @@ const checkActiveBookingsLimitAndOfferReschedule = async ({
     },
   });
 
-  const lastBooking = bookingsCount[bookingsCount.length - 1];
+  // bookingsCount is ordered by startTime desc, so [0] is the most recent booking
+  const lastBooking = bookingsCount[0];
   // Get the seatUid for the booker's seat in this booking (if it's a seated event)
   const seatUid = lastBooking?.attendees[0]?.bookingSeat?.referenceUid;
 
