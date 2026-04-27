@@ -1,6 +1,7 @@
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -9,6 +10,8 @@ import { TRPCError } from "@trpc/server";
 import type { z } from "zod";
 import type { TrpcSessionUser } from "../../../../types";
 import type { TCreateInputSchema } from "./create.schema";
+
+const log = logger.getSubLogger({ prefix: ["createEventTypeHandler"] });
 
 class PermissionCheckService {
   constructor(_prisma?: unknown) {}
@@ -114,7 +117,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     if (!isSystemAdmin && !hasOrgEventTypeCreatePermission && !hasCreatePermission) {
       // If none of the above conditions are met, the user is unauthorized.
       // which means the user is not admin of the team nor the org.
-      console.warn(`User ${userId} does not have eventType.create permission for team ${teamId}`);
+      log.warn(`User ${userId} does not have eventType.create permission for team ${teamId}`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
@@ -140,7 +143,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
     const orgHasLockedEventTypes = !!orgSettings?.lockEventTypeCreationForUsers;
     if (orgHasLockedEventTypes) {
-      console.warn(
+      log.warn(
         `User ${userId} does not have permission to create this new event type - Locked status: ${orgHasLockedEventTypes}`
       );
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -156,7 +159,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     });
     return { eventType };
   } catch (e) {
-    console.warn(e);
+    log.warn("Failed to create event type", { error: e });
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
