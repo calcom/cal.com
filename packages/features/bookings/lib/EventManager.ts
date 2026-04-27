@@ -852,7 +852,7 @@ export default class EventManager {
 
   public async updateCalendarAttendees(event: CalendarEvent, booking: PartialBooking) {
     if (booking.references.length === 0) {
-      console.error("Tried to update references but there wasn't any.");
+      log.error("Tried to update references but there wasn't any.");
       return;
     }
     await this.updateAllCalendarEvents(event, booking);
@@ -1262,7 +1262,7 @@ export default class EventManager {
     for (const credential of this.crmCredentials) {
       if (isTaskerEnabledForSalesforceCrm) {
         if (!event.uid) {
-          console.error(
+          log.error(
             `Missing bookingId when scheduling CRM event creation on event type ${event?.eventTypeId}`
           );
           continue;
