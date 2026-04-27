@@ -19,6 +19,7 @@ import PhoneInput from "@calcom/web/components/phone-input";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
@@ -186,7 +187,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const SelectedLocationInput = (() => {
     if (eventLocationType && eventLocationType.organizerInputType && LocationInput) {
       if (!eventLocationType.variable) {
-        console.error("eventLocationType.variable can't be undefined");
+        logger.error("eventLocationType.variable is undefined for organizer input type", {
+          eventLocationType: eventLocationType.type,
+        });
         return null;
       }
 
