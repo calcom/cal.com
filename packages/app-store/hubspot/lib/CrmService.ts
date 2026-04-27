@@ -603,7 +603,7 @@ class HubspotCalendarService implements CRM {
   }
 
   async handleAttendeeNoShow() {
-    console.log("Not implemented");
+    this.log.warn("handleAttendeeNoShow is not implemented");
   }
 
   private async getHubspotOwnerIdFromEmail(email: string): Promise<string | null> {
