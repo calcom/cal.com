@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
+import { log } from "@calcom/lib/logger";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -185,7 +186,7 @@ const ShimmerDailyVideoApiAdapter = (): VideoApiAdapter => {
         );
         return Promise.resolve(res);
       } catch (err) {
-        console.log("err", err);
+        log.error("shimmervideo: Unable to get recording access link", { recordingId, err });
         throw new Error("Something went wrong! Unable to get recording access link");
       }
     },
