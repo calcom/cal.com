@@ -55,10 +55,10 @@ class Paypal {
         this.accessToken = access_token;
         this.expiresAt = Date.now() + expires_in;
       } else if (response?.status) {
-        console.error(`Request failed with status ${response.status}`);
+        logger.error(`Request failed with status ${response.status}`);
       }
     } catch (error) {
-      console.error(error);
+      logger.error("Error fetching PayPal access token", { error });
     }
   }
 
@@ -113,10 +113,10 @@ class Paypal {
         const createOrderResponse: CreateOrderResponse = await response.json();
         return createOrderResponse;
       } else {
-        console.error(`Request failed with status ${response.status}`);
+        logger.error(`Request failed with status ${response.status}`);
       }
     } catch (error) {
-      console.error(error);
+      logger.error("Error creating PayPal order", { error });
     }
     return {} as CreateOrderResponse;
   }
@@ -173,7 +173,7 @@ class Paypal {
         }
       }
     } catch (error) {
-      console.error(error);
+      logger.error("Error capturing PayPal order", { error });
       throw error;
     }
     return false;
@@ -226,7 +226,7 @@ class Paypal {
           .map((webhook: { id: string }) => webhook.id);
       }
     } catch (error) {
-      console.error(error);
+      logger.error("Error listing PayPal webhooks", { error });
       return [];
     }
     return [];
@@ -242,7 +242,7 @@ class Paypal {
         return true;
       }
     } catch (error) {
-      console.error(error);
+      logger.error("Error deleting PayPal webhook", { error });
     }
     return false;
   }
@@ -252,7 +252,7 @@ class Paypal {
     try {
       await this.getAccessToken();
     } catch (error) {
-      console.error(error);
+      logger.error("Error getting PayPal access token in test", { error });
       return false;
     }
     return true;
@@ -263,7 +263,7 @@ class Paypal {
 
     // Webhook event should be parsable
     if (!parseRequest.success) {
-      console.error(parseRequest.error);
+      logger.error("PayPal webhook verify request is malformed", { error: parseRequest.error });
       throw new Error("Request is malformed");
     }
 
@@ -293,7 +293,7 @@ class Paypal {
         throw data;
       }
     } catch (err) {
-      console.error(err);
+      logger.error("Error verifying PayPal webhook signature", { err });
       throw err;
     }
   }
