@@ -302,7 +302,7 @@ export const InfiniteEventTypeList = ({
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
     onError: async (err) => {
-      console.error(err.message);
+      showToast(err.message, "error");
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
     },
@@ -357,7 +357,7 @@ export const InfiniteEventTypeList = ({
           () => context.previousValue
         );
       }
-      console.error(err.message);
+      showToast(err.message, "error");
     },
   });
 
