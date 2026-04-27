@@ -15,6 +15,7 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -23,6 +24,8 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+
+const log = logger.getSubLogger({ prefix: ["handleDeleteCredential"] });
 
 type App = {
   slug: string;
@@ -471,7 +474,7 @@ const handleDeleteCredential = async ({
         },
       });
     } catch (error) {
-      console.warn(
+      log.warn(
         `Error deleting selected calendars for userId: ${userId} integration: ${credential.type}`,
         error
       );
