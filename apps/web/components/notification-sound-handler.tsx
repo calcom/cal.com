@@ -2,6 +2,10 @@
 
 import { useEffect, useRef } from "react";
 
+import logger from "@calcom/lib/logger";
+
+const log = logger.getSubLogger({ prefix: ["notification-sound-handler"] });
+
 export function NotificationSoundHandler() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -26,7 +30,7 @@ export function NotificationSoundHandler() {
 
       return true;
     } catch (error) {
-      console.error("Failed to initialize audio system:", error);
+      log.error("Failed to initialize audio system:", error);
       return false;
     }
   };
@@ -70,7 +74,7 @@ export function NotificationSoundHandler() {
         }
       }, 7000);
     } catch (error) {
-      console.error("Error playing sound:", error);
+      log.error("Error playing sound:", error);
       // Try to reinitialize on error
       audioContextRef.current = null;
       audioBufferRef.current = null;
@@ -99,7 +103,7 @@ export function NotificationSoundHandler() {
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) {
-      console.warn("ServiceWorker not available");
+      log.warn("ServiceWorker not available");
       return;
     }
 
