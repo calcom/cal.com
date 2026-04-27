@@ -8,8 +8,11 @@ import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
+
+const log = logger.getSubLogger({ prefix: ["paypal", "webhook"] });
 
 import appConfig from "../config.json";
 
@@ -88,12 +91,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const parseHeaders = webhookHeadersSchema.safeParse(headers);
     if (!parseHeaders.success) {
-      console.error(parseHeaders.error);
+      log.error("Invalid webhook headers", parseHeaders.error);
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
     const parse = eventSchema.safeParse(JSON.parse(bodyAsString));
     if (!parse.success) {
-      console.error(parse.error);
+      log.error("Invalid webhook payload", parse.error);
       throw new HttpCode({ statusCode: 400, message: "Bad Request" });
     }
 
@@ -104,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
-    console.error(`Webhook Error: ${err.message}`);
+    log.error(`Webhook Error: ${err.message}`);
     res.status(200).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.cause?.stack,
@@ -201,7 +204,7 @@ export const findPaymentCredentials = async (
       webhookId: parsedCredentials.data.webhook_id,
     };
   } catch (err) {
-    console.error(err);
+    log.error("Failed to find PayPal payment credentials", err);
     return {
       clientId: "",
       secretKey: "",
