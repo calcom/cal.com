@@ -39,6 +39,10 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
                   placeholder={placeholder}
                   label={<></>}
                   required
+                  // Auto-focus the most recently added (last) field so the mobile keyboard
+                  // appears immediately and focus stays on the guest email input rather than
+                  // jumping to the next focusable element (e.g. the notes field).
+                  autoFocus={field === "" && index === value.length - 1}
                   onClickAddon={() => {
                     const updatedValue = [...value];
                     updatedValue.splice(index, 1);
