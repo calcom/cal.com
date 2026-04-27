@@ -1,5 +1,9 @@
+import logger from "@calcom/lib/logger";
+
 import { Task } from "./repository";
 import tasksMap, { tasksConfig } from "./tasks";
+
+const log = logger.getSubLogger({ prefix: ["TaskProcessor"] });
 
 /**
  * TaskProcessor handles the processing of tasks from the queue.
@@ -9,10 +13,10 @@ import tasksMap, { tasksConfig } from "./tasks";
 export class TaskProcessor {
   async processQueue(): Promise<void> {
     const tasks = await Task.getNextBatch();
-    console.info(`Processing ${tasks.length} tasks`, tasks);
+    log.info(`Processing ${tasks.length} tasks`, tasks);
 
     const tasksPromises = tasks.map(async (task) => {
-      console.info(
+      log.info(
         `Processing task ${task.id}, attempt:${task.attempts} maxAttempts:${task.maxAttempts} lastFailedAttempt:${task.lastFailedAttemptAt}`,
         task
       );
@@ -25,7 +29,7 @@ export class TaskProcessor {
           await Task.succeed(task.id);
         })
         .catch(async (error) => {
-          console.info(`Retrying task ${task.id}: ${error}`);
+          log.warn(`Retrying task ${task.id}: ${error}`);
           await Task.retry({
             taskId: task.id,
             lastError: error instanceof Error ? error.message : "Unknown error",
@@ -37,6 +41,6 @@ export class TaskProcessor {
     const settled = await Promise.allSettled(tasksPromises);
     const failed = settled.filter((result) => result.status === "rejected");
     const succeded = settled.filter((result) => result.status === "fulfilled");
-    console.info({ failed, succeded });
+    log.info({ failed, succeded });
   }
 }
