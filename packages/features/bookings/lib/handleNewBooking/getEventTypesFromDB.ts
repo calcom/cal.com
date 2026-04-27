@@ -2,7 +2,6 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import type { DefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
-import { ErrorCode } from "@calcom/lib/errorCodes";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -207,10 +206,6 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     },
     select: getEventTypesFromDBSelect,
   });
-
-  if (!eventType) {
-    throw new Error(ErrorCode.EventTypeNotFound);
-  }
 
   const { profile, hosts, users, ...restEventType } = eventType;
 
