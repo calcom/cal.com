@@ -18,7 +18,7 @@ const SylapsApiAdapter = (): VideoApiAdapter => {
       });
     },
     deleteMeeting: async (): Promise<void> => {
-      Promise.resolve();
+      return Promise.resolve();
     },
     updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
       return Promise.resolve({
