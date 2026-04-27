@@ -242,7 +242,7 @@ class BasecampCalendarService implements Calendar {
     const allowedExtensions = ["eml", "ics"];
     const urlExtension = getFileExtension(url);
     if (!allowedExtensions.includes(urlExtension)) {
-      console.error(`Unsupported calendar object format: ${urlExtension}`);
+      this.log.error(`Unsupported calendar object format: ${urlExtension}`);
       return false;
     }
     return true;
