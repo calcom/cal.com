@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import logger from "@calcom/lib/logger";
 import { type TraceContext } from "@calcom/lib/tracing";
 import { TracedError } from "@calcom/lib/tracing/error";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
@@ -62,9 +63,9 @@ export function defaultResponder<T>(
       } else {
         error = getServerErrorFromUnknown(tracedError);
       }
-      // we don't want to report Bad Request errors to Sentry / console
+      // we don't want to report Bad Request errors to Sentry / logger
       if (!(error.statusCode >= 400 && error.statusCode < 500)) {
-        console.error(error);
+        logger.error("defaultResponder caught server error", error);
         const { captureException } = await import("@sentry/nextjs");
         captureException(tracedError);
       }
