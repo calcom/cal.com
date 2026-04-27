@@ -25,7 +25,9 @@ import type { TAddGuestsInputSchema } from "./addGuests.schema";
 type ActionSource = string;
 
 export type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId" | "uuid"> &
-  Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
+  Partial<Pick<NonNullable<TrpcSessionUser>, "profile">> & {
+    isSystemAdmin?: boolean;
+  };
 
 type AddGuestsOptions = {
   ctx: {
@@ -104,6 +106,10 @@ export async function getBooking(bookingId: number) {
 }
 
 export async function validateUserPermissions(booking: Booking, user: TUser): Promise<void> {
+  if (user.isSystemAdmin) {
+    return;
+  }
+
   const isOrganizer = booking.userId === user.id;
   const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
 
