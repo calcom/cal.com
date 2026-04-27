@@ -219,7 +219,7 @@ const getRecordingsOfCalVideoByRoomName = async (
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch {
-    console.error("Error: Cal video provider is not installed.");
+    log.error("Error: Cal video provider is not installed.");
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -246,7 +246,7 @@ const getDownloadLinkOfCalVideoByRecordingId = async (
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch {
-    console.error("Error: Cal video provider is not installed.");
+    log.error("Error: Cal video provider is not installed.");
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -271,7 +271,7 @@ const getAllTranscriptsAccessLinkFromRoomName = async (roomName: string) => {
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch {
-    console.error("Error: Cal video provider is not installed.");
+    log.error("Error: Cal video provider is not installed.");
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -296,7 +296,7 @@ const getAllTranscriptsAccessLinkFromMeetingId = async (meetingId: string) => {
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch {
-    console.error("Error: Cal video provider is not installed.");
+    log.error("Error: Cal video provider is not installed.");
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -321,7 +321,7 @@ const submitBatchProcessorTranscriptionJob = async (recordingId: string) => {
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch {
-    console.error("Error: Cal video provider is not installed.");
+    log.error("Error: Cal video provider is not installed.");
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -358,7 +358,7 @@ const getTranscriptsAccessLinkFromRecordingId = async (recordingId: string) => {
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch {
-    console.error("Error: Cal video provider is not installed.");
+    log.error("Error: Cal video provider is not installed.");
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -384,7 +384,7 @@ const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: 
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch {
-    console.error("Error: Cal video provider is not installed.");
+    log.error("Error: Cal video provider is not installed.");
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -410,7 +410,7 @@ const getCalVideoMeetingSessionsByRoomName = async (roomName: string) => {
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch (e) {
-    console.error("Error: Cal video provider is not installed.");
+    log.error("Error: Cal video provider is not installed.");
     return { data: [] };
   }
   const [videoAdapter] = await getVideoAdapters([
