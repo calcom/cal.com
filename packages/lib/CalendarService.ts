@@ -784,7 +784,10 @@ export default abstract class BaseCalendarService implements Calendar {
             }
             currentStart = dayjs(currentEvent.startDate.toJSDate());
 
-            if (currentStart.isBetween(start, end) === true) {
+            // Use inclusive start bound ('[') so events that begin exactly at the query
+            // start boundary are not missed. End is exclusive since an event starting
+            // precisely at the end of the window is outside the queried period.
+            if (currentStart.isBetween(start, end, null, "[)") === true) {
               events.push({
                 start: currentStart.toISOString(),
                 end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
