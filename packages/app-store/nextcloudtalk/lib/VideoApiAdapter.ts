@@ -170,7 +170,7 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
         }
         throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
       } catch (err) {
-        console.error(err);
+        logger.error("Error creating Nextcloud Talk room", safeStringify(err));
         /* Prevents meeting creation failure when token is expired */
         throw new Error("Unexpected error");
       }
