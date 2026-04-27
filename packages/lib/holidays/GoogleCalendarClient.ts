@@ -1,6 +1,9 @@
 import dayjs from "@calcom/dayjs";
+import logger from "@calcom/lib/logger";
 
 import { GOOGLE_HOLIDAY_CALENDARS } from "./constants";
+
+const log = logger.getSubLogger({ prefix: ["GoogleCalendarClient"] });
 
 interface GoogleCalendarEvent {
   id: string;
@@ -61,7 +64,7 @@ export class GoogleCalendarClient {
     const data: GoogleCalendarEventsResponse = await response.json();
 
     if (data.error) {
-      console.error(`Google Calendar API error for ${countryCode}:`, data.error);
+      log.error(`Google Calendar API error for ${countryCode}`, data.error);
       throw new Error(`Google Calendar API error: ${data.error.message}`);
     }
 
