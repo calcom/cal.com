@@ -272,7 +272,6 @@ export class BusyTimesService {
       /*
     // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
     const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
-    console.log("videoBusyTimes", videoBusyTimes);
     busyTimes.push(...videoBusyTimes);
     */
     } else {
