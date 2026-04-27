@@ -1,8 +1,11 @@
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
 import { type TaskTypes } from "./tasker";
+
+const log = logger.getSubLogger({ prefix: ["TaskRepository"] });
 
 const whereSucceeded: Prisma.TaskWhereInput = {
   succeededAt: { not: null },
@@ -190,7 +193,7 @@ export class TaskRepository {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
         // P2025 is the error code for "Record to delete does not exist"
-        console.warn(`Task with reference ${referenceUid} and type ${type} does not exist. No action taken.`);
+        log.warn(`Task with reference ${referenceUid} and type ${type} does not exist. No action taken.`);
         return null;
       }
       throw error;

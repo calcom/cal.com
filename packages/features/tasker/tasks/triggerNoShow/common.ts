@@ -77,9 +77,9 @@ export function sendWebhookPayload(
           : `Host with email ${hostEmail} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
     },
   }).catch((e) => {
-    console.error(
+    log.error(
       `Error executing webhook for event: ${triggerEvent}, URL: ${webhook.subscriberUrl}`,
-      webhook,
+      { webhook },
       e
     );
     return undefined;
