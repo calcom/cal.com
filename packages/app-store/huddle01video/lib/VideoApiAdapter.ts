@@ -8,6 +8,8 @@ import { getHuddle01Credential } from "../utils/storage";
 
 const API_END_POINT = "https://platform-api.huddle01.workers.dev/api/v2/calendar";
 
+const log = logger.getSubLogger({ prefix: ["app-store/huddle01video/lib/VideoApiAdapter"] });
+
 const fetchHuddleAPI = async (userId: number) => {
   const { identityToken } = await getHuddle01Credential(userId);
   const apiKey = process.env.HUDDLE01_API_TOKEN;
@@ -34,8 +36,6 @@ const fetchHuddleAPI = async (userId: number) => {
     });
   };
 };
-
-const log = logger.getSubLogger({ prefix: ["app-store/huddle01video/lib/VideoApiAdapter"] });
 
 const Huddle01ApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   return {
