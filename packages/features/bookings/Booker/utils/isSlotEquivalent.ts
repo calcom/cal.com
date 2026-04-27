@@ -26,8 +26,7 @@ export const isSlotEquivalent = ({
   }
 
   if (!isValidISOFormat(slotTimeInIso) || !isValidISOFormat(slotToCheckInIso)) {
-    console.log("Invalid ISO string format detected", { slotTimeInIso, slotToCheckInIso });
-    // Consider slots equivalent
+    // Consider slots equivalent when we can't parse them to avoid blocking the booker
     return true;
   }
 
