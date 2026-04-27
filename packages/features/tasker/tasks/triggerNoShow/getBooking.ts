@@ -1,9 +1,4 @@
-import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-
-const log = logger.getSubLogger({ prefix: ["trigger-no-show-handler"] });
 
 export const getBooking = async (bookingId: number) => {
   const booking = await prisma.booking.findUniqueOrThrow({
@@ -62,18 +57,5 @@ export const getBooking = async (bookingId: number) => {
     },
   });
 
-  if (!booking) {
-    log.error(
-      "Couldn't find Booking Id:",
-      safeStringify({
-        bookingId,
-      })
-    );
-
-    throw new HttpError({
-      message: `Booking of id ${bookingId} does not exist or does not contain daily video as location`,
-      statusCode: 404,
-    });
-  }
   return booking;
 };
