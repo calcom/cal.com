@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import logger from "@calcom/lib/logger";
+
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -58,7 +60,7 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
       }
     } catch (e) {
       setErrorMessage(t("something_went_wrong"));
-      console.error(t("error_disabling_2fa"), e);
+      logger.error("Error disabling 2FA", { error: e });
     } finally {
       setIsDisabling(false);
     }

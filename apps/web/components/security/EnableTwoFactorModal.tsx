@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import logger from "@calcom/lib/logger";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCallbackRef } from "@calcom/lib/hooks/useCallbackRef";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -93,7 +94,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
       }
     } catch (e) {
       setErrorMessage(t("something_went_wrong"));
-      console.error(t("error_enabling_2fa"), e);
+      logger.error("Error setting up 2FA", { error: e });
     } finally {
       setIsSubmitting(false);
     }
@@ -125,7 +126,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
       }
     } catch (e) {
       setErrorMessage(t("something_went_wrong"));
-      console.error(t("error_enabling_2fa"), e);
+      logger.error("Error enabling 2FA", { error: e });
     } finally {
       setIsSubmitting(false);
     }
