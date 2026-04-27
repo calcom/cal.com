@@ -1,3 +1,5 @@
+import logger from "@calcom/lib/logger";
+
 import { ErrorCode } from "@calcom/lib/errorCodes";
 
 export class ErrorWithCode extends Error {
@@ -65,7 +67,7 @@ export async function handleErrorsJson<Type>(response: Response): Promise<Type> 
   }
 
   if (!response.ok && (response.status < 200 || response.status >= 300)) {
-    response.json().then(console.log);
+    response.json().then((body) => logger.error("handleErrorsJson: error response body", { status: response.status, body }));
     throw Error(response.statusText);
   }
 
@@ -74,11 +76,11 @@ export async function handleErrorsJson<Type>(response: Response): Promise<Type> 
 
 export function handleErrorsRaw(response: Response) {
   if (response.status === 204) {
-    console.error({ response });
+    // 204 No Content is a successful response; return an empty object string.
     return "{}";
   }
   if (!response.ok || response.status < 200 || response.status >= 300) {
-    response.text().then(console.log);
+    response.text().then((body) => logger.error("handleErrorsRaw: error response body", { status: response.status, body }));
     throw Error(response.statusText);
   }
   return response.text();
