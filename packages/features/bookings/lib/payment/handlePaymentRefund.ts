@@ -1,6 +1,9 @@
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
+import logger from "@calcom/lib/logger";
 import type { Payment, Prisma, AppCategories } from "@calcom/prisma/client";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+
+const log = logger.getSubLogger({ prefix: ["handlePaymentRefund"] });
 
 const handlePaymentRefund = async (
   paymentId: Payment["id"],
@@ -16,13 +19,13 @@ const handlePaymentRefund = async (
   const key = paymentAppCredentials?.app?.dirName;
   const paymentAppImportFn = PaymentServiceMap[key as keyof typeof PaymentServiceMap];
   if (!paymentAppImportFn) {
-    console.warn(`payment app not implemented for key: ${key}`);
+    log.warn(`payment app not implemented for key: ${key}`);
     return false;
   }
 
   const paymentAppModule = await paymentAppImportFn;
   if (!paymentAppModule?.BuildPaymentService) {
-    console.warn(`payment App service not found for key: ${key}`);
+    log.warn(`payment App service not found for key: ${key}`);
     return false;
   }
   const createPaymentService = paymentAppModule.BuildPaymentService;
