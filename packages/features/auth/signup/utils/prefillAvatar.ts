@@ -1,9 +1,12 @@
 import fetch from "node-fetch";
 
+import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+
+const log = logger.getSubLogger({ prefix: ["prefillAvatar"] });
 
 interface IPrefillAvatar {
   email: string;
@@ -14,7 +17,7 @@ async function downloadImageDataFromUrl(url: string) {
     const response = await fetch(url);
 
     if (!response.ok) {
-      console.log("Error fetching image from: ", url);
+      log.warn("Error fetching image from URL", { url });
       return null;
     }
 
@@ -23,7 +26,7 @@ async function downloadImageDataFromUrl(url: string) {
 
     return base64Image;
   } catch (error) {
-    console.log(error);
+    log.error("Failed to download image", { url, error });
     return null;
   }
 }
@@ -56,7 +59,7 @@ export const prefillAvatar = async ({ email }: IPrefillAvatar) => {
 
 const getImageUrlAvatarAPI = async (email: string) => {
   if (!process.env.AVATARAPI_USERNAME || !process.env.AVATARAPI_PASSWORD) {
-    console.info("No avatar api credentials found");
+    log.info("No avatar api credentials found");
     return null;
   }
 
@@ -86,15 +89,15 @@ const getImageUrlAvatarAPI = async (email: string) => {
         // Expected case: no avatar for this email
         return null;
       }
-      console.warn("Avatar API error:", info.Error);
+      log.warn("Avatar API error", { error: info.Error });
       return null;
     }
     return info.Image as string;
   } catch (error: unknown) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      console.warn("Avatar API request timed out");
+      log.warn("Avatar API request timed out");
     } else {
-      console.error("Avatar API request failed:", error);
+      log.error("Avatar API request failed", { error });
     }
     return null;
   }
