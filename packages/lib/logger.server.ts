@@ -16,8 +16,11 @@ export const criticalLogger = logger.getSubLogger({
       try {
         fs.writeSync(process.stdout.fd, buffer);
       } catch (error) {
-        console.log(`Critical logger: Failed to write log using fs.writeSync: ${error}`);
-        console.log(logString);
+        // fs.writeSync failed (e.g. stdout is closed); fall back to the
+        // synchronous process.stderr.write which bypasses the Node.js
+        // stream machinery and avoids the same failure mode.
+        process.stderr.write(`[critical-logger] fs.writeSync failed: ${error}\n`);
+        process.stderr.write(logString + "\n");
       }
     },
   },
