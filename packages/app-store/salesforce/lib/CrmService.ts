@@ -248,7 +248,7 @@ class SalesforceCRMService implements CRM {
         credentialKey.issued_at = result.issuedAt;
         credentialKey.token_lifetime = result.tokenLifetime;
       } catch (err: unknown) {
-        console.error(err); // log but proceed
+        this.log.error("Failed to refresh Salesforce access token", err); // log but proceed
       }
     }
 
