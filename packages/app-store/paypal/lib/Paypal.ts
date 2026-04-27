@@ -53,7 +53,7 @@ class Paypal {
       if (response.ok) {
         const { access_token, expires_in } = await response.json();
         this.accessToken = access_token;
-        this.expiresAt = Date.now() + expires_in;
+        this.expiresAt = Date.now() + expires_in * 1000;
       } else if (response?.status) {
         console.error(`Request failed with status ${response.status}`);
       }
