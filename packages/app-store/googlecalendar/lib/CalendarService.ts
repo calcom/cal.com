@@ -484,7 +484,7 @@ class GoogleCalendarService implements Calendar {
        *  404 is when the event is on a different calendar
        */
       if (err.code === 410) return;
-      console.error("There was an error contacting google calendar service: ", err);
+      this.log.error("There was an error contacting google calendar service: ", safeStringify(err));
       if (err.code === 404) return;
       throw err;
     }
