@@ -1,5 +1,6 @@
 import { captureException } from "@sentry/nextjs";
 
+import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -442,7 +443,7 @@ export class FeaturesRepository implements IFeaturesRepository {
       return result.length > 0;
     } catch (err) {
       captureException(err);
-      console.error(
+      logger.error(
         `Recursive feature check failed for team ${teamId}, feature ${featureId}:`,
         err instanceof Error ? err.message : err
       );
