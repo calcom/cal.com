@@ -440,7 +440,7 @@ export class InputBookingsService_2024_08_13 {
       );
     }
     const repeatsTimes = inputBooking.recurrenceCount || occurrence.count;
-    // note(Lauris): timeBetween 0=yearly, 1=monthly and 2=weekly
+    // note(Lauris): timeBetween 0=yearly, 1=monthly, 2=weekly, 3=daily
     const timeBetween = occurrence.freq;
 
     const events = [];
@@ -503,6 +503,9 @@ export class InputBookingsService_2024_08_13 {
           break;
         case 2: // Weekly
           startTime = startTime.plus({ weeks: repeatsEvery });
+          break;
+        case 3: // Daily
+          startTime = startTime.plus({ days: repeatsEvery });
           break;
         default:
           throw new Error("Unsupported timeBetween value");
