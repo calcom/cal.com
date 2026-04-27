@@ -2,6 +2,8 @@ import { createHmac } from "node:crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type z from "zod";
 
+import { log } from "@calcom/lib/logger";
+
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -122,7 +124,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
-    console.error(`Webhook Error: ${err.message}`);
+    log.error(`hitpay webhook error: ${err.message}`, err);
     return res.status(200).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.cause?.stack,
