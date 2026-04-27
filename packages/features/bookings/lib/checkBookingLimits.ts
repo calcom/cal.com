@@ -1,6 +1,5 @@
 import dayjs from "@calcom/dayjs";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit, IntervalLimitKey } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -38,11 +37,7 @@ export class CheckBookingLimitsService {
       })
     );
 
-    try {
-      return !!(await Promise.all(limitCalculations));
-    } catch (error) {
-      throw new HttpError({ message: getErrorFromUnknown(error).message, statusCode: 401 });
-    }
+    return !!(await Promise.all(limitCalculations));
   }
 
   checkBookingLimits = withReporting(this._checkBookingLimits.bind(this), "checkBookingLimits");
