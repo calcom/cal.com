@@ -301,11 +301,11 @@ class BiginCrmService implements CRM {
   }
 
   getAppOptions() {
-    console.log("No options implemented");
+    this.log.warn("getAppOptions: no options implemented for Zoho Bigin CRM");
   }
 
   async handleAttendeeNoShow() {
-    console.log("Not implemented");
+    this.log.warn("handleAttendeeNoShow: not implemented for Zoho Bigin CRM");
   }
 }
 
