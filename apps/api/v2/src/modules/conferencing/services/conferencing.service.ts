@@ -76,8 +76,7 @@ export class ConferencingService {
 
       default:
         throw new BadRequestException(
-          "Invalid conferencing app, available apps are: ",
-          [ZOOM, OFFICE_365_VIDEO].join(", ")
+          `Invalid conferencing app. Available apps are: ${[ZOOM, OFFICE_365_VIDEO].join(", ")}`
         );
     }
   }
@@ -89,7 +88,7 @@ export class ConferencingService {
 
   async checkAppIsValidAndConnected(user: UserWithProfile, appSlug: string) {
     if (!CONFERENCING_APPS.includes(appSlug)) {
-      throw new BadRequestException("Invalid app, available apps are: ", CONFERENCING_APPS.join(", "));
+      throw new BadRequestException(`Invalid app. Available apps are: ${CONFERENCING_APPS.join(", ")}`);
     }
     const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
@@ -135,8 +134,7 @@ export class ConferencingService {
 
       default:
         throw new BadRequestException(
-          "Invalid conferencing app, available apps are: ",
-          [ZOOM, OFFICE_365_VIDEO].join(", ")
+          `Invalid conferencing app. Available apps are: ${[ZOOM, OFFICE_365_VIDEO].join(", ")}`
         );
     }
   }
