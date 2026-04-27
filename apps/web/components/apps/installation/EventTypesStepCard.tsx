@@ -60,7 +60,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
         <li>
           <div>
             <span className="text-default font-semibold ltr:mr-1 rtl:ml-1">{title}</span>{" "}
-            <small className="text-subtle hidden font-normal sm:inline">
+            <small className="text-subtle hidden max-w-xs overflow-hidden text-ellipsis font-normal sm:inline-block align-middle">
               /{team ? team.slug : userName}/{slug}
             </small>
           </div>
