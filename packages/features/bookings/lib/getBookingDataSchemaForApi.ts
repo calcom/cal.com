@@ -35,18 +35,16 @@ const getBookingDataSchemaForApi = ({
       if (val.responses) {
         const unwantedProps: string[] = [];
         legacyProps.forEach((legacyProp) => {
-          if (typeof val[legacyProp as keyof typeof val] !== "undefined") {
-            console.error(
-              `Deprecated: Unexpected falsy value for: ${unwantedProps.join(
-                ","
-              )}. They can't be used with \`responses\`. This will become a 400 error in the future.`
-            );
-          }
           if (val[legacyProp as keyof typeof val]) {
             unwantedProps.push(legacyProp);
           }
         });
         if (unwantedProps.length) {
+          console.error(
+            `Deprecated: Unexpected value for: ${unwantedProps.join(
+              ","
+            )}. They can't be used with \`responses\`. This will become a 400 error in the future.`
+          );
           ctx.addIssue({
             code: "custom",
             message: `Legacy Props: ${unwantedProps.join(",")}. They can't be used with \`responses\``,
