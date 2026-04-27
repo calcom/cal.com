@@ -1,12 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import logger from "@calcom/lib/logger";
+
 import { handleButtonAndInvitationStep } from "../lib/configure/button";
 import { handleLinkStep } from "../lib/configure/link";
 
+const log = logger.getSubLogger({ prefix: ["intercom", "configure"] });
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { input_values, current_canvas } = req.body;
-
-  console.dir(req.body);
 
   const linkStepResult = current_canvas?.stored_data?.submit_booking_url
     ? current_canvas.stored_data.submit_booking_url
@@ -15,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(linkStepResult);
   }
   const buttonAndInvitationStepResult = await handleButtonAndInvitationStep(req);
-  console.log(buttonAndInvitationStepResult);
+  log.debug("buttonAndInvitationStepResult", { buttonAndInvitationStepResult });
   if (buttonAndInvitationStepResult) {
     return res.status(200).json(buttonAndInvitationStepResult);
   }
