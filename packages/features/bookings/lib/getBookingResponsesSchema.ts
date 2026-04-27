@@ -422,7 +422,7 @@ function preprocess<T extends z.ZodType>({
           const invalidFieldName = field.name;
           // Remove invalid field like it never existed in the first place
           delete parsedResponses[invalidFieldName];
-          console.warn(`Skipped invalid field during preprocessing: ${invalidFieldName} (${errorMessage})`);
+          log.warn(`Skipped invalid field during preprocessing: ${invalidFieldName} (${errorMessage})`);
         }
       });
 
@@ -497,9 +497,7 @@ function preprocess<T extends z.ZodType>({
         const issues = state?.issues ?? [];
         if (isPartialSchema && (superRefineError || issues.length > 0)) {
           delete responses[bookingField.name];
-          console.warn(
-            `Partial prefill: skipped field '${bookingField.name}' due to ${issues.length} validation error(s)`
-          );
+          log.warn(`Partial prefill: skipped field '${bookingField.name}' due to ${issues.length} validation error(s)`);
         }
       }
     })
@@ -507,7 +505,7 @@ function preprocess<T extends z.ZodType>({
   if (isPartialSchema) {
     // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
     return preprocessed.catch((res?: { error?: unknown[] }) => {
-      console.error("Failed to validate query params, prefilling will be skipped entirely", res?.error);
+      log.error("Failed to validate query params, prefilling will be skipped entirely", res?.error);
       return {};
     });
   }
