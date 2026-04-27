@@ -83,5 +83,5 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
     });
   }
 
-  Promise.allSettled(fetchPromises);
+  await Promise.allSettled(fetchPromises);
 }
