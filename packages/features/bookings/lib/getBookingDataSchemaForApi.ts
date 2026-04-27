@@ -1,11 +1,15 @@
 import { z } from "zod";
 
+import logger from "@calcom/lib/logger";
+
 import {
   bookingCreateBodySchemaForApi,
   bookingCreateSchemaLegacyPropsForApi,
 } from "./bookingCreateBodySchema";
 import type { getBookingFieldsWithSystemFields } from "./getBookingFields";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
+
+const log = logger.getSubLogger({ prefix: ["getBookingDataSchemaForApi"] });
 
 const getBookingDataSchemaForApi = ({
   view = "booking",
@@ -36,10 +40,8 @@ const getBookingDataSchemaForApi = ({
         const unwantedProps: string[] = [];
         legacyProps.forEach((legacyProp) => {
           if (typeof val[legacyProp as keyof typeof val] !== "undefined") {
-            console.error(
-              `Deprecated: Unexpected falsy value for: ${unwantedProps.join(
-                ","
-              )}. They can't be used with \`responses\`. This will become a 400 error in the future.`
+            log.warn(
+              `Deprecated: Unexpected value for legacy prop '${legacyProp}'. It can't be used with \`responses\`. This will become a 400 error in the future.`
             );
           }
           if (val[legacyProp as keyof typeof val]) {
