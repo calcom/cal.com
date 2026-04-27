@@ -429,6 +429,6 @@ export async function handleConfirmation(args: {
     await Promise.all(promises);
   } catch (error) {
     // Silently fail
-    console.error(error);
+    tracingLogger.error("Error sending booking confirmation webhooks", safeStringify(error));
   }
 }
