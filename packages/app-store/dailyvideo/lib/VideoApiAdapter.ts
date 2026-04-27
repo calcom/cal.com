@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import {
@@ -421,7 +422,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         );
         return Promise.resolve(res);
       } catch (err) {
-        console.log("err", err);
+        logger.error("err", err);
         throw new Error("Something went wrong! Unable to get recording access link");
       }
     },
@@ -437,7 +438,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
 
         return Promise.resolve(accessLinks);
       } catch (err) {
-        console.log("err", err);
+        logger.error("err", err);
         throw new Error("Something went wrong! Unable to get transcription access link");
       }
     },
@@ -455,7 +456,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
 
         return Promise.resolve(accessLinks);
       } catch (err) {
-        console.log("err", err);
+        logger.error("err", err);
         throw new Error("Something went wrong! Unable to get transcription access link");
       }
     },
@@ -466,7 +467,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         );
         return batchProcessorJob;
       } catch (err) {
-        console.log("err", err);
+        logger.error("err", err);
         throw new Error("Something went wrong! Unable to submit batch processor job");
       }
     },
@@ -491,7 +492,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
 
         return accessLinkRes.transcription;
       } catch (err) {
-        console.log("err", err);
+        logger.error("err", err);
         throw new Error("Something went wrong! can't get transcripts");
       }
     },
