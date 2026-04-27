@@ -8,10 +8,13 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import logger from "@calcom/lib/logger";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
+const log = logger.getSubLogger({ prefix: ["totp/enable"] });
 
 async function postHandler(req: NextRequest) {
   const body = await parseRequestData(req);
@@ -22,7 +25,7 @@ async function postHandler(req: NextRequest) {
   }
 
   if (!session.user?.id) {
-    console.error("Session is missing a user id.");
+    log.error("Session is missing a user id.");
     return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
   }
 
@@ -33,7 +36,7 @@ async function postHandler(req: NextRequest) {
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) {
-    console.error(`Session references user that no longer exists.`);
+    log.error(`Session references user that no longer exists.`);
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
@@ -46,13 +49,13 @@ async function postHandler(req: NextRequest) {
   }
 
   if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-    console.error("Missing encryption key; cannot proceed with two factor setup.");
+    log.error("Missing encryption key; cannot proceed with two factor setup.");
     return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
   }
 
   const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
   if (secret.length !== 32) {
-    console.error(
+    log.error(
       `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
     );
     return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
