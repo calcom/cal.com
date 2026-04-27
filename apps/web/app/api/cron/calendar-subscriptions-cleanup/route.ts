@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderForAppDir";
 
@@ -31,7 +32,7 @@ async function getHandler(request: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
-    console.error(`[calendar-subscriptions-cleanup] ${message}:`, e);
+    logger.error(`[calendar-subscriptions-cleanup] ${message}:`, e);
     return NextResponse.json({ message }, { status: 500 });
   }
 }
