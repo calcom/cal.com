@@ -362,11 +362,11 @@ class PipedriveCrmService implements CRM {
   }
 
   getAppOptions() {
-    console.log("No options implemented");
+    this.log.warn("getAppOptions: No options implemented");
   }
 
   async handleAttendeeNoShow() {
-    console.log("Not implemented");
+    this.log.warn("handleAttendeeNoShow: Not implemented");
   }
 }
 
