@@ -1,3 +1,5 @@
+import logger from "@calcom/lib/logger";
+
 export const validJson = (jsonString: string) => {
   try {
     const o = JSON.parse(jsonString);
@@ -5,7 +7,7 @@ export const validJson = (jsonString: string) => {
       return o;
     }
   } catch (e) {
-    console.log("Invalid JSON:", e);
+    logger.error("Invalid JSON", { error: e });
   }
   return false;
 };
