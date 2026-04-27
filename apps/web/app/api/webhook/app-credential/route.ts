@@ -7,7 +7,10 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { CREDENTIAL_SYNC_SECRET, CREDENTIAL_SYNC_SECRET_HEADER_NAME } from "@calcom/lib/constants";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+
+const log = logger.getSubLogger({ prefix: ["[api/webhook/app-credential]"] });
 
 const appCredentialWebhookRequestBodySchema = z.object({
   // UserId of the cal.com user
@@ -98,7 +101,7 @@ async function postHandler(request: NextRequest) {
       return NextResponse.json({ message: `Credentials created for userId: ${reqBody.userId}` });
     }
   } catch (error) {
-    console.error("Error processing app credential webhook:", error);
+    log.error("Error processing app credential webhook:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
