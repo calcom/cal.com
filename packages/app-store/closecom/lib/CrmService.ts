@@ -99,11 +99,7 @@ class CloseComCRMService implements CRM {
       calComCustomActivityFields,
       this.closeCom
     );
-    // Create Custom Activity type instance
-    const customActivityTypeInstance = await this.closeCom.activity.custom.create(
-      customActivityTypeInstanceData
-    );
-    return this.closeCom.activity.custom.update(uid, customActivityTypeInstance);
+    return this.closeCom.activity.custom.update(uid, customActivityTypeInstanceData);
   };
 
   closeComDeleteCustomActivity = async (uid: string) => {
