@@ -17,7 +17,10 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import logger from "@calcom/lib/logger";
 import { getCalEventResponses } from "./getCalEventResponses";
+
+const log = logger.getSubLogger({ prefix: ["handleConfirmation"] });
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
 export async function handleConfirmation(args: {
@@ -428,7 +431,7 @@ export async function handleConfirmation(args: {
 
     await Promise.all(promises);
   } catch (error) {
-    // Silently fail
-    console.error(error);
+    // Silently fail — webhook/email delivery errors must not block booking confirmation
+    log.error("handleConfirmation failed to send notifications", error);
   }
 }
