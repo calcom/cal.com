@@ -309,6 +309,7 @@ export class CalendarAuth {
         httpMethodsToRetry: ["GET", "HEAD", "PUT", "OPTIONS", "DELETE", "PATCH"],
         statusCodesToRetry: [
           [100, 199],
+          [403, 403],
           [429, 429],
           [500, 599],
         ],
