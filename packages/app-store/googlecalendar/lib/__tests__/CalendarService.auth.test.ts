@@ -208,7 +208,7 @@ describe("GoogleCalendarService credential handling", () => {
   });
 
   describe("retryConfig", () => {
-    test("calendar client is instantiated with retryConfig that includes PATCH and 429 for rate limit retries", async () => {
+    test("calendar client is instantiated with retryConfig that includes PATCH and 403 for rate limit retries", async () => {
       const regularCredential = await createCredentialForCalendarService();
       mockSuccessfulCalendarListFetch();
       const calendarService = BuildCalendarService(regularCredential);
@@ -218,7 +218,7 @@ describe("GoogleCalendarService credential handling", () => {
         expect.objectContaining({
           retryConfig: expect.objectContaining({
             httpMethodsToRetry: expect.arrayContaining(["PATCH"]),
-            statusCodesToRetry: expect.arrayContaining([[429, 429]]),
+            statusCodesToRetry: expect.arrayContaining([[403, 403]]),
           }),
         })
       );
