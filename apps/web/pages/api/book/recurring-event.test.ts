@@ -36,7 +36,7 @@ function getPlusDayDate(date: string, days: number) {
 }
 
 // Local test runs sometime gets too slow
-const timeout = process.env.CI ? 5000 : 20000;
+const timeout = process.env.CI ? 5000 : 40000;
 describe("handleNewBooking", () => {
   setupAndTeardown();
 
@@ -158,6 +158,9 @@ describe("handleNewBooking", () => {
 
           const createdBookings = await handleRecurringEventBooking(req);
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
+          // Each occurrence should have its own videoCallUrl
+          expect(createdBookings[0]?.references?.[0]?.meetingUrl).toBeDefined();
+          expect(createdBookings[1]?.references?.[0]?.meetingUrl).toBeDefined();
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
             expect(createdBooking.responses).toEqual(
@@ -180,6 +183,9 @@ describe("handleNewBooking", () => {
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
               recurringEventId: mockBookingData.recurringEventId,
+              metadata: expect.objectContaining({
+                videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+              }),
               references: [
                 {
                   type: "daily_video",
@@ -505,6 +511,9 @@ describe("handleNewBooking", () => {
 
           const createdBookings = await handleRecurringEventBooking(req);
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
+          // Each occurrence should have its own videoCallUrl
+          expect(createdBookings[0]?.references?.[0]?.meetingUrl).toBeDefined();
+          expect(createdBookings[1]?.references?.[0]?.meetingUrl).toBeDefined();
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
             expect(createdBooking.responses).toEqual(
@@ -527,6 +536,9 @@ describe("handleNewBooking", () => {
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
               recurringEventId: mockBookingData.recurringEventId,
+              metadata: expect.objectContaining({
+                videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+              }),
               references: [
                 {
                   type: "daily_video",
@@ -549,8 +561,7 @@ describe("handleNewBooking", () => {
               organizer,
               location: "integrations:daily",
               subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: File a bug - All recurring bookings seem to have the same URL. They should have same CalVideo URL which could mean that future recurring meetings would have already expired by the time they are needed.
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
+              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
           }
 
@@ -721,6 +732,9 @@ describe("handleNewBooking", () => {
 
           const createdBookings = await handleRecurringEventBooking(req);
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
+          // Each occurrence should have its own videoCallUrl
+          expect(createdBookings[0]?.references?.[0]?.meetingUrl).toBeDefined();
+          expect(createdBookings[1]?.references?.[0]?.meetingUrl).toBeDefined();
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
             expect(createdBooking.responses).toEqual(
@@ -743,6 +757,9 @@ describe("handleNewBooking", () => {
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
               recurringEventId: mockBookingData.recurringEventId,
+              metadata: expect.objectContaining({
+                videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+              }),
               references: [
                 {
                   type: "daily_video",
@@ -765,8 +782,7 @@ describe("handleNewBooking", () => {
               organizer,
               location: "integrations:daily",
               subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: File a bug - All recurring bookings seem to have the same URL. They should have same CalVideo URL which could mean that future recurring meetings would have already expired by the time they are needed.
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
+              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
           }
 

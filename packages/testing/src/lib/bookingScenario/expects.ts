@@ -280,10 +280,23 @@ export function expectWebhookToHaveBeenCalledWith(
     return call[0] === subscriberUrl;
   });
   logger.silly("Scanning fetchCalls for webhook", safeStringify(fetchCalls));
+  const expectedVideoCallUrl =
+    data.payload && typeof data.payload.metadata === "object" && data.payload.metadata !== null
+      ? (data.payload.metadata as Record<string, unknown>).videoCallUrl
+      : undefined;
+
   const webhookFetchCall = webhooksToSubscriberUrl.find((call) => {
     const body = call[1]?.body;
     const parsedBody = JSON.parse((body as string) || "{}");
-    return parsedBody.triggerEvent === data.triggerEvent;
+    if (parsedBody.triggerEvent !== data.triggerEvent) {
+      return false;
+    }
+
+    if (expectedVideoCallUrl && parsedBody.payload?.metadata?.videoCallUrl) {
+      return parsedBody.payload.metadata.videoCallUrl === expectedVideoCallUrl;
+    }
+
+    return true;
   });
 
   if (!webhookFetchCall) {

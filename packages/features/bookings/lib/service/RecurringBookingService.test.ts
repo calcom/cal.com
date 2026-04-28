@@ -34,7 +34,7 @@ function getPlusDayDate(date: string, days: number) {
 }
 
 // Local test runs sometime gets too slow
-const timeout = process.env.CI ? 5000 : 20000;
+const timeout = process.env.CI ? 5000 : 40000;
 describe("handleNewRecurringBooking", () => {
   setupAndTeardown();
 
@@ -184,6 +184,9 @@ describe("handleNewRecurringBooking", () => {
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
               recurringEventId: mockBookingData.recurringEventId,
+              metadata: expect.objectContaining({
+                videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+              }),
               references: [
                 {
                   type: "daily_video",
@@ -206,7 +209,7 @@ describe("handleNewRecurringBooking", () => {
               organizer,
               location: "integrations:daily",
               subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
+              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
           }
 

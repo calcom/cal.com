@@ -2,6 +2,17 @@ import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils"
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -152,6 +163,7 @@ export async function handleConfirmation(args: {
         hideBranding?: boolean | null;
       } | null;
     } | null;
+    videoCallUrl: string | null;
   }[] = [];
 
   const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
@@ -176,8 +188,14 @@ export async function handleConfirmation(args: {
       uid: booking.uid,
     }));
 
-    const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) =>
-      prisma.booking.update({
+    const updateBookingsPromise = unconfirmedRecurringBookings.map(async (recurringBooking) => {
+      // TODO: referencesToCreate is batch-level, not per-occurrence.
+      // Until the scheduling layer creates per-occurrence references,
+      // we fall back to the shared meetingUrl here.
+      const perBookingMeetingUrl =
+        scheduleResult.referencesToCreate?.find((ref) => ref.meetingUrl)?.meetingUrl ?? meetingUrl;
+
+      const updatedBooking = await prisma.booking.update({
         where: {
           id: recurringBooking.id,
         },
@@ -189,7 +207,7 @@ export async function handleConfirmation(args: {
           paid,
           metadata: {
             ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
-            videoCallUrl: meetingUrl,
+            videoCallUrl: perBookingMeetingUrl,
           },
         },
         select: {
@@ -234,8 +252,51 @@ export async function handleConfirmation(args: {
           customInputs: true,
           id: true,
         },
-      })
-    );
+      });
+
+      const bookingReference = await prisma.bookingReference.findFirst({
+        where: {
+          bookingId: recurringBooking.id,
+          meetingUrl: {
+            not: null,
+          },
+        },
+        select: {
+          meetingUrl: true,
+        },
+      });
+
+      const recurringBookingVideoCallUrl =
+        getVideoCallUrlFromCalEvent({
+          ...evt,
+          uid: updatedBooking.uid,
+        }) ||
+        bookingReference?.meetingUrl ||
+        meetingUrl;
+
+      if (recurringBookingVideoCallUrl !== meetingUrl) {
+        await prisma.booking.update({
+          where: {
+            id: recurringBooking.id,
+          },
+          data: {
+            metadata: {
+              ...(typeof updatedBooking.metadata === "object" ? updatedBooking.metadata : {}),
+              videoCallUrl: recurringBookingVideoCallUrl,
+            },
+          },
+        });
+      }
+
+      return {
+        ...updatedBooking,
+        metadata: {
+          ...(typeof updatedBooking.metadata === "object" ? updatedBooking.metadata : {}),
+          videoCallUrl: recurringBookingVideoCallUrl,
+        },
+        videoCallUrl: recurringBookingVideoCallUrl,
+      };
+    });
 
     const updatedBookingsResult = await Promise.all(updateBookingsPromise);
     updatedBookings = updatedBookings.concat(updatedBookingsResult);
@@ -299,7 +360,10 @@ export async function handleConfirmation(args: {
         id: true,
       },
     });
-    updatedBookings.push(updatedBooking);
+    updatedBookings.push({
+      ...updatedBooking,
+      videoCallUrl: meetingUrl,
+    });
     acceptedBookings = [
       {
         oldStatus: booking.status,
@@ -308,8 +372,86 @@ export async function handleConfirmation(args: {
     ];
   }
 
-  const triggerForUser = true;
-  const userId = booking.userId;
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: eventType?.teamId ?? null },
+      parentId: eventType?.parentId ?? null,
+    },
+  });
+
+  const triggerForUser = !teamId || (teamId && eventType?.parentId);
+
+  const userId = triggerForUser ? booking.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    : false;
+
+  const bookerUrl = await getBookerBaseUrl(orgId ?? null);
+
+  await fireBookingAcceptedEvent({
+    actor,
+    acceptedBookings,
+    organizationId: orgId ?? null,
+    actionSource,
+    isBookingAuditEnabled,
+    tracingLogger,
+    impersonatedByUserUuid,
+  });
+
+  //Workflows - set reminders for confirmed events
+  try {
+    for (let index = 0; index < updatedBookings.length; index++) {
+      const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
+      const bookingVideoCallUrl = updatedBookings[index].videoCallUrl || meetingUrl;
+      const evtOfBooking = {
+        ...evt,
+        rescheduleReason: updatedBookings[index].cancellationReason || null,
+        metadata: { videoCallUrl: bookingVideoCallUrl },
+        eventType: {
+          slug: eventTypeSlug,
+          schedulingType: updatedBookings[index].eventType?.schedulingType,
+          hosts: updatedBookings[index].eventType?.hosts,
+        },
+        bookerUrl,
+      };
+      evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
+      evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
+      evtOfBooking.uid = updatedBookings[index].uid;
+      const isFirstBooking = index === 0;
+
+      if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
+        await scheduleMandatoryReminder({
+          evt: evtOfBooking,
+          workflows,
+          requiresConfirmation: false,
+          hideBranding: evtOfBooking.hideBranding ?? false,
+          seatReferenceUid: evt.attendeeSeatId,
+          isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
+          traceContext: spanContext,
+        });
+      }
+
+      const creditService = new CreditService();
+
+      await WorkflowService.scheduleWorkflowsForNewBooking({
+        workflows,
+        smsReminderNumber: updatedBookings[index].smsReminderNumber,
+        calendarEvent: evtOfBooking,
+        hideBranding: evtOfBooking.hideBranding,
+        isConfirmedByDefault: true,
+        isNormalBookingOrFirstRecurringSlot: isFirstBooking,
+        isRescheduleEvent: false,
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+      });
+    }
+  } catch (error) {
+    // Silently fail
+    console.error(error);
+  }
 
   try {
     const subscribersBookingCreated = await getWebhooks({
@@ -400,29 +542,44 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
-    const payload: EventPayloadType = {
-      ...evt,
-      ...eventTypeInfo,
-      bookingId,
-      eventTypeId: eventType?.id,
-      status: "ACCEPTED",
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
-      ...(platformClientParams ? platformClientParams : {}),
-    };
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
+    const promises = subscribersBookingCreated.flatMap((sub) =>
+      updatedBookingsWithCalEventResponses.map((updatedBooking) => {
+        const bookingMetadataVideoCallUrl =
+          typeof updatedBooking.metadata === "object" &&
+          updatedBooking.metadata !== null &&
+          "videoCallUrl" in updatedBooking.metadata &&
+          typeof updatedBooking.metadata.videoCallUrl === "string"
+            ? updatedBooking.metadata.videoCallUrl
+            : null;
+        const payload: EventPayloadType = {
+          ...evtWithoutAssignmentReason,
+          ...eventTypeInfo,
+          ...getCalEventResponses({
+            bookingFields: updatedBooking.eventType?.bookingFields ?? null,
+            booking: updatedBooking,
+          }),
+          bookingId: updatedBooking.id,
+          uid: updatedBooking.uid,
+          eventTypeId: eventType?.id,
+          status: "ACCEPTED",
+          smsReminderNumber: updatedBooking.smsReminderNumber || undefined,
+          metadata: { videoCallUrl: bookingMetadataVideoCallUrl ?? updatedBooking.videoCallUrl ?? meetingUrl },
+          ...(platformClientParams ? platformClientParams : {}),
+        };
 
-    const promises = subscribersBookingCreated.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_CREATED,
-        new Date().toISOString(),
-        sub,
-        payload
-      ).catch((e) => {
-        tracingLogger.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
-          safeStringify(e)
-        );
+        return sendPayload(
+          sub.secret,
+          WebhookTriggerEvents.BOOKING_CREATED,
+          new Date().toISOString(),
+          sub,
+          payload
+        ).catch((e) => {
+          tracingLogger.error(
+            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${updatedBooking.id}, bookingUid: ${updatedBooking.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
+            safeStringify(e)
+          );
+        });
       })
     );
 
