@@ -8,7 +8,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 ### 👥 Prevent Work Duplication
 
-Before submitting an new issue or PR, check if it already exists in the [Issues](https://github.com/calcom/cal.diy/issues) or [Pull Requests](https://github.com/calcom/cal.diy/pulls).
+Before submitting a new issue or PR, check if it already exists in the [Issues](https://github.com/calcom/cal.diy/issues) or [Pull Requests](https://github.com/calcom/cal.diy/pulls).
 
 ### ✅ Work Only on Approved Issues
 
@@ -39,7 +39,7 @@ GitHub is a shared source of truth. Every issue and PR contributes to the long-t
 
 ### ✅ Summarize Your PR at the Top
 
-Even if the code changes are minor or self-explanatory, a short written summary helps reviewers quickly understand the intent. You can use GitHub Copilot’s auto-summary feature, but make sure to verify it for accuracy and relevance.
+Even if the code changes are minor or self-explanatory, a short written summary helps reviewers quickly understand the intent. You can use GitHub Copilot’s auto-summarize feature, but make sure to verify it for accuracy and relevance.
 
 ### 🔗 Use GitHub Keywords to Auto-Link Issues
 
