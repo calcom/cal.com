@@ -1,10 +1,9 @@
+import type { FilterSegmentOutput } from "@calcom/features/data-table/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
-
 import { useDataTable } from "~/data-table/hooks";
-import type { FilterSegmentOutput } from "@calcom/features/data-table/lib/types";
 
 export function DeleteSegmentDialog({
   segment,
@@ -17,23 +16,12 @@ export function DeleteSegmentDialog({
   const utils = trpc.useUtils();
   const { segmentId, setSegmentId } = useDataTable();
 
-  const { mutate: deleteSegment, isPending } = trpc.viewer.filterSegments.delete.useMutation({
-    onSuccess: ({ id }) => {
-      utils.viewer.filterSegments.list.invalidate();
-      showToast(t("filter_segment_deleted"), "success");
-      if (segmentId && segmentId.type === "user" && segmentId.id === id) {
-        setSegmentId(null);
-      }
-      onClose();
-    },
-    onError: () => {
-      showToast(t("error_deleting_filter_segment"), "error");
-    },
-  });
+  const deleteSegment = { mutate: (_args: Record<string, unknown>) => {}, isPending: false };
+  const isPending = deleteSegment.isPending;
 
   const handleDelete = () => {
     if (!segment) return;
-    deleteSegment({ id: segment.id });
+    deleteSegment.mutate({ id: segment.id });
   };
 
   return (

@@ -1,8 +1,6 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import {
   type EventTypeBrandingData,
   getEventTypeService,
@@ -166,13 +164,6 @@ export const Handler = async ({ ctx, input }: Options) => {
     },
   });
 
-  await fireBookingAcceptedAuditEvent({
-    bookingUid: updatedBooking.uid,
-    actorUserUuid: user.uuid,
-    organizationId: user.organizationId,
-    oldStatus: instantMeetingToken.booking.status,
-  });
-
   const locationVideoCallUrl = bookingMetadataSchema.parse(updatedBooking.metadata || {})?.videoCallUrl;
 
   if (!locationVideoCallUrl) {
@@ -292,36 +283,3 @@ export const Handler = async ({ ctx, input }: Options) => {
 
   return { isBookingAlreadyAcceptedBySomeoneElse, meetingUrl: locationVideoCallUrl };
 };
-
-async function fireBookingAcceptedAuditEvent({
-  bookingUid,
-  actorUserUuid,
-  organizationId,
-  oldStatus,
-}: {
-  bookingUid: string;
-  actorUserUuid: string;
-  organizationId: number | null;
-  oldStatus: BookingStatus;
-}) {
-  try {
-    const featuresRepository = getFeaturesRepository();
-    const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
-      : false;
-
-    const bookingEventHandlerService = getBookingEventHandlerService();
-    await bookingEventHandlerService.onBookingAccepted({
-      bookingUid,
-      actor: { identifiedBy: "user", userUuid: actorUserUuid },
-      organizationId,
-      auditData: {
-        status: { old: oldStatus, new: BookingStatus.ACCEPTED },
-      },
-      source: "WEBAPP",
-      isBookingAuditEnabled,
-    });
-  } catch (error) {
-    logger.error("Error firing booking accepted audit for instant meeting", error);
-  }
-}

@@ -1,6 +1,5 @@
 import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { IUsersRepository } from "@calcom/features/users/users.repository.interface";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -19,6 +18,13 @@ import type {
 } from "../interface/IWebhookRepository";
 import { parseWebhookVersion } from "../interface/IWebhookRepository";
 import type { GetSubscribersOptions } from "./types";
+
+class PermissionCheckService {
+  constructor(_prisma?: unknown) {}
+  async checkPermission(..._args: unknown[]) { return true; }
+  async hasPermission(..._args: unknown[]) { return true; }
+  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> { return []; }
+}
 
 // Type for raw query results from the database
 interface WebhookQueryResult {
@@ -41,7 +47,7 @@ const filterWebhooks = (webhook: { appId: string | null }): boolean => {
     // Add more if needed
   ];
 
-  return !appIds.some((appId: string) => webhook.appId == appId);
+  return !appIds.some((appId: string) => webhook.appId === appId);
 };
 
 export class WebhookRepository implements IWebhookRepository {

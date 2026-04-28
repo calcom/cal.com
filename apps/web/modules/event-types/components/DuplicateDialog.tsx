@@ -15,8 +15,6 @@ import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
@@ -34,7 +32,6 @@ const querySchema = z.object({
   pageSlug: z.string(),
   teamId: z.coerce.number().optional().nullable(),
   parentId: z.coerce.number().optional().nullable(),
-  schedulingType: z.nativeEnum(SchedulingType).optional().nullable(),
 });
 
 const DuplicateDialog = () => {
@@ -45,9 +42,8 @@ const DuplicateDialog = () => {
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
   const {
-    data: { pageSlug, slug, schedulingType, ...defaultValues },
+    data: { pageSlug, slug, ...defaultValues },
   } = useTypedQuery(querySchema);
-  const isManagedEventType = schedulingType === SchedulingType.MANAGED;
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -76,11 +72,7 @@ const DuplicateDialog = () => {
 
   const duplicateMutation = trpc.viewer.eventTypesHeavy.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
-      // For managed event types, redirect to the assignment tab so the user can add members
-      const redirectUrl = isManagedEventType
-        ? `/event-types/${eventType.id}?tabName=team`
-        : `/event-types/${eventType.id}`;
-      await router.replace(redirectUrl);
+      await router.replace(`/event-types/${eventType.id}`);
 
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       revalidateEventTypesList();
@@ -125,7 +117,7 @@ const DuplicateDialog = () => {
   return (
     <Dialog
       name="duplicate"
-      clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug", "schedulingType"]}>
+      clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug"]}>
       <DialogContent type="creation" className="overflow-y-auto" title={t("duplicate_event_type")}>
         <Form
           form={form}
@@ -133,12 +125,6 @@ const DuplicateDialog = () => {
             duplicateMutation.mutate(values);
           }}>
           <div className="-mt-2 stack-y-5">
-            {isManagedEventType && (
-              <Alert
-                severity="info"
-                message={t("managed_event_type_duplicate_disclaimer")}
-              />
-            )}
             <TextField
               label={t("title")}
               placeholder={t("quick_chat")}

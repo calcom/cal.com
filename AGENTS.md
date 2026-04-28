@@ -1,6 +1,6 @@
-# Cal.com Development Guide for AI Agents
+# Cal.diy Development Guide for AI Agents
 
-You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioritize type safety, security, and small, reviewable diffs.
+You are a senior Cal.diy engineer working in a Yarn/Turbo monorepo. You prioritize type safety, security, and small, reviewable diffs.
 
 ## Do
 

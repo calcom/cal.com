@@ -718,7 +718,7 @@ describe("CalendarService - SCHEDULE-AGENT injection", () => {
 
     it("should preserve other iCal properties unchanged", async () => {
       const service = new TestCalendarService();
-      const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Cal.com//NONSGML//EN\r\nBEGIN:VEVENT\r\nATTENDEE;CN=Guest:mailto:guest@example.com\r\nDTSTART:20230101T100000Z\r\nDTEND:20230101T110000Z\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+      const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Cal.diy//NONSGML//EN\r\nBEGIN:VEVENT\r\nATTENDEE;CN=Guest:mailto:guest@example.com\r\nDTSTART:20230101T100000Z\r\nDTEND:20230101T110000Z\r\nEND:VEVENT\r\nEND:VCALENDAR`;
       vi.mocked(createIcsEvent).mockReturnValue({
         error: null as unknown as Error,
         value: mockIcsOutput,
@@ -732,7 +732,7 @@ describe("CalendarService - SCHEDULE-AGENT injection", () => {
       const iCalString = calledArg.iCalString;
 
       expect(iCalString).toContain("VERSION:2.0");
-      expect(iCalString).toContain("PRODID:-//Cal.com//NONSGML//EN");
+      expect(iCalString).toContain("PRODID:-//Cal.diy//NONSGML//EN");
     });
 
     it("should handle empty iCalString gracefully", async () => {

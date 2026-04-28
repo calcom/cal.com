@@ -10,5 +10,5 @@
   "devDependencies": {
     "@calcom/types": "workspace:*"
   },
-  "description": "Paypal payment app by Cal.com"
+  "description": "Paypal payment app by Cal.diy"
 }

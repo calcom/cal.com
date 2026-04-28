@@ -1,10 +1,8 @@
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/PrismaUserFeatureRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
 import type { UserFeaturesDto } from "@calcom/lib/dto/UserFeaturesDto";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -434,23 +432,28 @@ export class FeatureOptInService implements IFeatureOptInService {
     orgId: number | null,
     _teamIds: number[]
   ): Promise<UserRoleContext> {
-    const permissionService = new PermissionCheckService();
-    const fallbackRoles = [MembershipRole.OWNER, MembershipRole.ADMIN];
-
     let isOrgAdmin = false;
     if (orgId !== null) {
-      isOrgAdmin = await permissionService.checkPermission({
-        userId,
-        teamId: orgId,
-        permission: "organization.update",
-        fallbackRoles,
+      const membership = await prisma.membership.findUnique({
+        where: { userId_teamId: { userId, teamId: orgId } },
+        select: { role: true },
       });
+      isOrgAdmin = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
     }
 
-    const teamRepository = new TeamRepository(prisma);
-    const adminTeams = await teamRepository.findOwnedTeamsByUserId({ userId });
+    const adminMemberships = await prisma.membership.findMany({
+      where: {
+        userId,
+        role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] },
+      },
+      select: {
+        team: { select: { id: true, name: true, isOrganization: true } },
+      },
+    });
 
-    const nonOrgAdminTeams = adminTeams.filter((team) => !team.isOrganization);
+    const nonOrgAdminTeams = adminMemberships
+      .map((m) => m.team)
+      .filter((team) => !team.isOrganization);
     const adminTeamIds = nonOrgAdminTeams.map((team) => team.id);
     const adminTeamNames = nonOrgAdminTeams.map((team) => ({ id: team.id, name: team.name }));
 

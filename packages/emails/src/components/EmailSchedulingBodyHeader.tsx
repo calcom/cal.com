@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import { BASE_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import { BASE_URL } from "@calcom/lib/constants";
 
 import EmailCommonDivider from "./EmailCommonDivider";
 import Row from "./Row";
@@ -10,21 +10,13 @@ export type BodyHeadType = "checkCircle" | "xCircle" | "calendarCircle" | "teamC
 export const getHeadImage = (headerType: BodyHeadType): string => {
   switch (headerType) {
     case "checkCircle":
-      return IS_PRODUCTION
-        ? `${BASE_URL}/emails/checkCircle@2x.png`
-        : "https://app.cal.com/emails/checkCircle@2x.png";
+      return `${BASE_URL}/emails/checkCircle@2x.png`;
     case "xCircle":
-      return IS_PRODUCTION
-        ? `${BASE_URL}/emails/xCircle@2x.png`
-        : "https://app.cal.com/emails/xCircle@2x.png";
+      return `${BASE_URL}/emails/xCircle@2x.png`;
     case "calendarCircle":
-      return IS_PRODUCTION
-        ? `${BASE_URL}/emails/calendarCircle@2x.png`
-        : "https://app.cal.com/emails/calendarCircle@2x.png";
+      return `${BASE_URL}/emails/calendarCircle@2x.png`;
     case "teamCircle":
-      return IS_PRODUCTION
-        ? `${BASE_URL}/emails/teamCircle@2x.png`
-        : "https://app.cal.com/emails/teamCircle@2x.png";
+      return `${BASE_URL}/emails/teamCircle@2x.png`;
   }
 };
 

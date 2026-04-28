@@ -1,22 +1,20 @@
 export {
-  DataTableStateContext,
-  DataTableStateProvider,
-  useDataTableState,
-  type DataTableStateContextType,
-  type ActiveFiltersValidator,
-  type ActiveFiltersValidatorState,
-} from "./DataTableStateContext";
-
-export {
-  DataTableSegmentContext,
-  DataTableSegmentProvider,
-  useDataTableSegment,
-  type DataTableSegmentContextType,
-} from "./DataTableSegmentContext";
-
-export {
   DataTableFiltersContext,
+  type DataTableFiltersContextType,
   DataTableFiltersProvider,
   useDataTableFilters,
-  type DataTableFiltersContextType,
 } from "./DataTableFiltersContext";
+export {
+  DataTableSegmentContext,
+  type DataTableSegmentContextType,
+  DataTableSegmentProvider,
+  useDataTableSegment,
+} from "./DataTableSegmentContext";
+export {
+  type ActiveFiltersValidator,
+  type ActiveFiltersValidatorState,
+  DataTableStateContext,
+  type DataTableStateContextType,
+  DataTableStateProvider,
+  useDataTableState,
+} from "./DataTableStateContext";

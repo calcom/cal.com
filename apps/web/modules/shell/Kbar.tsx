@@ -59,14 +59,6 @@ const getApps: AppAction[] = Object.values(appStoreMetadata).map(({ name, slug }
 
 const KBAR_ACTION_CONFIGS: ActionConfig[] = [
   {
-    id: "workflows",
-    name: "workflows",
-    section: "workflows",
-    shortcut: ["w", "f"],
-    keywords: "workflows automation",
-    href: "/workflows",
-  },
-  {
     id: "event-types",
     name: "event_types_page_title",
     section: "event_types_page_title",

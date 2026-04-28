@@ -25,7 +25,9 @@ const findCredentialIdForLocationType = (
   locationType: string,
   credentials: { id: number; type: string; appId: string | null }[]
 ): number | null => {
-  const appMeta = Object.values(appStoreMetadata).find((app) => app.appData?.location?.type === locationType);
+  const appMeta = Object.values(appStoreMetadata).find(
+    (app) => app.appData?.location?.type === locationType
+  );
   if (!appMeta) return null;
 
   const matchingCredential = credentials.find(

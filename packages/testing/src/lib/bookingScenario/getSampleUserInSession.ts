@@ -31,7 +31,6 @@ export const getSampleUserInSession = () => ({
   darkBrandColor: "#fafafa",
   metadata: null,
   role: UserPermissionRole.USER,
-  disableImpersonation: false,
   organizationId: null,
   theme: "",
   appTheme: "",
