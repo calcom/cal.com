@@ -2,13 +2,13 @@
 
 > **Important:** Cal.diy is a community-driven, open-source fork of Cal.com. Contributions made here **do not** get merged into Cal.com's production service — Cal.com is now closed-source. This repo is maintained independently by the community under the MIT license.
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 ## House Rules (for PRs and Issues)
 
 ### 👥 Prevent Work Duplication
 
-Before submitting a new issue or PR, check if it already exists in the [Issues](https://github.com/calcom/cal.diy/issues) or [Pull Requests](https://github.com/calcom/cal.diy/pulls).
+Before submitting an new issue or PR, check if it already exists in the [Issues](https://github.com/calcom/cal.diy/issues) or [Pull Requests](https://github.com/calcom/cal.diy/pulls).
 
 ### ✅ Work Only on Approved Issues
 
@@ -39,7 +39,7 @@ GitHub is a shared source of truth. Every issue and PR contributes to the long-t
 
 ### ✅ Summarize Your PR at the Top
 
-Even if the code changes are minor or self-explanatory, a short written summary helps reviewers quickly understand the intent. You can use GitHub Copilot’s auto-summarize feature, but make sure to verify it for accuracy and relevance.
+Even if the code changes are minor or self-explanatory, a short written summary helps reviewers quickly understand the intent. You can use GitHub Copilot’s auto-summary feature, but make sure to verify it for accuracy and relevance.
 
 ### 🔗 Use GitHub Keywords to Auto-Link Issues
 
@@ -104,7 +104,7 @@ To ensure consistency and make files easy to fuzzy-find, we follow the naming co
 ### Repository Files
 
 - Repository class files must include the `Repository` suffix.
-- If the repository is backed by a specific technology (e.g. Prisma), prefix the filename and class name with it.
+- If the repository is backed by a specific technology (e.g., Prisma), prefix the filename and class name with it.
 - File name must match the exported class exactly (PascalCase).
 
 **Pattern:**
