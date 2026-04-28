@@ -306,13 +306,20 @@ export class CalendarAuth {
       retryConfig: {
         retry: 3,
         noResponseRetries: 2,
-        httpMethodsToRetry: ["GET", "HEAD", "PUT", "OPTIONS", "DELETE", "PATCH", "POST"],
+        httpMethodsToRetry: ["GET", "HEAD", "PUT", "OPTIONS", "DELETE", "PATCH"],
         statusCodesToRetry: [
           [100, 199],
-          [403, 403],
           [429, 429],
           [500, 599],
         ],
+        shouldRetry: (err) => {
+          // Also retry 403 rateLimitExceeded (Google legacy behavior)
+          if (err?.response?.status === 403) {
+            const reason = err?.response?.data?.error?.errors?.[0]?.reason;
+            return reason === "rateLimitExceeded" || reason === "userRateLimitExceeded";
+          }
+          return false;
+        },
       },
     });
   }
