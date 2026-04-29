@@ -20,6 +20,7 @@ The following API endpoints are maintained for backward compatibility with exist
 
 - `GET /api/integrations/zapier/listBookings` - List user bookings
 - `GET /api/integrations/zapier/listOOOEntries` - List out-of-office entries
+- `GET /api/integrations/zapier/listNoShowBookings` - List no-show bookings
 - `POST /api/integrations/zapier/addSubscription` - Subscribe to webhooks
 - `DELETE /api/integrations/zapier/deleteSubscription` - Unsubscribe from webhooks
 - `GET /api/integrations/zapier/me` - Get user/team information
