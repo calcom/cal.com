@@ -2207,10 +2207,10 @@ async function handler(
   }
 
   const metadata = videoCallUrl
-    ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-      }
-    : undefined;
+      ? {
+          videoCallUrl,
+        }
+      : undefined;
 
   const isBookingEmailSmsTaskerEnabled = false;
 
