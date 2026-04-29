@@ -10,7 +10,6 @@ export const ENDPOINTS = [
   "appBasecamp3",
   "bookings",
   "calendars",
-  "calVideo",
   "credentials",
   "deploymentSetup",
   "eventTypes",
