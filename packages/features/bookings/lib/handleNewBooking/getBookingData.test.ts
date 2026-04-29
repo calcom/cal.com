@@ -217,4 +217,120 @@ describe("getBookingData", () => {
       expect(result.location).toBe(OrganizerDefaultConferencingAppType);
     });
   });
+
+  describe("email fallback when hidden", () => {
+    it("should use email from reqBody.responses when email field is hidden (not in schema responses)", async () => {
+      const schema = z.object({
+        eventTypeId: z.number(),
+        start: z.string(),
+        end: z.string().optional(),
+        timeZone: z.string(),
+        language: z.string(),
+        metadata: z.record(z.string()),
+        responses: z.object({
+          name: z.string(),
+          location: z
+            .object({
+              value: z.string(),
+              optionValue: z.string().optional(),
+            })
+            .optional(),
+          attendeePhoneNumber: z.string().optional(),
+          guests: z.array(z.string()).optional(),
+          smsReminderNumber: z.string().optional(),
+          notes: z.string().optional(),
+          rescheduleReason: z.string().optional(),
+        }),
+      });
+
+      const mockEventType = createMockEventType({
+        bookingFields: [
+          { name: "name", type: "name" as const, required: true },
+          { name: "location", type: "radioInput" as const, required: false },
+        ],
+      } as Partial<getEventTypeResponse>);
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2026-07-21T10:00:00Z",
+        end: "2026-07-21T10:30:00Z",
+        timeZone: "Asia/Kolkata",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Pro Example",
+          location: {
+            value: "cal-video",
+            optionValue: "",
+          },
+          email: "pro23@example.com",
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.email).toBe("pro23@example.com");
+    });
+
+    it("should return undefined email when email is hidden and not provided in reqBody.responses", async () => {
+      const schema = z.object({
+        eventTypeId: z.number(),
+        start: z.string(),
+        end: z.string().optional(),
+        timeZone: z.string(),
+        language: z.string(),
+        metadata: z.record(z.string()),
+        responses: z.object({
+          name: z.string(),
+          location: z
+            .object({
+              value: z.string(),
+              optionValue: z.string().optional(),
+            })
+            .optional(),
+          attendeePhoneNumber: z.string().optional(),
+          guests: z.array(z.string()).optional(),
+          smsReminderNumber: z.string().optional(),
+          notes: z.string().optional(),
+          rescheduleReason: z.string().optional(),
+        }),
+      });
+
+      const mockEventType = createMockEventType({
+        bookingFields: [
+          { name: "name", type: "name" as const, required: true },
+          { name: "location", type: "radioInput" as const, required: false },
+        ],
+      } as Partial<getEventTypeResponse>);
+
+      const reqBody = {
+        eventTypeId: 1157,
+        start: "2026-07-21T10:00:00Z",
+        end: "2026-07-21T10:30:00Z",
+        timeZone: "Asia/Kolkata",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Pro Example",
+          attendeePhoneNumber: "+919200000000",
+          location: {
+            value: "cal-video",
+            optionValue: "",
+          },
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.email).toBeUndefined();
+    });
+  });
 });
