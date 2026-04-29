@@ -1,0 +1,10 @@
+{
+  "name": "@calcom/sendly-sms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sendly SMS notifications for Cal.com bookings",
+  "main": "index.ts",
+  "dependencies": {
+    "@calcom/app-store": "*"
+  }
+}
