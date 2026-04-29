@@ -170,6 +170,13 @@ export class CredentialsRepository {
     });
   }
 
+  findCredentialById(credentialId: number) {
+    return this.dbRead.prisma.credential.findFirst({
+      where: { id: credentialId },
+      select: credentialForCalendarServiceSelect,
+    });
+  }
+
   async deleteUserCredentialById(userId: number, credentialId: number) {
     return await this.dbWrite.prisma.credential.delete({
       where: { id: credentialId, userId },

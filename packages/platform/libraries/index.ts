@@ -30,7 +30,7 @@ export {
   TimeUnit,
   WebhookTriggerEvents,
 } from "@calcom/prisma/enums";
-export type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
+export type { CalendarEvent, EventBusyDate, GetAvailabilityParams } from "@calcom/types/Calendar";
 
 export { handleMarkNoShow };
 

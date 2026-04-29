@@ -41,10 +41,13 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 class ICSFeedCalendarService implements Calendar {
+  private credentialId = 0;
   private urls: string[] = [];
+  private userTimeZoneCache: Map<number, string> = new Map();
   protected integrationName = "ics-feed_calendar";
 
   constructor(credential: CredentialPayload) {
+    this.credentialId = credential.id;
     const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
     this.urls = urls;
   }
@@ -111,6 +114,8 @@ class ICSFeedCalendarService implements Calendar {
    * @returns {Promise<string | undefined>} - A Promise that resolves to the user's timezone or "Europe/London" as a default value if the timezone is not found.
    */
   getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
+    const cached = this.userTimeZoneCache.get(id);
+    if (cached !== undefined) return cached;
     const prisma = await import("@calcom/prisma").then((mod) => mod.default);
     const user = await prisma.user.findUnique({
       where: {
@@ -120,7 +125,9 @@ class ICSFeedCalendarService implements Calendar {
         timeZone: true,
       },
     });
-    return user?.timeZone;
+    const tz = user?.timeZone;
+    if (tz !== undefined) this.userTimeZoneCache.set(id, tz);
+    return tz;
   };
 
   /**
@@ -149,6 +156,43 @@ class ICSFeedCalendarService implements Calendar {
 
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
+
+      // Ensure a vtimezone component exists for the calendar before iterating events (runs once per calendar).
+      // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone
+      // explicitly to take care of timezone diff.
+      if (!vcalendar.getFirstSubcomponent("vtimezone") && vevents.length > 0) {
+        const firstVevent = vevents[0];
+        const firstEvent = new ICAL.Event(firstVevent);
+        const firstDtstartProp = firstVevent.getFirstProperty("dtstart");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const firstTzidFromDtstart = firstDtstartProp ? (firstDtstartProp as any).jCal[1].tzid : undefined;
+        const firstDtstart: { [key: string]: string } | undefined = firstVevent.getFirstPropertyValue("dtstart");
+        const firstTimezone = firstDtstart ? firstDtstart["timezone"] : undefined;
+        const firstIsUTC = firstTimezone === "Z";
+        const firstTzid: string | undefined =
+          firstTzidFromDtstart || firstVevent.getFirstPropertyValue("tzid") || (firstIsUTC ? "UTC" : firstTimezone);
+        const timezoneToUse = firstTzid || userTimeZone;
+        if (timezoneToUse) {
+          try {
+            const timezoneComp = new ICAL.Component("vtimezone");
+            timezoneComp.addPropertyWithValue("tzid", timezoneToUse);
+            const standard = new ICAL.Component("standard");
+            const tzoffsetfrom = dayjs(firstEvent.startDate.toJSDate()).tz(timezoneToUse).format("Z");
+            const tzoffsetto = dayjs(firstEvent.endDate.toJSDate()).tz(timezoneToUse).format("Z");
+            standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
+            standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
+            standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
+            timezoneComp.addSubcomponent(standard);
+            vcalendar.addSubcomponent(timezoneComp);
+          } catch (e) {
+            // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
+            console.log("error in adding vtimezone", e);
+          }
+        } else {
+          console.error("No timezone found");
+        }
+      }
+
       vevents.forEach((vevent) => {
         // if event status is free or transparent, DON'T return (unlike usual getAvailability)
         //
@@ -158,6 +202,14 @@ class ICSFeedCalendarService implements Calendar {
         // if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
         const event = new ICAL.Event(vevent);
+
+        if (!event.isRecurring()) {
+          const eventEnd = vevent.getFirstPropertyValue("dtend") as ICAL.Time | null;
+          const eventStart = vevent.getFirstPropertyValue("dtstart") as ICAL.Time | null;
+          if (eventEnd && dayjs(eventEnd.toJSDate()).isBefore(dateFrom)) return;
+          if (eventStart && dayjs(eventStart.toJSDate()).isAfter(dateTo)) return;
+        }
+
         const title = String(vevent.getFirstPropertyValue("summary"));
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -171,35 +223,6 @@ class ICSFeedCalendarService implements Calendar {
         // Fix precedence: prioritize TZID from DTSTART property, then standalone TZID, then UTC, then fallback
         const tzid: string | undefined =
           tzidFromDtstart || vevent?.getFirstPropertyValue("tzid") || (isUTC ? "UTC" : timezone);
-        // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
-        if (!vcalendar.getFirstSubcomponent("vtimezone")) {
-          const timezoneToUse = tzid || userTimeZone;
-          if (timezoneToUse) {
-            try {
-              const timezoneComp = new ICAL.Component("vtimezone");
-              timezoneComp.addPropertyWithValue("tzid", timezoneToUse);
-              const standard = new ICAL.Component("standard");
-
-              // get timezone offset
-              const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(timezoneToUse).format("Z");
-              const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(timezoneToUse).format("Z");
-
-              // set timezone offset
-              standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
-              standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
-              // provide a standard dtstart
-              standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
-              timezoneComp.addSubcomponent(standard);
-              vcalendar.addSubcomponent(timezoneComp);
-            } catch (e) {
-              // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
-              console.log("error in adding vtimezone", e);
-            }
-          } else {
-            console.error("No timezone found");
-          }
-        }
-
         let vtimezone = null;
         if (tzid) {
           const allVtimezones = vcalendar.getAllSubcomponents("vtimezone");

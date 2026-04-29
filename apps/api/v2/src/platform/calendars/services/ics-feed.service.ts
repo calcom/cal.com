@@ -1,13 +1,21 @@
 import { ICSFeedCalendarApp } from "@/platform/calendars/calendars.interface";
 import { CreateIcsFeedOutputResponseDto } from "@/platform/calendars/input/create-ics.output";
+import {
+  CALENDARS_QUEUE,
+  ICS_FEED_CACHE_TTL_MS,
+  ICS_FEED_WARM_CACHE_JOB,
+} from "@/platform/calendars/processors/calendars.processor";
 import { CalendarsCacheService } from "@/platform/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/platform/calendars/services/calendars.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { BadRequestException, UnauthorizedException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bull";
+import { Queue } from "bull";
 
 import { SUCCESS_STATUS, ICS_CALENDAR_TYPE, ICS_CALENDAR } from "@calcom/platform-constants";
+import type { EventBusyDate, GetAvailabilityParams } from "@calcom/platform-libraries";
 import { symmetricEncrypt } from "@calcom/platform-libraries";
 import { BuildIcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
 
@@ -17,10 +25,44 @@ export class IcsFeedService implements ICSFeedCalendarApp {
     private readonly calendarsService: CalendarsService,
     private readonly calendarsCacheService: CalendarsCacheService,
     private readonly credentialRepository: CredentialsRepository,
-    private readonly redisService: RedisService
+    private readonly redisService: RedisService,
+    @InjectQueue(CALENDARS_QUEUE) private readonly calendarsQueue: Queue
   ) {}
 
   private logger = new Logger("IcsFeedService");
+
+  private icsFeedCacheKey(credentialId: number): string {
+    return `apiv2:credential:${credentialId}:ics-feed:events`;
+  }
+
+  async getAvailability(
+    credentialId: number,
+    userEmail: string,
+    params: GetAvailabilityParams
+  ): Promise<EventBusyDate[]> {
+    const cacheKey = this.icsFeedCacheKey(credentialId);
+    const cached = await this.redisService.get<{ start: string; end: string; title: string }[]>(cacheKey);
+
+    if (cached) {
+      return cached.filter(
+        (e) => new Date(e.end) > new Date(params.dateFrom) && new Date(e.start) < new Date(params.dateTo)
+      );
+    }
+
+    const credential = await this.credentialRepository.findCredentialById(credentialId);
+    if (!credential) return [];
+
+    const service = BuildIcsFeedCalendarService({
+      ...credential,
+      user: { email: userEmail },
+    });
+
+    const events = await service.getAvailability(params);
+
+    await this.redisService.set(cacheKey, events, { ttl: ICS_FEED_CACHE_TTL_MS });
+
+    return events;
+  }
 
   async save(
     userId: number,
@@ -65,6 +107,8 @@ export class IcsFeedService implements ICSFeedCalendarApp {
       );
 
       await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(userId);
+      await this.redisService.del(this.icsFeedCacheKey(credential.id));
+      await this.calendarsQueue.add(ICS_FEED_WARM_CACHE_JOB, { credentialId: credential.id, userEmail });
 
       return {
         status: SUCCESS_STATUS,
