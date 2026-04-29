@@ -24,7 +24,6 @@ function CalendarInner(props: CalendarComponentProps) {
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const schedulerGrid = useRef<HTMLOListElement | null>(null);
-  const initialState = useCalendarStore((state) => state.initState);
 
   const startDate = useCalendarStore((state) => state.startDate);
   const endDate = useCalendarStore((state) => state.endDate);
@@ -48,11 +47,6 @@ function CalendarInner(props: CalendarComponentProps) {
   );
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
   const hourSize = 58;
-
-  // Initalise State on initial mount and when props change
-  useEffect(() => {
-    initialState(props);
-  }, [props, initialState]);
 
   return (
     <MobileNotSupported>
