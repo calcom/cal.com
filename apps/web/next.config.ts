@@ -233,9 +233,6 @@ const nextConfig = (phase: string): NextConfig => {
       "@boxyhq/saml-jackson",
       "jose",
     ],
-    experimental: {
-      optimizePackageImports: ["@calcom/ui"],
-    },
     productionBrowserSourceMaps: true,
     transpilePackages: [
       "@calcom/app-store",
