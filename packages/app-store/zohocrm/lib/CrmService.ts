@@ -129,6 +129,9 @@ class ZohoCrmCrmService implements CRM {
   };
 
   private createZohoEvent = async (event: CalendarEvent, contacts: Contact[]) => {
+    if (!contacts.length) {
+      return Promise.reject("No contacts provided to link with the Zoho CRM event");
+    }
     const zohoEvent = {
       Event_Title: event.title,
       Start_DateTime: toISO8601String(new Date(event.startTime)),
@@ -140,7 +143,7 @@ class ZohoCrmCrmService implements CRM {
         location: event.location,
         uid: event.uid,
       }),
-      Who_Id: contacts[0].id, // Link the first attendee as the primary Who_Id
+      Who_Id: contacts[0].id,
     };
 
     return axios({
@@ -153,7 +156,10 @@ class ZohoCrmCrmService implements CRM {
       data: JSON.stringify({ data: [zohoEvent] }),
     })
       .then((data) => data.data)
-      .catch((e) => this.log.error(e, e.response?.data));
+      .catch((e) => {
+        this.log.error(e, e.response?.data);
+        throw e;
+      });
   };
 
   private updateMeeting = async (uid: string, event: CalendarEvent) => {
@@ -180,7 +186,10 @@ class ZohoCrmCrmService implements CRM {
       data: JSON.stringify({ data: [zohoEvent] }),
     })
       .then((data) => data.data)
-      .catch((e) => this.log.error(e, e.response?.data));
+      .catch((e) => {
+        this.log.error(e, e.response?.data);
+        throw e;
+      });
   };
 
   private deleteMeeting = async (uid: string) => {
@@ -193,7 +202,10 @@ class ZohoCrmCrmService implements CRM {
       },
     })
       .then((data) => data.data)
-      .catch((e) => this.log.error(e, e.response?.data));
+      .catch((e) => {
+        this.log.error(e, e.response?.data);
+        throw e;
+      });
   };
 
   private zohoCrmAuth = async (credential: CredentialPayload) => {
