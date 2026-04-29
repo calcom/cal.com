@@ -144,5 +144,5 @@ services:
   #  command:
   #    - npx
   #    - prisma
-      - studio
+  #    - studio
 # END SECTION: Optional use of Prisma Studio.
