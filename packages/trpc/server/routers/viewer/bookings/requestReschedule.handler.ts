@@ -249,6 +249,8 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     iCalSequence: builder.calendarEvent.iCalSequence,
     eventTitle: bookingToReschedule.eventType?.title ?? null,
     requestReschedule: true,
+    rescheduleLink: builder.rescheduleLink,
+    rescheduleUid: bookingToReschedule.uid,
   });
 
   // Send webhook
