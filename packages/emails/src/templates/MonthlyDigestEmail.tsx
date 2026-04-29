@@ -2,7 +2,7 @@ import type { TFunction } from "i18next";
 
 import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 
-import { BaseEmailHtml, CallToAction } from "../components";
+import { BaseEmailHtml } from "../components";
 
 export type MonthlyDigestEmailData = {
   language: TFunction;
@@ -176,13 +176,6 @@ export const MonthlyDigestEmail = (
                 </div>
               ))
             : null}
-        </div>
-        <div style={{ marginTop: "30px", marginBottom: "30px" }}>
-          <CallToAction
-            label="View all stats"
-            href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/insights?teamId=${props.team.id}`}
-            endIconName="white-arrow-right"
-          />
         </div>
       </div>
       <div style={{ lineHeight: "6px" }}>
