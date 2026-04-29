@@ -15,5 +15,4 @@ export { BaseBookingPayloadBuilder } from "./BaseBookingPayloadBuilder";
 export { BaseMeetingPayloadBuilder } from "./BaseMeetingPayloadBuilder";
 export { BaseRecordingPayloadBuilder } from "./BaseRecordingPayloadBuilder";
 export { BaseOOOPayloadBuilder } from "./BaseOOOPayloadBuilder";
-export { BaseInstantMeetingBuilder } from "./BaseInstantMeetingBuilder";
 export type { BookingExtraDataMap, BookingPayloadParams } from "./BaseBookingPayloadBuilder";

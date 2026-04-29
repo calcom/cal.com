@@ -10,4 +10,3 @@ export { BookingPayloadBuilder } from "./BookingPayloadBuilder";
 export { MeetingPayloadBuilder } from "./MeetingPayloadBuilder";
 export { RecordingPayloadBuilder } from "./RecordingPayloadBuilder";
 export { OOOPayloadBuilder } from "./OOOPayloadBuilder";
-export { InstantMeetingBuilder } from "./InstantMeetingBuilder";

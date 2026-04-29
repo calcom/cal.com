@@ -16,7 +16,6 @@ describe("PayloadBuilderFactory", () => {
       ooo: new V2021_10_20.OOOPayloadBuilder(),
       recording: new V2021_10_20.RecordingPayloadBuilder(),
       meeting: new V2021_10_20.MeetingPayloadBuilder(),
-      instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
     };
 
     factory = new PayloadBuilderFactory(WebhookVersionEnum.V_2021_10_20, defaultBuilders);
@@ -42,7 +41,6 @@ describe("PayloadBuilderFactory", () => {
         ooo: new V2021_10_20.OOOPayloadBuilder(),
         recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
-        instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
 
       factory.registerVersion("2024-12-01", newVersionBuilders);
@@ -57,7 +55,6 @@ describe("PayloadBuilderFactory", () => {
         ooo: new V2021_10_20.OOOPayloadBuilder(),
         recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
-        instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
 
       factory.registerVersion(WebhookVersionEnum.V_2021_10_20, newBuilders);
@@ -111,13 +108,6 @@ describe("PayloadBuilderFactory", () => {
       });
     });
 
-    it("should route instant meeting events to instant meeting builder", () => {
-      const builder = factory.getBuilder(
-        WebhookVersionEnum.V_2021_10_20,
-        WebhookTriggerEvents.INSTANT_MEETING
-      );
-      expect(builder).toBe(defaultBuilders.instantMeeting);
-    });
   });
 
   describe("Fallback Behavior", () => {
@@ -166,17 +156,12 @@ describe("PayloadBuilderFactory", () => {
         WebhookVersionEnum.V_2021_10_20,
         WebhookTriggerEvents.MEETING_STARTED
       );
-      const instantBuilder = factory.getBuilder(
-        WebhookVersionEnum.V_2021_10_20,
-        WebhookTriggerEvents.INSTANT_MEETING
-      );
 
       // Runtime verification
       expect(bookingBuilder).toBeDefined();
       expect(oooBuilder).toBeDefined();
       expect(recordingBuilder).toBeDefined();
       expect(meetingBuilder).toBeDefined();
-      expect(instantBuilder).toBeDefined();
     });
 
     it("should build valid payload with correctly typed DTO", () => {
@@ -244,7 +229,6 @@ describe("PayloadBuilderFactory", () => {
         ooo: new V2021_10_20.OOOPayloadBuilder(),
         recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
-        instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
 
       factory.registerVersion(WebhookVersionEnum.V_2024_12_01, v2Builders);

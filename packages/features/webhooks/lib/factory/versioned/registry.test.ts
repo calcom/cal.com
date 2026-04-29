@@ -31,16 +31,11 @@ describe("Payload Builder Registry", () => {
         DEFAULT_WEBHOOK_VERSION,
         WebhookTriggerEvents.MEETING_STARTED
       );
-      const instantBuilder = factory.getBuilder(
-        DEFAULT_WEBHOOK_VERSION,
-        WebhookTriggerEvents.INSTANT_MEETING
-      );
 
       expect(bookingBuilder).toBeDefined();
       expect(oooBuilder).toBeDefined();
       expect(recordingBuilder).toBeDefined();
       expect(meetingBuilder).toBeDefined();
-      expect(instantBuilder).toBeDefined();
     });
 
     it("should register v2021-10-20 builders", () => {
@@ -92,7 +87,6 @@ describe("Payload Builder Registry", () => {
         ooo: new V2021_10_20.OOOPayloadBuilder(),
         recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
-        instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
 
       factory.registerVersion(NEW_VERSION, newVersionBuilders);
@@ -111,7 +105,6 @@ describe("Payload Builder Registry", () => {
         ooo: new V2021_10_20.OOOPayloadBuilder(),
         recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
-        instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
 
       factory.registerVersion(NEW_VERSION, v2Builders);
@@ -140,7 +133,6 @@ describe("Payload Builder Registry", () => {
         ooo: new V2021_10_20.OOOPayloadBuilder(),
         recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
-        instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       });
 
       expect(factory1.getRegisteredVersions()).not.toEqual(factory2.getRegisteredVersions());
