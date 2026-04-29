@@ -470,6 +470,35 @@ Note: `docker compose` without the hyphen is now the primary method of using doc
 
 6. Open a browser to [http://localhost:3000](http://localhost:3000), or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.diy, a setup wizard will initialize. Define your first user, and you're ready to go!
 
+#### Cron Jobs (Required for Workflow Reminders)
+
+The `docker-compose.yml` includes a lightweight `cron` service that periodically calls Cal.com's internal API endpoints to process scheduled tasks. **This is required for workflow email/SMS reminders to be sent.**
+
+To enable it, set `CRON_SECRET` in your `.env` file:
+
+```bash
+# Generate a secure secret
+openssl rand -base64 32
+```
+
+Then add it to your `.env`:
+
+```env
+CRON_SECRET=your-generated-secret-here
+```
+
+The cron service will automatically run the following jobs:
+
+| Endpoint | Interval | Purpose |
+|---|---|---|
+| `/api/tasks/cron` | Every 60s | Process queued tasks (workflow reminders, webhooks) |
+| `/api/tasks/cleanup` | Every 24h | Clean up completed/failed tasks |
+| `/api/cron/calendar-subscriptions` | Every 5 min | Sync calendar subscriptions |
+| `/api/cron/credentials` | Every 5 min | Refresh integration credentials |
+| `/api/cron/selected-calendars` | Every 5 min | Sync selected calendars |
+
+> **Note**: Manual setup of a crontab on the host machine is no longer required, as the application now handles its own background automation out-of-the-box. However, it can still be done as a precautionary measure. If you don't need the built-in cron service (e.g., you're running your own external cron), you can exclude it: `docker compose up -d calcom`
+
    **Note for first-time setup (Calendar integration)**: During the setup wizard, you may encounter a "Connect your Calendar" step that appears to be required. If you do not wish to connect a calendar at this time, you can skip this step by navigating directly to the dashboard at `<NEXT_PUBLIC_WEBAPP_URL>/event-types`. Calendar integrations can be added later from the Settings > Integrations page.
 
 #### Updating Cal.diy
