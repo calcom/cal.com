@@ -119,7 +119,7 @@ docker-calcom-1  | @calcom/web:start: https://next-auth.js.org/errors#client_fet
 
 If OAuth loops and logs show messages like `Match of WEBAPP_URL with ALLOWED_HOSTNAMES failed`, verify all of the following:
 
-1. `ALLOWED_HOSTNAMES` is comma-separated without JSON or extra quotes (for example, `ALLOWED_HOSTNAMES=cal.example.com,www.cal.example.com`).
+1. `ALLOWED_HOSTNAMES` is set as a comma-separated list of quoted hostnames (for example, `ALLOWED_HOSTNAMES='"cal.example.com","www.cal.example.com"'`).
 2. `NEXT_PUBLIC_WEBAPP_URL` is set to your public domain.
 3. Your image was built with the same public domain values.
 
