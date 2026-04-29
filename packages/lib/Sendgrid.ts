@@ -39,7 +39,41 @@ export type SendgridNewContact = {
   job_id: string;
 };
 
+type SendgridContactSearchByEmailResult = {
+  result?: Record<
+    string,
+    {
+      contact?: {
+        id?: string;
+      };
+    }
+  >;
+};
+
 const environmentApiKey = process.env.SENDGRID_SYNC_API_KEY || "";
+
+export async function deleteContactFromSendgrid(email: string) {
+  const apiKey = process.env.SENDGRID_API_KEY;
+  if (!apiKey) return;
+
+  const sendgrid = new Sendgrid(apiKey);
+  const searchResponse = await sendgrid.sendgridRequest<SendgridContactSearchByEmailResult>({
+    url: `/v3/marketing/contacts/search/emails`,
+    method: "POST",
+    body: {
+      emails: [email],
+    },
+  });
+
+  const contactResult = searchResponse.result?.[email];
+  const contactId = contactResult?.contact?.id;
+  if (!contactId) return;
+
+  await sendgrid.sendgridRequest({
+    url: `/v3/marketing/contacts?ids=${encodeURIComponent(contactId)}`,
+    method: "DELETE",
+  });
+}
 
 /**
  * This class to instance communicating to Sendgrid APIs requires an API Key.
