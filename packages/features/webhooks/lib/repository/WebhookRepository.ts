@@ -21,9 +21,15 @@ import type { GetSubscribersOptions } from "./types";
 
 class PermissionCheckService {
   constructor(_prisma?: unknown) {}
-  async checkPermission(..._args: unknown[]) { return true; }
-  async hasPermission(..._args: unknown[]) { return true; }
-  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> { return []; }
+  async checkPermission(..._args: unknown[]) {
+    return true;
+  }
+  async hasPermission(..._args: unknown[]) {
+    return true;
+  }
+  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> {
+    return [];
+  }
 }
 
 // Type for raw query results from the database
@@ -80,11 +86,8 @@ export class WebhookRepository implements IWebhookRepository {
   }
 
   async getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]> {
-    const teamId = options.teamId;
     const userId = options.userId;
     const eventTypeId = options.eventTypeId;
-    const teamIds = Array.isArray(teamId) ? teamId : teamId ? [teamId] : undefined;
-    const orgId = options.orgId;
     const oAuthClientId = options.oAuthClientId;
 
     let managedParentEventTypeId: number | undefined;
@@ -97,7 +100,6 @@ export class WebhookRepository implements IWebhookRepository {
       userId,
       eventTypeId,
       managedParentEventTypeId,
-      teamIds: teamIds && orgId ? [...teamIds, orgId] : teamIds || (orgId ? [orgId] : undefined),
       oAuthClientId,
       triggerEvent: options.triggerEvent,
     });
@@ -123,11 +125,10 @@ export class WebhookRepository implements IWebhookRepository {
     userId?: number | null;
     eventTypeId?: number | null;
     managedParentEventTypeId?: number | null;
-    teamIds?: number[];
     oAuthClientId?: string | null;
     triggerEvent: WebhookTriggerEvents;
   }): Promise<WebhookSubscriber[]> {
-    const { userId, eventTypeId, managedParentEventTypeId, teamIds, oAuthClientId, triggerEvent } = params;
+    const { userId, eventTypeId, managedParentEventTypeId, oAuthClientId, triggerEvent } = params;
 
     // IMPORTANT: Explicit type casts (::int, ::text) are required for nullable params
     // PostgreSQL can't infer types for NULL values without explicit casts
@@ -180,26 +181,10 @@ export class WebhookRepository implements IWebhookRepository {
         AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
         AND platform = false
       
-      UNION ALL
-      
-      -- Team webhooks (only if teamIds provided and not empty)
-      SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
-        5 as priority
-      FROM "Webhook"
-      WHERE active = true 
-        AND ${teamIds}::int[] IS NOT NULL
-        AND cardinality(${teamIds}::int[]) > 0
-        AND "teamId" = ANY(${teamIds}::int[])
-        AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-      
-      UNION ALL
-      
       -- OAuth client webhooks (only if oAuthClientId provided)
       SELECT 
         id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
-        6 as priority
+        5 as priority
       FROM "Webhook"
       WHERE active = true 
         AND ${oAuthClientId}::text IS NOT NULL
@@ -277,43 +262,6 @@ export class WebhookRepository implements IWebhookRepository {
       ...webhook,
       version: parseWebhookVersion(webhook.version),
     };
-  }
-
-  async findByOrgIdAndTrigger({
-    orgId,
-    triggerEvent,
-  }: {
-    orgId: number;
-    triggerEvent: WebhookTriggerEvents;
-  }): Promise<WebhookSubscriber[]> {
-    const webhooks = await this.prisma.webhook.findMany({
-      where: {
-        teamId: orgId,
-        platform: false,
-        eventTriggers: { has: triggerEvent },
-        active: true,
-      },
-      select: {
-        id: true,
-        subscriberUrl: true,
-        payloadTemplate: true,
-        active: true,
-        eventTriggers: true,
-        secret: true,
-        teamId: true,
-        userId: true,
-        platform: true,
-        time: true,
-        timeUnit: true,
-        appId: true,
-        version: true,
-      },
-    });
-    return webhooks.map((webhook) => ({
-      ...webhook,
-      eventTriggers: webhook.eventTriggers as WebhookTriggerEvents[],
-      version: parseWebhookVersion(webhook.version),
-    }));
   }
 
   async getFilteredWebhooksForUser({ userId, userRole }: { userId: number; userRole?: UserPermissionRole }) {

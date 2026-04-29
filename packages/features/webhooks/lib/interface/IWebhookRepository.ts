@@ -41,8 +41,6 @@ export interface GetSubscribersOptions {
   userId?: number | null;
   eventTypeId?: number | null;
   triggerEvent: WebhookTriggerEvents;
-  teamId?: number | number[] | null;
-  orgId?: number | null;
   oAuthClientId?: string | null;
 }
 
@@ -70,10 +68,6 @@ export interface IWebhookRepository {
     timeUnit: string | null;
     version: WebhookVersion;
   }>;
-  findByOrgIdAndTrigger(options: {
-    orgId: number;
-    triggerEvent: WebhookTriggerEvents;
-  }): Promise<WebhookSubscriber[]>;
   getFilteredWebhooksForUser(options: { userId: number; userRole?: UserPermissionRole }): Promise<{
     webhookGroups: WebhookGroup[];
     profiles: {

@@ -33,8 +33,6 @@ export class RecordingWebhookDataFetcher implements IWebhookDataFetcher {
       triggerEvent: payload.triggerEvent,
       userId: payload.userId,
       eventTypeId: payload.eventTypeId,
-      teamId: payload.teamId,
-      orgId: undefined,
       oAuthClientId: payload.oAuthClientId,
     };
   }

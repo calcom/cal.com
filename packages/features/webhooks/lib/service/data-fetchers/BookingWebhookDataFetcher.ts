@@ -77,8 +77,6 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
       triggerEvent: payload.triggerEvent,
       userId: payload.userId,
       eventTypeId: payload.eventTypeId,
-      teamId: payload.teamId,
-      orgId: payload.orgId,
       oAuthClientId: payload.oAuthClientId,
     };
   }

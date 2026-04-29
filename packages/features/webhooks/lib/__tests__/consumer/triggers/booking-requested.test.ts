@@ -20,7 +20,6 @@ import type { BookingWebhookTaskPayload } from "../../../types/webhookTask";
  * - Event types that require confirmation
  * - Paid events that require confirmation
  * - Reschedule scenarios with confirmation required
- * - Team/collective scheduling with confirmation required
  */
 describe("BOOKING_REQUESTED Trigger", () => {
   let consumer: WebhookTaskConsumer;
@@ -88,7 +87,6 @@ describe("BOOKING_REQUESTED Trigger", () => {
       getSubscribers: vi.fn().mockResolvedValue([]),
       getWebhookById: vi.fn(),
       findByWebhookId: vi.fn(),
-      findByOrgIdAndTrigger: vi.fn(),
       getFilteredWebhooksForUser: vi.fn(),
     } as unknown as IWebhookRepository;
 
@@ -111,8 +109,6 @@ describe("BOOKING_REQUESTED Trigger", () => {
         triggerEvent: payload.triggerEvent,
         userId: payload.userId,
         eventTypeId: payload.eventTypeId,
-        teamId: payload.teamId,
-        orgId: payload.orgId,
         oAuthClientId: payload.oAuthClientId,
       })),
     };
@@ -228,45 +224,6 @@ describe("BOOKING_REQUESTED Trigger", () => {
           metadata: { customField: "customValue", source: "api" },
         })
       );
-    });
-  });
-
-  describe("Team/Collective scheduling", () => {
-    it("should process BOOKING_REQUESTED for team event with confirmation required", async () => {
-      const payload: BookingWebhookTaskPayload = {
-        operationId: "op-team-booking",
-        triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
-        bookingUid: "booking-uid-team",
-        eventTypeId: 456,
-        userId: 789,
-        teamId: 111,
-        orgId: 222,
-        timestamp: new Date().toISOString(),
-      };
-
-      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
-        {
-          id: "sub-team",
-          subscriberUrl: "https://example.com/team-webhook",
-          payloadTemplate: null,
-          appId: null,
-          secret: null,
-          time: null,
-          timeUnit: null,
-          eventTriggers: [WebhookTriggerEvents.BOOKING_REQUESTED],
-          version: WebhookVersion.V_2021_10_20,
-        },
-      ]);
-
-      await consumer.processWebhookTask(payload, "task-team-booking");
-
-      expect(mockBookingDataFetcher.getSubscriberContext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          teamId: 111,
-          orgId: 222,
-        })
-      );
-      expect(mockWebhookService.processWebhooks).toHaveBeenCalled();
     });
   });
 

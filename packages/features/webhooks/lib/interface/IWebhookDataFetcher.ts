@@ -5,8 +5,6 @@ export interface SubscriberContext {
   triggerEvent: WebhookTriggerEvents;
   userId?: number;
   eventTypeId?: number;
-  teamId?: number | null;
-  orgId?: number;
   oAuthClientId?: string | null;
 }
 
