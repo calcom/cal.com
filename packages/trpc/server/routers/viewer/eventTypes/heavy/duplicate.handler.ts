@@ -1,3 +1,4 @@
+import { sanitizeAnalyticsApps } from "@calcom/app-store/_utils/sanitize-analytics-value";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
@@ -136,7 +137,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       durationLimits: durationLimits ?? undefined,
       eventTypeColor: eventTypeColor ?? undefined,
       customReplyToEmail: customReplyToEmail ?? undefined,
-      metadata: metadata === null ? Prisma.DbNull : metadata,
+      metadata: metadata === null ? Prisma.DbNull : sanitizeAnalyticsApps(metadata),
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       rrSegmentQueryValue:
         eventType.rrSegmentQueryValue === null ? Prisma.DbNull : eventType.rrSegmentQueryValue,
