@@ -115,6 +115,7 @@ export class BookingEmailSmsHandler {
       rescheduleReason,
       additionalNotes,
       additionalInformation,
+      originalRescheduledBooking,
     } = data;
 
     const { sendRescheduledEmailsAndSMS } = await import("@calcom/emails/email-manager");
@@ -124,6 +125,12 @@ export class BookingEmailSmsHandler {
         additionalInformation,
         additionalNotes,
         cancellationReason: `$RCH$${rescheduleReason || ""}`,
+        previousStartTime: originalRescheduledBooking?.startTime
+          ? dayjs(originalRescheduledBooking.startTime).utc().format()
+          : undefined,
+        previousEndTime: originalRescheduledBooking?.endTime
+          ? dayjs(originalRescheduledBooking.endTime).utc().format()
+          : undefined,
       },
       metadata
     );
@@ -151,6 +158,12 @@ export class BookingEmailSmsHandler {
       additionalInformation,
       additionalNotes,
       cancellationReason: `$RCH$${rescheduleReason || ""}`,
+      previousStartTime: originalRescheduledBooking?.startTime
+        ? dayjs(originalRescheduledBooking.startTime).utc().format()
+        : undefined,
+      previousEndTime: originalRescheduledBooking?.endTime
+        ? dayjs(originalRescheduledBooking.endTime).utc().format()
+        : undefined,
     };
     const cancelledRRHostEvt = cloneDeep(copyEventAdditionalInfo);
     this.log.debug("Emails: Sending rescheduled emails for booking confirmation");
