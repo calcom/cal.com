@@ -5,6 +5,7 @@ import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -20,6 +21,12 @@ const bodySchema = z
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const body = bodySchema.parse(req.body);
+
+  const validation = await validateUrlForSSRF(body.url);
+  if (!validation.isValid) {
+    return res.status(400).json({ message: `URL is not allowed: ${validation.error}` });
+  }
+
   // Get user
   const user = await prisma.user.findFirstOrThrow({
     where: {
