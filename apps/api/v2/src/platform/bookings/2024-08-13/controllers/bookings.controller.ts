@@ -45,6 +45,7 @@ import {
 } from "@nestjs/swagger";
 import { Request } from "express";
 import { BookingPbacGuard } from "@/platform/bookings/2024-08-13/guards/booking-pbac.guard";
+import { BookingSearchInput_2024_08_13 } from "@/platform/bookings/2024-08-13/inputs/booking-search.input";
 import { BookingUidGuard } from "@/platform/bookings/2024-08-13/guards/booking-uid.guard";
 import { BookingReferencesFilterInput_2024_08_13 } from "@/platform/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { BookingReferencesOutput_2024_08_13 } from "@/platform/bookings/2024-08-13/outputs/booking-references.output";
@@ -76,6 +77,11 @@ import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/op
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { UsersService } from "@/modules/users/services/users.service";
+
+type SearchBookingsOutput_2024_08_13 = {
+  status: typeof SUCCESS_STATUS;
+  data: Awaited<ReturnType<BookingsService_2024_08_13["searchBookings"]>>;
+};
 
 @Controller({
   path: "/v2/bookings",
@@ -184,6 +190,27 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: booking,
+    };
+  }
+
+  @Get("/search")
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @Permissions([BOOKING_READ])
+  @ApiOperation({
+    summary: "Search bookings",
+    description:
+      "Search bookings by email, event type, status, and date range. All filters are optional and composable.",
+  })
+  async searchBookings(
+    @Query() queryParams: BookingSearchInput_2024_08_13,
+    @GetUser() user: ApiAuthGuardUser
+  ): Promise<SearchBookingsOutput_2024_08_13> {
+    const bookings = await this.bookingsService.searchBookings(queryParams, { id: user.id });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: bookings,
     };
   }
 

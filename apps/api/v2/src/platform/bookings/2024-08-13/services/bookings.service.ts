@@ -40,8 +40,12 @@ import {
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
+import { BookingSearchInput_2024_08_13 } from "@/platform/bookings/2024-08-13/inputs/booking-search.input";
 import { CalendarLink } from "@/platform/bookings/2024-08-13/outputs/calendar-links.output";
-import { BookingsRepository_2024_08_13 } from "@/platform/bookings/2024-08-13/repositories/bookings.repository";
+import {
+  BookingSearchRow_2024_08_13,
+  BookingsRepository_2024_08_13,
+} from "@/platform/bookings/2024-08-13/repositories/bookings.repository";
 import { ErrorsBookingsService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/output.service";
@@ -709,6 +713,13 @@ export class BookingsService_2024_08_13 {
       bookings: formattedBookings,
       pagination,
     };
+  }
+
+  async searchBookings(
+    queryParams: BookingSearchInput_2024_08_13,
+    user: { id: number }
+  ): Promise<BookingSearchRow_2024_08_13[]> {
+    return this.bookingsRepository.searchBookingsRaw(user.id, queryParams);
   }
 
   async getAttendeeEmail(queryParamsAttendeeEmail: string, user: { id: number }) {
