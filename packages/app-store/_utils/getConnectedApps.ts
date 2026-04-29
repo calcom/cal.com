@@ -146,16 +146,16 @@ export async function getConnectedApps({
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
   });
-  //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
-    enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
-      const userCredentialIds = credentials.filter((c) => c.appId === app.slug && !c.teamId).map((c) => c.id);
+    enabledApps.map(async (enabledApp) => {
+      const { credentials: appCredentials, credential, ...rest } = enabledApp;
+      const userCredentialIds = credentials.filter((c) => c.appId === rest.slug && !c.teamId).map((c) => c.id);
       const invalidCredentialIds = credentials
-        .filter((c) => c.appId === app.slug && c.invalid)
+        .filter((c) => c.appId === rest.slug && c.invalid)
         .map((c) => c.id);
       const teams = await Promise.all(
         credentials
-          .filter((c) => c.appId === app.slug && c.teamId)
+          .filter((c) => c.appId === rest.slug && c.teamId)
           .map(async (c) => {
             const team = userTeams.find((team) => team.id === c.teamId);
             if (!team) {
@@ -170,17 +170,14 @@ export async function getConnectedApps({
             };
           })
       );
-      // type infer as CredentialOwner
       const credentialOwner: CredentialOwner = {
         name: user.name,
         avatar: user?.avatar ?? user?.avatarUrl,
       };
 
-      // We need to know if app is payment type
-      // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
-      if (credential && app.categories.includes("payment")) {
-        const paymentAppImportFn = PaymentServiceMap[app.dirName as keyof typeof PaymentServiceMap];
+      if (credential && rest.categories.includes("payment")) {
+        const paymentAppImportFn = PaymentServiceMap[rest.dirName as keyof typeof PaymentServiceMap];
         if (paymentAppImportFn) {
           const paymentApp = await paymentAppImportFn;
                               if (paymentApp && "BuildPaymentService" in paymentApp && paymentApp?.BuildPaymentService) {
@@ -192,28 +189,60 @@ export async function getConnectedApps({
       }
 
       let dependencyData: TDependencyData = [];
-      if (app.dependencies?.length) {
-        dependencyData = app.dependencies.map((dependency) => {
+      if (rest.dependencies?.length) {
+        dependencyData = rest.dependencies.map((dependency) => {
           const dependencyInstalled = enabledApps.some(
             (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
           );
-          // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
           const dependencyName = getAppFromSlug(dependency)?.name;
           return { name: dependencyName, installed: dependencyInstalled };
         });
       }
 
       return {
-        ...app,
+        slug: rest.slug,
+        name: rest.name,
+        description: rest.description,
+        logo: rest.logo,
+        variant: rest.variant,
+        categories: rest.categories,
+        extendsFeature: rest.extendsFeature,
+        publisher: rest.publisher,
+        url: rest.url,
+        docsUrl: rest.docsUrl,
+        verified: rest.verified,
+        trending: rest.trending,
+        rating: rest.rating,
+        reviews: rest.reviews,
+        isGlobal: rest.isGlobal,
+        simplePath: rest.simplePath,
+        email: rest.email,
+        feeType: rest.feeType,
+        price: rest.price,
+        commission: rest.commission,
+        licenseRequired: rest.licenseRequired,
+        appData: rest.appData,
+        paid: rest.paid,
+        dirName: rest.dirName,
+        isTemplate: rest.isTemplate,
+        dependencies: rest.dependencies,
+        concurrentMeetings: rest.concurrentMeetings,
+        createdAt: rest.createdAt,
+        isOAuth: rest.isOAuth,
+        type: rest.type,
+        installed: rest.installed,
+        title: rest.title,
+        delegationCredential: rest.delegationCredential,
+        enabled: rest.enabled,
         ...(teams.length && {
           credentialOwner,
         }),
         userCredentialIds,
         invalidCredentialIds,
         teams,
-        isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
+        isInstalled: !!userCredentialIds.length || !!teams.length || rest.isGlobal,
         isSetupAlready,
-        ...(app.dependencies && { dependencyData }),
+        ...(rest.dependencies && { dependencyData }),
       };
     })
   );
