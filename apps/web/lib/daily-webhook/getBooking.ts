@@ -33,6 +33,11 @@ export const getBooking = async (bookingId: number) => {
           name: true,
           locale: true,
           destinationCalendar: true,
+          platformOAuthClients: {
+            select: {
+              id: true,
+            },
+          },
         },
       },
     },
