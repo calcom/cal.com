@@ -541,45 +541,41 @@ export default abstract class BaseCalendarService implements Calendar {
         ? injectVTimezone(iCalString, updateTimezone, event.startTime, event.endTime)
         : "";
 
-      let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
-        eventsToUpdate.map((eventItem) => {
-          calendarEvent = eventItem;
-          return updateCalendarObject({
+        eventsToUpdate.map((eventItem) =>
+          updateCalendarObject({
             calendarObject: {
-              url: calendarEvent.url,
+              url: eventItem.url,
               data: injectScheduleAgent(iCalStringWithTimezone ?? ""),
-              etag: calendarEvent?.etag,
+              etag: eventItem?.etag,
             },
             headers: this.headers,
-          });
-        })
-      ).then((responses) =>
-        responses.map((response) => {
-          if (response.status >= 200 && response.status < 300) {
-            return {
-              uid,
-              type: this.credentials.type,
-              id: typeof calendarEvent.uid === "string" ? calendarEvent.uid : "-1",
-              password: "",
-              url: calendarEvent.url,
-              additionalInfo:
-                typeof event.additionalInformation === "string" ? event.additionalInformation : {},
-            };
-          } else {
-            this.log.error("Error: Status Code", response.status);
-            return {
-              uid,
-              type: event.type,
-              id: typeof event.uid === "string" ? event.uid : "-1",
-              password: "",
-              url: typeof event.location === "string" ? event.location : "-1",
-              additionalInfo:
-                typeof event.additionalInformation === "string" ? event.additionalInformation : {},
-            };
-          }
-        })
+          }).then((response) => {
+            if (response.status >= 200 && response.status < 300) {
+              return {
+                uid,
+                type: this.credentials.type,
+                id: typeof eventItem.uid === "string" ? eventItem.uid : "-1",
+                password: "",
+                url: eventItem.url,
+                additionalInfo:
+                  typeof event.additionalInformation === "string" ? event.additionalInformation : {},
+              };
+            } else {
+              this.log.error("Error: Status Code", response.status);
+              return {
+                uid,
+                type: event.type,
+                id: typeof event.uid === "string" ? event.uid : "-1",
+                password: "",
+                url: typeof event.location === "string" ? event.location : "-1",
+                additionalInfo:
+                  typeof event.additionalInformation === "string" ? event.additionalInformation : {},
+              };
+            }
+          })
+        )
       );
     } catch (reason) {
       this.log.error(reason);
