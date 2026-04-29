@@ -62,7 +62,7 @@ runs:
       with:
         images: |
           docker.io/calendso/calendso
-          docker.io/calcom/cal.diy
+          docker.io/calcom/cal.com
           ghcr.io/calcom/cal.diy
         flavor: |
           latest=${{ !github.event.release.prerelease && inputs.use-as-latest == 'true' }}
