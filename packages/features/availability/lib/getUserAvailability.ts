@@ -160,6 +160,7 @@ export type GetUserAvailabilityInitialData = {
     bookingLimits?: unknown;
     includeManagedEventsInLimits: boolean;
   } | null;
+  guestBusyTimes?: { start: Date; end: Date }[];
 };
 
 export type GetAvailabilityUser = GetUserAvailabilityInitialData["user"];
@@ -617,6 +618,13 @@ export class UserAvailabilityService {
       };
     }
 
+    const guestBusyTimesFormatted: EventBusyDetails[] = (initialData?.guestBusyTimes ?? []).map((t) => ({
+      start: t.start.toISOString(),
+      end: t.end.toISOString(),
+      title: "Guest busy",
+      source: "guest-availability",
+    }));
+
     const detailedBusyTimesWithSource: EventBusyDetails[] = [
       ...busyTimes.map((a) => ({
         ...a,
@@ -627,6 +635,7 @@ export class UserAvailabilityService {
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
+      ...guestBusyTimesFormatted,
     ];
 
     const detailedBusyTimes: UserAvailabilityBusyDetails[] = withSource

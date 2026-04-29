@@ -1506,4 +1506,53 @@ export class UserRepository {
 
     return { email: user.email, username: user.username };
   }
+
+  async findByEmails({ emails }: { emails: string[] }) {
+    if (!emails.length) return [];
+
+    const normalized = Array.from(new Set(emails.map((e) => e.toLowerCase())));
+
+    const [byPrimary, bySecondary] = await Promise.all([
+      this.prismaClient.user.findMany({
+        where: { email: { in: normalized, mode: "insensitive" } },
+        select: { id: true, email: true },
+      }),
+      this.prismaClient.user.findMany({
+        where: {
+          secondaryEmails: {
+            some: {
+              email: { in: normalized, mode: "insensitive" },
+              emailVerified: { not: null },
+            },
+          },
+        },
+        select: {
+          id: true,
+          email: true,
+          secondaryEmails: {
+            where: {
+              email: { in: normalized, mode: "insensitive" },
+              emailVerified: { not: null },
+            },
+            select: { email: true },
+          },
+        },
+      }),
+    ]);
+
+    const seen = new Map<number, { id: number; email: string; matchedEmails: string[] }>();
+    for (const u of byPrimary) {
+      seen.set(u.id, { id: u.id, email: u.email, matchedEmails: [u.email] });
+    }
+    for (const u of bySecondary) {
+      const existing = seen.get(u.id);
+      const secondaryMatches = u.secondaryEmails.map((s) => s.email);
+      if (existing) {
+        existing.matchedEmails = Array.from(new Set([...existing.matchedEmails, ...secondaryMatches]));
+      } else {
+        seen.set(u.id, { id: u.id, email: u.email, matchedEmails: secondaryMatches });
+      }
+    }
+    return Array.from(seen.values());
+  }
 }

@@ -2137,4 +2137,62 @@ export class BookingRepository implements IBookingRepository {
       },
     });
   }
+
+  async findByUidIncludeAttendeeEmails({ uid }: { uid: string }) {
+    return this.prismaClient.booking.findUnique({
+      where: { uid },
+      select: {
+        id: true,
+        uid: true,
+        attendees: { select: { email: true } },
+        user: { select: { email: true } },
+      },
+    });
+  }
+
+  async findByUserIdsAndDateRange({
+    userIds,
+    userEmails,
+    dateFrom,
+    dateTo,
+    excludeUid,
+  }: {
+    userIds: number[];
+    userEmails: string[];
+    dateFrom: Date;
+    dateTo: Date;
+    excludeUid?: string;
+  }) {
+    if (!userIds.length && !userEmails.length) return [];
+
+    const rows = await this.prismaClient.booking.findMany({
+      where: {
+        status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
+        AND: [{ startTime: { lt: dateTo } }, { endTime: { gt: dateFrom } }],
+        OR: [
+          ...(userIds.length > 0 ? [{ userId: { in: userIds } }] : []),
+          ...(userEmails.length > 0
+            ? [{ attendees: { some: { email: { in: userEmails, mode: "insensitive" as const } } } }]
+            : []),
+        ],
+        ...(excludeUid != null && excludeUid !== "" ? { uid: { not: excludeUid } } : {}),
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        userId: true,
+        status: true,
+      },
+    });
+
+    // Dedupe by uid: the OR between userId and attendees.email can match the same
+    // booking twice (e.g., a guest who is both organizer and listed among attendees).
+    const unique = new Map<string, (typeof rows)[number]>();
+    for (const row of rows) {
+      if (!unique.has(row.uid)) unique.set(row.uid, row);
+    }
+    return Array.from(unique.values());
+  }
 }

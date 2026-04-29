@@ -1,11 +1,10 @@
-import { shallow } from "zustand/shallow";
-
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useSchedule } from "@calcom/web/modules/schedules/hooks/useSchedule";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
-
-import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import { useSchedule } from "@calcom/web/modules/schedules/hooks/useSchedule";
+import { shallow } from "zustand/shallow";
 
 export type useEventReturnType = ReturnType<typeof useEvent>;
 export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
@@ -71,6 +70,7 @@ export const useScheduleForEvent = ({
   isTeamEvent,
   useApiV2 = true,
   bookerLayout,
+  restrictionSchedule,
 }: {
   username?: string | null;
   eventSlug?: string | null;
@@ -92,24 +92,34 @@ export const useScheduleForEvent = ({
     extraDays: number;
     columnViewExtraDays: { current: number };
   };
+  restrictionSchedule?: { id: number | null; useBookerTimezone: boolean };
 }) => {
-  const { timezone } = useBookerTime();
+  const { timezone: rawTimezone } = useBookerTime();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStoreContext(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
 
+  const effectiveTimezone = useStableTimezone(rawTimezone, restrictionSchedule);
+
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
+  const rawRescheduledBy = searchParams?.get("rescheduledBy");
+  // Lightweight client-side normalization: the server validates rescheduledBy
+  // as a non-empty email, so drop obviously malformed URL values (empty string,
+  // missing "@") to null before the query fires.
+  const rescheduledBy =
+    rawRescheduledBy && rawRescheduledBy.includes("@") ? rawRescheduledBy : null;
 
   const schedule = useSchedule({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId,
-    timezone,
+    timezone: effectiveTimezone,
     selectedDate,
     dayCount,
     rescheduleUid,
+    rescheduledBy,
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
     isTeamEvent,
