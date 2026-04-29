@@ -419,6 +419,13 @@ function BookingListItem(booking: BookingItemProps) {
                   &quot;{booking.description}&quot;
                 </div>
               )}
+              {isCancelled && booking.cancellationReason && (
+                <div
+                  className="max-w-10/12 text-subtle sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm"
+                  title={booking.cancellationReason}>
+                  {t("reason")}: &quot;{booking.cancellationReason}&quot;
+                </div>
+              )}
               {booking.attendees.length !== 0 && (
                 <DisplayAttendees
                   attendees={attendeeList}
