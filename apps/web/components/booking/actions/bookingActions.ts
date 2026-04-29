@@ -19,7 +19,6 @@ export interface BookingActionContext {
   isTabUnconfirmed: boolean;
   isDisabledCancelling: boolean;
   isDisabledRescheduling: boolean;
-  isCalVideoLocation: boolean;
   showPendingPayment: boolean;
   isAttendee: boolean;
   cardCharged: boolean;
@@ -73,25 +72,6 @@ export function getCancelEventAction(context: BookingActionContext): ActionType 
     disabled: isActionDisabled("cancel", context),
     bookingUid: booking.uid,
   };
-}
-
-export function getVideoOptionsActions(context: BookingActionContext): ActionType[] {
-  const { booking, isBookingInPast, isConfirmed, isCalVideoLocation, t } = context;
-
-  return [
-    {
-      id: "view_recordings",
-      label: t("view_recordings"),
-      icon: "video",
-      disabled: !(isBookingInPast && isConfirmed && isCalVideoLocation && booking.isRecorded),
-    },
-    {
-      id: "meeting_session_details",
-      label: t("view_session_details"),
-      icon: "info",
-      disabled: !(isBookingInPast && isConfirmed && isCalVideoLocation),
-    },
-  ];
 }
 
 export function getEditEventActions(context: BookingActionContext): ActionType[] {
@@ -184,7 +164,6 @@ export function getAfterEventActions(context: BookingActionContext): ActionType[
   const { booking, cardCharged, attendeeList, t } = context;
 
   const actions: (ActionType | null)[] = [
-    ...getVideoOptionsActions(context),
     booking.status === BookingStatus.ACCEPTED && booking.paid && booking.payment[0]?.paymentOption === "HOLD"
       ? {
           id: "charge_card",
@@ -262,10 +241,6 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
       );
     case "cancel":
       return isDisabledCancelling || isBookingInPast || isCancelled || isRejected;
-    case "view_recordings":
-      return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
-    case "meeting_session_details":
-      return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
     case "charge_card":
       return context.cardCharged;
     case "reassign":

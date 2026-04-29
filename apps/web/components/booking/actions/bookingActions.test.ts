@@ -5,7 +5,6 @@ import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import {
   getPendingActions,
   getCancelEventAction,
-  getVideoOptionsActions,
   getEditEventActions,
   getAfterEventActions,
   shouldShowPendingActions,
@@ -109,7 +108,6 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
     isTabUnconfirmed: false,
     isDisabledCancelling: false,
     isDisabledRescheduling: false,
-    isCalVideoLocation: true,
     showPendingPayment: false,
     cardCharged: false,
     attendeeList: [
@@ -211,47 +209,6 @@ describe("Booking Actions", () => {
       const action = getCancelEventAction(context);
 
       expect(action.label).toBe("cancel_all_remaining");
-    });
-  });
-
-  describe("getVideoOptionsActions", () => {
-    it("should return video actions for past confirmed bookings", () => {
-      const context = createMockContext({
-        isBookingInPast: true,
-        isConfirmed: true,
-        isCalVideoLocation: true,
-        booking: {
-          ...createMockContext().booking,
-          isRecorded: true,
-        },
-      });
-      const actions = getVideoOptionsActions(context);
-
-      expect(actions).toHaveLength(2);
-      expect(actions[0].id).toBe("view_recordings");
-      expect(actions[1].id).toBe("meeting_session_details");
-      expect(actions[0].disabled).toBe(false);
-      expect(actions[1].disabled).toBe(false);
-    });
-
-    it("should disable video actions for upcoming bookings", () => {
-      const context = createMockContext({ isBookingInPast: false });
-      const actions = getVideoOptionsActions(context);
-
-      expect(actions[0].disabled).toBe(true);
-      expect(actions[1].disabled).toBe(true);
-    });
-
-    it("should disable video actions for non-Cal video locations", () => {
-      const context = createMockContext({
-        isBookingInPast: true,
-        isConfirmed: true,
-        isCalVideoLocation: false,
-      });
-      const actions = getVideoOptionsActions(context);
-
-      expect(actions[0].disabled).toBe(true);
-      expect(actions[1].disabled).toBe(true);
     });
   });
 
@@ -434,13 +391,11 @@ describe("Booking Actions", () => {
   });
 
   describe("getAfterEventActions", () => {
-    it("should include video actions and no-show action", () => {
+    it("should include no-show action", () => {
       const context = createMockContext({ isBookingInPast: true, isConfirmed: true });
       const actions = getAfterEventActions(context);
 
       const actionIds = actions.map((a) => a.id);
-      expect(actionIds).toContain("view_recordings");
-      expect(actionIds).toContain("meeting_session_details");
       expect(actionIds).toContain("no_show");
     });
 
@@ -566,13 +521,6 @@ describe("Booking Actions", () => {
       });
 
       expect(isActionDisabled("cancel", futureContext)).toBe(false);
-    });
-
-    it("should disable video actions for non-past bookings", () => {
-      const context = createMockContext({ isBookingInPast: false });
-
-      expect(isActionDisabled("view_recordings", context)).toBe(true);
-      expect(isActionDisabled("meeting_session_details", context)).toBe(true);
     });
 
     it("should disable charge card action when already charged", () => {

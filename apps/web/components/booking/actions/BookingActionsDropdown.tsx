@@ -90,18 +90,6 @@ export function BookingActionsDropdown({
   // Use store for all other dialog states
   const chargeCardDialogIsOpen = useBookingActionsStoreContext((state) => state.chargeCardDialogIsOpen);
   const setChargeCardDialogIsOpen = useBookingActionsStoreContext((state) => state.setChargeCardDialogIsOpen);
-  const viewRecordingsDialogIsOpen = useBookingActionsStoreContext(
-    (state) => state.viewRecordingsDialogIsOpen
-  );
-  const setViewRecordingsDialogIsOpen = useBookingActionsStoreContext(
-    (state) => state.setViewRecordingsDialogIsOpen
-  );
-  const meetingSessionDetailsDialogIsOpen = useBookingActionsStoreContext(
-    (state) => state.meetingSessionDetailsDialogIsOpen
-  );
-  const setMeetingSessionDetailsDialogIsOpen = useBookingActionsStoreContext(
-    (state) => state.setMeetingSessionDetailsDialogIsOpen
-  );
   const isNoShowDialogOpen = useBookingActionsStoreContext((state) => state.isNoShowDialogOpen);
   const setIsNoShowDialogOpen = useBookingActionsStoreContext((state) => state.setIsNoShowDialogOpen);
   const isOpenRescheduleDialog = useBookingActionsStoreContext((state) => state.isOpenRescheduleDialog);
@@ -186,11 +174,6 @@ export function BookingActionsDropdown({
   // Check if the logged-in user is the host/owner of the booking
   const isHost = booking.loggedInUser.userId === booking.user?.id;
 
-  const isCalVideoLocation =
-    !booking.location ||
-    booking.location === "integrations:daily" ||
-    (typeof booking.location === "string" && booking.location.trim() === "");
-
   const isDisabledCancelling = booking.eventType.disableCancelling;
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
 
@@ -235,7 +218,6 @@ export function BookingActionsDropdown({
     isTabUnconfirmed,
     isDisabledCancelling,
     isDisabledRescheduling,
-    isCalVideoLocation,
     showPendingPayment,
     isAttendee,
     cardCharged,
@@ -288,29 +270,23 @@ export function BookingActionsDropdown({
   const afterEventActions: ActionType[] = baseAfterEventActions.map((action) => ({
     ...action,
     onClick:
-      action.id === "view_recordings"
-        ? () => setViewRecordingsDialogIsOpen(true)
-        : action.id === "meeting_session_details"
-          ? () => setMeetingSessionDetailsDialogIsOpen(true)
-          : action.id === "charge_card"
-            ? () => setChargeCardDialogIsOpen(true)
-            : action.id === "no_show"
-              ? () => {
-                  if (attendeeList.length === 1) {
-                    const attendee = attendeeList[0];
-                    noShowMutation.mutate({
-                      bookingUid: booking.uid,
-                      attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-                    });
-                    return;
-                  }
-                  setIsNoShowDialogOpen(true);
-                }
-              : undefined,
+      action.id === "charge_card"
+        ? () => setChargeCardDialogIsOpen(true)
+        : action.id === "no_show"
+          ? () => {
+              if (attendeeList.length === 1) {
+                const attendee = attendeeList[0];
+                noShowMutation.mutate({
+                  bookingUid: booking.uid,
+                  attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+                });
+                return;
+              }
+              setIsNoShowDialogOpen(true);
+            }
+          : undefined,
     disabled:
-      action.disabled ||
-      (action.id === "no_show" && !(isBookingInPast || isOngoing)) ||
-      (action.id === "view_recordings" && !booking.isRecorded),
+      action.disabled || (action.id === "no_show" && !(isBookingInPast || isOngoing)),
   })) as ActionType[];
 
   const reportAction = getReportAction(actionContext);
