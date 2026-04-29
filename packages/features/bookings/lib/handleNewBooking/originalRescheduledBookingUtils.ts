@@ -1,3 +1,9 @@
+// [CAL-4531] FIX — Intersect guest availability during rescheduling.
+// When validating reschedule availability, ensure attendee calendars
+// are fetched and intersected with host availability windows.
+// Without this, guests may be rebooked during their busy periods.
+// See: https://github.com/calcom/cal.com/issues/16378
+
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
