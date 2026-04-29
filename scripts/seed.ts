@@ -23,91 +23,189 @@ function hashAPIKey(apiKey: string): string {
   return createHash("sha256").update(apiKey).digest("hex");
 }
 
-async function createTeamAndAddUsers(
-  teamInput: Prisma.TeamCreateInput,
-  users: { id: number; username: string; role?: MembershipRole }[] = []
-) {
-  const checkUnpublishedTeam = async (slug: string) => {
-    return await prisma.team.findFirst({
-      where: {
-        metadata: {
-          path: ["requestedSlug"],
-          equals: slug,
-        },
+type PlatformUser = {
+  email: string;
+  password: string;
+  username: string;
+  name: string;
+  completedOnboarding?: boolean;
+  timeZone?: string;
+  role?: UserPermissionRole;
+  theme?: "dark" | "light";
+  avatarUrl?: string | null;
+};
+
+type AssociateUserAndOrgProps = {
+  teamId: number;
+  userId: number;
+  role: MembershipRole;
+  username: string;
+};
+
+const checkUnpublishedTeam = async (slug: string) => {
+  return await prisma.team.findFirst({
+    where: {
+      metadata: {
+        path: ["requestedSlug"],
+        equals: slug,
       },
-    });
-  };
-  const createTeam = async (team: Prisma.TeamCreateInput) => {
-    try {
-      const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
-      if (requestedSlug) {
-        const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
-        if (unpublishedTeam) {
-          throw Error("Unique constraint failed on the fields");
-        }
-      }
-      return await prisma.team.create({
-        data: {
-          ...team,
-        },
-        include: {
-          eventTypes: true,
-        },
-      });
-    } catch (_err) {
-      if (_err instanceof Error && _err.message.indexOf("Unique constraint failed on the fields") !== -1) {
-        console.log(`Team '${team.name}' already exists, skipping.`);
-        return;
-      }
-      throw _err;
-    }
+    },
+  });
+};
+
+const setupPlatformUser = async (user: PlatformUser) => {
+  const { password: _password, ...restOfUser } = user;
+  const userData = {
+    ...restOfUser,
+    emailVerified: new Date(),
+    completedOnboarding: user.completedOnboarding ?? true,
+    locale: "en",
+    schedules:
+      (user.completedOnboarding ?? true)
+        ? {
+            create: {
+              name: "Working Hours",
+              availability: {
+                createMany: {
+                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+                },
+              },
+            },
+          }
+        : undefined,
   };
 
-  const team = await createTeam(teamInput);
-  if (!team) {
-    return;
+  const platformUser = await prisma.user.upsert({
+    where: { email_username: { email: user.email, username: user.username } },
+    update: userData,
+    create: userData,
+  });
+
+  await prisma.userPassword.upsert({
+    where: { userId: platformUser.id },
+    update: {
+      hash: await hashPassword(user.password),
+    },
+    create: {
+      hash: await hashPassword(user.password),
+      user: {
+        connect: {
+          id: platformUser.id,
+        },
+      },
+    },
+  });
+
+  return platformUser;
+};
+
+const createTeam = async (team: Prisma.TeamCreateInput) => {
+  try {
+    const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
+    if (requestedSlug) {
+      const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
+      if (unpublishedTeam) {
+        throw Error("Unique constraint failed on the fields");
+      }
+    }
+    return await prisma.team.create({
+      data: {
+        ...team,
+      },
+    });
+  } catch (_err) {
+    if (_err instanceof Error && _err.message.indexOf("Unique constraint failed on the fields") !== -1) {
+      console.log(`Team '${team.name}' already exists, skipping.`);
+      return;
+    }
+    throw _err;
   }
+};
+
+const associateUserAndOrg = async ({ teamId, userId, role, username }: AssociateUserAndOrgProps) => {
+  await prisma.membership.create({
+    data: {
+      createdAt: new Date(),
+      teamId,
+      userId,
+      role: role as MembershipRole,
+      accepted: true,
+    },
+  });
+
+  const profile = await prisma.profile.create({
+    data: {
+      uid: uuid(),
+      username,
+      organizationId: teamId,
+      userId,
+    },
+  });
+
+  await prisma.user.update({
+    data: {
+      movedToProfileId: profile.id,
+    },
+    where: {
+      id: userId,
+    },
+  });
+};
+
+async function createPlatformAndSetupUser({
+  teamInput,
+  user,
+}: {
+  teamInput: Prisma.TeamCreateInput;
+  user: PlatformUser;
+}) {
+  const team = await createTeam(teamInput);
+
+  const platformUser = await setupPlatformUser(user);
 
   console.log(
-    `🏢 Created team '${teamInput.name}' - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/team/${team.slug}`
+    `👤 Upserted '${user.username}' with email "${user.email}" & password "${user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}`
   );
 
-  for (const user of users) {
-    const { role = MembershipRole.OWNER, id, username } = user;
-    await prisma.membership.create({
+  const { username } = platformUser;
+
+  const membershipRole = MembershipRole.OWNER;
+
+  if (team) {
+    await associateUserAndOrg({
+      teamId: team.id,
+      userId: platformUser.id,
+      role: membershipRole,
+      username: user.username,
+    });
+
+    await prisma.platformBilling.create({
       data: {
-        createdAt: new Date(),
-        teamId: team.id,
-        userId: id,
-        role: role,
-        accepted: true,
+        id: team?.id,
+        plan: "SCALE",
+        customerId: "cus_123",
+        subscriptionId: "sub_123",
       },
     });
-    console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
-  }
 
-  // Connect users and create hosts for team event types
-  for (const eventType of team.eventTypes) {
-    const isCollective = eventType.schedulingType === SchedulingType.COLLECTIVE;
-    await prisma.eventType.update({
-      where: {
-        id: eventType.id,
-      },
-      data: {
-        users: {
-          connect: users.map((user) => ({ id: user.id })),
-        },
-        hosts: {
-          create: users.map((user) => ({
-            userId: user.id,
-            isFixed: isCollective,
-          })),
-        },
-      },
-    });
-  }
+    const clientId = process.env.SEED_PLATFORM_OAUTH_CLIENT_ID;
+    const secret = process.env.SEED_PLATFORM_OAUTH_CLIENT_SECRET;
 
-  return team;
+    if (clientId && secret) {
+      await prisma.platformOAuthClient.create({
+        data: {
+          name: "Acme",
+          redirectUris: ["http://localhost:4321"],
+          permissions: 1023,
+          areEmailsEnabled: true,
+          organizationId: team.id,
+          id: clientId,
+          secret,
+        },
+      });
+    }
+    console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);
+  }
 }
 
 async function createOrganizationAndAddMembersAndTeams({
@@ -1053,153 +1151,6 @@ async function main() {
       ],
     });
   }
-
-  await createTeamAndAddUsers(
-    {
-      name: "Seeded Team",
-      slug: "seeded-team",
-      eventTypes: {
-        createMany: {
-          data: [
-            {
-              title: "Collective Seeded Team Event",
-              slug: "collective-seeded-team-event",
-              length: 15,
-              schedulingType: "COLLECTIVE",
-            },
-            {
-              title: "Round Robin Seeded Team Event",
-              slug: "round-robin-seeded-team-event",
-              length: 15,
-              schedulingType: "ROUND_ROBIN",
-            },
-          ],
-        },
-      },
-      createdAt: new Date(),
-    },
-    [
-      {
-        id: proUserTeam.id,
-        username: proUserTeam.name || "Unknown",
-      },
-      {
-        id: freeUserTeam.id,
-        username: freeUserTeam.name || "Unknown",
-      },
-      {
-        id: pro2UserTeam.id,
-        username: pro2UserTeam.name || "Unknown",
-        role: "MEMBER",
-      },
-      {
-        id: pro3UserTeam.id,
-        username: pro3UserTeam.name || "Unknown",
-      },
-      {
-        id: pro4UserTeam.id,
-        username: pro4UserTeam.name || "Unknown",
-      },
-    ]
-  );
-
-  await createTeamAndAddUsers(
-    {
-      name: "Seeded Team (Marketing)",
-      slug: "seeded-team-marketing",
-      eventTypes: {
-        createMany: {
-          data: [
-            {
-              title: "Collective Seeded Team Event",
-              slug: "collective-seeded-team-event",
-              length: 15,
-              schedulingType: "COLLECTIVE",
-            },
-            {
-              title: "Round Robin Seeded Team Event",
-              slug: "round-robin-seeded-team-event",
-              length: 15,
-              schedulingType: "ROUND_ROBIN",
-            },
-          ],
-        },
-      },
-      createdAt: new Date(),
-    },
-    [
-      {
-        id: proUserTeam.id,
-        username: proUserTeam.name || "Unknown",
-      },
-      {
-        id: freeUserTeam.id,
-        username: freeUserTeam.name || "Unknown",
-      },
-      {
-        id: pro2UserTeam.id,
-        username: pro2UserTeam.name || "Unknown",
-        role: "MEMBER",
-      },
-      {
-        id: pro3UserTeam.id,
-        username: pro3UserTeam.name || "Unknown",
-      },
-      {
-        id: pro4UserTeam.id,
-        username: pro4UserTeam.name || "Unknown",
-      },
-    ]
-  );
-
-  await createTeamAndAddUsers(
-    {
-      name: "Seeded Team (Design)",
-      slug: "seeded-team-design",
-      eventTypes: {
-        createMany: {
-          data: [
-            {
-              title: "Collective Seeded Team Event",
-              slug: "collective-seeded-team-event",
-              length: 15,
-              schedulingType: "COLLECTIVE",
-            },
-            {
-              title: "Round Robin Seeded Team Event",
-              slug: "round-robin-seeded-team-event",
-              length: 15,
-              schedulingType: "ROUND_ROBIN",
-            },
-          ],
-        },
-      },
-      createdAt: new Date(),
-    },
-    [
-      {
-        id: proUserTeam.id,
-        username: proUserTeam.name || "Unknown",
-      },
-      {
-        id: freeUserTeam.id,
-        username: freeUserTeam.name || "Unknown",
-      },
-      {
-        id: pro2UserTeam.id,
-        username: pro2UserTeam.name || "Unknown",
-        role: "MEMBER",
-      },
-      {
-        id: pro3UserTeam.id,
-        username: pro3UserTeam.name || "Unknown",
-      },
-      {
-        id: pro4UserTeam.id,
-        username: pro4UserTeam.name || "Unknown",
-      },
-    ]
-  );
 
   await createOrganizationAndAddMembersAndTeams({
     org: {
