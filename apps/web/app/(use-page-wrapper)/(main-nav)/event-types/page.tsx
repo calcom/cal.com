@@ -1,6 +1,5 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { checkOnboardingRedirect } from "@calcom/features/auth/lib/onboardingUtils";
-import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -11,39 +10,28 @@ import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactElement } from "react";
-
 import { EventTypesWrapper } from "./EventTypesWrapper";
 
 const getCachedEventGroups: (
   headers: ReadonlyHeaders,
-  cookies: ReadonlyRequestCookies,
-  filters?: {
-    teamIds?: number[] | undefined;
-    userIds?: number[] | undefined;
-    upIds?: string[] | undefined;
-  }
+  cookies: ReadonlyRequestCookies
 ) => Promise<RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"]> = unstable_cache(
   async (
     headers: ReadonlyHeaders,
-    cookies: ReadonlyRequestCookies,
-    filters?: {
-      teamIds?: number[] | undefined;
-      userIds?: number[] | undefined;
-      upIds?: string[] | undefined;
-    }
+    cookies: ReadonlyRequestCookies
   ): Promise<RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"]> => {
     const eventTypesCaller = await createRouterCaller(
       eventTypesRouter,
       await getTRPCContext(headers, cookies)
     );
-    return await eventTypesCaller.getUserEventGroups({ filters });
+    return await eventTypesCaller.getUserEventGroups({});
   },
   ["viewer.eventTypes.getUserEventGroups"],
   { revalidate: 3600 } // seconds
 );
 
 const Page = async ({ searchParams }: PageProps): Promise<ReactElement> => {
-  const _searchParams = await searchParams;
+  await searchParams;
   const _headers = await headers();
   const _cookies = await cookies();
 
@@ -65,8 +53,7 @@ const Page = async ({ searchParams }: PageProps): Promise<ReactElement> => {
     return redirect(onboardingPath);
   }
 
-  const filters = getTeamsFiltersFromQuery(_searchParams);
-  const userEventGroupsData = await getCachedEventGroups(_headers, _cookies, filters);
+  const userEventGroupsData = await getCachedEventGroups(_headers, _cookies);
 
   return <EventTypesWrapper userEventGroupsData={userEventGroupsData} user={session.user} />;
 };

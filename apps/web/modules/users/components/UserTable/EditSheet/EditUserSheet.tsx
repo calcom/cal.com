@@ -9,7 +9,6 @@ import { shallow } from "zustand/shallow";
 import type { UserTableAction, UserTableState } from "../types";
 import { DisplayInfo } from "./DisplayInfo";
 import { EditForm } from "./EditUserForm";
-import { OrganizationBanner } from "./OrganizationBanner";
 import { SheetFooterControls } from "./SheetFooterControls";
 import { useEditMode } from "./store";
 
@@ -68,11 +67,10 @@ export function EditUserSheet({
             <>
               <SheetHeader showCloseButton={false} className="w-full">
                 <div className="w-full rounded-xl border border-subtle bg-default p-4">
-                  <OrganizationBanner />
-                  <div className="ml-3 w-fit translate-y-[-50%] rounded-full bg-default p-1 ring-1 ring-[#0000000F]">
+                  <div className="mb-4 w-fit rounded-full bg-default p-1 ring-1 ring-[#0000000F]">
                     <Avatar asChild size="lg" alt={`${loadedUser?.name} avatar`} imageSrc={avatarURL} />
                   </div>
-                  <h2 className="-mt-8 font-sans font-semibold text-2xl text-emphasis">
+                  <h2 className="font-sans font-semibold text-2xl text-emphasis">
                     {loadedUser?.name || "Nameless User"}
                   </h2>
                   <p className="max-h-[3em] overflow-hidden text-ellipsis font-normal text-sm text-subtle">
