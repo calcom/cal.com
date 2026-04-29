@@ -228,6 +228,34 @@ describe("getBusyTimesForLimitChecks", () => {
     expect(prisma.booking.findMany).toHaveBeenCalledTimes(1);
   });
 
+  it("should fetch bookings that overlap the checked interval", async () => {
+    vi.mocked(prisma.booking.findMany).mockResolvedValue([]);
+
+    const startDate = startOfTomorrow.set("hour", 10).format();
+    const endDate = startOfTomorrow.set("hour", 11).format();
+    const busyTimesService = getBusyTimesService();
+    await busyTimesService.getBusyTimesForLimitChecks({
+      userIds: [1],
+      eventTypeId: 1,
+      startDate,
+      endDate,
+      bookingLimits: { PER_DAY: 5 },
+    });
+
+    expect(prisma.booking.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          startTime: {
+            lt: startOfTomorrow.endOf("day").toDate(),
+          },
+          endTime: {
+            gt: startOfTomorrow.startOf("day").toDate(),
+          },
+        }),
+      })
+    );
+  });
+
   it("should fetch bookings for multiple users with duration limits", async () => {
     const mockBookings = [
       createMockBookingResult({ id: 1, userId: 1 }),
