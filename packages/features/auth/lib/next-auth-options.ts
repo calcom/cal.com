@@ -35,6 +35,7 @@ import slugify from "@calcom/lib/slugify";
 import type { TrackingData } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { CreationSource, IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
@@ -1148,6 +1149,35 @@ export const getOptions = ({
             return true;
           }
         } catch (err) {
+          // Race condition: another request created this user between our check and create.
+          // Recover by finding the existing user and linking the OAuth account.
+          if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+            const target = String(err.meta?.target ?? "");
+            if (target.includes("email") || target.includes("username")) {
+              try {
+                const existingUser = await prisma.user.findFirst({
+                  where: {
+                    email: { equals: user.email, mode: "insensitive" },
+                  },
+                  select: { id: true, email: true, twoFactorEnabled: true, identityProvider: true },
+                });
+                if (existingUser && existingUser.identityProvider === idP) {
+                  const linkAccountData = AdapterAccountPresenter.fromCalAccount(
+                    account,
+                    existingUser.id,
+                    user.email
+                  );
+                  await calcomAdapter.linkAccount(linkAccountData);
+                  if (existingUser.twoFactorEnabled) {
+                    return loginWithTotp(existingUser.email);
+                  }
+                  return true;
+                }
+              } catch (recoveryErr) {
+                log.error("P2002 recovery failed", recoveryErr);
+              }
+            }
+          }
           log.error("Error creating a new user", err);
           return `/auth/error?error=user-creation-error`;
         }

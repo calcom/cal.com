@@ -1,8 +1,7 @@
-import type { Adapter, AdapterUser, AdapterAccount } from "next-auth/adapters";
-
 import type { PrismaClient } from "@calcom/prisma";
 import type { Account, IdentityProvider, User } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
+import type { Adapter, AdapterAccount, AdapterUser } from "next-auth/adapters";
 
 const parseIntSafe = (id: string | number): number => {
   if (typeof id === "number") return id;
@@ -145,8 +144,22 @@ export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
     },
 
     linkAccount: async (account: AdapterAccount) => {
-      const createdAccount = await prismaClient.account.create({ data: createAccountData(account) });
-      return toAdapterAccount(createdAccount);
+      try {
+        const createdAccount = await prismaClient.account.create({ data: createAccountData(account) });
+        return toAdapterAccount(createdAccount);
+      } catch (error) {
+        // Handle race condition: account already linked by a concurrent request
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+          const existing = await prismaClient.account.findFirst({
+            where: {
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+            },
+          });
+          if (existing) return toAdapterAccount(existing);
+        }
+        throw error;
+      }
     },
 
     unlinkAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
