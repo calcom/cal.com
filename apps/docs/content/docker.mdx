@@ -2,7 +2,19 @@
 
 ### Introduction
 
-This image can be found on DockerHub at [https://hub.docker.com/r/calcom/cal.diy](https://hub.docker.com/r/calcom/cal.diy). Note for ARM Users: Use the `-arm` suffix for pulling images. Example: `docker pull calcom/cal.diy:v5.6.19-arm`.
+Pre-built images are published to the following registries:
+
+- **GHCR (GitHub Container Registry):** `ghcr.io/calcom/cal.diy`
+- **Docker Hub:** `docker.io/calcom/cal.diy` (may not always be up to date)
+- **Scarf proxy:** `calcom.docker.scarf.sh/calcom/cal.diy` (used by default in `docker-compose.yml`)
+
+For ARM users, use the `-arm` suffix. Example: `docker pull ghcr.io/calcom/cal.diy:v5.6.19-arm`.
+
+If pre-built images are unavailable, you can build from source:
+
+```bash
+docker build -t cal.diy .
+```
 
 ### Contributing
 
