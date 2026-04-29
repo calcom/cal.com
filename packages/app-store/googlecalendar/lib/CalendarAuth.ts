@@ -303,6 +303,17 @@ export class CalendarAuth {
 
     return new calendar_v3.Calendar({
       auth: googleAuthClient,
+      retryConfig: {
+        retry: 3,
+        noResponseRetries: 2,
+        httpMethodsToRetry: ["GET", "HEAD", "PUT", "OPTIONS", "DELETE", "PATCH"],
+        statusCodesToRetry: [
+          [100, 199],
+          [403, 403],
+          [429, 429],
+          [500, 599],
+        ],
+      },
     });
   }
 }

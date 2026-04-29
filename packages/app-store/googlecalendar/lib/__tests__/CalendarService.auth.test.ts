@@ -193,15 +193,35 @@ describe("GoogleCalendarService credential handling", () => {
 
       expectOAuth2InstanceToBeCreated();
 
-      expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith({
-        auth: getLastCreatedOAuth2Client(),
-      });
+      expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: getLastCreatedOAuth2Client(),
+        })
+      );
       await expectCredentialsInDb([
         expect.objectContaining({
           id: regularCredential.id,
           key: MOCK_OAUTH2_TOKEN,
         }),
       ]);
+    });
+  });
+
+  describe("retryConfig", () => {
+    test("calendar client is instantiated with retryConfig that includes PATCH and 403 for rate limit retries", async () => {
+      const regularCredential = await createCredentialForCalendarService();
+      mockSuccessfulCalendarListFetch();
+      const calendarService = BuildCalendarService(regularCredential);
+      await calendarService.listCalendars();
+
+      expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          retryConfig: expect.objectContaining({
+            httpMethodsToRetry: expect.arrayContaining(["PATCH"]),
+            statusCodesToRetry: expect.arrayContaining([[403, 403]]),
+          }),
+        })
+      );
     });
   });
 
