@@ -7,9 +7,9 @@ export function getReplyToHeader(
   additionalEmails?: string | string[],
   excludeOrganizerEmail?: boolean
 ) {
-  if (calEvent.hideOrganizerEmail) return {};
-
-  const replyToEmail = getReplyToEmail(calEvent, excludeOrganizerEmail);
+  // When hiding organizer email, exclude it from reply-to unless there's a custom reply-to email
+  const shouldExcludeOrganizerEmail = excludeOrganizerEmail || calEvent.hideOrganizerEmail;
+  const replyToEmail = getReplyToEmail(calEvent, shouldExcludeOrganizerEmail);
   const emailArray: string[] = [];
 
   if (additionalEmails) {
