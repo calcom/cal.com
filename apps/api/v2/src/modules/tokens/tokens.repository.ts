@@ -92,6 +92,14 @@ export class TokensRepository {
     };
   }
 
+  async getAccessTokenSecretsByClientAndUser(clientId: string, userId: number): Promise<string[]> {
+    const tokens = await this.dbRead.prisma.accessToken.findMany({
+      where: { client: { id: clientId }, userId },
+      select: { secret: true },
+    });
+    return tokens.map((t) => t.secret);
+  }
+
   async forceRefreshOAuthTokens(clientId: string, ownerId: number) {
     const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();

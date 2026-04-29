@@ -154,11 +154,20 @@ export class OAuthFlowService {
       throw new BadRequestException("Invalid refresh token");
     }
 
+    const oldTokenSecrets = await this.tokensRepository.getAccessTokenSecretsByClientAndUser(
+      clientId,
+      currentRefreshToken.userId
+    );
+
     const { accessToken, refreshToken } = await this.tokensRepository.refreshOAuthTokens(
       clientId,
       currentRefreshToken.secret,
       currentRefreshToken.userId
     );
+
+    for (const oldToken of oldTokenSecrets) {
+      void this.invalidateAccessTokenCache(oldToken);
+    }
 
     return {
       accessToken: accessToken.secret,
@@ -166,6 +175,17 @@ export class OAuthFlowService {
       refreshToken: refreshToken.secret,
       refreshTokenExpiresAt: refreshToken.expiresAt.valueOf(),
     };
+  }
+
+  async invalidateAccessTokenCache(accessToken: string) {
+    try {
+      const actKey = this._generateActKey(accessToken);
+      const ownerKey = this._generateOwnerIdKey(accessToken);
+      await this.redisService.redis.del(actKey);
+      await this.redisService.redis.del(ownerKey);
+    } catch (err) {
+      this.logger.error("Access Token Cache Invalidation Failed", err);
+    }
   }
 
   private _generateActKey(accessToken: string) {

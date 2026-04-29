@@ -30,6 +30,7 @@ import { TOKENS_DOCS } from "@/modules/oauth-clients/controllers/oauth-flow/oaut
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -56,7 +57,8 @@ export class OAuthClientUsersController {
     private readonly oAuthClientUsersService: OAuthClientUsersService,
     private readonly oauthRepository: OAuthClientRepository,
     private readonly tokensRepository: TokensRepository,
-    private readonly oAuthClientUsersOutputService: OAuthClientUsersOutputService
+    private readonly oAuthClientUsersOutputService: OAuthClientUsersOutputService,
+    private readonly oAuthFlowService: OAuthFlowService
   ) {}
 
   @Get("/")
@@ -193,8 +195,17 @@ export class OAuthClientUsersController {
 
     const { id } = await this.validateManagedUserOwnership(oAuthClientId, userId);
 
+    const oldTokenSecrets = await this.tokensRepository.getAccessTokenSecretsByClientAndUser(
+      oAuthClientId,
+      id
+    );
+
     const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
       await this.tokensRepository.forceRefreshOAuthTokens(oAuthClientId, id);
+
+    for (const oldToken of oldTokenSecrets) {
+      void this.oAuthFlowService.invalidateAccessTokenCache(oldToken);
+    }
 
     return {
       status: SUCCESS_STATUS,
