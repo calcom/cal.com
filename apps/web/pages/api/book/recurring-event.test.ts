@@ -202,7 +202,6 @@ describe("handleNewBooking", () => {
               organizer,
               location: "integrations:daily",
               subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: All recurring bookings seem to have the same URL. https://github.com/calcom/cal.diy/issues/11955
               videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
             });
           }
@@ -549,7 +548,6 @@ describe("handleNewBooking", () => {
               organizer,
               location: "integrations:daily",
               subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: File a bug - All recurring bookings seem to have the same URL. They should have same CalVideo URL which could mean that future recurring meetings would have already expired by the time they are needed.
               videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
             });
           }
@@ -765,7 +763,6 @@ describe("handleNewBooking", () => {
               organizer,
               location: "integrations:daily",
               subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: File a bug - All recurring bookings seem to have the same URL. They should have same CalVideo URL which could mean that future recurring meetings would have already expired by the time they are needed.
               videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
             });
           }

@@ -6,7 +6,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getVideoCallUrlFromCalEvent, getPublicVideoCallUrl, isDailyVideoCall } from "@calcom/lib/CalEventParser";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
@@ -176,8 +176,13 @@ export async function handleConfirmation(args: {
       uid: booking.uid,
     }));
 
-    const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) =>
-      prisma.booking.update({
+    const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) => {
+      // For Cal Video (daily_video), each occurrence has its own room URL derived from its uid.
+      // For other providers, reuse the shared meetingUrl since they create one meeting per series.
+      const occurrenceVideoCallUrl = isDailyVideoCall(evt.videoCallData)
+        ? getPublicVideoCallUrl(recurringBooking.uid)
+        : meetingUrl;
+      return prisma.booking.update({
         where: {
           id: recurringBooking.id,
         },
@@ -189,7 +194,7 @@ export async function handleConfirmation(args: {
           paid,
           metadata: {
             ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
-            videoCallUrl: meetingUrl,
+            videoCallUrl: occurrenceVideoCallUrl,
           },
         },
         select: {
@@ -234,8 +239,8 @@ export async function handleConfirmation(args: {
           customInputs: true,
           id: true,
         },
-      })
-    );
+      });
+    });
 
     const updatedBookingsResult = await Promise.all(updateBookingsPromise);
     updatedBookings = updatedBookings.concat(updatedBookingsResult);
@@ -407,6 +412,9 @@ export async function handleConfirmation(args: {
       eventTypeId: eventType?.id,
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
+      // This is a single series-level webhook fired once on confirmation.
+      // It uses the first occurrence's URL. Webhook consumers needing per-occurrence
+      // URLs should query each booking's metadata.videoCallUrl from the database.
       metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
       ...(platformClientParams ? platformClientParams : {}),
     };
