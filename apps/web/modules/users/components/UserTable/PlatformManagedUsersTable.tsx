@@ -12,7 +12,6 @@ import { type ColumnDef, getCoreRowModel, getSortedRowModel, useReactTable } fro
 import { useMemo, useReducer, useState } from "react";
 import {
   DataTableFilters,
-  DataTableSegment,
   DataTableSelectionBar,
   DataTableToolbar,
   DataTableWrapper,
@@ -20,7 +19,6 @@ import {
 import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { useSegments } from "~/data-table/hooks/useSegments";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DeleteMemberModal } from "./DeleteMemberModal";
 import type { PlatformManagedUserTableUser, UserTableAction, UserTableState } from "./types";
@@ -58,7 +56,6 @@ type PlatformManagedUsersTableProps = {
 export function PlatformManagedUsersTable(props: PlatformManagedUsersTableProps) {
   return (
     <DataTableProvider
-      useSegments={useSegments}
       defaultPageSize={25}
       tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}>
       <UserListTableContent {...props} />
@@ -287,8 +284,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         ToolbarRight={
           <>
             <DataTableFilters.ClearFiltersButton />
-            <DataTableSegment.SaveButton />
-            <DataTableSegment.Select />
           </>
         }>
         {numberOfSelectedRows > 0 && (
