@@ -1,0 +1,34 @@
+# Dev container services - PostgreSQL and Redis for local development.
+# The app itself runs in the devcontainer, not here.
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    depends_on:
+      - database
+      - redis
+
+  database:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: calendso
+    ports:
+      # Expose on 5450 to match DATABASE_URL in .env.example
+      - "5450:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+volumes:
+  postgres-data:
+  redis-data:

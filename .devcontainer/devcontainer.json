@@ -1,0 +1,31 @@
+{
+  "name": "Cal.diy",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  // Override DATABASE_URL/REDIS_URL to use the Docker service names.
+  // These take precedence over .env, so no need to edit that file for the DB connection.
+  "remoteEnv": {
+    "DATABASE_URL": "postgresql://postgres:postgres@database:5432/calendso",
+    "DATABASE_DIRECT_URL": "postgresql://postgres:postgres@database:5432/calendso",
+    "REDIS_URL": "redis://redis:6379"
+  },
+
+  // On first container start: copy .env.example → .env only when .env is absent, then always install deps
+  // HUSKY=0 skips git hook installation, which fails in container environments
+  "postCreateCommand": "[ -f .env ] || cp .env.example .env; HUSKY=0 yarn install",
+
+  // Forward the web app port to the host
+  "forwardPorts": [3000],
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "biomejs.biome",
+        "bradlc.vscode-tailwindcss",
+        "prisma.prisma"
+      ]
+    }
+  }
+}
