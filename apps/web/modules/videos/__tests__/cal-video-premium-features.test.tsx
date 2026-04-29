@@ -1,6 +1,5 @@
 import type { DailyCall } from "@daily-co/daily-js";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BUTTONS } from "../button-states";
 import { createCalVideoCallbacks } from "../cal-video-premium-features";
 
@@ -47,6 +46,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
       callbacks.onMeetingJoined();
 
       expect(mockDaily.startTranscription).toHaveBeenCalledTimes(1);
+      expect(mockDaily.startTranscription).toHaveBeenCalledWith({ language: "multi" });
       expect(mockDaily.startRecording).not.toHaveBeenCalled();
     });
 
@@ -84,6 +84,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
       callbacks.onMeetingJoined();
 
       expect(mockDaily.startTranscription).toHaveBeenCalledTimes(1);
+      expect(mockDaily.startTranscription).toHaveBeenCalledWith({ language: "multi" });
       expect(mockDaily.startRecording).toHaveBeenCalledTimes(1);
     });
 
@@ -182,6 +183,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
       await callbacks.onCustomButtonClick({ button_id: "transcription" });
 
       expect(mockDaily.startTranscription).toHaveBeenCalledTimes(1);
+      expect(mockDaily.startTranscription).toHaveBeenCalledWith({ language: "multi" });
       expect(mockDaily.stopTranscription).not.toHaveBeenCalled();
       expect(mockDaily.updateCustomTrayButtons).toHaveBeenCalledWith({
         recording: BUTTONS.START_RECORDING, // current state included
@@ -357,6 +359,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
       await callbacks.toggleTranscription();
 
       expect(mockDaily.startTranscription).toHaveBeenCalledTimes(1);
+      expect(mockDaily.startTranscription).toHaveBeenCalledWith({ language: "multi" });
       expect(mockDaily.stopTranscription).not.toHaveBeenCalled();
       expect(mockDaily.updateCustomTrayButtons).toHaveBeenCalledWith({
         recording: BUTTONS.START_RECORDING, // current state included

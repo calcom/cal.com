@@ -1,8 +1,6 @@
 import type { DailyCall } from "@daily-co/daily-js";
-import { useTranscription, useRecording } from "@daily-co/daily-react";
-import { useDaily, useDailyEvent } from "@daily-co/daily-react";
-import React, { Fragment, useCallback, useRef, useState, useLayoutEffect, useEffect } from "react";
-
+import { useDaily, useDailyEvent, useRecording, useTranscription } from "@daily-co/daily-react";
+import React, { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { BUTTONS } from "./button-states";
 
 export type DailyCustomTrayButtonVisualState = "default" | "sidebar-open" | "active";
@@ -79,7 +77,7 @@ export const createCalVideoCallbacks = (params: CalVideoCallbacksParams) => {
 
   const onMeetingJoined = () => {
     if (enableAutomaticTranscription && !transcription?.isTranscribing) {
-      daily?.startTranscription();
+      daily?.startTranscription({ language: "multi" });
     }
     if (enableAutomaticRecordingForOrganizer && !recording?.isRecording) {
       startRecording();
@@ -134,7 +132,7 @@ export const createCalVideoCallbacks = (params: CalVideoCallbacksParams) => {
       updateCustomTrayButtons({
         transcription: BUTTONS.WAIT_FOR_TRANSCRIPTION_TO_START,
       });
-      daily?.startTranscription();
+      daily?.startTranscription({ language: "multi" });
     }
   };
 
