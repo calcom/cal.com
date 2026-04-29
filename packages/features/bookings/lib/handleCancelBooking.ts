@@ -318,7 +318,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       status: "CANCELLED",
       smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
       cancelledBy: cancelledBy,
-      requestReschedule: false,
+      requestReschedule: bookingToDelete.rescheduled ?? false,
     }).catch((e) => {
       logger.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,

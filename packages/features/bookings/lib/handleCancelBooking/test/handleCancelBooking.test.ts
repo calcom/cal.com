@@ -145,6 +145,111 @@ describe("Cancel Booking", () => {
 
   });
 
+  test("Should set requestReschedule=true in BOOKING_CANCELLED webhook when booking has rescheduled=true", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "rescheduled-booking-uid-test";
+    const idOfBookingToBeCancelled = 1021;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        webhooks: [
+          {
+            userId: organizer.id,
+            eventTriggers: ["BOOKING_CANCELLED"],
+            subscriberUrl: "http://my-webhook.example.com",
+            active: true,
+            eventTypeId: 1,
+            appId: null,
+          },
+        ],
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            // rescheduled=true on an ACCEPTED booking simulates the narrow race window
+            // where requestReschedule.handler.ts has set rescheduled=true but the status
+            // update to CANCELLED hasn't landed yet, and a concurrent call (e.g. via
+            // CalendarSyncService or /api/cancel) reaches handleCancelBooking first.
+            // It also covers any external/direct-DB path that sets rescheduled without
+            // updating status atomically.
+            rescheduled: true,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+              },
+            ],
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:15:00.000Z`,
+            metadata: {
+              videoCallUrl: "https://existing-daily-video-call-url.example.com",
+            },
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    await handleCancelBooking({
+      bookingData: {
+        id: idOfBookingToBeCancelled,
+        uid: uidOfBookingToBeCancelled,
+        cancelledBy: organizer.email,
+        cancellationReason: "Reschedule requested",
+      },
+      impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
+    });
+
+    expectBookingCancelledWebhookToHaveBeenFired({
+      booker,
+      organizer,
+      location: BookingLocations.CalVideo,
+      subscriberUrl: "http://my-webhook.example.com",
+      payload: {
+        cancelledBy: organizer.email,
+        requestReschedule: true,
+      },
+    });
+  });
+
   test("Should call processPaymentRefund", async () => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 
