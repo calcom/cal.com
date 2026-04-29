@@ -146,6 +146,8 @@ class ICSFeedCalendarService implements Calendar {
     // we use the userId from selectedCalendars to fetch the user's timeZone from the database primarily for all-day events without any timezone information
     const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string; title: string }[] = [];
+    const rangeStart = dayjs(dateFrom);
+    const rangeEnd = dayjs(dateTo);
 
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
@@ -156,6 +158,10 @@ class ICSFeedCalendarService implements Calendar {
         // public holidays have them marked as transparent. if that is explicitly
         // added to cal.com as an ICS feed, it should probably not be ignored.
         // if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
+
+        // Skip cancelled events - they should not block availability
+        const status = String(vevent.getFirstPropertyValue("status") || "");
+        if (status.toUpperCase() === "CANCELLED") return;
 
         const event = new ICAL.Event(vevent);
         const title = String(vevent.getFirstPropertyValue("summary"));
@@ -282,6 +288,15 @@ class ICSFeedCalendarService implements Calendar {
 
         const finalStartISO = dayjs(event.startDate.toJSDate()).toISOString();
         const finalEndISO = dayjs(event.endDate.toJSDate()).toISOString();
+
+        // Skip events outside the requested date range.
+        // Use strict overlap semantics: exclude if start >= rangeEnd OR end <= rangeStart.
+        // The !isAfter(rangeStart) handles all-day events whose DTEND is midnight at the range
+        // start (exclusive boundary per RFC 5545 §3.6.1).
+        if (!dayjs(finalStartISO).isBefore(rangeEnd) || !dayjs(finalEndISO).isAfter(rangeStart)) {
+          return;
+        }
+
         return events.push({
           start: finalStartISO,
           end: finalEndISO,
