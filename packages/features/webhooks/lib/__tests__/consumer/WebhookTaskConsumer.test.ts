@@ -63,7 +63,6 @@ describe("WebhookTaskConsumer", () => {
         WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
       ]),
       createMockFetcher([WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED, WebhookTriggerEvents.BOOKING_PAID]),
-      createMockFetcher([WebhookTriggerEvents.FORM_SUBMITTED]),
       createMockFetcher([
         WebhookTriggerEvents.RECORDING_READY,
         WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,

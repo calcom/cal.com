@@ -96,7 +96,6 @@ export const testTriggerEvents = {
   bookingPaymentInitiated: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
   bookingPaid: WebhookTriggerEvents.BOOKING_PAID,
   bookingNoShowUpdated: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
-  formSubmitted: WebhookTriggerEvents.FORM_SUBMITTED,
   recordingReady: WebhookTriggerEvents.RECORDING_READY,
   oooCreated: WebhookTriggerEvents.OOO_CREATED,
 };

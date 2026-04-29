@@ -51,18 +51,6 @@ export const paymentWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
 });
 
 /**
- * Form-related webhook task payload
- * Used for: FORM_SUBMITTED
- */
-export const formWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
-  triggerEvent: z.literal(WebhookTriggerEvents.FORM_SUBMITTED),
-  formId: z.string(),
-  teamId: z.number().nullable().optional(),
-  userId: z.number().optional(),
-  oAuthClientId: z.string().nullable().optional(),
-});
-
-/**
  * Recording-related webhook task payload
  * Used for: RECORDING_READY, RECORDING_TRANSCRIPTION_GENERATED
  */
@@ -97,7 +85,6 @@ export const oooWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
 export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
   bookingWebhookTaskPayloadSchema,
   paymentWebhookTaskPayloadSchema,
-  formWebhookTaskPayloadSchema,
   recordingWebhookTaskPayloadSchema,
   oooWebhookTaskPayloadSchema,
 ]);
@@ -112,7 +99,6 @@ export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
  */
 export type BookingWebhookTaskPayload = z.infer<typeof bookingWebhookTaskPayloadSchema>;
 export type PaymentWebhookTaskPayload = z.infer<typeof paymentWebhookTaskPayloadSchema>;
-export type FormWebhookTaskPayload = z.infer<typeof formWebhookTaskPayloadSchema>;
 export type RecordingWebhookTaskPayload = z.infer<typeof recordingWebhookTaskPayloadSchema>;
 export type OOOWebhookTaskPayload = z.infer<typeof oooWebhookTaskPayloadSchema>;
 

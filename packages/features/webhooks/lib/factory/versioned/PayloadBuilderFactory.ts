@@ -75,7 +75,7 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
   [WebhookTriggerEvents.BOOKING_PAID]: "booking",
   [WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED]: "booking",
 
-  // Form events (mapped to booking as fallback)
+  // Routing forms removed, mapped to booking until enum cleanup lands.
   [WebhookTriggerEvents.FORM_SUBMITTED]: "booking",
   [WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT]: "booking",
 

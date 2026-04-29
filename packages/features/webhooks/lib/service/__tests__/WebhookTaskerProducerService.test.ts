@@ -241,15 +241,6 @@ describe("WebhookTaskerProducerService", () => {
       );
     });
 
-    it("should have queueFormSubmittedWebhook", async () => {
-      await producer.queueFormSubmittedWebhook({
-        formId: "form-123",
-      });
-      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED })
-      );
-    });
-
     it("should have queueRecordingReadyWebhook", async () => {
       await producer.queueRecordingReadyWebhook({
         recordingId: "rec-123",
