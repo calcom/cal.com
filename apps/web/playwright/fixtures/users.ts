@@ -832,7 +832,7 @@ const createUser = (
     email: opts?.email ?? `${uname}@${emailDomain}`,
     password: {
       create: {
-        hash: hashPassword(uname),
+        hash: hashPassword(opts?.password ?? `${uname.charAt(0).toUpperCase()}${uname.slice(1)}1`),
       },
     },
     emailVerified: new Date(),
