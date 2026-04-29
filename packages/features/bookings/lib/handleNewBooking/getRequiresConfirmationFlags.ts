@@ -16,6 +16,7 @@ export async function getRequiresConfirmationFlags({
   userId,
   paymentAppData,
   originalRescheduledBookingOrganizerId,
+  originalRescheduledBookingPaid,
   bookerEmail,
 }: {
   eventType: EventType;
@@ -23,6 +24,7 @@ export async function getRequiresConfirmationFlags({
   userId: number | undefined;
   paymentAppData: PaymentAppData;
   originalRescheduledBookingOrganizerId: number | undefined;
+  originalRescheduledBookingPaid?: boolean;
   bookerEmail: string;
 }) {
   const requiresConfirmation = await determineRequiresConfirmation(eventType, bookingStartTime, bookerEmail);
@@ -30,7 +32,8 @@ export async function getRequiresConfirmationFlags({
   const isConfirmedByDefault = determineIsConfirmedByDefault(
     requiresConfirmation,
     paymentAppData.price,
-    userReschedulingIsOwner
+    userReschedulingIsOwner,
+    originalRescheduledBookingPaid
   );
 
   return {
@@ -87,7 +90,12 @@ function isUserReschedulingOwner(
 function determineIsConfirmedByDefault(
   requiresConfirmation: boolean,
   price: number,
-  userReschedulingIsOwner: boolean
+  userReschedulingIsOwner: boolean,
+  originalRescheduledBookingPaid?: boolean
 ): boolean {
+  // When rescheduling an already-paid booking, auto-confirm since payment was already collected
+  if (originalRescheduledBookingPaid && !requiresConfirmation) {
+    return true;
+  }
   return (!requiresConfirmation && price === 0) || userReschedulingIsOwner;
 }
