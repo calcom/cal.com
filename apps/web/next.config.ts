@@ -615,11 +615,6 @@ const nextConfig = (phase: string): NextConfig => {
           permanent: true,
         },
         {
-          source: "/settings/organizations/platform/:path*",
-          destination: "/settings/platform",
-          permanent: true,
-        },
-        {
           source: "/settings/organizations/members",
           destination: "/members",
           permanent: true,
