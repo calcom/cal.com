@@ -264,22 +264,31 @@ export function isTimeOutOfBounds({
 /**
  * Wrapper over isTimeOutOfBounds to return a status object.
  * Note: It doesn't throw any error and can be safely used
+ * Organizer should bypass the minimum notice violation check
  */
 export function getPastTimeAndMinimumBookingNoticeBoundsStatus({
   time,
   minimumBookingNotice,
+  isOrganizer,
 }: {
   time: dayjs.ConfigType;
   minimumBookingNotice?: number;
+  isOrganizer?: boolean;
 }): {
   isOutOfBounds: boolean;
   reason: "minBookNoticeViolation" | "slotInPast" | null;
 } {
   try {
     const isOutOfBounds = isTimeOutOfBounds({ time, minimumBookingNotice });
+    const shouldBypass = isOrganizer && isOutOfBounds;
     return {
-      isOutOfBounds,
-      reason: isOutOfBounds ? "minBookNoticeViolation" : null,
+      isOutOfBounds: shouldBypass ? false : isOutOfBounds,
+      reason:
+        shouldBypass
+          ? null
+          : isOutOfBounds
+          ? "minBookNoticeViolation"
+          : null,
     };
   } catch (error) {
     if (error instanceof BookingDateInPastError) {

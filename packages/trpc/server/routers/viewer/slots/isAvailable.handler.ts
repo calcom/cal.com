@@ -7,6 +7,7 @@ import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOu
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TIsAvailableInputSchema, TIsAvailableOutputSchema } from "./isAvailable.schema";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 interface IsAvailableOptions {
   ctx: {
@@ -44,6 +45,18 @@ export const isAvailableHandler = async ({
   const slotsRepo = new PrismaSelectedSlotRepository(ctx.prisma);
   const reservedSlots = uid ? await slotsRepo.findManyReservedByOthers(slots, eventTypeId, uid) : [];
 
+  let userId: number | undefined;
+  let isOrganizer: boolean = false;
+
+  if(ctx && ctx.req){
+    const session = await getServerSession({ req: ctx.req });
+      userId = session?.user?.id;
+  }
+
+  if(userId && eventType && eventType.userId === userId){
+    isOrganizer = true;
+  }
+
   // Map all slots to their availability status
   const slotsWithStatus: TIsAvailableOutputSchema["slots"] = slots.map((slot) => {
     const isReserved = reservedSlots.some(
@@ -70,6 +83,7 @@ export const isAvailableHandler = async ({
     const timeStatus = getPastTimeAndMinimumBookingNoticeBoundsStatus({
       time: slot.utcStartIso,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      isOrganizer, 
     });
 
     return {

@@ -1,5 +1,6 @@
 import process from "node:process";
 import type { Dayjs } from "@calcom/dayjs";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import dayjs from "@calcom/dayjs";
 import { getAggregatedAvailability } from "@calcom/features/availability/lib/getAggregatedAvailability/getAggregatedAvailability";
 import type {
@@ -912,10 +913,21 @@ export class AvailableSlotsService {
       logger.settings.minLevel = 2;
     }
 
+    let userId: number | undefined;
+    
+    if(ctx && ctx.req){
+      const session = await getServerSession({ req: ctx.req });
+      userId = session?.user?.id;
+    }
+
     const eventType = await this.getRegularOrDynamicEventType(input, orgDetails);
 
     if (!eventType) {
       throw new TRPCError({ code: "NOT_FOUND" });
+    }
+
+   if (eventType.userId && userId && eventType.userId == Number(userId)) {
+     eventType.minimumBookingNotice = 0; //  host should be able to bypass the minimum booking notice.
     }
 
     // Use "slots" mode to enable cache when available for getting calendar availability

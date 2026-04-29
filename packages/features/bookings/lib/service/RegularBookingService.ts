@@ -537,6 +537,10 @@ async function handler(
       : null,
   });
 
+  if (eventType.userId && userId && eventType.userId == userId) {
+    eventType.minimumBookingNotice = 0;
+  }
+
   const bookingDataSchema = bookingDataSchemaGetter({
     view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
     bookingFields: eventType.bookingFields,
