@@ -1,7 +1,5 @@
-"use client";
-
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
+import React, { useState, useId } from "react";
 import type { Options, Props } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -55,6 +53,13 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled,
   customClassNames,
   groupId,
+  // Hoisted state props
+  externalPriorityDialogOpen,
+  setExternalPriorityDialogOpen,
+  externalWeightDialogOpen,
+  setExternalWeightDialogOpen,
+  externalCurrentOption,
+  setExternalCurrentOption,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   options?: Options<CheckedSelectOption>;
@@ -63,12 +68,29 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
   groupId: string | null;
+  externalPriorityDialogOpen?: boolean;
+  setExternalPriorityDialogOpen?: (open: boolean) => void;
+  externalWeightDialogOpen?: boolean;
+  setExternalWeightDialogOpen?: (open: boolean) => void;
+  externalCurrentOption?: CheckedSelectOption | null;
+  setExternalCurrentOption?: (option: CheckedSelectOption | null) => void;
 }) => {
   const isPlatform = useIsPlatform();
-  const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
-  const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+  const instanceId = useId();
 
-  const [currentOption, setCurrentOption] = useState(value[0] ?? null);
+  // Use local state if external state is not provided
+  const [localPriorityDialogOpen, setLocalPriorityDialogOpen] = useState(false);
+  const [localWeightDialogOpen, setLocalWeightDialogOpen] = useState(false);
+  const [localCurrentOption, setLocalCurrentOption] = useState<CheckedSelectOption | null>(value[0] ?? null);
+
+  const priorityDialogOpen = externalPriorityDialogOpen ?? localPriorityDialogOpen;
+  const setPriorityDialogOpen = setExternalPriorityDialogOpen ?? setLocalPriorityDialogOpen;
+
+  const weightDialogOpen = externalWeightDialogOpen ?? localWeightDialogOpen;
+  const setWeightDialogOpen = setExternalWeightDialogOpen ?? setLocalWeightDialogOpen;
+
+  const currentOption = externalCurrentOption ?? localCurrentOption;
+  const setCurrentOption = setExternalCurrentOption ?? setLocalCurrentOption;
 
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
@@ -86,6 +108,7 @@ export const CheckedTeamSelect = ({
     <>
       <Select
         {...props}
+        instanceId={instanceId}
         name={props.name}
         placeholder={props.placeholder || t("select")}
         isSearchable={true}
@@ -109,9 +132,8 @@ export const CheckedTeamSelect = ({
         )}
         ref={animationRef}>
         {valueFromGroup.map((option, index) => (
-          <>
+          <React.Fragment key={option.value}>
             <li
-              key={option.value}
               className={classNames(
                 `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
                 customClassNames?.selectedHostList?.listItem?.container
@@ -182,7 +204,7 @@ export const CheckedTeamSelect = ({
                 />
               </div>
             </li>
-          </>
+          </React.Fragment>
         ))}
       </ul>
       {currentOption && !currentOption.isFixed ? (

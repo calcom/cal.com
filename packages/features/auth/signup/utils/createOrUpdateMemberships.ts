@@ -1,5 +1,6 @@
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
+import type { PrismaTransaction } from "@calcom/prisma";
 import type { OrganizationSettings, Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { getOrgUsernameFromEmail } from "./getOrgUsernameFromEmail";
@@ -12,14 +13,16 @@ type ParentTeamData = {
 export const createOrUpdateMemberships = async ({
   user,
   team,
+  tx,
 }: {
   user: Pick<User, "id">;
   team: Pick<Team, "id" | "parentId" | "isOrganization"> & {
     organizationSettings?: Pick<OrganizationSettings, "orgAutoAcceptEmail"> | null;
     parent?: ParentTeamData | null;
   };
+  tx?: PrismaTransaction;
 }) => {
-  return await prisma.$transaction(async (tx) => {
+  const logic = async (tx: PrismaTransaction) => {
     // Determine the organization context - either the team itself (if it's an org) or its parent
     const organizationId = team.isOrganization ? team.id : (team.parent?.id ?? null);
     const orgSettings = team.isOrganization
@@ -91,5 +94,11 @@ export const createOrUpdateMemberships = async ({
       });
     }
     return { membership, orgMembership };
-  });
+  };
+
+  if (tx) {
+    return await logic(tx);
+  }
+
+  return await prisma.$transaction(logic);
 };

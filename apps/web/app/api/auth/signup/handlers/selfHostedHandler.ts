@@ -112,31 +112,54 @@ export default async function handler(body: Record<string, string>) {
         return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
       }
 
-      let user: { id: number };
       try {
-        user = await prisma.user.upsert({
-          where: { email: userEmail },
-          update: {
-            username: correctedUsername,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: {
-              upsert: {
-                create: { hash: hashedPassword },
-                update: { hash: hashedPassword },
+        await prisma.$transaction(async (tx) => {
+          const user = await tx.user.upsert({
+            where: { email: userEmail },
+            update: {
+              username: correctedUsername,
+              emailVerified: new Date(Date.now()),
+              identityProvider: IdentityProvider.CAL,
+              password: {
+                upsert: {
+                  create: { hash: hashedPassword },
+                  update: { hash: hashedPassword },
+                },
               },
+              organizationId,
             },
-            organizationId,
-          },
-          create: {
-            username: correctedUsername,
-            email: userEmail,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: { create: { hash: hashedPassword } },
-            organizationId,
-          },
-          select: { id: true },
+            create: {
+              username: correctedUsername,
+              email: userEmail,
+              emailVerified: new Date(Date.now()),
+              identityProvider: IdentityProvider.CAL,
+              password: { create: { hash: hashedPassword } },
+              organizationId,
+            },
+            select: { id: true },
+          });
+
+          await createOrUpdateMemberships({
+            user,
+            team,
+            tx,
+          });
+
+          // Accept any child team invites for orgs.
+          if (team.parent) {
+            await joinAnyChildTeamOnOrgInvite({
+              userId: user.id,
+              org: team.parent,
+              tx,
+            });
+          }
+
+          // Cleanup token after use
+          await tx.verificationToken.delete({
+            where: {
+              id: foundToken.id,
+            },
+          });
         });
       } catch (error) {
         if (isPrismaError(error) && error.code === "P2002") {
@@ -147,27 +170,6 @@ export default async function handler(body: Record<string, string>) {
         }
         throw error;
       }
-
-      await createOrUpdateMemberships({
-        user,
-        team,
-      });
-
-      // Accept any child team invites for orgs.
-      if (team.parent) {
-        await joinAnyChildTeamOnOrgInvite({
-          userId: user.id,
-          org: team.parent,
-        });
-      }
-    }
-
-    // Cleanup token after use
-    await prisma.verificationToken.delete({
-      where: {
-        id: foundToken.id,
-      },
-    });
   } else {
     const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
     if (!isUsernameAvailable) {

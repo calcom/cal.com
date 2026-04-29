@@ -1,18 +1,22 @@
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
+import type { PrismaTransaction } from "@calcom/prisma";
 import type { OrganizationSettings, Team } from "@calcom/prisma/client";
 import { getOrgUsernameFromEmail } from "./getOrgUsernameFromEmail";
 
 export async function joinAnyChildTeamOnOrgInvite({
   userId,
   org,
+  tx,
 }: {
   userId: number;
   org: Pick<Team, "id"> & {
     organizationSettings: OrganizationSettings | null;
   };
+  tx?: PrismaTransaction;
 }) {
-  const user = await prisma.user.findUnique({
+  const db = tx || prisma;
+  const user = await db.user.findUnique({
     where: {
       id: userId,
     },
@@ -25,9 +29,9 @@ export async function joinAnyChildTeamOnOrgInvite({
     user.username ||
     getOrgUsernameFromEmail(user.email, org.organizationSettings?.orgAutoAcceptEmail ?? null);
 
-  await prisma.$transaction([
+  const operations = [
     // Simply remove this update when we remove the `organizationId` field from the user table
-    prisma.user.update({
+    db.user.update({
       where: {
         id: userId,
       },
@@ -35,7 +39,7 @@ export async function joinAnyChildTeamOnOrgInvite({
         organizationId: org.id,
       },
     }),
-    prisma.profile.upsert({
+    db.profile.upsert({
       create: {
         uid: ProfileRepository.generateProfileUid(),
         userId: userId,
@@ -52,7 +56,7 @@ export async function joinAnyChildTeamOnOrgInvite({
         },
       },
     }),
-    prisma.membership.updateMany({
+    db.membership.updateMany({
       where: {
         userId,
         team: {
@@ -64,7 +68,7 @@ export async function joinAnyChildTeamOnOrgInvite({
         accepted: true,
       },
     }),
-    prisma.membership.updateMany({
+    db.membership.updateMany({
       where: {
         userId,
         team: {
@@ -76,6 +80,11 @@ export async function joinAnyChildTeamOnOrgInvite({
         accepted: true,
       },
     }),
-  ]);
+  ];
 
+  if (tx) {
+    await Promise.all(operations);
+  } else {
+    await prisma.$transaction(operations);
+  }
 }
