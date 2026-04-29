@@ -74,6 +74,7 @@ type SlotItemProps = {
   unavailableTimeSlots?: string[];
   confirmButtonDisabled?: boolean;
   handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
+  bottomBarWidthCh?: number;
 };
 
 const SlotItem = ({
@@ -95,6 +96,7 @@ const SlotItem = ({
   unavailableTimeSlots = [],
   confirmButtonDisabled,
   confirmStepClassNames,
+  bottomBarWidthCh,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -110,10 +112,12 @@ const SlotItem = ({
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
 
   const { timeFormat, timezone } = useBookerTime();
+
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const layout = useBookerStoreContext((state) => state.layout);
   const hasTimeSlots = !!seatsPerTimeSlot;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
+  const formattedTime = computedDateWithUsersTimezone.format(timeFormat);
 
   const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);
   const isHalfFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
@@ -133,6 +137,18 @@ const SlotItem = ({
     offset,
   });
 
+ const slotHour = computedDateWithUsersTimezone.hour();
+ let bottomBarColor = "bg-sky-500";
+
+ if (slotHour >= 6 && slotHour < 12) {
+   // Morning: 6 AM to 11:59 AM
+   bottomBarColor = "bg-yellow-400";
+
+ } else if (slotHour >= 12 && slotHour < 18) {
+   // Afternoon: 12 PM to 5:59 PM
+   bottomBarColor = "bg-orange-400";
+ }
+
   const onButtonClick = () => {
     if (handleSlotClick) {
       handleSlotClick(slot, isOverlapping);
@@ -144,12 +160,14 @@ const SlotItem = ({
         seatsPerTimeSlot,
       });
     }
+
   };
 
   const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
   return (
     <AnimatePresence>
       <div className="flex gap-2">
+
         <Button
           key={slot.time}
           disabled={
@@ -166,7 +184,7 @@ const SlotItem = ({
           data-time={slot.time}
           onClick={onButtonClick}
           className={classNames(
-            `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full grow flex-col justify-center py-2`,
+            `hover:border-brand-default relative min-h-9 mb-2 flex h-auto w-full grow flex-col justify-center overflow-hidden py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
             `${customClassNames}`
           )}
@@ -180,7 +198,16 @@ const SlotItem = ({
                 )}
               />
             )}
-            {computedDateWithUsersTimezone.format(timeFormat)}
+
+
+            <span className="tabular-nums">{formattedTime}</span>
+
+          </div>
+          <div className="pointer-events-none absolute right-0 bottom-0 left-0 flex justify-center" aria-hidden="true">
+            <span
+              className={classNames("block h-1 rounded-t-full", bottomBarColor)}
+              style={{ width: `${Math.max(bottomBarWidthCh ?? 0, formattedTime.length)}ch` }}
+            />
           </div>
           {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
           {hasTimeSlots && !bookingFull && (
@@ -196,7 +223,11 @@ const SlotItem = ({
               />
             </p>
           )}
+
+
         </Button>
+
+
         {!!slot.showConfirmButton && (
           <HoverCard.Root>
             <HoverCard.Trigger asChild>
@@ -262,6 +293,15 @@ export const AvailableTimes = ({
   ...props
 }: AvailableTimesProps) => {
   const { t } = useLocale();
+  const { timeFormat, timezone } = useBookerTime();
+
+  const bottomBarWidthCh = useMemo(() => {
+    return slots.reduce((maxWidth, slot) => {
+      if (slot.away) return maxWidth;
+      const width = dayjs.utc(slot.time).tz(timezone).format(timeFormat).length;
+      return Math.max(maxWidth, width);
+    }, 0);
+  }, [slots, timeFormat, timezone]);
 
   const oooAllDay = slots.every((slot) => slot.away);
   if (oooAllDay) {
@@ -288,7 +328,7 @@ export const AvailableTimes = ({
         {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...slots[0]} />}
         {slots.map((slot) => {
           if (slot.away) return null;
-          return <SlotItem key={slot.time} slot={slot} {...props} />;
+          return <SlotItem key={slot.time} slot={slot} bottomBarWidthCh={bottomBarWidthCh} {...props} />;
         })}
         {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...slots[slots.length - 1]} className="pb-0" />}
       </div>
