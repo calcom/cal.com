@@ -1,8 +1,9 @@
+import { HttpError } from "@calcom/lib/http-error";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 export async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
-  return await prisma.booking.findUniqueOrThrow({
+  const booking = await prisma.booking.findUnique({
     where: {
       id,
       uid,
@@ -111,6 +112,12 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
       status: true,
     },
   });
+
+  if (!booking) {
+    throw new HttpError({ statusCode: 404, message: "Booking not found" });
+  }
+
+  return booking;
 }
 
 export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
