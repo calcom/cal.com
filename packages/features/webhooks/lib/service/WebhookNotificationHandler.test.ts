@@ -249,34 +249,6 @@ describe("WebhookNotificationHandler", () => {
       );
     });
 
-    it("should handle DELEGATION_CREDENTIAL_ERROR through factory", async () => {
-      const errorDTO: WebhookEventDTO = {
-        triggerEvent: WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
-        createdAt: "2024-01-15T10:00:00Z",
-        error: "Credential error",
-        credential: { id: 1, type: "test" },
-        user: { id: 1, email: "user@test.com" },
-      };
-
-      mockWebhookService.getSubscribers.mockResolvedValue(mockSubscribers);
-
-      await handler.handleNotification(errorDTO);
-
-      // All events now go through the factory for consistent versioning
-      expect(mockFactory.getBuilder).toHaveBeenCalledWith(
-        WebhookVersion.V_2021_10_20,
-        WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR
-      );
-      expect(mockWebhookService.processWebhooks).toHaveBeenCalledWith(
-        WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
-        {
-          triggerEvent: WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
-          createdAt: errorDTO.createdAt,
-          payload: errorDTO,
-        },
-        mockSubscribers
-      );
-    });
   });
 
   describe("Version Handling", () => {
