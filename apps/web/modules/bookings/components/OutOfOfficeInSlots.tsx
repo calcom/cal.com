@@ -64,10 +64,16 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
                 {t("ooo_user_is_ooo", { displayName: fromUser?.displayName })}
               </p>
 
+              {reason && (
+                <p className="text-subtle mt-1 text-center text-sm">{reason}</p>
+              )}
+
               {notes && showNotePublicly && (
-                <p className="text-subtle mt-2 max-h-[120px] overflow-y-auto break-words px-2 text-center text-sm italic">
-                  {notes}
-                </p>
+                <div className="bg-subtle mt-3 w-full rounded-lg px-3 py-2">
+                  <p className="text-emphasis max-h-[100px] overflow-y-auto break-words text-center text-sm font-medium">
+                    {notes}
+                  </p>
+                </div>
               )}
 
               {fromUser?.displayName && toUser?.displayName && (

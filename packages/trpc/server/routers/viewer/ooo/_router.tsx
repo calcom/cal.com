@@ -3,6 +3,7 @@ import { router } from "../../../trpc";
 import { ZOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
 import { ZOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
 import { ZOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
+import { ZOutOfOfficeReasonDelete } from "./outOfOfficeReasonDelete.schema";
 
 export const oooRouter = router({
   outOfOfficeCreateOrUpdate: authedProcedure
@@ -19,8 +20,14 @@ export const oooRouter = router({
     const handler = (await import("./outOfOfficeEntriesList.handler")).outOfOfficeEntriesList;
     return handler(opts);
   }),
-  outOfOfficeReasonList: authedProcedure.query(async () => {
+  outOfOfficeReasonList: authedProcedure.query(async ({ ctx }) => {
     const handler = (await import("./outOfOfficeReasons.handler")).outOfOfficeReasonList;
-    return handler();
+    return handler({ userId: ctx.user.id });
   }),
+  outOfOfficeReasonDelete: authedProcedure
+    .input(ZOutOfOfficeReasonDelete)
+    .mutation(async ({ ctx, input }) => {
+      const handler = (await import("./outOfOfficeReasonDelete.handler")).outOfOfficeReasonDelete;
+      return handler({ ctx, input });
+    }),
 });
