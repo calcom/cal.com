@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getEmailDomainSuggestion } from "@calcom/lib/emailDomainTypoDetection";
 import classNames from "@calcom/ui/classNames";
 import { EyeIcon, EyeOffIcon, SearchIcon } from "@coss/ui/icons";
 import type React from "react";
@@ -81,6 +82,41 @@ export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function
     />
   );
 });
+
+/** Email input with typo detection for common domains. */
+export const EmailInputWithTypoHint = forwardRef<HTMLInputElement, InputFieldProps>(
+  function EmailInputWithTypoHint(props, ref) {
+    const [localValue, setLocalValue] = useState("");
+    const { onChange: originalOnChange, value, ...restProps } = props;
+    const currentValue = (value as string) ?? localValue;
+    const suggestion = getEmailDomainSuggestion(currentValue);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setLocalValue(e.target.value);
+      originalOnChange?.(e);
+    };
+
+    return (
+      <div>
+        <InputField
+          ref={ref}
+          type="email"
+          autoCapitalize="none"
+          autoComplete="email"
+          autoCorrect="off"
+          inputMode="email"
+          onChange={handleChange}
+          {...restProps}
+        />
+        {suggestion && (
+          <div className="mt-1.5 text-sm text-muted">
+            <span className="font-medium text-[--cal-brand]">{suggestion.hint}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 type TextAreaProps = JSX.IntrinsicElements["textarea"];
 
