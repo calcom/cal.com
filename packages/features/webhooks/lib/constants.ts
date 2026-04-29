@@ -53,9 +53,7 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.MEETING_STARTED,
     WebhookTriggerEvents.BOOKING_REQUESTED,
     WebhookTriggerEvents.BOOKING_REJECTED,
-    WebhookTriggerEvents.RECORDING_READY,
     WebhookTriggerEvents.INSTANT_MEETING,
-    WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
     WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
     WebhookTriggerEvents.OOO_CREATED,
     WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
@@ -65,6 +63,4 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
   ] as const,
 };
 
-export const WEBHOOK_TRIGGER_EVENTS = [
-  ...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP.core,
-] as const;
+export const WEBHOOK_TRIGGER_EVENTS = [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP.core] as const;

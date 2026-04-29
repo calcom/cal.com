@@ -1,10 +1,9 @@
-import { describe, it, expect, beforeEach } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it } from "vitest";
 import type { BookingWebhookEventDTO } from "../../dto/types";
+import { WebhookVersion as WebhookVersionEnum } from "../../interface/IWebhookRepository";
 import { PayloadBuilderFactory, type PayloadBuilderSet } from "./PayloadBuilderFactory";
 import * as V2021_10_20 from "./v2021-10-20";
-import { WebhookVersion as WebhookVersionEnum } from "../../interface/IWebhookRepository";
 
 describe("PayloadBuilderFactory", () => {
   let factory: PayloadBuilderFactory;
@@ -14,7 +13,6 @@ describe("PayloadBuilderFactory", () => {
     defaultBuilders = {
       booking: new V2021_10_20.BookingPayloadBuilder(),
       ooo: new V2021_10_20.OOOPayloadBuilder(),
-      recording: new V2021_10_20.RecordingPayloadBuilder(),
       meeting: new V2021_10_20.MeetingPayloadBuilder(),
       instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
     };
@@ -40,7 +38,6 @@ describe("PayloadBuilderFactory", () => {
       const newVersionBuilders: PayloadBuilderSet = {
         booking: new V2021_10_20.BookingPayloadBuilder(),
         ooo: new V2021_10_20.OOOPayloadBuilder(),
-        recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
         instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
@@ -55,7 +52,6 @@ describe("PayloadBuilderFactory", () => {
       const newBuilders: PayloadBuilderSet = {
         booking: new V2021_10_20.BookingPayloadBuilder(),
         ooo: new V2021_10_20.OOOPayloadBuilder(),
-        recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
         instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
@@ -90,7 +86,7 @@ describe("PayloadBuilderFactory", () => {
       expect(builder).toBe(defaultBuilders.ooo);
     });
 
-    it("should route recording events to recording builder", () => {
+    it("should route removed recording events to booking fallback", () => {
       const recordingTriggers = [
         WebhookTriggerEvents.RECORDING_READY,
         WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
@@ -98,7 +94,7 @@ describe("PayloadBuilderFactory", () => {
 
       recordingTriggers.forEach((trigger) => {
         const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, trigger);
-        expect(builder).toBe(defaultBuilders.recording);
+        expect(builder).toBe(defaultBuilders.booking);
       });
     });
 
@@ -158,10 +154,6 @@ describe("PayloadBuilderFactory", () => {
         WebhookVersionEnum.V_2021_10_20,
         WebhookTriggerEvents.OOO_CREATED
       );
-      const recordingBuilder = factory.getBuilder(
-        WebhookVersionEnum.V_2021_10_20,
-        WebhookTriggerEvents.RECORDING_READY
-      );
       const meetingBuilder = factory.getBuilder(
         WebhookVersionEnum.V_2021_10_20,
         WebhookTriggerEvents.MEETING_STARTED
@@ -174,7 +166,6 @@ describe("PayloadBuilderFactory", () => {
       // Runtime verification
       expect(bookingBuilder).toBeDefined();
       expect(oooBuilder).toBeDefined();
-      expect(recordingBuilder).toBeDefined();
       expect(meetingBuilder).toBeDefined();
       expect(instantBuilder).toBeDefined();
     });
@@ -242,7 +233,6 @@ describe("PayloadBuilderFactory", () => {
       const v2Builders: PayloadBuilderSet = {
         booking: new V2021_10_20.BookingPayloadBuilder(),
         ooo: new V2021_10_20.OOOPayloadBuilder(),
-        recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
         instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };

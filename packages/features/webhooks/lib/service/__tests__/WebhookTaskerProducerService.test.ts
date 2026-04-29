@@ -1,6 +1,5 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { ILogger } from "../../interface/infrastructure";
 import type { WebhookTasker } from "../../tasker/WebhookTasker";
 import { WebhookTaskerProducerService } from "../WebhookTaskerProducerService";
@@ -247,16 +246,6 @@ describe("WebhookTaskerProducerService", () => {
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED })
-      );
-    });
-
-    it("should have queueRecordingReadyWebhook", async () => {
-      await producer.queueRecordingReadyWebhook({
-        recordingId: "rec-123",
-        bookingUid: "booking-123",
-      });
-      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.RECORDING_READY })
       );
     });
 

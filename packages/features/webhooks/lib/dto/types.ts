@@ -1,4 +1,3 @@
-import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, ConferenceData, Person } from "@calcom/types/Calendar";
 import type { WebhookVersion } from "../interface/IWebhookRepository";
@@ -185,24 +184,6 @@ export interface FormSubmittedDTO extends BaseEventDTO {
   };
 }
 
-export interface RecordingReadyDTO extends BaseEventDTO {
-  triggerEvent: typeof WebhookTriggerEvents.RECORDING_READY;
-  evt: CalendarEvent;
-  downloadLink: string;
-}
-
-export interface TranscriptionGeneratedDTO extends BaseEventDTO {
-  triggerEvent: typeof WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED;
-  evt: CalendarEvent;
-  downloadLinks?: {
-    transcription?: Array<{
-      format: string;
-      link: string;
-    }>;
-    recording?: string;
-  };
-}
-
 export interface FormSubmittedNoEventDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT;
   form: {
@@ -346,8 +327,6 @@ export type WebhookEventDTO =
   | OOOCreatedDTO
   | FormSubmittedDTO
   | FormSubmittedNoEventDTO
-  | RecordingReadyDTO
-  | TranscriptionGeneratedDTO
   | MeetingStartedDTO
   | MeetingEndedDTO
   | InstantMeetingDTO
@@ -506,8 +485,11 @@ export type BookingNoShowUpdatedPayload = {
 
 export type TranscriptionGeneratedPayload = {
   downloadLinks?: {
-    transcription: TGetTranscriptAccessLink["transcription"];
-    recording: string;
+    transcription?: Array<{
+      format: string;
+      link: string;
+    }>;
+    recording?: string;
   };
 };
 

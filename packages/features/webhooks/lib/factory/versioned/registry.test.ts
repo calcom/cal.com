@@ -1,6 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import { describe, expect, it } from "vitest";
 import { DEFAULT_WEBHOOK_VERSION, WebhookVersion } from "../../interface/IWebhookRepository";
 import { createPayloadBuilderFactory } from "./registry";
 import * as V2021_10_20 from "./v2021-10-20";
@@ -23,10 +22,6 @@ describe("Payload Builder Registry", () => {
         WebhookTriggerEvents.BOOKING_CREATED
       );
       const oooBuilder = factory.getBuilder(DEFAULT_WEBHOOK_VERSION, WebhookTriggerEvents.OOO_CREATED);
-      const recordingBuilder = factory.getBuilder(
-        DEFAULT_WEBHOOK_VERSION,
-        WebhookTriggerEvents.RECORDING_READY
-      );
       const meetingBuilder = factory.getBuilder(
         DEFAULT_WEBHOOK_VERSION,
         WebhookTriggerEvents.MEETING_STARTED
@@ -38,7 +33,6 @@ describe("Payload Builder Registry", () => {
 
       expect(bookingBuilder).toBeDefined();
       expect(oooBuilder).toBeDefined();
-      expect(recordingBuilder).toBeDefined();
       expect(meetingBuilder).toBeDefined();
       expect(instantBuilder).toBeDefined();
     });
@@ -90,7 +84,6 @@ describe("Payload Builder Registry", () => {
       const newVersionBuilders = {
         booking: new V2021_10_20.BookingPayloadBuilder(),
         ooo: new V2021_10_20.OOOPayloadBuilder(),
-        recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
         instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
@@ -109,7 +102,6 @@ describe("Payload Builder Registry", () => {
       const v2Builders = {
         booking: new V2021_10_20.BookingPayloadBuilder(),
         ooo: new V2021_10_20.OOOPayloadBuilder(),
-        recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
         instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
@@ -138,7 +130,6 @@ describe("Payload Builder Registry", () => {
       factory1.registerVersion("test-1", {
         booking: new V2021_10_20.BookingPayloadBuilder(),
         ooo: new V2021_10_20.OOOPayloadBuilder(),
-        recording: new V2021_10_20.RecordingPayloadBuilder(),
         meeting: new V2021_10_20.MeetingPayloadBuilder(),
         instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       });

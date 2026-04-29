@@ -4,7 +4,6 @@ import { createPayloadBuilderFactory } from "@calcom/features/webhooks/lib/facto
 import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import { OOOWebhookService } from "@calcom/features/webhooks/lib/service/OOOWebhookService";
-import { RecordingWebhookService } from "@calcom/features/webhooks/lib/service/RecordingWebhookService";
 import { WebhookNotificationHandler } from "@calcom/features/webhooks/lib/service/WebhookNotificationHandler";
 import { WebhookNotifier } from "@calcom/features/webhooks/lib/service/WebhookNotifier";
 import { WebhookService } from "@calcom/features/webhooks/lib/service/WebhookService";
@@ -44,10 +43,6 @@ webhookModule
     SHARED_TOKENS.TASKER,
     SHARED_TOKENS.LOGGER,
   ]);
-
-webhookModule
-  .bind(WEBHOOK_TOKENS.RECORDING_WEBHOOK_SERVICE)
-  .toClass(RecordingWebhookService, [WEBHOOK_TOKENS.WEBHOOK_NOTIFIER]);
 
 webhookModule
   .bind(WEBHOOK_TOKENS.OOO_WEBHOOK_SERVICE)

@@ -8,7 +8,6 @@ import type {
   QueueFormWebhookParams,
   QueueOOOWebhookParams,
   QueuePaymentWebhookParams,
-  QueueRecordingWebhookParams,
 } from "../interface/WebhookProducerService";
 import type { WebhookTasker } from "../tasker/WebhookTasker";
 import type { WebhookTaskPayload } from "../types/webhookTask";
@@ -86,32 +85,6 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
       operationId,
       triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
       formId: params.formId,
-      teamId: params.teamId,
-      userId: params.userId,
-      oAuthClientId: params.oAuthClientId,
-      metadata: params.metadata,
-      timestamp: new Date().toISOString(),
-    };
-
-    await this.queueTask(operationId, taskPayload);
-  }
-
-  async queueRecordingReadyWebhook(params: QueueRecordingWebhookParams): Promise<void> {
-    const operationId = params.operationId || uuidv4();
-
-    this.log.debug("Queueing recording webhook task", {
-      operationId,
-      triggerEvent: WebhookTriggerEvents.RECORDING_READY,
-      recordingId: params.recordingId,
-      bookingUid: params.bookingUid,
-    });
-
-    const taskPayload: WebhookTaskPayload = {
-      operationId,
-      triggerEvent: WebhookTriggerEvents.RECORDING_READY,
-      recordingId: params.recordingId,
-      bookingUid: params.bookingUid,
-      eventTypeId: params.eventTypeId,
       teamId: params.teamId,
       userId: params.userId,
       oAuthClientId: params.oAuthClientId,

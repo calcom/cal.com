@@ -88,42 +88,6 @@ export interface IBookingScheduler {
 // Combined interface for backward compatibility (can be removed later)
 export interface IBookingWebhookService extends IBookingEventEmitter, IBookingScheduler {}
 
-export interface IRecordingWebhookService {
-  emitRecordingReady(params: {
-    evt: import("@calcom/types/Calendar").CalendarEvent;
-    downloadLink: string;
-    booking?: {
-      id: number;
-      eventTypeId?: number | null;
-      userId?: number | null;
-    };
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void>;
-
-  emitTranscriptionGenerated(params: {
-    evt: import("@calcom/types/Calendar").CalendarEvent;
-    downloadLinks?: {
-      transcription?: Array<{
-        format: string;
-        link: string;
-      }>;
-      recording?: string;
-    };
-    booking?: {
-      id: number;
-      eventTypeId?: number | null;
-      userId?: number | null;
-    };
-    teamId?: number | null;
-    orgId?: number | null;
-    platformClientId?: string;
-    isDryRun?: boolean;
-  }): Promise<void>;
-}
-
 // OOO Webhook Service Interface - Out-of-Office webhook operations
 export interface IOOOWebhookService {
   emitOOOCreated(params: {
