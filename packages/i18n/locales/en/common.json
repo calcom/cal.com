@@ -2316,6 +2316,7 @@
   "add_your_team_members": "Add your team members to your event types. Use collective scheduling to include everyone or find the most suitable person with round robin scheduling.",
   "booking_limit_reached": "Booking Limit for this event type has been reached",
   "duration_limit_reached": "Duration Limit for this event type has been reached",
+  "seating_limit_reached": "Seating limit for this slot has been reached",
   "admin_has_disabled": "An admin has disabled {{appName}}",
   "disable_attendees_emails_description": "This will disable all emails to {{recipient}}. This includes booking confirmations, requests, reschedules and reschedule requests, cancellation emails, and any other emails related to booking updates.<br /><br />It is your responsibility to ensure that your {{recipient}} are aware of any bookings and changes to their bookings.",
   "disabled_app_affects_event_type": "An admin has disabled {{appName}} which affects your event type {{eventType}}",

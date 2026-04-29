@@ -470,6 +470,7 @@ export class AvailableSlotsService {
           startDate: periodStart.toDate(),
           endDate: periodStart.endOf("year").toDate(),
           rescheduleUid,
+          seatsPerTimeSlot: eventType.seatsPerTimeSlot,
         });
         yearlyDurationTotals.set(yearKey, totalDurationForYear);
       }

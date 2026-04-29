@@ -206,6 +206,7 @@ const _getBusyTimesFromDurationLimits = async (
           startDate: periodStart.toDate(),
           endDate: periodStart.endOf(unit).toDate(),
           rescheduleUid,
+          seatsPerTimeSlot: eventType.seatsPerTimeSlot,
         });
         if (totalYearlyDuration + selectedDuration > limit) {
           limitManager.addBusyTime({

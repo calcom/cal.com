@@ -1423,33 +1423,71 @@ export class BookingRepository implements IBookingRepository {
     startDate,
     endDate,
     rescheduleUid,
+    seatsPerTimeSlot,
   }: {
     eventId: number;
     startDate: Date;
     endDate: Date;
     rescheduleUid?: string;
+    seatsPerTimeSlot?: number | null;
   }) {
     let totalBookingTime;
 
-    if (rescheduleUid) {
-      [totalBookingTime] = await this.prismaClient.$queryRaw<[{ totalMinutes: number | null }]>`
-      SELECT SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
-      FROM "Booking"
-      WHERE "status" = 'accepted'
-        AND "eventTypeId" = ${eventId}
-        AND "startTime" >= ${startDate}
-        AND "endTime" <= ${endDate}
-        AND "uid" != ${rescheduleUid};
-    `;
+    // seated events durations are calculated based on unique time slots, not individual bookings
+    // seatsPerTimeSlot >= 1 indicates a seated event
+    // but having a single seat or seatsPerTimeSlot == 1, is same as calculating based on individual bookings
+    const shouldGroupSeatsAsSingleBooking = seatsPerTimeSlot !== null && seatsPerTimeSlot !== undefined && seatsPerTimeSlot > 1;
+
+    if (shouldGroupSeatsAsSingleBooking) {
+      if (rescheduleUid) {
+        [totalBookingTime] = await this.prismaClient.$queryRaw<[{ totalMinutes: number | null }]>`
+        SELECT SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
+        FROM (
+          SELECT "startTime", "endTime"
+          FROM "Booking"
+          WHERE "status" = 'accepted'
+            AND "eventTypeId" = ${eventId}
+            AND "startTime" >= ${startDate}
+            AND "endTime" <= ${endDate}
+            AND "uid" != ${rescheduleUid}
+          GROUP BY "startTime", "endTime"
+        ) as unique_slots
+      `;
+      } else {
+        [totalBookingTime] = await this.prismaClient.$queryRaw<[{ totalMinutes: number | null }]>`
+        SELECT SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
+        FROM (
+          SELECT "startTime", "endTime"
+          FROM "Booking"
+          WHERE "status" = 'accepted'
+            AND "eventTypeId" = ${eventId}
+            AND "startTime" >= ${startDate}
+            AND "endTime" <= ${endDate}
+          GROUP BY "startTime", "endTime"
+        ) as unique_slots
+      `;
+      }
     } else {
-      [totalBookingTime] = await this.prismaClient.$queryRaw<[{ totalMinutes: number | null }]>`
-      SELECT SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
-      FROM "Booking"
-      WHERE "status" = 'accepted'
-        AND "eventTypeId" = ${eventId}
-        AND "startTime" >= ${startDate}
-        AND "endTime" <= ${endDate};
-    `;
+      if (rescheduleUid) {
+        [totalBookingTime] = await this.prismaClient.$queryRaw<[{ totalMinutes: number | null }]>`
+        SELECT SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
+        FROM "Booking"
+        WHERE "status" = 'accepted'
+          AND "eventTypeId" = ${eventId}
+          AND "startTime" >= ${startDate}
+          AND "endTime" <= ${endDate}
+          AND "uid" != ${rescheduleUid};
+      `;
+      } else {
+        [totalBookingTime] = await this.prismaClient.$queryRaw<[{ totalMinutes: number | null }]>`
+        SELECT SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
+        FROM "Booking"
+        WHERE "status" = 'accepted'
+          AND "eventTypeId" = ${eventId}
+          AND "startTime" >= ${startDate}
+          AND "endTime" <= ${endDate};
+      `;
+      }
     }
 
     // PostgreSQL 16+ returns `numeric` type from EXTRACT(EPOCH FROM ...) instead of `double precision`.
@@ -2136,5 +2174,52 @@ export class BookingRepository implements IBookingRepository {
         },
       },
     });
+  }
+
+  async findByTimeSlotAndCheckIfSeatingLimitIsReached(params: {
+    eventTypeId: number;
+    startTime: Date;
+    endTime: Date;
+    rescheduleUid?: string;
+    seatsPerTimeSlot: number;
+  }): Promise<{
+    exists: boolean;
+    isSeatFull: boolean | null;
+    seatCount: number | null;
+  }> {
+    const existingSlot = await this.prismaClient.booking.findFirst({
+      where: {
+        eventTypeId: params.eventTypeId,
+        startTime: params.startTime,
+        endTime: params.endTime,
+        status: BookingStatus.ACCEPTED,
+        uid: { not: params.rescheduleUid },
+      },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
+        },
+      },
+    });
+
+    if (!existingSlot) {
+      return {
+        exists: false,
+        isSeatFull: null,
+        seatCount: null,
+      };
+    }
+
+    const seatCount = existingSlot._count.seatsReferences;
+    const isSeatFull = seatCount >= params.seatsPerTimeSlot;
+
+    return {
+      exists: true,
+      isSeatFull,
+      seatCount,
+    };
   }
 }

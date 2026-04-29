@@ -44,6 +44,7 @@ import type { Ensure, Optional } from "@calcom/types/utils";
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 import { detectEventTypeScheduleForUser } from "./detectEventTypeScheduleForUser";
+import { mergeOverlappingDateRanges } from "./getAggregatedAvailability/date-range-utils/mergeOverlappingDateRanges";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 
@@ -645,8 +646,43 @@ export class UserAvailabilityService {
       end: dayjs(busy.end),
     }));
 
-    const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
+    let dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
     const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
+
+    // restore slots with available seats that were removed due to duration limits
+    if (eventType?.seatsPerTimeSlot && currentSeats && currentSeats.length > 0) {
+      const durationLimitBusyTimes = detailedBusyTimes.filter(
+        (busy) => busy.title === "busy_time.event_duration_limit"
+      );
+
+      durationLimitBusyTimes.forEach((busyTime) => {
+        const busyStart = dayjs(busyTime.start);
+        const busyEnd = dayjs(busyTime.end);
+
+        const slotsForPeriod = currentSeats.filter((seat) => {
+          const seatTime = dayjs(seat.startTime);
+          return seatTime.isBetween(busyStart, busyEnd, null, "[]");
+        });
+
+        // if slot has available seats, user is available in that time period
+        slotsForPeriod.forEach((slot) => {
+          const hasAvailableSeats = slot._count.attendees < (eventType.seatsPerTimeSlot || 0);
+
+          if (hasAvailableSeats) {
+            const slotEnd = dayjs(slot.startTime).add(eventType.length || 0, "minute");
+
+            dateRangesInWhichUserIsAvailable.push({
+              start: dayjs(slot.startTime),
+              end: slotEnd,
+            });
+          }
+        });
+      });
+
+      if (dateRangesInWhichUserIsAvailable.length > 0) {
+        dateRangesInWhichUserIsAvailable = mergeOverlappingDateRanges(dateRangesInWhichUserIsAvailable);
+      }
+    }
 
     const result = {
       busy: detailedBusyTimes,

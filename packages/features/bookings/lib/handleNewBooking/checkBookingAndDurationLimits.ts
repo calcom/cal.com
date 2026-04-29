@@ -6,7 +6,10 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 
-type EventType = Pick<NewBookingEventType, "bookingLimits" | "durationLimits" | "id" | "schedule">;
+type EventType = Pick<
+  NewBookingEventType,
+  "bookingLimits" | "durationLimits" | "id" | "schedule" | "seatsPerTimeSlot" | "length"
+>;
 
 type InputProps = {
   eventType: EventType;
@@ -32,6 +35,9 @@ export class CheckBookingAndDurationLimitsService {
       Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
     ) {
       const startAsDate = dayjs(reqBodyStart).toDate();
+      const endAsDate = dayjs(reqBodyStart)
+        .add(eventType.length || 0, "minute")
+        .toDate();
       if (eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
         await this.dependencies.checkBookingLimitsService.checkBookingLimits(
           eventType.bookingLimits as IntervalLimit,
@@ -45,8 +51,10 @@ export class CheckBookingAndDurationLimitsService {
         await checkDurationLimits(
           eventType.durationLimits as IntervalLimit,
           startAsDate,
+          endAsDate,
           eventType.id,
-          reqBodyRescheduleUid
+          reqBodyRescheduleUid,
+          eventType.seatsPerTimeSlot
         );
       }
     }

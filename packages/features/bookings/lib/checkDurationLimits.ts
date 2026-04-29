@@ -10,8 +10,10 @@ import prisma from "@calcom/prisma";
 export async function checkDurationLimits(
   durationLimits: IntervalLimit,
   eventStartDate: Date,
+  eventEndDate: Date,
   eventId: number,
-  rescheduleUid?: string
+  rescheduleUid?: string,
+  seatsPerTimeSlot?: number | null
 ) {
   const parsedDurationLimits = parseDurationLimit(durationLimits);
   if (!parsedDurationLimits) return false;
@@ -22,8 +24,10 @@ export async function checkDurationLimits(
       key,
       limitingNumber: parsedDurationLimits[key],
       eventStartDate,
+      eventEndDate,
       eventId,
       rescheduleUid,
+      seatsPerTimeSlot,
     })
   );
 
@@ -36,38 +40,64 @@ export async function checkDurationLimits(
 
 export async function checkDurationLimit({
   eventStartDate,
+  eventEndDate,
   eventId,
   key,
   limitingNumber,
   rescheduleUid,
+  seatsPerTimeSlot,
 }: {
   eventStartDate: Date;
+  eventEndDate: Date;
   eventId: number;
   key: IntervalLimitKey;
   limitingNumber: number | undefined;
   rescheduleUid?: string;
-}) {
-  {
-    if (!limitingNumber) return;
+  seatsPerTimeSlot?: number | null;
+}): Promise<void> {
+  if (!limitingNumber) return;
 
-    const unit = intervalLimitKeyToUnit(key);
+  const unit = intervalLimitKeyToUnit(key);
 
-    const startDate = dayjs(eventStartDate).startOf(unit).toDate();
-    const endDate = dayjs(eventStartDate).endOf(unit).toDate();
+  const startDate = dayjs(eventStartDate).startOf(unit).toDate();
+  const endDate = dayjs(eventStartDate).endOf(unit).toDate();
 
-    const bookingRepo = new BookingRepository(prisma);
-    const totalBookingDuration = await bookingRepo.getTotalBookingDuration({
-      eventId,
-      startDate,
-      endDate,
+  const bookingRepo = new BookingRepository(prisma);
+
+  // seated events with more than 1 seat, check if the user is joining an existing slot
+  if (seatsPerTimeSlot && seatsPerTimeSlot > 1) {
+    const slotStatus = await bookingRepo.findByTimeSlotAndCheckIfSeatingLimitIsReached({
+      eventTypeId: eventId,
+      startTime: eventStartDate,
+      endTime: eventEndDate,
       rescheduleUid,
+      seatsPerTimeSlot,
     });
 
-    if (totalBookingDuration < limitingNumber) return;
+    if (slotStatus.exists) {
+      if (slotStatus.isSeatFull) {
+        throw new HttpError({
+          message: `seating_limit_reached`,
+          statusCode: 403,
+        });
+      }
 
-    throw new HttpError({
-      message: `duration_limit_reached`,
-      statusCode: 403,
-    });
+      return;
+    }
   }
+
+  const totalBookingDuration = await bookingRepo.getTotalBookingDuration({
+    eventId,
+    startDate,
+    endDate,
+    rescheduleUid,
+    seatsPerTimeSlot,
+  });
+
+  if (totalBookingDuration < limitingNumber) return;
+
+  throw new HttpError({
+    message: `duration_limit_reached`,
+    statusCode: 403,
+  });
 }

@@ -50,4 +50,16 @@ export interface IBookingRepository {
   }): Promise<BookingWithReferences[]>;
 
   getBookingForCalEventBuilderFromUid(bookingUid: string): Promise<BookingForCalEventBuilder | null>;
+
+  findByTimeSlotAndCheckIfSeatingLimitIsReached(params: {
+    eventTypeId: number;
+    startTime: Date;
+    endTime: Date;
+    rescheduleUid?: string;
+    seatsPerTimeSlot: number;
+  }): Promise<{
+    exists: boolean;
+    isSeatFull: boolean | null;
+    seatCount: number | null;
+  }>;
 }
