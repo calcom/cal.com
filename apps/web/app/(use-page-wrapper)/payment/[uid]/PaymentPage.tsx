@@ -60,6 +60,16 @@ const BtcpayPaymentComponent = dynamic(
   }
 );
 
+const WaylPaymentComponent = dynamic(
+  () =>
+    import("@calcom/web/components/apps/waylpayment/WaylPaymentComponent").then(
+      (m) => m.WaylPaymentComponent
+    ),
+  {
+    ssr: false,
+  }
+);
+
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
@@ -170,6 +180,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "btcpayserver" && !props.payment.success && (
                     <BtcpayPaymentComponent payment={props.payment} paymentPageProps={props} />
+                  )}
+                  {props.payment.appId === "waylpayment" && !props.payment.success && (
+                    <WaylPaymentComponent payment={props.payment} />
                   )}
                   {props.payment.refunded && (
                     <div className="mt-4 text-center text-default dark:text-gray-300">{t("refunded")}</div>

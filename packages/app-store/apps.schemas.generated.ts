@@ -45,6 +45,7 @@ import { appDataSchema as event_type_app_card_zod_ts } from "./templates/event-t
 import { appDataSchema as twipla_zod_ts } from "./twipla/zod";
 import { appDataSchema as umami_zod_ts } from "./umami/zod";
 import { appDataSchema as vital_zod_ts } from "./vital/zod";
+import { appDataSchema as waylpayment_zod_ts } from "./waylpayment/zod";
 import { appDataSchema as webex_zod_ts } from "./webex/zod";
 import { appDataSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appDataSchema as zapier_zod_ts } from "./zapier/zod";
@@ -96,6 +97,7 @@ export const appDataSchemas = {
   twipla: twipla_zod_ts,
   umami: umami_zod_ts,
   vital: vital_zod_ts,
+  waylpayment: waylpayment_zod_ts,
   webex: webex_zod_ts,
   wordpress: wordpress_zod_ts,
   zapier: zapier_zod_ts,

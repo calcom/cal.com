@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "license": "MIT",
+  "name": "@calcom/waylpayment",
+  "version": "0.0.1",
+  "description": "Wayl payment gateway integration for Cal.com",
+  "main": "./index.ts",
+  "keywords": [
+    "cal.com",
+    "payment",
+    "wayl",
+    "iraq"
+  ],
+  "dependencies": {
+    "@calcom/app-store": "workspace:*",
+    "@calcom/emails": "workspace:*",
+    "@calcom/features": "workspace:*",
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*",
+    "@calcom/types": "workspace:*",
+    "@calcom/ui": "workspace:*",
+    "zod": "3.25.76"
+  }
+}

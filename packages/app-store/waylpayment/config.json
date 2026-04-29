@@ -1,0 +1,20 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Wayl Payments",
+  "slug": "waylpayment",
+  "type": "waylpayment_payment",
+  "logo": "icon.svg",
+  "url": "https://wayl.io",
+  "variant": "payment",
+  "categories": ["payment"],
+  "publisher": "Wayl",
+  "email": "support@wayl.io",
+  "description": "Accept payments from Iraqi customers via ZainCash, FastPay, and other local Iraqi payment methods. Enable Pay to Book on your events — customers pay before their booking is confirmed. All amounts are in Iraqi Dinar (IQD).",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "isOAuth": true,
+  "/*isOAuth*/": "true forces the install wizard to show the ACCOUNTS_STEP, which calls GET /api/integrations/waylpayment/add and redirects to the API-key setup page. Without it, handleAutoInstall silently creates an empty credential and skips setup. Cal.com has no separate 'requiresSetup' flag for non-OAuth credential collection.",
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card",
+  "dirName": "waylpayment"
+}
