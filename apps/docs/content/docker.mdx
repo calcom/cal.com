@@ -91,6 +91,8 @@ These variables must be provided at the time of the docker build, and can be pro
 - `NEXT_PUBLIC_LICENSE_CONSENT`
 - `NEXT_PUBLIC_WEBAPP_URL`
 
+> If you are self-hosting with a custom domain and OAuth redirects fail with hostname mismatch errors, check `BUILT_NEXT_PUBLIC_WEBAPP_URL` in your running container. If it still points to `http://localhost:3000`, your image was built with localhost values and must be rebuilt with your domain.
+
 #### Important Run-time variables
 
 - `NEXTAUTH_SECRET`
@@ -106,9 +108,25 @@ For more detailed instructions on how to build and configure your own Docker ima
 
 ### CLIENT_FETCH_ERROR
 
-If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefore needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
+If you experience this error, it may be because the Auth callback in the server is using the web app URL as a base URL. The container does not necessarily have access to the same DNS as your local machine and may need to loop back to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth` for internal callback requests while keeping `NEXT_PUBLIC_WEBAPP_URL` set to your public domain.
 
 ```
 docker-calcom-1  | @calcom/web:start: [next-auth][error][CLIENT_FETCH_ERROR]
 docker-calcom-1  | @calcom/web:start: https://next-auth.js.org/errors#client_fetch_error request to http://testing.localhost:3000/api/auth/session failed, reason: getaddrinfo ENOTFOUND testing.localhost
 ```
+
+### WEBAPP_URL and ALLOWED_HOSTNAMES mismatch
+
+If OAuth loops and logs show messages like `Match of WEBAPP_URL with ALLOWED_HOSTNAMES failed`, verify all of the following:
+
+1. `ALLOWED_HOSTNAMES` is set as a comma-separated list of quoted hostnames (for example, `ALLOWED_HOSTNAMES='"cal.example.com","www.cal.example.com"'`).
+2. `NEXT_PUBLIC_WEBAPP_URL` is set to your public domain.
+3. Your image was built with the same public domain values.
+
+Quick check:
+
+```bash
+docker compose exec calcom printenv BUILT_NEXT_PUBLIC_WEBAPP_URL
+```
+
+If this value does not match your public domain, rebuild your image with the correct build-time args and restart the stack.
