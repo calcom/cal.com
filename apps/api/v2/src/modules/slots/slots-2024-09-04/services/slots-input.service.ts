@@ -10,10 +10,10 @@ import {
 } from "@calcom/platform-types";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DateTime } from "luxon";
-import { EventTypesRepository_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/event-types.repository";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
+import { EventTypesRepository_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/event-types.repository";
 
 export type InternalGetSlotsQuery = {
   isTeamEvent: boolean;
@@ -57,7 +57,7 @@ export class SlotsInputService_2024_09_04 {
     const eventTypeId = eventType.id;
     const eventTypeSlug = eventType.slug;
     const usernameList = "usernames" in query ? query.usernames : [];
-    const timeZone = query.timeZone;
+    const timeZone = query.timeZone ?? "UTC";
     const orgSlug = "organizationSlug" in query ? query.organizationSlug : null;
     const rescheduleUid = query.bookingUidToReschedule || null;
 
