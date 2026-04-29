@@ -141,6 +141,23 @@ Here’s what you need to run Cal.diy.
 yarn dx
 ```
 
+If `yarn dx` fails with `P1001: Can't reach database server at localhost:5450`, check whether the local
+Docker database was initialized before the expected `calendso` database was created. You can repair the
+existing container without deleting its volume:
+
+```sh
+docker exec prisma-postgres-1 createdb -U postgres calendso
+yarn workspace @calcom/prisma db-deploy
+yarn workspace @calcom/prisma db-seed
+```
+
+If you do not need the existing local data, you can reset the local database instead:
+
+```sh
+yarn workspace @calcom/prisma db-nuke
+yarn dx
+```
+
 **Default credentials created:**
 
 | Email | Password | Role |
