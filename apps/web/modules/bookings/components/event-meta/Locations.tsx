@@ -1,4 +1,4 @@
-import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
+import { getLocationByType, getTranslatedLocation } from "@calcom/app-store/locations";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -13,12 +13,12 @@ export const EventLocations = ({ event }: { event: BookerEvent }) => {
   if (!locations?.length) return null;
 
   const getLocationToDisplay = (location: BookerEvent["locations"][number]) => {
-    const eventLocationType = getEventLocationType(location.type);
+    const eventLocationType = getLocationByType(location.type);
     const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
 
     return translatedLocation;
   };
-  const eventLocationType = getEventLocationType(locations[0].type);
+  const eventLocationType = getLocationByType(locations[0].type);
   const iconUrl = locations.length > 1 || !eventLocationType?.iconUrl ? undefined : eventLocationType.iconUrl;
   const icon = locations.length > 1 || !eventLocationType?.iconUrl ? "map-pin" : undefined;
 
@@ -44,14 +44,14 @@ export const EventLocations = ({ event }: { event: BookerEvent }) => {
                     <li key={`${location.type}-${index}`} className="mt-1">
                       <div className="flex flex-row items-center">
                         <img
-                          src={getEventLocationType(location.type)?.iconUrl}
+                          src={getLocationByType(location.type)?.iconUrl}
                           className={classNames(
                             "h-3 w-3 opacity-70 ltr:mr-[10px] rtl:ml-[10px] dark:opacity-100 ",
-                            !getEventLocationType(location.type)?.iconUrl?.startsWith("/app-store")
+                            !getLocationByType(location.type)?.iconUrl?.startsWith("/app-store")
                               ? "dark:invert-[.65]"
                               : ""
                           )}
-                          alt={`${getEventLocationType(location.type)?.label} icon`}
+                          alt={`${getLocationByType(location.type)?.label} icon`}
                         />
                         <span>{getLocationToDisplay(location)}</span>
                       </div>

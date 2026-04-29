@@ -280,8 +280,7 @@ const locations = [...defaultLocations, ...locationsFromApps];
 export const getLocationFromApp = (locationType: string) =>
   locationsFromApps.find((l) => l.type === locationType);
 
-// TODO: Rename this to getLocationByType()
-export const getEventLocationType = (locationType: string | undefined | null) =>
+export const getLocationByType = (locationType: string | undefined | null) =>
   locations.find((l) => l.type === locationType);
 
 const getStaticLinkLocationByValue = (value: string | undefined | null) => {
@@ -297,7 +296,7 @@ const getStaticLinkLocationByValue = (value: string | undefined | null) => {
 };
 
 export const guessEventLocationType = (locationTypeOrValue: string | undefined | null) =>
-  getEventLocationType(locationTypeOrValue) || getStaticLinkLocationByValue(locationTypeOrValue);
+  getLocationByType(locationTypeOrValue) || getStaticLinkLocationByValue(locationTypeOrValue);
 
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
 
@@ -322,7 +321,7 @@ type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link"
 
 export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFilteredLocationObject[] => {
   const locationsAfterPrivacyFilter = locations.map((location) => {
-    const eventLocationType = getEventLocationType(location.type);
+    const eventLocationType = getLocationByType(location.type);
     if (!eventLocationType) {
       logger.debug(`Couldn't find location type. App might be uninstalled: ${location.type} `);
     }
@@ -372,7 +371,7 @@ export const getHumanReadableLocationValue = (
   }
 
   // Just in case linkValue is a `locationType.type`(for old bookings)
-  const eventLocationType = getEventLocationType(linkValue);
+  const eventLocationType = getLocationByType(linkValue);
   const isDefault = eventLocationType?.default;
   if (eventLocationType) {
     // If we can find a video location based on linkValue then it means that the linkValue is something like integrations:google-meet and in that case we don't have the meeting URL to show.
@@ -384,7 +383,7 @@ export const getHumanReadableLocationValue = (
 };
 
 export const locationKeyToString = (location: LocationObject) => {
-  const eventLocationType = getEventLocationType(location.type);
+  const eventLocationType = getLocationByType(location.type);
   if (!eventLocationType) {
     return null;
   }
@@ -418,7 +417,7 @@ export const getLocationValueForDB = (
 
   eventLocations.forEach((location) => {
     if (location.type === bookingLocationTypeOrValue) {
-      const eventLocationType = getEventLocationType(bookingLocationTypeOrValue);
+      const eventLocationType = getLocationByType(bookingLocationTypeOrValue);
       conferenceCredentialId = location.credentialId;
       if (!eventLocationType) {
         return;
@@ -441,7 +440,7 @@ export const getLocationValueForDB = (
 };
 
 export const getEventLocationValue = (eventLocations: LocationObject[], bookingLocation: LocationObject) => {
-  const eventLocationType = getEventLocationType(bookingLocation?.type);
+  const eventLocationType = getLocationByType(bookingLocation?.type);
   if (!eventLocationType) {
     return "";
   }
@@ -470,7 +469,7 @@ export function getSuccessPageLocationMessage(
   t: TFunction,
   bookingStatus?: BookingStatus
 ) {
-  const eventLocationType = getEventLocationType(location);
+  const eventLocationType = getLocationByType(location);
   let locationToDisplay = location;
   if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "dynamic") {
     const isConfirmed = bookingStatus === BookingStatus.ACCEPTED;
@@ -490,7 +489,7 @@ export function getSuccessPageLocationMessage(
 
 export const getTranslatedLocation = (
   location: PrivacyFilteredLocationObject,
-  eventLocationType: ReturnType<typeof getEventLocationType>,
+  eventLocationType: ReturnType<typeof getLocationByType>,
   t: TFunction
 ) => {
   if (!eventLocationType) return null;
@@ -546,7 +545,7 @@ export const locationsResolver = (t: TFunction) => {
         .superRefine((val, ctx) => {
           if (val?.link) {
             const link = val.link;
-            const eventLocationType = getEventLocationType(val.type);
+            const eventLocationType = getLocationByType(val.type);
             if (
               eventLocationType &&
               !eventLocationType.default &&
