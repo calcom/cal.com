@@ -41,14 +41,14 @@ export const isBrowserLocale24h = () => {
   } else if (localStorageTimeFormat === false) {
     return false;
   }
-  // Intl.DateTimeFormat with value=undefined uses local browser settings.
-  if (!!new Intl.DateTimeFormat(undefined, { hour: "numeric" }).format(0).match(/M/i)) {
-    setIs24hClockInLocalStorage(false);
-    return false;
-  } else {
-    setIs24hClockInLocalStorage(true);
-    return true;
-  }
+  
+  const formatter = new Intl.DateTimeFormat(undefined, { hour: "numeric" });
+  const hourCycle = (formatter.resolvedOptions() as { hourCycle?: string }).hourCycle;
+
+  const is24h = hourCycle === "h23" || hourCycle === "h24";
+
+  setIs24hClockInLocalStorage(is24h);
+  return is24h;
 };
 
 /**
