@@ -65,7 +65,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
               group.profile.image ??
               (group.profile.slug ? `${bookerUrl}/${group.profile.slug}/avatar.png` : undefined);
             return (
-              <section key={group.teamId ?? group.profile.slug ?? ""}>
+              <section key={group.profile.slug ?? userName}>
                 <CardFrame>
                   <CardFrameHeader>
                     <div className="flex items-center gap-2">

@@ -76,14 +76,6 @@ export interface IWebhookRepository {
   }): Promise<WebhookSubscriber[]>;
   getFilteredWebhooksForUser(options: { userId: number; userRole?: UserPermissionRole }): Promise<{
     webhookGroups: WebhookGroup[];
-    profiles: {
-      teamId: number | null | undefined;
-      slug: string | null;
-      name: string | null;
-      image?: string | undefined;
-      canModify?: boolean;
-      canDelete?: boolean;
-    }[];
   }>;
   listWebhooks(options: ListWebhooksOptions): Promise<Webhook[]>;
 }

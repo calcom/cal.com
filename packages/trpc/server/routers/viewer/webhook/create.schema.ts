@@ -1,8 +1,6 @@
-import { z } from "zod";
-
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
-
+import { z } from "zod";
 import { webhookIdAndEventTypeIdSchema } from "./types";
 
 const TIME_UNIT = ["DAY", "HOUR", "MINUTE"] as const;
@@ -15,7 +13,6 @@ export const ZCreateInputSchema = webhookIdAndEventTypeIdSchema.extend({
   eventTypeId: z.number().optional(),
   appId: z.string().optional().nullable(),
   secret: z.string().optional().nullable(),
-  teamId: z.number().optional(),
   platform: z.boolean().optional(),
   time: z.number().nullable().optional(),
   timeUnit: z.enum(TIME_UNIT).nullable().optional(),

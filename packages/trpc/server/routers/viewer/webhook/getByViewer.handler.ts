@@ -10,13 +10,6 @@ type GetByViewerOptions = {
 
 export type WebhooksByViewer = {
   webhookGroups: WebhookGroup[];
-  profiles: {
-    readOnly?: boolean | undefined;
-    slug: string | null;
-    name: string | null;
-    image?: string | undefined;
-    teamId: number | null | undefined;
-  }[];
 };
 
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions): Promise<WebhooksByViewer> => {
