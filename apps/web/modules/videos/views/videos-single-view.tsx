@@ -56,10 +56,16 @@ export default function JoinCall(props: PageProps) {
   const hideLoginModal =
     !!userNameForCall && (requireEmailForGuests ? !!loggedInUserName && isLoggedInUserPartOfMeeting : true);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
-
+  const [videoFailed, setVideoFailed] = useState(false);
   const activeMeetingPassword = guestCredentials?.meetingPassword ?? meetingPassword;
   const activeMeetingUrl = guestCredentials?.meetingUrl ?? meetingUrl;
   const activeUserName = guestCredentials?.userName ?? userNameForCall;
+  
+ 
+
+
+
+
 
   const createCallFrame = useCallback(
     (userName?: string, password?: string, url?: string) => {
@@ -132,7 +138,9 @@ export default function JoinCall(props: PageProps) {
       return;
     }
 
-    let callFrame: DailyCall | null = null;
+      let callFrame: DailyCall | null = null;
+      let timeout: ReturnType<typeof setTimeout> | null = null;
+
 
     try {
       callFrame = createCallFrame(activeUserName, activeMeetingPassword, activeMeetingUrl) ?? null;
@@ -140,11 +148,30 @@ export default function JoinCall(props: PageProps) {
       setIsCallFrameReady(true);
 
       callFrame?.join();
+
+      callFrame?.on("joined-meeting" , () => {
+        if(timeout) clearTimeout(timeout);
+      });
+
+      callFrame?.on("error", () => {
+       try{ callFrame?.destroy(); } catch(e) {}
+       setVideoFailed(true);
+      });
+
+      timeout = setTimeout(() => {
+        setVideoFailed(true);
+      } , 8000)
+      
     } catch (error) {
       console.error("Failed to create or join call:", error);
     }
 
+    
     return () => {
+      if (timeout) {
+      clearTimeout(timeout);
+    }
+
       if (callFrame) {
         try {
           callFrame.destroy();
@@ -164,6 +191,21 @@ export default function JoinCall(props: PageProps) {
     guestCredentials,
   ]);
 
+  if (videoFailed) {
+     return (
+    <div className="flex items-center justify-center h-screen text-white">
+      <div className="text-center">
+        <h2 className="text-xl font-semibold">Video failed to load</h2>
+        <p className="mt-2">
+          This may happen due to Firefox tracking protection.
+        </p>
+        <p className="mt-1">
+          Try disabling tracking protection or using another browser.
+        </p>
+      </div>
+    </div>
+  );
+}
   return (
     <DailyProvider callObject={daily}>
       {isCallFrameReady && (
