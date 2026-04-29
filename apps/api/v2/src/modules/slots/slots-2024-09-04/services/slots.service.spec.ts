@@ -11,13 +11,14 @@ import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slo
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 
 describe("SlotsService_2024_09_04", () => {
+  let module: TestingModule;
   let service: SlotsService_2024_09_04;
   let eventTypesRepository: EventTypesRepository_2024_06_14;
   let availableSlotsService: AvailableSlotsService;
   let slotsInputService: SlotsInputService_2024_09_04;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         SlotsService_2024_09_04,
         {
@@ -30,7 +31,7 @@ describe("SlotsService_2024_09_04", () => {
         {
           provide: EventTypesRepository_2024_06_14,
           useValue: {
-            getEventTypeById: jest.fn(),
+            getEventTypeWithHosts: jest.fn(),
           },
         },
         {
@@ -113,7 +114,7 @@ describe("SlotsService_2024_09_04", () => {
 
     beforeEach(() => {
       // Setup shared mocks
-      (eventTypesRepository.getEventTypeById as jest.Mock).mockResolvedValue(sharedTestData.mockEventType);
+      (eventTypesRepository.getEventTypeWithHosts as jest.Mock).mockResolvedValue(sharedTestData.mockEventType);
       (availableSlotsService.getAvailableSlots as jest.Mock).mockResolvedValue(
         sharedTestData.mockSlotsResponse
       );
@@ -380,6 +381,46 @@ describe("SlotsService_2024_09_04", () => {
         }),
         ctx: {},
       });
+    });
+  });
+
+  describe("reserveSlot", () => {
+    it("should reject reservation when overlap is detected", async () => {
+      const mockEventType = {
+        id: 1,
+        length: 30,
+        userId: 1,
+        hosts: [],
+        seatsPerTimeSlot: null,
+        schedulingType: "COLLECTIVE",
+        metadata: null,
+      };
+
+      const input = {
+        eventTypeId: 1,
+        slotStart: new Date().toISOString(),
+      };
+
+      (eventTypesRepository.getEventTypeWithHosts as jest.Mock).mockResolvedValue(mockEventType);
+
+      const createSlotMock = jest.fn().mockResolvedValue({ id: 1 });
+      const overlapMock = jest
+        .fn()
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ id: 1 });
+
+      const repo = module.get(SlotsRepository_2024_09_04) as any;
+
+      repo.withTransaction = async (fn: any) => {
+        const tx = {};
+        return fn(tx);
+      };
+
+      repo.getOverlappingSlotReservationWithTx = overlapMock;
+      repo.createSlotWithTx = createSlotMock;
+
+      await expect(service.reserveSlot(input as any)).resolves.toBeDefined();
+      await expect(service.reserveSlot(input as any)).rejects.toThrow();
     });
   });
 });
