@@ -952,15 +952,24 @@ export default abstract class BaseCalendarService implements Calendar {
           const vevent = vcalendar.getFirstSubcomponent("vevent");
           const event = new ICAL.Event(vevent);
 
-          const calendarTimezone =
-            vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue<string>("tzid") || "";
+          const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
+          const calendarTimezone = vtimezone?.getFirstPropertyValue<string>("tzid") || "";
+
+          // Register and convert to the VTIMEZONE zone so that toJSDate()
+          // produces correct UTC timestamps (fixes #27877 — negative durations
+          // from Zimbra CalDAV where UTC times were re-interpreted as local).
+          if (vtimezone) {
+            const zone = new ICAL.Timezone(vtimezone);
+            event.startDate = event.startDate.convertToZone(zone);
+            event.endDate = event.endDate.convertToZone(zone);
+          }
 
           const startDate = calendarTimezone
-            ? dayjs.tz(event.startDate.toString(), calendarTimezone)
+            ? dayjs(event.startDate.toJSDate())
             : new Date(event.startDate.toUnixTime() * 1000);
 
           const endDate = calendarTimezone
-            ? dayjs.tz(event.endDate.toString(), calendarTimezone)
+            ? dayjs(event.endDate.toJSDate())
             : new Date(event.endDate.toUnixTime() * 1000);
 
           return {
