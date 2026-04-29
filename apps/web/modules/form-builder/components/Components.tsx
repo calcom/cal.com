@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { z } from "zod";
 
 import type {
@@ -248,6 +248,16 @@ export const Components: Record<FieldType, Component> = {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
+      const emailRefs = useRef<Array<HTMLInputElement | null>>([]);
+      const autoFocusIndexRef = useRef<number | null>(null);
+
+      useEffect(() => {
+        if (autoFocusIndexRef.current !== null) {
+          emailRefs.current[autoFocusIndexRef.current]?.focus();
+          autoFocusIndexRef.current = null;
+        }
+      }, [value.length]);
+
       return (
         <>
           {value.length ? (
@@ -260,6 +270,9 @@ export const Components: Record<FieldType, Component> = {
                   <li key={index}>
                     <EmailField
                       id={`${props.name}.${index}`}
+                      ref={(node) => {
+                        emailRefs.current[index] = node;
+                      }}
                       disabled={readOnly}
                       value={value[index]}
                       onChange={(e) => {
@@ -294,6 +307,7 @@ export const Components: Record<FieldType, Component> = {
                   StartIcon="user-plus"
                   className="my-2.5"
                   onClick={() => {
+                    autoFocusIndexRef.current = value.length;
                     value.push("");
                     setValue(value);
                   }}>
@@ -312,6 +326,7 @@ export const Components: Record<FieldType, Component> = {
               variant="button"
               StartIcon="user-plus"
               onClick={() => {
+                autoFocusIndexRef.current = value.length;
                 value.push("");
                 setValue(value);
               }}
