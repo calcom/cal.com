@@ -1,14 +1,13 @@
 "use client";
 
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import React from "react";
-
 import classNames from "@calcom/ui/classNames";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 export function Tooltip({
   children,
   content,
-  open,
+  open: controlledOpen,
   defaultOpen,
   onOpenChange,
   delayDuration,
@@ -23,6 +22,48 @@ export function Tooltip({
   side?: "top" | "right" | "bottom" | "left";
   onOpenChange?: (open: boolean) => void;
 } & TooltipPrimitive.TooltipContentProps) {
+  const [internalOpen, setInternalOpen] = useState(defaultOpen ?? false);
+  const triggerRef = useRef<HTMLElement>(null);
+
+  const isControlled = controlledOpen !== undefined;
+  const isOpen = isControlled ? controlledOpen : internalOpen;
+
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(open);
+      }
+      onOpenChange?.(open);
+    },
+    [isControlled, onOpenChange]
+  );
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      e.preventDefault();
+      handleOpenChange(!isOpen);
+    },
+    [handleOpenChange, isOpen]
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (triggerRef.current && !triggerRef.current.contains(event.target as Node)) {
+        handleOpenChange(false);
+      }
+    };
+
+    document.addEventListener("touchstart", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, handleOpenChange]);
+
   const Content = (
     <TooltipPrimitive.Content
       {...props}
@@ -43,10 +84,23 @@ export function Tooltip({
   return (
     <TooltipPrimitive.Root
       delayDuration={delayDuration || 50}
-      open={open}
+      open={isOpen}
       defaultOpen={defaultOpen}
-      onOpenChange={onOpenChange}>
-      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
+      onOpenChange={handleOpenChange}>
+      <TooltipPrimitive.Trigger asChild>
+        {React.isValidElement(children)
+          ? React.cloneElement(
+              children as React.ReactElement<{
+                onTouchStart?: React.TouchEventHandler;
+                ref?: React.Ref<HTMLElement>;
+              }>,
+              {
+                onTouchStart: handleTouchStart,
+                ref: triggerRef,
+              }
+            )
+          : children}
+      </TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>{Content}</TooltipPrimitive.Portal>
     </TooltipPrimitive.Root>
   );
