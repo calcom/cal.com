@@ -108,7 +108,11 @@ export class IcsFeedService implements ICSFeedCalendarApp {
 
       await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(userId);
       await this.redisService.del(this.icsFeedCacheKey(credential.id));
-      await this.calendarsQueue.add(ICS_FEED_WARM_CACHE_JOB, { credentialId: credential.id, userEmail });
+      // Warm-up is best-effort: a queue failure must not fail the save response
+      // because the credential is already persisted and the live fetch fallback handles cache misses.
+      this.calendarsQueue.add(ICS_FEED_WARM_CACHE_JOB, { credentialId: credential.id, userEmail }).catch((err) => {
+        this.logger.warn(`ICS feed warm-cache enqueue failed for credential ${credential.id}`, err);
+      });
 
       return {
         status: SUCCESS_STATUS,
