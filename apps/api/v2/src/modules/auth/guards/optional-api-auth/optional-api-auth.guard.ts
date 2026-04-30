@@ -12,12 +12,8 @@ export class OptionalApiAuthGuard extends ApiAuthGuard {
     const onlyClientIdProvided = error && error.message.includes(ONLY_CLIENT_ID_PROVIDED_MESSAGE);
     const onlyClientSecretProvided = error && error.message.includes(ONLY_CLIENT_SECRET_PROVIDED_MESSAGE);
 
-    if (onlyClientIdProvided) {
-      return null;
-    }
-
-    if (onlyClientSecretProvided) {
-      return null;
+    if (onlyClientIdProvided || onlyClientSecretProvided) {
+      throw error;
     }
 
     if (user || noAuthProvided || !error) {

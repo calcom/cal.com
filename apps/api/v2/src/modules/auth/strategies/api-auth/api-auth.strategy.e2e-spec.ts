@@ -359,6 +359,36 @@ describe("ApiAuthStrategy", () => {
     });
   });
 
+  describe("OptionalApiAuthGuard behavior (partial auth)", () => {
+    it("should reject request when only client ID is provided (guard level)", async () => {
+      const request = createRequest() as any;
+
+      const error = new HttpException(
+        `ApiAuthStrategy - ${ONLY_CLIENT_ID_PROVIDED_MESSAGE}`,
+        401
+      );
+
+      const guard = new (require("@/modules/auth/guards/optional-api-auth/optional-api-auth.guard")
+        .OptionalApiAuthGuard)();
+
+      expect(() => guard.handleRequest(error, null)).toThrow();
+    });
+
+    it("should reject request when only client secret is provided (guard level)", async () => {
+      const request = createRequest() as any;
+
+      const error = new HttpException(
+        `ApiAuthStrategy - ${ONLY_CLIENT_SECRET_PROVIDED_MESSAGE}`,
+        401
+      );
+
+      const guard = new (require("@/modules/auth/guards/optional-api-auth/optional-api-auth.guard")
+        .OptionalApiAuthGuard)();
+
+      expect(() => guard.handleRequest(error, null)).toThrow();
+    });
+  });
+
   afterAll(async () => {
     await oAuthClientRepositoryFixture.delete(oAuthClient.id);
     await userRepositoryFixture.delete(validApiKeyUser.id);
