@@ -1,12 +1,9 @@
-ALTER TABLE "Webhook" ALTER COLUMN "eventTriggers" TYPE TEXT[] USING "eventTriggers"::TEXT[];
+UPDATE "public"."Webhook"
+SET "eventTriggers" = array_remove("eventTriggers", 'INSTANT_MEETING'::"public"."WebhookTriggerEvents")
+WHERE "eventTriggers" @> ARRAY['INSTANT_MEETING']::"public"."WebhookTriggerEvents"[];
 
-UPDATE "Webhook"
-SET "eventTriggers" = array_remove("eventTriggers", 'INSTANT_MEETING')
-WHERE "eventTriggers" @> ARRAY['INSTANT_MEETING'];
-
-ALTER TYPE "WebhookTriggerEvents" RENAME TO "WebhookTriggerEvents_old";
-
-CREATE TYPE "WebhookTriggerEvents" AS ENUM (
+BEGIN;
+CREATE TYPE "public"."WebhookTriggerEvents_new" AS ENUM (
   'BOOKING_CREATED',
   'BOOKING_PAYMENT_INITIATED',
   'BOOKING_PAID',
@@ -27,9 +24,10 @@ CREATE TYPE "WebhookTriggerEvents" AS ENUM (
   'DELEGATION_CREDENTIAL_ERROR',
   'WRONG_ASSIGNMENT_REPORT'
 );
-
-ALTER TABLE "Webhook"
-ALTER COLUMN "eventTriggers" TYPE "WebhookTriggerEvents"[]
-USING "eventTriggers"::"WebhookTriggerEvents"[];
-
-DROP TYPE "WebhookTriggerEvents_old";
+ALTER TABLE "public"."Webhook"
+ALTER COLUMN "eventTriggers" TYPE "public"."WebhookTriggerEvents_new"[]
+USING ("eventTriggers"::text::"public"."WebhookTriggerEvents_new"[]);
+ALTER TYPE "public"."WebhookTriggerEvents" RENAME TO "WebhookTriggerEvents_old";
+ALTER TYPE "public"."WebhookTriggerEvents_new" RENAME TO "WebhookTriggerEvents";
+DROP TYPE "public"."WebhookTriggerEvents_old";
+COMMIT;
