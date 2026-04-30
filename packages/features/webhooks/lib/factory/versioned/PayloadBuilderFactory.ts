@@ -86,9 +86,6 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
   [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: "meeting",
   [WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "meeting",
 
-  // Instant meeting feature removed, mapped to booking as fallback until enum cleanup lands.
-  [WebhookTriggerEvents.INSTANT_MEETING]: "booking",
-
   // Delegation events (enterprise feature removed, mapped to booking as fallback)
   [WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR]: "booking",
 
