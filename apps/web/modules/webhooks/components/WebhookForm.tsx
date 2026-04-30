@@ -247,13 +247,12 @@ const WebhookForm = (props: {
   overrideTriggerOptions?: (typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)["core"];
   onSubmit: (event: WebhookFormSubmitData) => void;
   onCancel?: () => void;
-  selectOnlyInstantMeetingOption?: boolean;
   headerWrapper?: (
     formMethods: ReturnType<typeof useForm<WebhookFormValues>>,
     children: React.ReactNode
   ) => React.ReactNode;
 }) => {
-  const { apps = [], selectOnlyInstantMeetingOption = false, overrideTriggerOptions } = props;
+  const { apps = [], overrideTriggerOptions } = props;
   const { t } = useLocale();
   const webhookVariables = getWebhookVariables(t);
 
@@ -272,7 +271,7 @@ const WebhookForm = (props: {
   const getEventTriggers = () => {
     if (props.webhook) return props.webhook.eventTriggers;
 
-    return (selectOnlyInstantMeetingOption ? [] : translatedTriggerOptions).map((option) => option.value);
+    return translatedTriggerOptions.map((option) => option.value);
   };
 
   const formMethods = useForm<WebhookFormValues>({
