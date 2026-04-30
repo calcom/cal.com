@@ -1,8 +1,8 @@
+BEGIN;
 UPDATE "public"."Webhook"
 SET "eventTriggers" = array_remove("eventTriggers", 'INSTANT_MEETING'::"public"."WebhookTriggerEvents")
 WHERE "eventTriggers" @> ARRAY['INSTANT_MEETING']::"public"."WebhookTriggerEvents"[];
 
-BEGIN;
 CREATE TYPE "public"."WebhookTriggerEvents_new" AS ENUM (
   'BOOKING_CREATED',
   'BOOKING_PAYMENT_INITIATED',
