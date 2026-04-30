@@ -1,4 +1,3 @@
-import process from "node:process";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { decryptSecret } from "@calcom/lib/crypto/keyring";
@@ -10,10 +9,15 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import type { CalendarFetchMode, EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { normalizeTimezone } from "./timezone-conversion";
+import { getRedisService } from "@calcom/features/di/containers/Redis";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+
+// Cache TTL: 5 minutes (300 seconds) - balances freshness with performance
+const CALENDAR_BUSY_TIMES_CACHE_TTL = parseInt(process.env.CALENDAR_BUSY_TIMES_CACHE_TTL ?? "300", 10);
+const MAX_CACHE_TTL = 600; // Max 10 minutes
 
 // only for Google Calendar for now
 export const getCalendarsEventsWithTimezones = async (
@@ -70,6 +74,28 @@ export const getCalendarsEventsWithTimezones = async (
       log.info("Allowing getAvailability even without any selected calendars for Delegation Credential");
     }
     /** We extract external Ids so we don't cache too much */
+
+    // Generate cache key for this calendar query
+    const cacheKey = generateCacheKey(
+      credential?.id ?? 0,
+      type,
+      passedSelectedCalendars,
+      dateFrom,
+      dateTo
+    );
+
+    // Try to get from cache first
+    const cachedResult = await getFromCache(cacheKey);
+    if (cachedResult) {
+      log.debug(`[CACHE HIT] Calendar busy times for ${type} credential ${credential?.id}`);
+      return cachedResult.map((event) => ({
+        ...event,
+        timeZone: normalizeTimezone(event.timeZone),
+      }));
+    }
+
+    log.debug(`[CACHE MISS] Calendar busy times for ${type} credential ${credential?.id}`);
+
     const eventBusyDates =
       (await c.getAvailabilityWithTimeZones?.({
         dateFrom,
@@ -79,10 +105,15 @@ export const getCalendarsEventsWithTimezones = async (
         fallbackToPrimary: allowFallbackToPrimary,
       })) || [];
 
-    return eventBusyDates.map((event) => ({
+    const normalizedResults = eventBusyDates.map((event) => ({
       ...event,
       timeZone: normalizeTimezone(event.timeZone),
     }));
+
+    // Cache the result
+    await setToCache(cacheKey, normalizedResults, CALENDAR_BUSY_TIMES_CACHE_TTL);
+
+    return normalizedResults;
   });
   const awaitedResults = await Promise.all(results);
   return awaitedResults;
@@ -172,6 +203,16 @@ const getCalendarsEvents = async (
     /** We extract external Ids so we don't cache too much */
 
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
+
+    // Generate cache key for this calendar query
+    const cacheKey = generateCacheKey(
+      credential?.id ?? 0,
+      type,
+      passedSelectedCalendars,
+      dateFrom,
+      dateTo
+    );
+
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     performance.mark("eventBusyDatesStart");
     log.debug(
@@ -181,6 +222,25 @@ const getCalendarsEvents = async (
         selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
       })
     );
+
+    // Try to get from cache first
+    const cachedResult = await getFromCache(cacheKey);
+    if (cachedResult) {
+      log.debug(`[CACHE HIT] Calendar busy times for ${type} credential ${credential?.id}`);
+      performance.mark("eventBusyDatesEnd");
+      performance.measure(
+        `[getAvailability for ${selectedCalendarIds.join(", ")}][$1] (CACHED)`,
+        "eventBusyDatesStart",
+        "eventBusyDatesEnd"
+      );
+      return cachedResult.map((a) => ({
+        ...a,
+        source: `${appId}`,
+      }));
+    }
+
+    log.debug(`[CACHE MISS] Calendar busy times for ${type} credential ${credential?.id}`);
+
     const eventBusyDates = await calendarService.getAvailability({
       dateFrom,
       dateTo,
@@ -190,10 +250,13 @@ const getCalendarsEvents = async (
     });
     performance.mark("eventBusyDatesEnd");
     performance.measure(
-      `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,
+      `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]`,
       "eventBusyDatesStart",
       "eventBusyDatesEnd"
     );
+
+    // Cache the result
+    await setToCache(cacheKey, eventBusyDates, CALENDAR_BUSY_TIMES_CACHE_TTL);
 
     return eventBusyDates.map((a) => ({
       ...a,
@@ -219,6 +282,73 @@ const getCalendarsEvents = async (
 };
 
 export default getCalendarsEvents;
+
+/**
+ * Generate a cache key for calendar busy times queries
+ * Key format: `calendar:busy:{credentialId}:{type}:{selectedCalendarIds}:{dateFrom}:{dateTo}`
+ */
+function generateCacheKey(
+  credentialId: number,
+  type: string,
+  selectedCalendars: SelectedCalendar[],
+  dateFrom: string,
+  dateTo: string
+): string {
+  // Normalize selected calendar IDs for consistent cache keys
+  const normalizedCalendarIds = selectedCalendars
+    .map((sc) => sc.externalId)
+    .sort()
+    .join(",");
+
+  // Round date ranges to 5-minute intervals to increase cache hit rate
+  // This allows queries with slightly different time ranges to share cached results
+  const roundedDateFrom = roundToInterval(dateFrom, 5);
+  const roundedDateTo = roundToInterval(dateTo, 5);
+
+  return `calendar:busy:${credentialId}:${type}:${normalizedCalendarIds}:${roundedDateFrom}:${roundedDateTo}`;
+}
+
+/**
+ * Round a date string to the nearest interval (in minutes)
+ * This increases cache hit rate by normalizing slightly different time ranges
+ */
+function roundToInterval(dateStr: string, intervalMinutes: number): string {
+  const date = new Date(dateStr);
+  const ms = date.getTime();
+  const intervalMs = intervalMinutes * 60 * 1000;
+  const rounded = Math.floor(ms / intervalMs) * intervalMs;
+  return new Date(rounded).toISOString();
+}
+
+/**
+ * Get cached calendar busy times from Redis
+ */
+async function getFromCache(key: string): Promise<EventBusyDate[] | null> {
+  try {
+    const redis = getRedisService();
+    const cached = await redis.get<EventBusyDate[]>(key);
+    return cached;
+  } catch (error) {
+    // Cache failures should not block the request
+    log.warn(`Failed to get calendar busy times from cache: ${key}`, { error });
+    return null;
+  }
+}
+
+/**
+ * Set calendar busy times to Redis cache
+ */
+async function setToCache(key: string, value: EventBusyDate[], ttl: number): Promise<void> {
+  try {
+    const redis = getRedisService();
+    // Cap TTL to prevent excessive memory usage
+    const effectiveTtl = Math.min(ttl, MAX_CACHE_TTL);
+    await redis.set(key, value, { ttl: effectiveTtl });
+  } catch (error) {
+    // Cache failures should not block the request
+    log.warn(`Failed to set calendar busy times to cache: ${key}`, { error });
+  }
+}
 
 /**
  * Extract server URL from CalDAV calendar externalId
