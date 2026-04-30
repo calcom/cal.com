@@ -22,16 +22,14 @@ import { UserDropdown } from "./user-dropdown/UserDropdown";
 
 export type SideBarContainerProps = {
   bannersHeight: number;
-  isPlatformUser?: boolean;
 };
 
 export type SideBarProps = {
   bannersHeight: number;
   user?: UserAuth | null;
-  isPlatformUser?: boolean;
 };
 
-export function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarContainerProps) {
+export function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
   const { status, data } = useSession();
   const isStandalone = useIsStandalone();
 
@@ -40,7 +38,7 @@ export function SideBarContainer({ bannersHeight, isPlatformUser = false }: Side
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
   if (isStandalone) return null;
-  return <SideBar isPlatformUser={isPlatformUser} bannersHeight={bannersHeight} user={data?.user} />;
+  return <SideBar bannersHeight={bannersHeight} user={data?.user} />;
 }
 
 export function SideBar({ bannersHeight, user }: SideBarProps) {
