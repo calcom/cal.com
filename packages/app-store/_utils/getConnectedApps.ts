@@ -146,9 +146,47 @@ export async function getConnectedApps({
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
   });
-  //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
-    enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
+    enabledApps.map(async (enabledApp) => {
+      const { credential } = enabledApp;
+      const app = {
+        slug: enabledApp.slug,
+        name: enabledApp.name,
+        description: enabledApp.description,
+        type: enabledApp.type,
+        title: enabledApp.title,
+        variant: enabledApp.variant,
+        categories: enabledApp.categories,
+        category: enabledApp.category,
+        logo: enabledApp.logo,
+        publisher: enabledApp.publisher,
+        url: enabledApp.url,
+        docsUrl: enabledApp.docsUrl,
+        verified: enabledApp.verified,
+        trending: enabledApp.trending,
+        rating: enabledApp.rating,
+        reviews: enabledApp.reviews,
+        isGlobal: enabledApp.isGlobal,
+        simplePath: enabledApp.simplePath,
+        email: enabledApp.email,
+        feeType: enabledApp.feeType,
+        price: enabledApp.price,
+        commission: enabledApp.commission,
+        licenseRequired: enabledApp.licenseRequired,
+        appData: enabledApp.appData,
+        paid: enabledApp.paid,
+        dirName: enabledApp.dirName,
+        isTemplate: enabledApp.isTemplate,
+        installed: enabledApp.installed,
+        dependencies: enabledApp.dependencies,
+        concurrentMeetings: enabledApp.concurrentMeetings,
+        createdAt: enabledApp.createdAt,
+        isOAuth: enabledApp.isOAuth,
+        extendsFeature: enabledApp.extendsFeature,
+        delegationCredential: enabledApp.delegationCredential,
+        locationOption: enabledApp.locationOption,
+        enabled: enabledApp.enabled,
+      };
       const userCredentialIds = credentials.filter((c) => c.appId === app.slug && !c.teamId).map((c) => c.id);
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
