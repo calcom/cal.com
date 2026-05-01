@@ -100,7 +100,7 @@ describe("OAuth2 Controller Endpoints", () => {
         testRedirectUri,
         scopes,
         undefined,
-        teamSlug ?? team.slug
+        teamSlug ?? team.slug ?? undefined
       );
       const redirectUrl = new URL(result.redirectUrl);
       return redirectUrl.searchParams.get("code") as string;

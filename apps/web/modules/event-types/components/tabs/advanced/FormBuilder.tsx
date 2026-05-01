@@ -70,6 +70,23 @@ const getLocationFieldType = (field: RhfFormField) => {
   return baseFieldType;
 };
 
+function isWhitespaceOnly(val: unknown): boolean {
+  return typeof val === "string" && val.length > 0 && val.trim().length === 0;
+}
+
+function hasWhitespaceOnlyLabel(data: RhfFormField): boolean {
+  if (isWhitespaceOnly(data.label)) return true;
+  const variants = data.variantsConfig?.variants;
+  if (!variants) return false;
+  for (const variant of Object.values(variants)) {
+    const fields = variant?.fields ?? [];
+    for (const f of fields) {
+      if (isWhitespaceOnly(f?.label)) return true;
+    }
+  }
+  return false;
+}
+
 /**
  * It works with a react-hook-form only.
  * `formProp` specifies the name of the property in the react-hook-form that has the fields. This is where fields would be updated.
@@ -386,6 +403,11 @@ export const FormBuilder = function FormBuilder({
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
+
+            if (hasWhitespaceOnlyLabel(data)) {
+              showToast(t("label_cannot_be_whitespace"), "error");
+              return;
+            }
 
             if (data.name === "guests" && type !== "multiemail") {
               showToast(t("guests_field_must_be_multiemail"), "error");
@@ -900,12 +922,12 @@ function FieldLabel({ field }: { field: RhfFormField }) {
         <span
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
-            __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
+            __html: markdownToSafeHTMLClient(field.label?.trim() || t(field.defaultLabel || "") || ""),
           }}
         />
       );
     } else {
-      return <span>{field.label || t(field.defaultLabel || "")}</span>;
+      return <span>{field.label?.trim() || t(field.defaultLabel || "")}</span>;
     }
   }
   const variant = field.variant || defaultVariant;

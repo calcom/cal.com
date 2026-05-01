@@ -8,7 +8,6 @@ import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
 import { IsOAuthClientWebhookGuard } from "@/modules/webhooks/guards/is-oauth-client-webhook-guard";
 import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
@@ -29,13 +28,14 @@ import { OAuthClientGuard } from "../../guards/oauth-client-guard";
   path: "/v2/oauth-clients/:clientId/webhooks",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, OrganizationRolesGuard, OAuthClientGuard)
+@UseGuards(ApiAuthGuard, OAuthClientGuard)
 @DocsTags("Deprecated: Platform / Webhooks")
 @ApiHeader({
   name: X_CAL_SECRET_KEY,
   description: "OAuth client secret key",
   required: true,
 })
+@ApiParam({ name: "clientId", type: String, required: true })
 export class OAuthClientWebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,

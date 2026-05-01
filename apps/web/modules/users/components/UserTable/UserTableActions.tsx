@@ -36,22 +36,17 @@ export function TableActions({
 }) {
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
-  const resendInvitationMutation = trpc.viewer.teams.resendInvitation.useMutation({
-    onSuccess: () => {
-      showToast(t("invitation_resent"), "success");
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
-  const sendPasswordResetMutation = trpc.viewer.organizations.sendPasswordReset.useMutation({
-    onSuccess: () => {
-      showToast(t("password_reset_email_sent"), "success");
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const resendInvitationMutation = {
+    mutate: (..._args: unknown[]) => {},
+    mutateAsync: async () => ({}),
+    isPending: false,
+  };
+
+  const sendPasswordResetMutation = {
+    mutate: (..._args: unknown[]) => {},
+    mutateAsync: async () => ({}),
+    isPending: false,
+  };
 
   const usersProfileUrl = `${domain}/${user.username}`;
 

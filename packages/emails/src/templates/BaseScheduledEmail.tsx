@@ -1,19 +1,17 @@
-import type { TFunction } from "i18next";
-
 import dayjs from "@calcom/dayjs";
 import { formatPrice } from "@calcom/lib/currencyConversions";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-
+import type { TFunction } from "i18next";
 import {
+  AppsStatus,
   BaseEmailHtml,
   Info,
   LocationInfo,
   ManageLink,
+  UserFieldsResponses,
   WhenInfo,
   WhoInfo,
-  AppsStatus,
-  UserFieldsResponses,
 } from "../components";
 import { PersonInfo } from "../components/WhoInfo";
 
@@ -65,7 +63,7 @@ export const BaseScheduledEmail = (
 
   return (
     <BaseEmailHtml
-      hideLogo={Boolean(props.calEvent.platformClientId)}
+      hideLogo={Boolean(props.calEvent.platformClientId) || Boolean(props.calEvent.hideBranding)}
       headerType={props.headerType || "checkCircle"}
       subject={props.subject || subject}
       title={t(
@@ -127,7 +125,7 @@ export const BaseScheduledEmail = (
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
-      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer formatted />
+      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
       {props.isOrganizer && props.calEvent.assignmentReason && (
         <Info

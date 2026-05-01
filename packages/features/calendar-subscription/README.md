@@ -1,6 +1,6 @@
 # Calendar Cache and Sync
 
-The **Calendar Cache and Sync** feature provides efficient calendar synchronization with intelligent caching to reduce API calls and ensure real-time updates across your Cal.com instance.
+The **Calendar Cache and Sync** feature provides efficient calendar synchronization with intelligent caching to reduce API calls and ensure real-time updates across your Cal.diy instance.
 
 ## Feature Overview
 

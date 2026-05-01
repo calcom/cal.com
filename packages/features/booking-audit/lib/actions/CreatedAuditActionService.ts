@@ -80,8 +80,11 @@ export class CreatedAuditActionService implements IAuditActionService {
 
   async getDisplayTitle({ storedData, dbStore }: GetDisplayTitleParams): Promise<TranslationWithParams> {
     const { fields } = this.parseStored(storedData);
+    if (fields.status === BookingStatus.AWAITING_HOST) {
+      return { key: "booking_audit_action.created_awaiting_host", params: {} };
+    }
     const hostUser = fields.hostUserUuid ? dbStore.getUserByUuid(fields.hostUserUuid) : null;
-    const hostName = hostUser?.name || "Unknown";
+    const hostName = hostUser?.name ?? "Unknown";
     if (fields.seatReferenceUid) {
       return { key: "booking_audit_action.created_with_seat", params: { host: hostName } };
     }

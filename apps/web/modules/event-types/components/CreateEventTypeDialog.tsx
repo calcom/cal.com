@@ -1,11 +1,5 @@
-import { isValidPhoneNumber } from "libphonenumber-js/max";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import CreateEventTypeForm from "@calcom/features/eventtypes/components/CreateEventTypeForm";
-import { useCreateEventType } from "~/event-types/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import type { EventType } from "@calcom/prisma/client";
@@ -13,9 +7,14 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
-import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
+import { useRouter } from "next/navigation";
+import { z } from "zod";
+import { useCreateEventType } from "~/event-types/hooks/useCreateEventType";
+
+const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL ?? "";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
@@ -67,7 +66,7 @@ const querySchema = z.object({
 export function CreateEventTypeDialog({ profileOptions }: { profileOptions: ProfileOption[] }) {
   const { t } = useLocale();
   const router = useRouter();
-  const orgBranding = useOrgBranding();
+  const orgBranding = null;
 
   const {
     data: { teamId, eventPage: pageSlug },
@@ -104,12 +103,7 @@ export function CreateEventTypeDialog({ profileOptions }: { profileOptions: Prof
 
   const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
 
-  const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
-
-  const { data: team } = trpc.viewer.teams.get.useQuery(
-    { teamId: teamId ?? -1, isOrg: false },
-    { enabled: !!teamId }
-  );
+  const urlPrefix = WEBSITE_URL;
 
   return (
     <Dialog
@@ -120,21 +114,7 @@ export function CreateEventTypeDialog({ profileOptions }: { profileOptions: Prof
         enableOverflow
         title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
         description={t("new_event_type_to_book_description")}>
-        {teamId ? (
-          <TeamEventTypeForm
-            teamSlug={team?.slug}
-            teamId={teamId}
-            permissions={permissions}
-            urlPrefix={urlPrefix}
-            isPending={createMutation.isPending}
-            form={form}
-            isManagedEventType={isManagedEventType}
-            handleSubmit={(values) => {
-              createMutation.mutate(values);
-            }}
-            SubmitButton={SubmitButton}
-          />
-        ) : (
+        {teamId ? null : (
           <CreateEventTypeForm
             urlPrefix={urlPrefix}
             isPending={createMutation.isPending}

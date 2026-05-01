@@ -63,18 +63,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data.invoiceId,
       appConfig.type
     );
-    if (!payment) throw new HttpCode({ statusCode: 404, message: "Cal.com: payment not found" });
+    if (!payment) throw new HttpCode({ statusCode: 404, message: "Cal.diy: payment not found" });
     if (payment.success) return res.status(200).send({ message: "Payment already registered" });
     const key = payment.booking?.user?.credentials?.[0].key;
-    if (!key) throw new HttpCode({ statusCode: 404, message: "Cal.com: credentials not found" });
+    if (!key) throw new HttpCode({ statusCode: 404, message: "Cal.diy: credentials not found" });
 
     const parsedKey = btcpayCredentialKeysSchema.safeParse(key);
     if (!parsedKey.success)
-      throw new HttpCode({ statusCode: 400, message: "Cal.com: Invalid BTCPay credentials" });
+      throw new HttpCode({ statusCode: 400, message: "Cal.diy: Invalid BTCPay credentials" });
 
     const { webhookSecret, storeId } = parsedKey.data;
     if (storeId !== data.storeId)
-      throw new HttpCode({ statusCode: 400, message: "Cal.com: Store ID mismatch" });
+      throw new HttpCode({ statusCode: 400, message: "Cal.diy: Store ID mismatch" });
 
     const expectedSignature = signature.split("=")[1];
     const computedSignature = verifyBTCPaySignature(rawBody, expectedSignature, webhookSecret);

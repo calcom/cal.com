@@ -1,23 +1,19 @@
-import { useState } from "react";
-import { useFormContext } from "react-hook-form";
-
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type {
   EventTypeSetup,
+  FormValues,
   InputClassNames,
   SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Select, SettingsToggle, TextField } from "@calcom/ui/components/form";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 export type RecurringEventControllerProps = {
   eventType: EventTypeSetup;
@@ -54,15 +50,13 @@ export default function RecurringEventController({
   const hasBookingLimitPerBooker = !!formMethods.getValues("maxActiveBookingsPerBooker");
   /* Just yearly-0, monthly-1 and weekly-2 */
   const recurringEventFreqOptions = Object.entries(Frequency)
-    .filter(([key, value]) => isNaN(Number(key)) && Number(value) < 3)
+    .filter(([key, value]) => Number.isNaN(Number(key)) && Number(value) < 3)
     .map(([key, value]) => ({
       label: t(`${key.toString().toLowerCase()}`, { count: recurringEventState?.interval }),
       value: value.toString(),
     }));
 
-  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
-
-  const recurringLocked = shouldLockDisableProps("recurringEvent");
+  const recurringLocked = { disabled: false };
 
   return (
     <div className={classNames("block items-start sm:flex", customClassNames?.container)}>
@@ -123,7 +117,7 @@ export default function RecurringEventController({
                   setRecurringEventState(newVal);
                 }
               }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <div className="rounded-b-lg border border-subtle border-t-0 p-6">
                 {recurringEventState && (
                   <div data-testid="recurring-event-collapsible" className="text-sm">
                     <div className="flex items-center">
@@ -144,7 +138,7 @@ export default function RecurringEventController({
                         onChange={(event) => {
                           const newVal = {
                             ...recurringEventState,
-                            interval: parseInt(event?.target.value),
+                            interval: parseInt(event?.target.value, 10),
                           };
                           formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                           setRecurringEventState(newVal);
@@ -155,7 +149,7 @@ export default function RecurringEventController({
                         value={recurringEventFreqOptions[recurringEventState.freq]}
                         isSearchable={false}
                         className={classNames(
-                          "w-18 ml-2 block min-w-0 rounded-md text-sm",
+                          "ml-2 block w-18 min-w-0 rounded-md text-sm",
                           customClassNames?.frequencyUnitSelect?.select
                         )}
                         innerClassNames={customClassNames?.frequencyUnitSelect?.innerClassNames}
@@ -163,7 +157,7 @@ export default function RecurringEventController({
                         onChange={(event) => {
                           const newVal = {
                             ...recurringEventState,
-                            freq: parseInt(event?.value || `${Frequency.WEEKLY}`),
+                            freq: parseInt(event?.value || `${Frequency.WEEKLY}`, 10),
                           };
                           formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                           setRecurringEventState(newVal);
@@ -192,7 +186,7 @@ export default function RecurringEventController({
                         onChange={(event) => {
                           const newVal = {
                             ...recurringEventState,
-                            count: parseInt(event?.target.value),
+                            count: parseInt(event?.target.value, 10),
                           };
                           formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
                           setRecurringEventState(newVal);

@@ -23,17 +23,15 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
   const { isOpenDialog, setIsOpenDialog, bookingId } = props;
   const [chargeError, setChargeError] = useState<string | null>(null);
 
-  const chargeCardMutation = trpc.viewer.payments.chargeCard.useMutation({
-    onSuccess: () => {
+  const chargeCardMutation = {
+    mutate: (_args: { bookingId: number }) => {
       utils.viewer.bookings.invalidate();
       setIsOpenDialog(false);
       setChargeError(null);
       showToast("Charge successful", "success");
     },
-    onError: (error) => {
-      setChargeError(error.message || t("error_charging_card"));
-    },
-  });
+    isPending: false,
+  };
 
   const currencyStringParams = {
     amount: props.paymentAmount / 100.0,

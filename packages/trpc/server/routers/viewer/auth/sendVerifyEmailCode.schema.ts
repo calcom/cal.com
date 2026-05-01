@@ -5,6 +5,7 @@ export type TSendVerifyEmailCodeSchema = {
   username?: string;
   language: string;
   isVerifyingEmail?: boolean;
+  eventTypeId?: number;
 };
 
 export const ZSendVerifyEmailCodeSchema: z.ZodType<TSendVerifyEmailCodeSchema> = z.object({
@@ -12,4 +13,5 @@ export const ZSendVerifyEmailCodeSchema: z.ZodType<TSendVerifyEmailCodeSchema> =
   username: z.string().optional(),
   language: z.string(),
   isVerifyingEmail: z.boolean().optional(),
+  eventTypeId: z.number().optional(),
 });

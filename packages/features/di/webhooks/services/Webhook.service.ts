@@ -1,7 +1,6 @@
 import { createModule } from "@evyweb/ioctopus";
 
 import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
-import { FormWebhookService } from "@calcom/features/webhooks/lib/service/FormWebhookService";
 import { OOOWebhookService } from "@calcom/features/webhooks/lib/service/OOOWebhookService";
 import { RecordingWebhookService } from "@calcom/features/webhooks/lib/service/RecordingWebhookService";
 import { WebhookService } from "@calcom/features/webhooks/lib/service/WebhookService";
@@ -23,10 +22,6 @@ webhookServicesModule
     SHARED_TOKENS.TASKER,
     SHARED_TOKENS.LOGGER,
   ]);
-
-webhookServicesModule
-  .bind(WEBHOOK_TOKENS.FORM_WEBHOOK_SERVICE)
-  .toClass(FormWebhookService, [WEBHOOK_TOKENS.WEBHOOK_NOTIFIER, WEBHOOK_TOKENS.WEBHOOK_SERVICE]);
 
 webhookServicesModule
   .bind(WEBHOOK_TOKENS.RECORDING_WEBHOOK_SERVICE)

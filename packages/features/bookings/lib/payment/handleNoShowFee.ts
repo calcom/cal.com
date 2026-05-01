@@ -3,8 +3,10 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -14,7 +16,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-export const handleNoShowFee = async ({
+export const handleNoShowFee= async ({
   booking,
   payment,
 }: {
@@ -25,14 +27,18 @@ export const handleNoShowFee = async ({
     startTime: Date;
     endTime: Date;
     userPrimaryEmail: string | null;
+    eventTypeId: number | null;
     userId: number | null;
     user?: {
+      id: number;
       email: string;
       name?: string | null;
       locale: string | null;
       timeZone: string;
+      hideBranding: boolean | null;
       profiles: {
         organizationId: number | null;
+        organization: { hideBranding: boolean | null } | null;
       }[];
     } | null;
     eventType: {
@@ -40,6 +46,11 @@ export const handleNoShowFee = async ({
       hideOrganizerEmail: boolean;
       teamId: number | null;
       metadata?: Prisma.JsonValue;
+      team?: {
+        id: number;
+        hideBranding: boolean | null;
+        parent: { hideBranding: boolean | null } | null;
+      } | null;
     } | null;
     attendees: {
       name: string;
@@ -101,38 +112,27 @@ export const handleNoShowFee = async ({
       paymentOption: payment.paymentOption,
     },
     organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
+    hideBranding: booking.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventTypeId, {
+          team: booking.eventType?.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: booking.user
+            ? {
+                id: booking.user.id,
+                hideBranding: booking.user.hideBranding,
+                profiles: booking.user.profiles ?? [],
+              }
+            : null,
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
-  if (teamId) {
-    const membershipRepository = new MembershipRepository();
-    const userIsInTeam = await membershipRepository.findUniqueByUserIdAndTeamId({
-      userId,
-      teamId,
-    });
-
-    if (!userIsInTeam) {
-      log.error(`User ${userId} is not a member of team ${teamId}`);
-      throw new Error("User is not a member of the team");
-    }
-  }
-  let paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId({
+  const paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId({
     appId,
     userId,
     teamId,
   });
-
-  if (!paymentCredential && teamId) {
-    const teamRepository = new TeamRepository(prisma);
-    // See if the team event belongs to an org
-    const org = await teamRepository.findParentOrganizationByTeamId(teamId);
-
-    if (org) {
-      paymentCredential = await CredentialRepository.findPaymentCredentialByAppIdAndTeamId({
-        appId,
-        teamId: org.id,
-      });
-    }
-  }
 
   if (!paymentCredential) {
     log.error(`No payment credential found for user ${userId} or team ${teamId}`);

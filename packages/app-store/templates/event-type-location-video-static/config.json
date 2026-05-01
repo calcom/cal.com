@@ -7,7 +7,7 @@
   "url": "https://example.com/link",
   "variant": "conferencing",
   "categories": ["conferencing"],
-  "publisher": "Cal.com Inc",
+  "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "appData": {
     "location": {

@@ -208,6 +208,7 @@ export interface BookingAuditProducerService {
     organizationId: number | null;
     source: ActionSource;
     operationId?: string | null;
+    context?: BookingAuditContext;
     isBookingAuditEnabled: boolean;
   }): Promise<void>;
 
@@ -220,6 +221,7 @@ export interface BookingAuditProducerService {
     organizationId: number | null;
     source: ActionSource;
     operationId?: string | null;
+    context?: BookingAuditContext;
     isBookingAuditEnabled: boolean;
   }): Promise<void>;
 

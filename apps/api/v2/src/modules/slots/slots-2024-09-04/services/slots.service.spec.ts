@@ -1,4 +1,7 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { Test, TestingModule } from "@nestjs/testing";
+import { SlotsService_2024_09_04 } from "./slots.service";
+import { EventTypesRepository_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/event-types.repository";
 import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { MembershipsService } from "@/modules/memberships/services/memberships.service";
@@ -6,10 +9,6 @@ import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/s
 import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
 import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
-import { Test, TestingModule } from "@nestjs/testing";
-
-import { SlotsService_2024_09_04 } from "./slots.service";
 
 describe("SlotsService_2024_09_04", () => {
   let service: SlotsService_2024_09_04;
@@ -109,7 +108,6 @@ describe("SlotsService_2024_09_04", () => {
         routedTeamMemberIds: [456, 789],
         skipContactOwner: true,
         teamMemberEmail: "test@example.com",
-        routingFormResponseId: 999,
       },
     };
 
@@ -200,7 +198,6 @@ describe("SlotsService_2024_09_04", () => {
         routedTeamMemberIds: null,
         skipContactOwner: false,
         teamMemberEmail: null,
-        routingFormResponseId: undefined,
       };
 
       (slotsInputService.transformRoutingGetSlotsQuery as jest.Mock).mockResolvedValue(transformedQuery);
@@ -230,7 +227,6 @@ describe("SlotsService_2024_09_04", () => {
         routedTeamMemberIds: null,
         skipContactOwner: false,
         teamMemberEmail: null,
-        routingFormResponseId: undefined,
       };
 
       (slotsInputService.transformRoutingGetSlotsQuery as jest.Mock).mockResolvedValue(transformedQuery);
@@ -253,7 +249,6 @@ describe("SlotsService_2024_09_04", () => {
         routedTeamMemberIds: null,
         skipContactOwner: false,
         teamMemberEmail: null,
-        routingFormResponseId: undefined,
       };
 
       (slotsInputService.transformRoutingGetSlotsQuery as jest.Mock).mockResolvedValue(transformedQuery);
@@ -275,7 +270,6 @@ describe("SlotsService_2024_09_04", () => {
         teamMemberEmail: undefined,
         routedTeamMemberIds: undefined,
         skipContactOwner: undefined,
-        routingFormResponseId: undefined,
       };
 
       const transformedQuery = {
@@ -291,7 +285,6 @@ describe("SlotsService_2024_09_04", () => {
         teamMemberEmail: null,
         routedTeamMemberIds: null,
         skipContactOwner: false,
-        routingFormResponseId: undefined,
       };
 
       (slotsInputService.transformRoutingGetSlotsQuery as jest.Mock).mockResolvedValue(transformedQuery);
@@ -304,7 +297,6 @@ describe("SlotsService_2024_09_04", () => {
           teamMemberEmail: null,
           routedTeamMemberIds: null,
           skipContactOwner: false,
-          routingFormResponseId: undefined,
         }),
         ctx: {},
       });
@@ -333,7 +325,6 @@ describe("SlotsService_2024_09_04", () => {
         routedTeamMemberIds: [],
         skipContactOwner: false,
         teamMemberEmail: null,
-        routingFormResponseId: undefined,
       };
 
       (slotsInputService.transformRoutingGetSlotsQuery as jest.Mock).mockResolvedValue(transformedQuery);
@@ -359,7 +350,6 @@ describe("SlotsService_2024_09_04", () => {
         routedTeamMemberIds: [1, 2, 3],
         skipContactOwner: true,
         teamMemberEmail: "team@example.com",
-        routingFormResponseId: 999,
       };
 
       const transformedQuery = {
@@ -375,7 +365,6 @@ describe("SlotsService_2024_09_04", () => {
         routedTeamMemberIds: [1, 2, 3],
         skipContactOwner: true,
         teamMemberEmail: "team@example.com",
-        routingFormResponseId: 999,
       };
 
       (slotsInputService.transformRoutingGetSlotsQuery as jest.Mock).mockResolvedValue(transformedQuery);
@@ -388,7 +377,6 @@ describe("SlotsService_2024_09_04", () => {
           routedTeamMemberIds: [1, 2, 3],
           skipContactOwner: true,
           teamMemberEmail: "team@example.com",
-          routingFormResponseId: 999,
         }),
         ctx: {},
       });

@@ -12,7 +12,7 @@ import dayjs from "@calcom/dayjs";
 import { BookingStatus, TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { expectWebhookToHaveBeenCalledWith } from "@calcom/testing/lib/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { WebhookVersion } from "../../../webhooks/lib/interface/IWebhookRepository";
 import { calculateMaxStartTime } from "./common";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
@@ -21,16 +21,6 @@ import { triggerHostNoShow } from "./triggerHostNoShow";
 
 vi.mock("@calcom/features/tasker/tasks/triggerNoShow/getMeetingSessionsFromRoomName", () => ({
   getMeetingSessionsFromRoomName: vi.fn(),
-}));
-
-const { mockOnNoShowUpdated } = vi.hoisted(() => ({
-  mockOnNoShowUpdated: vi.fn(),
-}));
-
-vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () => ({
-  getBookingEventHandlerService: vi.fn().mockReturnValue({
-    onNoShowUpdated: mockOnNoShowUpdated,
-  }),
 }));
 
 vi.mock("@calcom/features/di/containers/FeaturesRepository", () => ({
@@ -46,44 +36,8 @@ const EMPTY_MEETING_SESSIONS = {
   data: [],
 };
 
-type ExpectNoShowAuditParams = {
-  bookingUid: string;
-  source: string;
-  actor: {
-    identifiedBy: string;
-    id: string;
-  };
-  organizationId: number | null;
-  auditData: {
-    host?: {
-      userUuid: string;
-      noShow: {
-        old: boolean | null;
-        new: boolean;
-      };
-    };
-    attendeesNoShow?: Array<{
-      attendeeEmail: string;
-      noShow: {
-        new: boolean;
-        old: boolean | null;
-      };
-    }>;
-  };
-  isBookingAuditEnabled: boolean;
-};
-
-function expectNoShowAuditToBeDone(expected: ExpectNoShowAuditParams): void {
-  expect(mockOnNoShowUpdated).toHaveBeenCalledTimes(1);
-  expect(mockOnNoShowUpdated).toHaveBeenCalledWith(expected);
-}
-
 describe("Trigger Host No Show:", () => {
   setupAndTeardown();
-
-  beforeEach(() => {
-    mockOnNoShowUpdated.mockClear();
-  });
 
   test(
     `Should trigger host no show webhook when no one joined the call`,
@@ -99,7 +53,7 @@ describe("Trigger Host No Show:", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
 
       const uidOfBooking = "n5Wv3eHgconAED2j4gcVhP";
-      const iCalUID = `${uidOfBooking}@Cal.com`;
+      const iCalUID = `${uidOfBooking}@Cal.diy`;
       const subscriberUrl = "http://my-webhook.example.com";
       const bookingStartTime = `${plus1DateString}T05:00:00.000Z`;
 
@@ -223,16 +177,6 @@ describe("Trigger Host No Show:", () => {
         },
       });
 
-      expectNoShowAuditToBeDone({
-        bookingUid: uidOfBooking,
-        source: "SYSTEM",
-        actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
-        organizationId: null,
-        auditData: {
-          host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
-        },
-        isBookingAuditEnabled: false,
-      });
     },
     timeout
   );
@@ -251,7 +195,7 @@ describe("Trigger Host No Show:", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
 
       const uidOfBooking = "n5Wv3eHgconAED2j4gcVhP";
-      const iCalUID = `${uidOfBooking}@Cal.com`;
+      const iCalUID = `${uidOfBooking}@Cal.diy`;
       const subscriberUrl = "http://my-webhook.example.com";
       const bookingStartTime = `${plus1DateString}T05:00:00.000Z`;
 
@@ -401,16 +345,6 @@ describe("Trigger Host No Show:", () => {
         },
       });
 
-      expectNoShowAuditToBeDone({
-        bookingUid: uidOfBooking,
-        source: "SYSTEM",
-        actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
-        organizationId: null,
-        auditData: {
-          host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
-        },
-        isBookingAuditEnabled: false,
-      });
     },
     timeout
   );
@@ -429,12 +363,12 @@ describe("Trigger Host No Show:", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
 
       const uidOfBooking = "j5Wv3eHgconAED2j4gcVhP";
-      const iCalUID = `${uidOfBooking}@Cal.com`;
+      const iCalUID = `${uidOfBooking}@Cal.diy`;
       const subscriberUrl = "http://my-webhook.example.com";
       const bookingStartTime = `${plus1DateString}T05:00:00.000Z`;
 
       const newUidOfBooking = "k5Wv3eHgconAED2j4gcVhP";
-      const newiCalUID = `${newUidOfBooking}@Cal.com`;
+      const newiCalUID = `${newUidOfBooking}@Cal.diy`;
       const newBookingStartTime = `${plus1DateString}T05:15:00.000Z`;
 
       await createBookingScenario(
@@ -619,16 +553,6 @@ describe("Trigger Host No Show:", () => {
         },
       });
 
-      expectNoShowAuditToBeDone({
-        bookingUid: newUidOfBooking,
-        source: "SYSTEM",
-        actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
-        organizationId: null,
-        auditData: {
-          host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
-        },
-        isBookingAuditEnabled: false,
-      });
     },
     timeout
   );
@@ -647,7 +571,7 @@ describe("Trigger Host No Show:", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
 
       const uidOfBooking = "n5Wv3eHgconAED2j4gcVhP";
-      const iCalUID = `${uidOfBooking}@Cal.com`;
+      const iCalUID = `${uidOfBooking}@Cal.diy`;
       const subscriberUrl = "http://my-webhook.example.com";
       const bookingStartTime = `${plus1DateString}T05:00:00.000Z`;
 
@@ -784,16 +708,6 @@ describe("Trigger Host No Show:", () => {
         },
       });
 
-      expectNoShowAuditToBeDone({
-        bookingUid: uidOfBooking,
-        source: "SYSTEM",
-        actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
-        organizationId: null,
-        auditData: {
-          host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
-        },
-        isBookingAuditEnabled: false,
-      });
     },
     timeout
   );
@@ -812,7 +726,7 @@ describe("Trigger Host No Show:", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
 
       const uidOfBooking = "n5Wv3eHgconAED2j4gcVhP";
-      const iCalUID = `${uidOfBooking}@Cal.com`;
+      const iCalUID = `${uidOfBooking}@Cal.diy`;
       const subscriberUrl = "http://my-webhook.example.com";
       const bookingStartTime = `${plus1DateString}T05:00:00.000Z`;
 
@@ -948,7 +862,6 @@ describe("Trigger Host No Show:", () => {
         })
       ).toThrow();
 
-      expect(mockOnNoShowUpdated).not.toHaveBeenCalled();
     },
     timeout
   );

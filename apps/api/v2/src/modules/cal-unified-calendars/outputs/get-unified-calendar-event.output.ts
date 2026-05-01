@@ -1,8 +1,7 @@
+import { CALENDARS, ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsISO8601, IsOptional, IsString, ValidateNested } from "class-validator";
-
-import { CALENDARS, SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 export enum CalendarEventStatus {
   ACCEPTED = "accepted",
@@ -444,4 +443,15 @@ export class GetUnifiedCalendarEventOutput {
   @Type(() => UnifiedCalendarEventOutput)
   @ApiProperty({ type: UnifiedCalendarEventOutput })
   data!: UnifiedCalendarEventOutput;
+}
+
+export class ListUnifiedCalendarEventsOutput {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
+
+  @ValidateNested({ each: true })
+  @Type(() => UnifiedCalendarEventOutput)
+  @ApiProperty({ type: [UnifiedCalendarEventOutput] })
+  data!: UnifiedCalendarEventOutput[];
 }

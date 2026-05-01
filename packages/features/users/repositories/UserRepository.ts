@@ -1,11 +1,9 @@
-import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
-import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
@@ -18,6 +16,9 @@ import { userSelect as prismaUserSelect } from "@calcom/prisma/selects/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 import type { z } from "zod";
+
+const whereClauseForOrgWithSlugOrRequestedSlug = (..._args: unknown[]) => ({});
+const getParsedTeam = <T>(team: T): T => team;
 
 export type { UserWithLegacySelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 export { withSelectedCalendars };
@@ -42,7 +43,6 @@ export type SessionUser = {
   createdDate: Date;
   hideBranding: boolean;
   twoFactorEnabled: boolean;
-  disableImpersonation: boolean;
   identityProvider: string | null;
   identityProviderId: string | null;
   brandColor: string | null;
@@ -110,7 +110,6 @@ const userSelect = {
   receiveMonthlyDigestEmail: true,
   requiresBookerEmailVerification: true,
   verified: true,
-  disableImpersonation: true,
   locked: true,
   movedToProfileId: true,
   metadata: true,
@@ -427,6 +426,65 @@ export class UserRepository {
     });
   }
 
+  async findByIdsWithPagination({
+    ids,
+    search,
+    cursor,
+    limit,
+  }: {
+    ids: number[];
+    search?: string | null;
+    cursor?: number | null;
+    limit?: number | null;
+  }) {
+    const where: Record<string, unknown> = {
+      id: cursor ? { in: ids, gt: cursor } : { in: ids },
+    };
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const users = await this.prismaClient.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+      orderBy: { id: "asc" },
+      ...(limit ? { take: limit + 1 } : {}),
+    });
+
+    if (!limit) {
+      return { users, nextCursor: undefined, total: users.length };
+    }
+
+    const hasMore = users.length > limit;
+    const items = hasMore ? users.slice(0, limit) : users;
+    const nextCursor = hasMore ? items[items.length - 1].id : undefined;
+
+    // Only count on the first page to avoid an extra query on every scroll
+    let total: number | undefined;
+    if (!cursor) {
+      const countWhere: Record<string, unknown> = {
+        id: { in: ids },
+      };
+      if (search) {
+        countWhere.OR = [
+          { name: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+        ];
+      }
+      total = await this.prismaClient.user.count({ where: countWhere });
+    }
+
+    return { users: items, nextCursor, total };
+  }
+
   async findByUuids({ uuids }: { uuids: string[] }) {
     if (uuids.length === 0) return [];
     return this.prismaClient.user.findMany({
@@ -660,7 +718,7 @@ export class UserRepository {
       if (!profileMap.has(profile.userId)) {
         profileMap.set(profile.userId, []);
       }
-      profileMap.get(profile.userId)!.push(profile);
+      profileMap.get(profile.userId)?.push(profile);
     });
 
     // Precompute personal profiles for all users
@@ -1121,7 +1179,6 @@ export class UserRepository {
         createdDate: true,
         hideBranding: true,
         twoFactorEnabled: true,
-        disableImpersonation: true,
         identityProvider: true,
         identityProviderId: true,
         brandColor: true,
@@ -1232,13 +1289,6 @@ export class UserRepository {
     return this.prismaClient.user.update({
       where: { id },
       data: { metadata: { ...existingMetadata, stripeCustomerId } },
-    });
-  }
-
-  async updateWhitelistWorkflows({ id, whitelistWorkflows }: { id: number; whitelistWorkflows: boolean }) {
-    return this.prismaClient.user.update({
-      where: { id },
-      data: { whitelistWorkflows },
     });
   }
 

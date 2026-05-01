@@ -4,10 +4,7 @@ import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBooke
 import dayjs from "@calcom/dayjs";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
-import TurnstileCaptcha from "@calcom/web/modules/auth/components/Turnstile";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useIsQuickAvailabilityCheckFeatureEnabled } from "../hooks/useIsQuickAvailabilityCheckFeatureEnabled";
-import { useSkipConfirmStep } from "@calcom/web/modules/bookings/hooks/useSkipConfirmStep";
 import {
   fadeInLeft,
   getBookerSizeClassNames,
@@ -15,12 +12,12 @@ import {
 } from "@calcom/features/bookings/Booker/config";
 import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
 import type { BookerProps } from "@calcom/features/bookings/Booker/types";
-import type { WrappedBookerProps } from "../types";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { Header } from "@calcom/features/bookings/components/Header";
+import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
 import {
   CLOUDFLARE_SITE_ID,
@@ -32,12 +29,16 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
-import PoweredBy from "@calcom/web/modules/ee/common/components/PoweredBy";
+import TurnstileCaptcha from "@calcom/web/modules/auth/components/Turnstile";
+import { useSkipConfirmStep } from "@calcom/web/modules/bookings/hooks/useSkipConfirmStep";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "../hooks/useIsQuickAvailabilityCheckFeatureEnabled";
+import type { WrappedBookerProps } from "../types";
 import { AvailableTimeSlots } from "./AvailableTimeSlots";
 import { BookEventForm } from "./BookEventForm";
 import { BookFormAsModal } from "./BookEventForm/BookFormAsModal";
@@ -45,12 +46,8 @@ import { DatePicker } from "./DatePicker";
 import { DryRunMessage } from "./DryRunMessage";
 import { EventMeta } from "./EventMeta";
 import { HavingTroubleFindingTime } from "./HavingTroubleFindingTime";
-import { Header } from "@calcom/features/bookings/components/Header";
-import { InstantBooking } from "./InstantBooking";
 import { LargeCalendar } from "./LargeCalendar";
 import { OverlayCalendar } from "./OverlayCalendar/OverlayCalendar";
-import { RedirectToInstantMeetingModal } from "./RedirectToInstantMeetingModal";
-import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { SlotSelectionModalHeader } from "./SlotSelectionModalHeader";
 import { NotFound } from "./Unavailable";
 import { VerifyCodeDialog } from "./VerifyCodeDialog";
@@ -60,9 +57,6 @@ const BookerComponent = ({
   eventSlug,
   hideBranding = false,
   entity,
-  isInstantMeeting = false,
-  onGoBackInstantMeeting,
-  onConnectNowInstantMeeting,
   onOverlayClickNoCalendar,
   onClickOverlayContinue,
   onOverlaySwitchStateChange,
@@ -82,7 +76,6 @@ const BookerComponent = ({
   isPlatform,
   orgBannerUrl,
   customClassNames,
-  areInstantMeetingParametersSet = false,
   userLocale,
   hasValidLicense,
   isBookingDryRun: isBookingDryRunProp,
@@ -162,14 +155,7 @@ const BookerComponent = ({
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
-  const {
-    handleBookEvent,
-    errors,
-    loadingStates,
-    expiryTime,
-    instantVideoMeetingUrl,
-    instantConnectCooldownMs,
-  } = bookings;
+  const { handleBookEvent, errors, loadingStates } = bookings;
 
   const watchedCfToken = bookingForm.watch("cfToken");
 
@@ -206,7 +192,6 @@ const BookerComponent = ({
   const skipConfirmStep = useSkipConfirmStep(
     bookingForm,
     bookerState,
-    isInstantMeeting,
     layout == BookerLayouts.WEEK_VIEW,
     event?.data?.bookingFields,
     event?.data?.locations
@@ -237,19 +222,11 @@ const BookerComponent = ({
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
-    const isSkipConfirmStepSupported = !isInstantMeeting && layout !== BookerLayouts.WEEK_VIEW;
+    const isSkipConfirmStepSupported = layout !== BookerLayouts.WEEK_VIEW;
     if (selectedTimeslot && skipConfirmStep && isSkipConfirmStepSupported)
       return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [
-    event.isPending,
-    selectedDate,
-    selectedTimeslot,
-    setBookerState,
-    skipConfirmStep,
-    layout,
-    isInstantMeeting,
-  ]);
+  }, [event.isPending, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout]);
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
@@ -298,7 +275,7 @@ const BookerComponent = ({
         onSubmit={() => (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
-        isTimeslotUnavailable={!isInstantMeeting && unavailableTimeSlots.includes(selectedTimeslot || "")}
+        isTimeslotUnavailable={unavailableTimeSlots.includes(selectedTimeslot || "")}
         loadingStates={loadingStates}
         renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
         bookingForm={bookingForm}
@@ -310,35 +287,21 @@ const BookerComponent = ({
           confirmButton: customClassNames?.confirmStep?.confirmButton,
           backButton: customClassNames?.confirmStep?.backButton,
         }}
-        isPlatform={isPlatform}>
-        {!isPlatform && (
-          <RedirectToInstantMeetingModal
-            expiryTime={expiryTime}
-            bookingId={parseInt(getQueryParam("bookingId") || "0")}
-            instantVideoMeetingUrl={instantVideoMeetingUrl}
-            onGoBack={() => {
-              onGoBackInstantMeeting();
-            }}
-            orgName={event.data?.entity?.name}
-          />
-        )}
-      </BookEventForm>
+        isPlatform={isPlatform}
+      />
     );
   }, [
     bookerFormErrorRef,
-    instantVideoMeetingUrl,
     bookerState,
     bookingForm,
     errors,
     event,
-    expiryTime,
     extraOptions,
     formErrors,
     handleBookEvent,
     handleVerifyEmail,
     key,
     loadingStates,
-    onGoBackInstantMeeting,
     renderConfirmNotVerifyEmailButtonCond,
     seatedEventData,
     setSeatedEventData,
@@ -395,45 +358,43 @@ const BookerComponent = ({
             `${customClassNames?.bookerContainer}`
           )}>
           <AnimatePresence>
-            {!isInstantMeeting && (
-              <BookerSection
-                area="header"
-                className={classNames(
-                  layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
-                  (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
-                    "bg-default dark:bg-cal-muted sticky top-0 z-10"
-                )}>
-                {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
-                  <></>
-                ) : (
-                  <Header
-                    isMyLink={Boolean(username === sessionUsername)}
-                    eventSlug={eventSlug}
-                    enabledLayouts={bookerLayouts.enabledLayouts}
-                    extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
-                    isMobile={isMobile}
-                    nextSlots={nextSlots}
-                    renderOverlay={() => {
-                      if (isEmbed) return null;
-                      return (
-                        <OverlayCalendar
-                          isOverlayCalendarEnabled={isOverlayCalendarEnabled}
-                          connectedCalendars={connectedCalendars}
-                          overlayBusyDates={overlayBusyDates}
-                          onToggleCalendar={onToggleCalendar}
-                          hasSession={hasSession}
-                          handleClickContinue={onClickOverlayContinue}
-                          handleSwitchStateChange={onOverlaySwitchStateChange}
-                          handleClickNoCalendar={() => {
-                            onOverlayClickNoCalendar();
-                          }}
-                        />
-                      );
-                    }}
-                  />
-                )}
-              </BookerSection>
-            )}
+            <BookerSection
+              area="header"
+              className={classNames(
+                layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
+                (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
+                  "bg-default dark:bg-cal-muted sticky top-0 z-10"
+              )}>
+              {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
+                <></>
+              ) : (
+                <Header
+                  isMyLink={Boolean(username === sessionUsername)}
+                  eventSlug={eventSlug}
+                  enabledLayouts={bookerLayouts.enabledLayouts}
+                  extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
+                  isMobile={isMobile}
+                  nextSlots={nextSlots}
+                  renderOverlay={() => {
+                    if (isEmbed) return null;
+                    return (
+                      <OverlayCalendar
+                        isOverlayCalendarEnabled={isOverlayCalendarEnabled}
+                        connectedCalendars={connectedCalendars}
+                        overlayBusyDates={overlayBusyDates}
+                        onToggleCalendar={onToggleCalendar}
+                        hasSession={hasSession}
+                        handleClickContinue={onClickOverlayContinue}
+                        handleSwitchStateChange={onOverlaySwitchStateChange}
+                        handleClickNoCalendar={() => {
+                          onOverlayClickNoCalendar();
+                        }}
+                      />
+                    );
+                  }}
+                />
+              )}
+            </BookerSection>
             <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
               <BookerSection
                 area="meta"
@@ -580,25 +541,6 @@ const BookerComponent = ({
           }}
         />
 
-        {bookerState !== "booking" &&
-          event.data?.showInstantEventConnectNowModal &&
-          areInstantMeetingParametersSet && (
-            <div
-              className={classNames(
-                "animate-fade-in-up  z-40 my-2 opacity-0",
-                layout === BookerLayouts.MONTH_VIEW && isEmbed ? "" : "fixed bottom-2"
-              )}
-              style={{ animationDelay: "1s" }}>
-              <InstantBooking
-                event={event.data}
-                cooldownMs={instantConnectCooldownMs}
-                onConnectNow={() => {
-                  onConnectNowInstantMeeting();
-                }}
-              />
-            </div>
-          )}
-
         {shouldRenderCaptcha && (
           <div className="mb-6 mt-auto pt-6">
             <TurnstileCaptcha
@@ -618,7 +560,7 @@ const BookerComponent = ({
               hasDarkBackground ? "dark" : "",
               layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
             )}>
-            <PoweredBy logoOnly hasValidLicense={hasValidLicense} />
+            {null}
           </m.span>
         )}
       </div>

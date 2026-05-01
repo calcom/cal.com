@@ -1,16 +1,12 @@
-import type { FilterHostsService } from "@calcom/features/bookings/lib/host-filtering/filterHostsBySameRoundRobinHost";
-import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { prismaModule } from "@calcom/features/di/modules/Prisma";
+type FilterHostsService = {
+  filterHostsBySameRoundRobinHost: (..._args: unknown[]) => unknown;
+};
 
-import { createContainer } from "../di";
-import { bookingRepositoryModule } from "../modules/Booking";
-import { filterHostsModule } from "../modules/FilterHosts";
+// Host filtering with delegation credentials removed (EE feature)
+const noOpService: FilterHostsService = {
+  filterHostsBySameRoundRobinHost: () => null,
+};
 
-const container = createContainer();
-container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
-container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
-container.load(DI_TOKENS.FILTER_HOSTS_SERVICE_MODULE, filterHostsModule);
-
-export function getFilterHostsService() {
-  return container.get<FilterHostsService>(DI_TOKENS.FILTER_HOSTS_SERVICE);
+export function getFilterHostsService(): FilterHostsService {
+  return noOpService;
 }

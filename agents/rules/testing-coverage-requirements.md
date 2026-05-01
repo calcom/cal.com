@@ -64,4 +64,4 @@ Yes, we know coverage doesn't guarantee perfect tests. We know you can write mea
 **Leverage AI for test generation:**
 AI can quickly and intelligently build comprehensive test suites. Manual testing is more and more a thing of the past.
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

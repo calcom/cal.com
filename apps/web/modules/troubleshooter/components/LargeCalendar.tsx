@@ -1,19 +1,17 @@
-import { useSession } from "next-auth/react";
-import { useMemo } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
-import { Calendar } from "@calcom/features/calendars/weeklyview/components/Calendar";
+import { useSchedule } from "~/schedules/hooks/useSchedule";
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-
-import { useSchedule } from "~/schedules/hooks/useSchedule";
-
-import { OutOfOfficeInSlots } from "../../bookings/components/OutOfOfficeInSlots";
+import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
+import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
+  const { t } = useLocale();
   const { timezone } = useTimePreferences();
   const selectedDate = useTroubleshooterStore((state) => state.selectedDate);
   const event = useTroubleshooterStore((state) => state.event);
@@ -34,7 +32,8 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
       withSource: true,
     },
     {
-      enabled: !!session?.user?.username,
+      // Busy Times need eventTypeId to correctly have all busy times. event.id check here also avoids sending double requests for availability.user
+      enabled: !!session?.user?.username && !!event?.id,
     }
   );
 
@@ -68,11 +67,13 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     //   .toDate(),
 
     const calendarEvents = busyEvents?.busy.map((event, idx) => {
+      const translatedTitle = event.title ? t(event.title) : t("busy_time.busy");
       return {
         id: idx,
-        title: event.title ?? `Busy`,
+        title: translatedTitle,
         start: new Date(event.start),
         end: new Date(event.end),
+        source: event.source,
         options: {
           color:
             event.source && calendarToColorMap[event.source] ? calendarToColorMap[event.source] : undefined,
@@ -104,6 +105,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
           title: "Date Override",
           start: dateOverrideStart.add(workingHoursForDay.startTime, "minutes").toDate(),
           end: dateOverrideEnd.add(workingHoursForDay.endTime, "minutes").toDate(),
+          source: "date-override",
           options: {
             color: "black",
             status: BookingStatus.ACCEPTED,
@@ -113,7 +115,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
       });
     }
     return calendarEvents;
-  }, [busyEvents, calendarToColorMap]);
+  }, [busyEvents, calendarToColorMap, t]);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
@@ -129,7 +131,6 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         hoverEventDuration={30}
         hideHeader
         timezone={timezone}
-        renderOutOfOffice={(props) => <OutOfOfficeInSlots {...props} />}
       />
     </div>
   );

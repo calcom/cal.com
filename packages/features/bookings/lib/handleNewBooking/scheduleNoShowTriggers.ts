@@ -103,14 +103,6 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
   );
 
   await Promise.all(noShowPromises);
-
-  // TODO: Support no show workflows
-  // const workflowHostsNoShow = workflows.filter(
-  //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
-  // );
-  // const workflowGuestsNoShow = workflows.filter(
-  //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-  // );
 };
 
 export const scheduleNoShowTriggers = withReporting(_scheduleNoShowTriggers, "scheduleNoShowTriggers");

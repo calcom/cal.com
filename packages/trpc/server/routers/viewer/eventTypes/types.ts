@@ -1,6 +1,4 @@
-import { templateTypeEnum } from "@calcom/features/calAIPhone/zod-utils";
 import type {
-  AiPhoneCallConfig,
   CalVideoSettings,
   ChildInput,
   DestinationCalendarInput,
@@ -21,6 +19,7 @@ import {
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
 import { z } from "zod";
+
 export type TUpdateInputSchema = EventTypeUpdateInput;
 
 // ============================================================================
@@ -35,20 +34,6 @@ const hashedLinkInputSchema: z.ZodType<HashedLinkInput> = z
     usageCount: z.number().nullish(),
   })
   .strict();
-
-const aiPhoneCallConfigSchema: z.ZodType<AiPhoneCallConfig | undefined> = z
-  .object({
-    generalPrompt: z.string(),
-    enabled: z.boolean(),
-    beginMessage: z.string().nullable(),
-    yourPhoneNumber: z.string(),
-    numberToCall: z.string(),
-    guestName: z.string().nullable().optional(),
-    guestEmail: z.string().nullable().optional(),
-    guestCompany: z.string().nullable().optional(),
-    templateType: templateTypeEnum,
-  })
-  .optional();
 
 const calVideoSettingsSchema: z.ZodType<CalVideoSettings | undefined> = z
   .object({
@@ -165,6 +150,10 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     showOptimizedSlots: z.boolean().nullable().optional(),
     disableCancelling: z.boolean().nullable().optional(),
     disableRescheduling: z.boolean().nullable().optional(),
+    requiresCancellationReason: z
+      .enum(["MANDATORY_BOTH", "MANDATORY_HOST_ONLY", "MANDATORY_ATTENDEE_ONLY", "OPTIONAL_BOTH"])
+      .nullable()
+      .optional(),
     minimumRescheduleNotice: z.number().min(0).nullable().optional(),
     seatsShowAttendees: z.boolean().nullable().optional(),
     seatsShowAvailabilityCount: z.boolean().nullable().optional(),
@@ -176,7 +165,6 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     metadata: EventTypeMetaDataSchema.optional(),
     successRedirectUrl: z.string().nullable().optional(),
     forwardParamsSuccessRedirect: z.boolean().nullable().optional(),
-    redirectUrlOnNoRoutingFormResponse: z.string().nullable().optional(),
     bookingLimits: intervalLimitsType.nullable().optional(),
     durationLimits: intervalLimitsType.nullable().optional(),
     isInstantEvent: z.boolean().optional(),
@@ -206,9 +194,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     updatedAt: z.coerce.date().nullable().optional(),
 
     // Extended fields
-    aiPhoneCallConfig: aiPhoneCallConfigSchema,
     calVideoSettings: calVideoSettingsSchema,
-    calAiPhoneScript: z.string().optional(),
     customInputs: z.array(customInputSchema).optional(),
     destinationCalendar: destinationCalendarInputSchema.optional(),
     users: z.array(z.number()).optional(),
@@ -222,13 +208,4 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
   })
   .strict();
 
-export const ZUpdateInputSchema = BaseEventTypeUpdateInput.superRefine((data, _ctx) => {
-  // Apply transformations to aiPhoneCallConfig if present
-  if (data.aiPhoneCallConfig) {
-    data.aiPhoneCallConfig.yourPhoneNumber = data.aiPhoneCallConfig.yourPhoneNumber || "";
-    data.aiPhoneCallConfig.numberToCall = data.aiPhoneCallConfig.numberToCall || "";
-    data.aiPhoneCallConfig.guestName = data.aiPhoneCallConfig.guestName ?? undefined;
-    data.aiPhoneCallConfig.guestEmail = data.aiPhoneCallConfig.guestEmail ?? null;
-    data.aiPhoneCallConfig.guestCompany = data.aiPhoneCallConfig.guestCompany ?? null;
-  }
-});
+export const ZUpdateInputSchema = BaseEventTypeUpdateInput;

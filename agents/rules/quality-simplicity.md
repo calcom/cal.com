@@ -40,4 +40,4 @@ for (const item of data) {
 **Important note:**
 Simple doesn't mean lacking in features. Just because our goal is to create simple systems, this doesn't mean they should feel anemic and lacking obvious functionality.
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

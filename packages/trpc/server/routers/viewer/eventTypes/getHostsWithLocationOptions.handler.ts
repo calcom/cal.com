@@ -117,7 +117,7 @@ export const getHostsWithLocationOptionsHandler = async ({
     hasMore,
   } = await hostRepository.findHostsWithLocationOptionsPaginated({
     eventTypeId,
-    cursor,
+    cursor: cursor ?? undefined,
     limit,
   });
 

@@ -11,5 +11,5 @@ type GetOptions = {
 
 export const getHandler = async ({ ctx: _ctx, input }: GetOptions) => {
   const { repository: webhookRepository } = getWebhookFeature();
-  return await webhookRepository.findByWebhookId(input.webhookId);
+  return await webhookRepository.findByWebhookId(input.id || input.webhookId);
 };

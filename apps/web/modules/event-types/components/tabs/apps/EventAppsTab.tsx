@@ -1,12 +1,7 @@
-import Link from "next/link";
-import { useFormContext } from "react-hook-form";
-
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import useAppsData from "@calcom/web/modules/apps/hooks/useAppsData";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { FormValues, EventTypeSetupProps, EventTypeApps } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeApps, EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -14,6 +9,9 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Section } from "@calcom/ui/components/section";
+import useAppsData from "@calcom/features/apps/hooks/useAppsData";
+import Link from "next/link";
+import { useFormContext } from "react-hook-form";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
@@ -39,11 +37,14 @@ export const EventAppsTab = ({
 
   const { getAppDataGetter, getAppDataSetter, eventTypeFormMetadata } = useAppsData();
 
-  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
+  const isManagedEventType = false;
+  const isChildrenManagedEventType = false;
+  const shouldLockDisableProps = (_field: string, _opts?: { simple: boolean }) => ({
+    disabled: false,
+    LockedIcon: false as const,
+    isLocked: false,
   });
+  const shouldLockIndicator = (_field: string) => false;
   const appsDisableProps = shouldLockDisableProps("apps", { simple: true });
   const lockedText = appsDisableProps.isLocked ? "locked" : "unlocked";
 
@@ -171,7 +172,7 @@ export const EventAppsTab = ({
       </div>
       {/* TODO: Add back after salesforce v3 dev */}
       {!appsDisableProps.disabled && (
-        <div className="bg-cal-muted mt-4 rounded-2xl p-4">
+        <div className="mt-4 rounded-2xl bg-cal-muted p-4">
           {!isPendingApps && notInstalledApps?.length ? (
             <div className="mb-4 flex flex-col">
               <Section.Title>{t("available_apps_lower_case")}</Section.Title>
@@ -188,7 +189,7 @@ export const EventAppsTab = ({
               </Section.Description>
             </div>
           ) : null}
-          <div className="bg-default border-muted flex flex-col gap-4 rounded-xl border p-3">
+          <div className="flex flex-col gap-4 rounded-xl border border-muted bg-default p-3">
             {notInstalledApps?.map((app) => (
               <EventTypeAppCard
                 getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}

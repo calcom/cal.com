@@ -1,9 +1,8 @@
+import { findUsersForAvailabilityCheck } from "@calcom/features/availability/lib/findUsersForAvailabilityCheck";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
-
+import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TUserInputSchema } from "./user.schema";
-
-import { findUsersForAvailabilityCheck } from "@calcom/features/availability/lib/findUsersForAvailabilityCheck";
 
 type UserOptions = {
   ctx: {
@@ -23,7 +22,8 @@ function getUser(username: string) {
 export const userHandler = async ({ input }: UserOptions) => {
   const userAvailabilityService = getUserAvailabilityService();
   const user = await getUser(input.username);
-  return userAvailabilityService.getUserAvailability(
+  if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+  return userAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimits(
     { returnDateOverrides: true, bypassBusyCalendarTimes: false, ...input },
     {
       user,

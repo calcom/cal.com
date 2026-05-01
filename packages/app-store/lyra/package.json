@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@calcom/lyra",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "description": "The meeting platform built for pros.",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

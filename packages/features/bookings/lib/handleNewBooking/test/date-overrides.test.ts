@@ -187,7 +187,7 @@ describe("handleNewBooking", () => {
         expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
           videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
           // We won't be sending evt.destinationCalendar in this case.
-          // Google Calendar in this case fallbacks to the "primary" calendar - https://github.com/calcom/cal.com/blob/7d5dad7fea78ff24dddbe44f1da5d7e08e1ff568/packages/app-store/googlecalendar/lib/CalendarService.ts#L217
+          // Google Calendar in this case fallbacks to the "primary" calendar - https://github.com/calcom/cal.diy/blob/7d5dad7fea78ff24dddbe44f1da5d7e08e1ff568/packages/app-store/googlecalendar/lib/CalendarService.ts#L217
           // Not sure if it's the correct behaviour. Right now, it isn't possible to have an organizer with connected calendar but no destination calendar - As soon as the Google Calendar app is installed, a destination calendar is created.
           calendarId: null,
         });
@@ -364,7 +364,7 @@ describe("handleNewBooking", () => {
         expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
           videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
           // We won't be sending evt.destinationCalendar in this case.
-          // Google Calendar in this case fallbacks to the "primary" calendar - https://github.com/calcom/cal.com/blob/7d5dad7fea78ff24dddbe44f1da5d7e08e1ff568/packages/app-store/googlecalendar/lib/CalendarService.ts#L217
+          // Google Calendar in this case fallbacks to the "primary" calendar - https://github.com/calcom/cal.diy/blob/7d5dad7fea78ff24dddbe44f1da5d7e08e1ff568/packages/app-store/googlecalendar/lib/CalendarService.ts#L217
           // Not sure if it's the correct behaviour. Right now, it isn't possible to have an organizer with connected calendar but no destination calendar - As soon as the Google Calendar app is installed, a destination calendar is created.
           calendarId: null,
         });

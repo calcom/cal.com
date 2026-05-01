@@ -9,7 +9,7 @@
   "categories": ["payment"],
   "publisher": "HitPay",
   "email": "support@hit-pay.com",
-  "description": "HitPay's Cal.com payment integration combines powerful scheduling with seamless local payment acceptance. Our online scheduling software integration is built for customers in APAC, supporting their favorite e-wallets and banking apps.",
+  "description": "HitPay's Cal.diy payment integration combines powerful scheduling with seamless local payment acceptance. Our online scheduling software integration is built for customers in APAC, supporting their favorite e-wallets and banking apps.",
   "extendsFeature": "EventType",
   "isTemplate": false,
   "__createdUsingCli": true,

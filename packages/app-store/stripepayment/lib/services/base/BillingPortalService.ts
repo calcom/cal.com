@@ -1,14 +1,10 @@
-import type { NextApiResponse } from "next";
-
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
+import type { NextApiResponse } from "next";
 import stripe from "../../server";
 
 export interface TeamEntity {
@@ -24,14 +20,7 @@ export interface BillingPortalResult {
 }
 
 export abstract class BillingPortalService {
-  protected permissionService: PermissionCheckService;
-  protected teamRepository: TeamRepository;
-  protected contextName = "Team"; // Can be overridden by subclasses
-
-  constructor() {
-    this.permissionService = new PermissionCheckService();
-    this.teamRepository = new TeamRepository(prisma);
-  }
+  protected contextName = "Team";
 
   /**
    * Creates a billing portal URL for a Stripe customer

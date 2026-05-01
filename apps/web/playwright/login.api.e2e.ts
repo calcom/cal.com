@@ -14,8 +14,8 @@ test.describe("Login with api request", () => {
     const cookiesMap = new Map(contextCookies.map(({ name, value }) => [name, value]));
 
     // The browser context will already contain all the cookies from the API response.
-    expect(cookiesMap.has("next-auth.csrf-token")).toBeTruthy();
-    expect(cookiesMap.has("next-auth.callback-url")).toBeTruthy();
-    expect(cookiesMap.has("next-auth.session-token")).toBeTruthy();
+    expect(cookiesMap.has("next-auth.csrf-token")).toBe(true);
+    expect(cookiesMap.has("next-auth.callback-url")).toBe(true);
+    expect(cookiesMap.has("next-auth.session-token")).toBe(true);
   });
 });

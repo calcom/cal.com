@@ -7,9 +7,6 @@ import { AssignmentReasonEnum } from "@calcom/prisma/enums";
  */
 export const getAssignmentReasonCategory = (assignmentReason: AssignmentReasonEnum): string => {
   switch (assignmentReason) {
-    case AssignmentReasonEnum.ROUTING_FORM_ROUTING:
-    case AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK:
-      return "routed";
     case AssignmentReasonEnum.REASSIGNED:
     case AssignmentReasonEnum.RR_REASSIGNED:
       return "reassigned";

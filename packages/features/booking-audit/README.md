@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Booking Audit System tracks all actions and changes related to bookings in Cal.com. The architecture is built around two core tables (`AuditActor` and `BookingAudit`) that work together to maintain a complete, immutable audit trail.
+The Booking Audit System tracks all actions and changes related to bookings in Cal.diy. The architecture is built around two core tables (`AuditActor` and `BookingAudit`) that work together to maintain a complete, immutable audit trail.
 
 ## Database Architecture
 
@@ -36,7 +36,7 @@ The Booking Audit System tracks all actions and changes related to bookings in C
 
 ## Actor Types
 
-- **USER**: Registered Cal.com users
+- **USER**: Registered Cal.diy users
 - **GUEST**: Non-registered users (typically booking guests)
 - **ATTENDEE**: Guests who have an Attendee record associated with a booking
 - **SYSTEM**: Automated system actions
@@ -47,7 +47,7 @@ The booking audit system uses two complementary fields:
 
 ### Source: The Channel
 **`source`** identifies how the action was initiated:
-- **WEBAPP**: Cal.com web application
+- **WEBAPP**: Cal.diy web application
 - **API_V1**: API v1 endpoint
 - **API_V2**: API v2 endpoint
 - **WEBHOOK**: External webhook (e.g., Stripe)
@@ -56,7 +56,7 @@ The booking audit system uses two complementary fields:
 
 ### Actor: The Entity
 **`actor`** identifies who or what performed the action:
-- **User Actor**: Registered Cal.com user
+- **User Actor**: Registered Cal.diy user
 - **Guest Actor**: Non-registered guest
 - **Attendee Actor**: Attendee associated with a booking
 - **System Actor**: Automated system action (generic or named for specific webhooks/services)

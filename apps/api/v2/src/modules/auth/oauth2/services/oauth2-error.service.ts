@@ -7,6 +7,7 @@ import { OAuth2RedirectException } from "@/modules/auth/oauth2/filters/oauth2-re
 const NON_REDIRECTABLE_REASONS = new Set([
   "client_not_found",
   "client_not_approved",
+  "client_rejected",
   "redirect_uri_mismatch",
 ]);
 

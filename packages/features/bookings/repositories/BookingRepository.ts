@@ -2,25 +2,14 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Booking, Prisma } from "@calcom/prisma/client";
 import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
-import {
-  bookingAuthorizationCheckSelect,
-  bookingDetailsSelect,
-  bookingMinimalSelect,
-} from "@calcom/prisma/selects/booking";
+import { bookingDetailsSelect, bookingMinimalSelect } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { workflowSelect } from "../../ee/workflows/lib/getAllWorkflows";
 import type {
   BookingUpdateData,
   BookingWhereInput,
   BookingWhereUniqueInput,
   IBookingRepository,
 } from "./IBookingRepository";
-
-const workflowReminderSelect = {
-  id: true,
-  referenceId: true,
-  method: true,
-};
 
 const referenceSelect = {
   uid: true,
@@ -86,15 +75,6 @@ export type ManagedEventCancellationResult = {
   status: BookingStatus;
 };
 
-export type FormResponse = Record<
-  // Field ID
-  string,
-  {
-    value: number | string | string[];
-    label: string;
-    identifier?: string;
-  }
->;
 
 type TeamBookingsParamsBase = {
   user: { id: number; email: string };
@@ -133,7 +113,6 @@ const buildWhereClauseForActiveBookings = ({
   startDate,
   endDate,
   users,
-  virtualQueuesData,
   includeNoShowInRRCalculation = false,
   rrTimestampBasis,
 }: {
@@ -141,13 +120,6 @@ const buildWhereClauseForActiveBookings = ({
   startDate?: Date;
   endDate?: Date;
   users: { id: number; email: string }[];
-  virtualQueuesData: {
-    chosenRouteId: string;
-    fieldOptionData: {
-      fieldId: string;
-      selectedOptionIds: string | number | string[];
-    };
-  } | null;
   includeNoShowInRRCalculation: boolean;
   rrTimestampBasis: RRTimestampBasis;
 }): Prisma.BookingWhereInput => ({
@@ -189,13 +161,6 @@ const buildWhereClauseForActiveBookings = ({
             ...(endDate ? { lte: endDate } : {}),
           },
         }
-    : {}),
-  ...(virtualQueuesData
-    ? {
-        routedFromRoutingFormReponse: {
-          chosenRouteId: virtualQueuesData.chosenRouteId,
-        },
-      }
     : {}),
 });
 
@@ -249,8 +214,14 @@ const selectStatementToGetBookingForCalEventBuilder = {
       timeZone: true,
       locale: true,
       timeFormat: true,
+      hideBranding: true,
       destinationCalendar: true,
-      profiles: { select: { organizationId: true } },
+      profiles: {
+        select: {
+          organizationId: true,
+          organization: { select: { hideBranding: true } },
+        },
+      },
     },
   },
   // destination calendar of the Organizer
@@ -284,6 +255,8 @@ const selectStatementToGetBookingForCalEventBuilder = {
           id: true,
           name: true,
           parentId: true,
+          hideBranding: true,
+          parent: { select: { hideBranding: true } },
           members: {
             select: {
               user: {
@@ -450,20 +423,19 @@ export class BookingRepository implements IBookingRepository {
                 teamId: true,
               },
             },
-            workflows: {
-              select: {
-                workflow: {
-                  select: workflowSelect,
-                },
-              },
-            },
             owner: {
               select: {
+                id: true,
                 hideBranding: true,
                 email: true,
                 name: true,
                 timeZone: true,
                 locale: true,
+                profiles: {
+                  select: {
+                    organization: { select: { hideBranding: true } },
+                  },
+                },
               },
             },
             team: {
@@ -471,17 +443,21 @@ export class BookingRepository implements IBookingRepository {
                 parentId: true,
                 name: true,
                 id: true,
+                hideBranding: true,
+                parent: { select: { hideBranding: true } },
               },
             },
           },
         },
         attendees: {
           select: {
+            id: true,
             email: true,
             name: true,
             timeZone: true,
             locale: true,
             phoneNumber: true,
+            noShow: true,
           },
         },
         user: {
@@ -653,15 +629,6 @@ export class BookingRepository implements IBookingRepository {
           },
         },
       },
-    });
-  }
-
-  async findByUidForAuthorizationCheck({ bookingUid }: { bookingUid: string }) {
-    return await this.prismaClient.booking.findUnique({
-      where: {
-        uid: bookingUid,
-      },
-      select: bookingAuthorizationCheckSelect,
     });
   }
 
@@ -838,7 +805,6 @@ export class BookingRepository implements IBookingRepository {
     eventTypeId,
     startDate,
     endDate,
-    virtualQueuesData,
     includeNoShowInRRCalculation,
     rrTimestampBasis,
   }: {
@@ -846,23 +812,15 @@ export class BookingRepository implements IBookingRepository {
     eventTypeId: number;
     startDate?: Date;
     endDate?: Date;
-    virtualQueuesData: {
-      chosenRouteId: string;
-      fieldOptionData: {
-        fieldId: string;
-        selectedOptionIds: string | number | string[];
-      };
-    } | null;
     includeNoShowInRRCalculation: boolean;
     rrTimestampBasis: RRTimestampBasis;
   }) {
-    const allBookings = await this.prismaClient.booking.findMany({
+    return await this.prismaClient.booking.findMany({
       where: buildWhereClauseForActiveBookings({
         eventTypeId,
         startDate,
         endDate,
         users,
-        virtualQueuesData,
         includeNoShowInRRCalculation,
         rrTimestampBasis,
       }),
@@ -873,37 +831,11 @@ export class BookingRepository implements IBookingRepository {
         createdAt: true,
         status: true,
         startTime: true,
-        routedFromRoutingFormReponse: true,
       },
       orderBy: {
         createdAt: "desc",
       },
     });
-
-    let queueBookings = allBookings;
-
-    if (virtualQueuesData) {
-      queueBookings = allBookings.filter((booking) => {
-        const responses = booking.routedFromRoutingFormReponse;
-        const fieldId = virtualQueuesData.fieldOptionData.fieldId;
-        const selectedOptionIds = virtualQueuesData.fieldOptionData.selectedOptionIds;
-
-        const response = responses?.response as FormResponse;
-
-        const responseValue = response[fieldId].value;
-
-        if (Array.isArray(responseValue) && Array.isArray(selectedOptionIds)) {
-          //check if all values are the same (this only support 'all in' not 'any in')
-          return (
-            responseValue.length === selectedOptionIds.length &&
-            responseValue.every((value, index) => value === selectedOptionIds[index])
-          );
-        } else {
-          return responseValue === selectedOptionIds;
-        }
-      });
-    }
-    return queueBookings;
   }
 
   async findBookingByUid({ bookingUid }: { bookingUid: string }) {
@@ -913,21 +845,6 @@ export class BookingRepository implements IBookingRepository {
       },
       select: bookingMinimalSelect,
     });
-  }
-
-  async findFirstBookingFromResponse({ responseId }: { responseId: number }) {
-    const booking = await this.prismaClient.booking.findFirst({
-      where: {
-        routedFromRoutingFormReponse: {
-          id: responseId,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    return booking;
   }
 
   async findBookingByUidWithEventType({ bookingUid }: { bookingUid: string }) {
@@ -966,7 +883,7 @@ export class BookingRepository implements IBookingRepository {
             phoneNumber: true,
           },
           // Ascending order ensures that the first attendee in the list is the booker and others are guests
-          // See why it is important https://github.com/calcom/cal.com/pull/20935
+          // See why it is important https://github.com/calcom/cal.diy/pull/20935
           // TODO: Ideally we should return `booker` property directly from the booking
           orderBy: {
             id: "asc",
@@ -1295,7 +1212,6 @@ export class BookingRepository implements IBookingRepository {
         destinationCalendar: true,
         payment: true,
         references: true,
-        workflowReminders: true,
       },
     });
   }
@@ -1325,51 +1241,89 @@ export class BookingRepository implements IBookingRepository {
       }),
     };
 
-    const userIdSet = new Set(users.map((user) => user.id));
-    const userEmailSet = new Set(users.map((user) => user.email));
+    const userIds = users.map((user) => user.id);
+    const userEmails = users.map((user) => user.email);
 
-    const teamBookingsQuery = this.prismaClient.booking.findMany({
-      where: {
-        ...baseWhere,
-        eventType: { teamId },
+    const whereCollectiveRoundRobinOwner: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      userId: {
+        in: userIds,
       },
-      include: {
-        attendees: {
-          select: { email: true },
+      eventType: {
+        teamId,
+      },
+    };
+
+    const whereCollectiveRoundRobinBookingsAttendee: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      attendees: {
+        some: {
+          email: {
+            in: userEmails,
+          },
         },
       },
-    });
+      eventType: {
+        teamId,
+      },
+    };
 
-    const managedBookingsQuery = includeManagedEvents
-      ? this.prismaClient.booking.findMany({
-          where: {
-            ...baseWhere,
-            eventType: { parent: { teamId } },
-          },
-        })
-      : Promise.resolve([] as Booking[]);
-
-    const [allTeamBookings, allManagedBookings] = await Promise.all([
-      teamBookingsQuery,
-      managedBookingsQuery,
-    ]);
-
-    const relevantTeamBookings = allTeamBookings.filter((booking) => {
-      if (booking.userId !== null && userIdSet.has(booking.userId)) {
-        return true;
-      }
-      return booking.attendees.some((attendee) => userEmailSet.has(attendee.email));
-    });
-
-    const relevantManagedBookings = allManagedBookings.filter(
-      (booking) => booking.userId !== null && userIdSet.has(booking.userId)
-    );
+    const whereManagedBookings: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      userId: {
+        in: userIds,
+      },
+      eventType: {
+        parent: {
+          teamId,
+        },
+      },
+    };
 
     if (shouldReturnCount) {
-      return relevantTeamBookings.length + relevantManagedBookings.length;
+      const collectiveRoundRobinBookingsOwner = await this.prismaClient.booking.count({
+        where: whereCollectiveRoundRobinOwner,
+      });
+
+      const collectiveRoundRobinBookingsAttendee = await this.prismaClient.booking.count({
+        where: whereCollectiveRoundRobinBookingsAttendee,
+      });
+
+      let managedBookings = 0;
+
+      if (includeManagedEvents) {
+        managedBookings = await this.prismaClient.booking.count({
+          where: whereManagedBookings,
+        });
+      }
+
+      const totalNrOfBooking =
+        collectiveRoundRobinBookingsOwner + collectiveRoundRobinBookingsAttendee + managedBookings;
+
+      return totalNrOfBooking;
     }
 
-    return [...relevantTeamBookings, ...relevantManagedBookings];
+    const collectiveRoundRobinBookingsOwner = await this.prismaClient.booking.findMany({
+      where: whereCollectiveRoundRobinOwner,
+    });
+
+    const collectiveRoundRobinBookingsAttendee = await this.prismaClient.booking.findMany({
+      where: whereCollectiveRoundRobinBookingsAttendee,
+    });
+
+    let managedBookings: typeof collectiveRoundRobinBookingsAttendee = [];
+
+    if (includeManagedEvents) {
+      managedBookings = await this.prismaClient.booking.findMany({
+        where: whereManagedBookings,
+      });
+    }
+
+    return [
+      ...collectiveRoundRobinBookingsOwner,
+      ...collectiveRoundRobinBookingsAttendee,
+      ...managedBookings,
+    ];
   }
 
   async getValidBookingFromEventTypeForAttendee({
@@ -1497,7 +1451,12 @@ export class BookingRepository implements IBookingRepository {
         AND "endTime" <= ${endDate};
     `;
     }
-    return totalBookingTime.totalMinutes ?? 0;
+
+    // PostgreSQL 16+ returns `numeric` type from EXTRACT(EPOCH FROM ...) instead of `double precision`.
+    // Prisma maps `numeric` to a JavaScript Decimal object, which causes string concatenation
+    // instead of numeric addition when used with the `+` operator (e.g., Decimal(30) + 30 = "3030").
+    // Explicitly convert to a plain number to ensure correct arithmetic in all callers.
+    return Number(totalBookingTime.totalMinutes ?? 0);
   }
 
   async findOriginalRescheduledBookingUserId({ rescheduleUid }: { rescheduleUid: string }) {
@@ -1548,17 +1507,27 @@ export class BookingRepository implements IBookingRepository {
             hideOrganizerEmail: true,
             teamId: true,
             metadata: true,
+            team: {
+              select: {
+                id: true,
+                hideBranding: true,
+                parent: { select: { hideBranding: true } },
+              },
+            },
           },
         },
         user: {
           select: {
+            id: true,
             email: true,
             name: true,
             timeZone: true,
             locale: true,
+            hideBranding: true,
             profiles: {
               select: {
                 organizationId: true,
+                organization: { select: { hideBranding: true } },
               },
             },
           },
@@ -1607,10 +1576,10 @@ export class BookingRepository implements IBookingRepository {
   }
 
   /**
-   * Update a booking and return it with workflow reminders and references
+   * Update a booking and return it with references
    * Used during booking cancellation to update status and retrieve related data in one query
    */
-  async updateIncludeWorkflowRemindersAndReferences({
+  async updateIncludeReferences({
     where,
     data,
   }: {
@@ -1627,19 +1596,16 @@ export class BookingRepository implements IBookingRepository {
         references: {
           select: referenceSelect,
         },
-        workflowReminders: {
-          select: workflowReminderSelect,
-        },
         uid: true,
       },
     });
   }
 
   /**
-   * Find bookings with workflow reminders for cleanup during cancellation
+   * Find bookings with references for cleanup during cancellation
    * Used after bulk cancellation of recurring events
    */
-  async findManyIncludeWorkflowRemindersAndReferences({ where }: { where: BookingWhereInput }) {
+  async findManyIncludeReferences({ where }: { where: BookingWhereInput }) {
     return await this.prismaClient.booking.findMany({
       where,
       select: {
@@ -1648,9 +1614,6 @@ export class BookingRepository implements IBookingRepository {
         endTime: true,
         references: {
           select: referenceSelect,
-        },
-        workflowReminders: {
-          select: workflowReminderSelect,
         },
         uid: true,
       },
@@ -1678,7 +1641,28 @@ export class BookingRepository implements IBookingRepository {
       },
       include: {
         attendees: true,
-        eventType: true,
+        eventType: {
+          select: {
+            teamId: true,
+            bookingFields: true,
+            title: true,
+            hideOrganizerEmail: true,
+            recurringEvent: true,
+            seatsPerTimeSlot: true,
+            seatsShowAttendees: true,
+            customReplyToEmail: true,
+            metadata: true,
+            schedulingType: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                hideBranding: true,
+                parent: { select: { hideBranding: true } },
+              },
+            },
+          },
+        },
         destinationCalendar: true,
         references: true,
         user: {
@@ -1688,6 +1672,7 @@ export class BookingRepository implements IBookingRepository {
             profiles: {
               select: {
                 organizationId: true,
+                organization: { select: { hideBranding: true } },
               },
             },
           },
@@ -1773,13 +1758,6 @@ export class BookingRepository implements IBookingRepository {
             delegationCredentialId: true,
           },
         },
-        workflowReminders: {
-          select: {
-            id: true,
-            referenceId: true,
-            method: true,
-          },
-        },
       },
     });
   }
@@ -1790,13 +1768,7 @@ export class BookingRepository implements IBookingRepository {
     updatedResponses,
   }: {
     bookingId: number;
-    newAttendees: {
-      name: string;
-      email: string;
-      timeZone: string;
-      locale: string | null;
-      phoneNumber?: string | null;
-    }[];
+    newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[];
     updatedResponses: Prisma.InputJsonValue;
   }) {
     return await this.prismaClient.booking.update({
@@ -1867,7 +1839,6 @@ export class BookingRepository implements IBookingRepository {
         dynamicGroupSlugRef: true,
         destinationCalendar: true,
         smsReminderNumber: true,
-        workflowReminders: true,
         responses: true,
         iCalUID: true,
         iCalSequence: true,
@@ -2161,11 +2132,6 @@ export class BookingRepository implements IBookingRepository {
           take: 1,
           orderBy: {
             createdAt: "asc" as const,
-          },
-        },
-        routedFromRoutingFormReponse: {
-          select: {
-            formId: true,
           },
         },
       },

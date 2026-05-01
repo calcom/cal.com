@@ -2,10 +2,6 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
@@ -24,10 +20,12 @@ import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
 import { TRPCError } from "@trpc/server";
 import type { z } from "zod";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
 import type { BookingsProcedureContext } from "./util";
+
+type ActionSource = string;
+type ValidActionSource = string;
 
 // #region EditLocation Types and Helpers
 type EditLocationOptions = {
@@ -316,26 +314,6 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
   } catch (error) {
     logger.error("Error sending LocationChangeEmails", safeStringify(error));
   }
-
-  const bookingEventHandlerService = getBookingEventHandlerService();
-  const featuresRepository = getFeaturesRepository();
-  const isBookingAuditEnabled = organizationId
-    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
-    : false;
-
-  await bookingEventHandlerService.onLocationChanged({
-    bookingUid: booking.uid,
-    actor: makeUserActor(loggedInUser.uuid),
-    organizationId,
-    source: actionSource,
-    auditData: {
-      location: {
-        old: oldLocation,
-        new: updatedLocation,
-      },
-    },
-    isBookingAuditEnabled,
-  });
 
   return { message: "Location updated" };
 }

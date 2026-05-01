@@ -32,14 +32,16 @@ runs:
       shell: bash
     - name: Postgres Dump Backup
       if: steps.cache-db.outputs.cache-hit != 'true'
-      uses: tj-actions/pg-dump@v2.3
-      with:
-        database_url: ${{ inputs.DATABASE_URL }}
-        path: ${{ inputs.path }}
-        options: "-O"
+      run: |
+        mkdir -p $(dirname "${{ inputs.path }}")
+        docker run --rm --network host \
+          -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} \
+          postgres:18 pg_dump "${{ inputs.DATABASE_URL }}" -O -f ${{ inputs.path }}
+      shell: bash
     - name: Postgres Backup Restore
       if: steps.cache-db.outputs.cache-hit == 'true'
-      uses: tj-actions/pg-restore@v4.5
-      with:
-        database_url: ${{ inputs.DATABASE_URL }}
-        backup_file: ${{ inputs.path }}
+      run: |
+        docker run --rm -i --network host \
+          -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} \
+          postgres:18 psql "${{ inputs.DATABASE_URL }}" -f ${{ inputs.path }}
+      shell: bash

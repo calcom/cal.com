@@ -1,23 +1,21 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-empty-function */
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { UseFormReturn } from "react-hook-form";
-
-import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type {
-  TabMap,
+  EventTypeApps,
   EventTypeSetupProps,
   FormValues,
-  EventTypeApps,
+  TabMap,
 } from "@calcom/features/eventtypes/lib/types";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/components/form";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
-
+/* eslint-disable @typescript-eslint/no-empty-function */
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { UseFormReturn } from "react-hook-form";
 import { EventTypeSingleLayout } from "./EventTypeLayout";
+
 
 export type Host = {
   isFixed: boolean;
@@ -39,7 +37,6 @@ const tabs = [
   "instant",
   "recurring",
   "apps",
-  "workflows",
   "webhooks",
   "ai",
   "payments",
@@ -49,7 +46,6 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 export type TeamMembers = RouterOutputs["viewer"]["eventTypes"]["get"]["teamMembers"];
 
 export type EventTypeComponentProps = EventTypeSetupProps & {
-  allActiveWorkflows?: Workflow[];
   tabMap: TabMap;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
@@ -93,7 +89,6 @@ export const EventType = ({
         team={team}
         isUpdateMutationLoading={isUpdating}
         formMethods={formMethods}
-        // disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
         disableBorder={true}
         currentUserMembership={currentUserMembership}
         bookerUrl={eventType.bookerUrl}
