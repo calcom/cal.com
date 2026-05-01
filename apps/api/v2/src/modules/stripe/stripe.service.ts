@@ -102,15 +102,30 @@ export class StripeService {
       throw new UnauthorizedException("Invalid Access token.");
     }
 
-    const response = await stripeInstance.oauth.token({
-      grant_type: "authorization_code",
-      code: code?.toString(),
-    });
+    let response;
+    try {
+      response = await stripeInstance.oauth.token({
+        grant_type: "authorization_code",
+        code: code?.toString(),
+      });
+    } catch (error) {
+      if (error instanceof Stripe.errors.StripeInvalidGrantError) {
+        throw new BadRequestException("Invalid or expired Stripe authorization code. Please try connecting again.");
+      }
+      throw new InternalServerErrorException("Failed to exchange Stripe authorization code.");
+    }
 
     const data: StripeData = { ...response, default_currency: "" };
     if (response["stripe_user_id"]) {
-      const account = await stripeInstance.accounts.retrieve(response["stripe_user_id"]);
-      data["default_currency"] = account.default_currency;
+      try {
+        const account = await stripeInstance.accounts.retrieve(response["stripe_user_id"]);
+        data["default_currency"] = account.default_currency;
+      } catch (error) {
+        if (error instanceof Stripe.errors.StripeInvalidRequestError) {
+          throw new BadRequestException("Stripe account could not be found. It may have been deleted or deactivated.");
+        }
+        throw new InternalServerErrorException("Failed to retrieve Stripe account details.");
+      }
     }
 
     const existingCredentials = await this.credentialsRepository.findAllCredentialsByTypeAndUserId(
