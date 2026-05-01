@@ -75,9 +75,9 @@ async function cancelAttendeeSeat(
   const bookingToDeleteUser = bookingToDelete.user ?? null;
   const delegationCredentials = bookingToDeleteUser
     ? // We fetch delegation credentials with ServiceAccount key as CalendarService instance created later in the flow needs it
-      await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
-        user: { email: bookingToDeleteUser.email, id: bookingToDeleteUser.id },
-      })
+    await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
+      user: { email: bookingToDeleteUser.email, id: bookingToDeleteUser.id },
+    })
     : [];
 
   if (attendee) {
@@ -108,11 +108,23 @@ async function cancelAttendeeSeat(
               url: videoCallReference.meetingUrl,
             };
           }
+          // AFTER (fixed):
           const updatedEvt = {
             ...evt,
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
             calendarDescription: getRichDescription(evt),
+            // Explicitly set seatsPerTimeSlot from the event type so calendar integrations
+            // (specifically Office365) can identify this as a seated event cancellation
+            // and handle attendee updates without notifying all remaining attendees.
+            seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot ?? null,
           };
+
+          console.log("==============================================");
+          console.log("✅ cancelAttendeeSeat — updatedEvt built");
+          console.log("seatsPerTimeSlot being passed:", updatedEvt.seatsPerTimeSlot);
+          console.log("Remaining attendees after cancel:", updatedEvt.attendees.map(a => a.email));
+          console.log("==============================================");
+
           if (reference.type.includes("_video") && reference.type !== "google_meet_video") {
             integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));
           }
@@ -149,14 +161,14 @@ async function cancelAttendeeSeat(
 
   evt.attendees = attendee
     ? [
-        {
-          ...attendee,
-          language: {
-            translate: await getTranslation(attendee.locale ?? "en", "common"),
-            locale: attendee.locale ?? "en",
-          },
+      {
+        ...attendee,
+        language: {
+          translate: await getTranslation(attendee.locale ?? "en", "common"),
+          locale: attendee.locale ?? "en",
         },
-      ]
+      },
+    ]
     : [];
 
   const payload: EventPayloadType = {

@@ -321,34 +321,74 @@ class Office365CalendarService implements Calendar {
   async updateEvent(uid: string, event: CalendarServiceEvent): Promise<NewCalendarEventType> {
     try {
       let rescheduledEvent: Event | undefined;
+
       if (event.location === MSTeamsLocationType) {
-        // Extract the existing body content to preserve the meeting blob, otherwise it breaks and converts it into non-onlineMeeting
         const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
           method: "GET",
         });
-
         rescheduledEvent = await handleErrorsJson<Event>(response);
       }
 
-      const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
-        method: "PATCH",
-        body: JSON.stringify(this.translateEvent(event, rescheduledEvent)),
-      });
+      const translatedEvent = this.translateEvent(event, rescheduledEvent);
+
+
+      const endpoint = await this.getUserEndpoint();
+      let response: Response;
+
+
+      if (event.seatsPerTimeSlot) {
+        console.log("==============================================");
+        console.log("✅ SEATED PATH TRIGGERED");
+        console.log("seatsPerTimeSlot:", event.seatsPerTimeSlot);
+        console.log("Total attendees in event:", event.attendees?.length);
+
+        const { attendees, ...eventWithoutAttendees } = translatedEvent;
+
+        // PATCH 1
+        console.log("--- PATCH 1 PAYLOAD (no attendees) ---");
+        console.log(JSON.stringify(eventWithoutAttendees, null, 2));
+
+        const patch1Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
+          method: "PATCH",
+          body: JSON.stringify(eventWithoutAttendees),
+        });
+        await handleErrorsJson(patch1Response);
+
+        // PATCH 2
+        console.log("--- PATCH 2 PAYLOAD (attendees only) ---");
+        console.log(JSON.stringify({ attendees }, null, 2));
+
+        response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
+          method: "PATCH",
+          body: JSON.stringify({ attendees }),
+        });
+        console.log("==============================================");
+
+      } else {
+        console.log("==============================================");
+        console.log("➡️ NON-SEATED PATH — single PATCH");
+        console.log("==============================================");
+
+        response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
+          method: "PATCH",
+          body: JSON.stringify(translatedEvent),
+        });
+      }
 
       const responseJson = await handleErrorsJson<
         NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
       >(response);
 
       if (responseJson?.onlineMeeting?.joinUrl) {
-        responseJson.url = responseJson?.onlineMeeting?.joinUrl;
+        responseJson.url = responseJson.onlineMeeting.joinUrl;
       }
 
       return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
       this.log.error(error);
-
       throw error;
     }
+
   }
 
   async deleteEvent(uid: string): Promise<void> {
@@ -523,21 +563,21 @@ class Office365CalendarService implements Calendar {
         })),
         ...(event.team?.members
           ? event.team.members
-              .filter((member) => member.email !== this.credential.user?.email)
-              .map((member) => {
-                const destinationCalendar =
-                  event.destinationCalendar &&
-                  event.destinationCalendar.find(
-                    (cal) => cal.integration === this.integrationName && cal.userId === member.id
-                  );
-                return {
-                  emailAddress: {
-                    address: destinationCalendar?.externalId ?? member.email,
-                    name: member.name,
-                  },
-                  type: "required" as const,
-                };
-              })
+            .filter((member) => member.email !== this.credential.user?.email)
+            .map((member) => {
+              const destinationCalendar =
+                event.destinationCalendar &&
+                event.destinationCalendar.find(
+                  (cal) => cal.integration === this.integrationName && cal.userId === member.id
+                );
+              return {
+                emailAddress: {
+                  address: destinationCalendar?.externalId ?? member.email,
+                  name: member.name,
+                },
+                type: "required" as const,
+              };
+            })
           : []),
       ],
       location: event.location ? { displayName: getLocation(event) } : undefined,
