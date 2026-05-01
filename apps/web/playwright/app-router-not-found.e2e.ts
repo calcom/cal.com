@@ -10,7 +10,6 @@ test.describe("App Router - error handling", () => {
     page,
   }) => {
     await expectPageToBeNotFound({ page, url: "/123491234" });
-    await expectPageToBeNotFound({ page, url: "/insights/123491234" });
     await expectPageToBeNotFound({ page, url: "/login/123491234" });
   });
 });

@@ -650,11 +650,11 @@ test.describe("GTM container", () => {
     const [user] = users.get();
     await user.apiLogin();
 
-    // Go to /insights page and wait for one of the common API call to complete
+    // Go to a non-booking page and wait for one of the common API calls to complete.
     const eventsByStatusRespPromise = page.waitForResponse(
       (response) => response.url().includes("getEventTypesFromGroup") && response.status() === 200
     );
-    await page.goto(`/insights`);
+    await page.goto("/event-types");
     await page.waitForLoadState("domcontentloaded");
     await eventsByStatusRespPromise;
 

@@ -249,11 +249,6 @@ const nextConfig = (phase: string): NextConfig => {
       "@coss/ui",
     ],
     modularizeImports: {
-      "@calcom/web/modules/insights/components": {
-        transform: "@calcom/web/modules/insights/components/{{member}}",
-        skipDefaultConversion: true,
-        preventFullImport: true,
-      },
       lodash: {
         transform: "lodash/{{member}}",
       },
@@ -612,11 +607,6 @@ const nextConfig = (phase: string): NextConfig => {
         {
           source: "/apps/installed",
           destination: "/apps/installed/calendar",
-          permanent: true,
-        },
-        {
-          source: "/settings/organizations/platform/:path*",
-          destination: "/settings/platform",
           permanent: true,
         },
         {
