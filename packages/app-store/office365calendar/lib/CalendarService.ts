@@ -322,6 +322,8 @@ class Office365CalendarService implements Calendar {
     try {
       let rescheduledEvent: Event | undefined;
 
+      // For MS Teams meetings, we must first GET the existing event to
+      // preserve the online meeting blob — otherwise it breaks the Teams link
       if (event.location === MSTeamsLocationType) {
         const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
           method: "GET",
@@ -329,46 +331,66 @@ class Office365CalendarService implements Calendar {
         rescheduledEvent = await handleErrorsJson<Event>(response);
       }
 
+      // Build the full translated event object
       const translatedEvent = this.translateEvent(event, rescheduledEvent);
 
-
+      // Cache endpoint to avoid multiple async calls to getUserEndpoint()
       const endpoint = await this.getUserEndpoint();
+
       let response: Response;
 
-
       if (event.seatsPerTimeSlot) {
-        console.log("==============================================");
-        console.log("✅ SEATED PATH TRIGGERED");
-        console.log("seatsPerTimeSlot:", event.seatsPerTimeSlot);
-        console.log("Total attendees in event:", event.attendees?.length);
+        // ─── SEATED EVENT FIX ──────────────────────────────────────────────
+        //
+        // PROBLEM:
+        // When a single attendee cancels their seat, the previous code sent
+        // one PATCH request containing ALL event properties (subject, body,
+        // start, end, AND attendees) together. Microsoft Graph API treats any
+        // mixed-property PATCH as an organizer-level meeting change and sends
+        // cancellation/update notifications to ALL remaining attendees —
+        // even though only one person cancelled their seat.
+        //
+        // FIX:
+        // Microsoft Graph API rule:
+        //   "A PATCH containing ONLY the attendees field will send meeting
+        //    updates only to the attendees that changed."
+        //
+        // So we split into TWO separate PATCH calls:
+        //   PATCH 1 — event details only (no attendees) → silent update
+        //   PATCH 2 — attendees only → Graph API notifies only the
+        //             removed attendee, remaining attendees hear nothing
+        //
+        // Reference: https://learn.microsoft.com/en-us/graph/api/event-update
+        // ───────────────────────────────────────────────────────────────────
 
+        // Destructure attendees out so we can send them separately in PATCH 2
         const { attendees, ...eventWithoutAttendees } = translatedEvent;
 
-        // PATCH 1
-        console.log("--- PATCH 1 PAYLOAD (no attendees) ---");
-        console.log(JSON.stringify(eventWithoutAttendees, null, 2));
-
+        // PATCH 1: Send all event details WITHOUT the attendees field.
+        // This updates title, time, location etc. without triggering
+        // Exchange to notify all attendees.
         const patch1Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
           method: "PATCH",
           body: JSON.stringify(eventWithoutAttendees),
         });
+        // Throw early if PATCH 1 fails — no point sending PATCH 2
         await handleErrorsJson(patch1Response);
 
-        // PATCH 2
-        console.log("--- PATCH 2 PAYLOAD (attendees only) ---");
-        console.log(JSON.stringify({ attendees }, null, 2));
-
+        // PATCH 2: Send ONLY the attendees field in isolation.
+        // Per Graph API docs, this makes Exchange notify only the
+        // attendees that changed (i.e. the removed attendee) —
+        // all remaining attendees receive no notification.
         response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
           method: "PATCH",
           body: JSON.stringify({ attendees }),
         });
-        console.log("==============================================");
 
       } else {
-        console.log("==============================================");
-        console.log("➡️ NON-SEATED PATH — single PATCH");
-        console.log("==============================================");
-
+        // ─── NON-SEATED EVENT ──────────────────────────────────────────────
+        // Original behaviour unchanged — send everything in one PATCH.
+        // Non-seated events are regular 1:1 bookings where notifying all
+        // attendees of any change is correct and expected behaviour.
+        // ───────────────────────────────────────────────────────────────────
         response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
           method: "PATCH",
           body: JSON.stringify(translatedEvent),
@@ -388,7 +410,6 @@ class Office365CalendarService implements Calendar {
       this.log.error(error);
       throw error;
     }
-
   }
 
   async deleteEvent(uid: string): Promise<void> {
