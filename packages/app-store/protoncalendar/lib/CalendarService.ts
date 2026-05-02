@@ -20,6 +20,7 @@ import ICAL from "ical.js";
 // and uses EXDATE for cancelled occurrences of recurring events
 
 const CALENDSO_ENCRYPTION_KEY: string = process.env.CALENDSO_ENCRYPTION_KEY || "";
+const MAX_SAFE_ITERATIONS = 365; // Prevent CPU exhaustion from infinite RRULE
 
 class ProtonCalendarService implements Calendar {
   private urls: string[] = [];
@@ -64,25 +65,43 @@ class ProtonCalendarService implements Calendar {
   }
 
   fetchCalendars = async (): Promise<{ url: string; vcalendar: ICAL.Component }[]> => {
-    const reqPromises = await Promise.allSettled(this.urls.map((x) => fetch(x).then((y) => [x, y])));
-    const reqs = reqPromises
-      .filter((x) => x.status === "fulfilled")
-      .map((x) => (x as PromiseFulfilledResult<[string, Response]>).value);
-    const res = await Promise.all(reqs.map((x) => x[1].text().then((y) => [x[0], y])));
-    return res
-      .map((x) => {
-        try {
-          const jcalData = ICAL.parse(x[1]);
-          return {
-            url: x[0],
-            vcalendar: new ICAL.Component(jcalData),
-          };
-        } catch (e) {
-          console.error("Error parsing calendar object: ", e);
-          return null;
-        }
-      })
-      .filter((x) => x !== null) as { url: string; vcalendar: ICAL.Component }[];
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout to prevent SSRF hangs
+
+    try {
+      const reqPromises = await Promise.allSettled(
+        this.urls.map((x) =>
+          fetch(x, {
+            redirect: "manual", // Prevent SSRF via redirects
+            signal: controller.signal,
+          }).then((y) => [x, y])
+        )
+      );
+      clearTimeout(timeoutId);
+
+      const reqs = reqPromises
+        .filter((x) => x.status === "fulfilled")
+        .map((x) => (x as PromiseFulfilledResult<[string, Response]>).value);
+      const res = await Promise.all(
+        reqs.map((x) => x[1].text().then((y) => [x[0], y]))
+      );
+      return res
+        .map((x) => {
+          try {
+            const jcalData = ICAL.parse(x[1]);
+            return {
+              url: x[0],
+              vcalendar: new ICAL.Component(jcalData),
+            };
+          } catch (e) {
+            console.error("Error parsing calendar object: ", e);
+            return null;
+          }
+        })
+        .filter((x) => x !== null) as { url: string; vcalendar: ICAL.Component }[];
+    } finally {
+      clearTimeout(timeoutId);
+    }
   };
 
   /**

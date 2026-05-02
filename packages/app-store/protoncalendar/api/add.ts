@@ -8,8 +8,8 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
 import { BuildCalendarService } from "../lib";
 
-// Proton Calendar only provides ICS feeds from these domains
-const ALLOWED_PROTON_DOMAINS: string[] = ["proton.me", "protonmail.com", "protonmail.ch"];
+// Proton Calendar only provides ICS feeds from these exact domains
+const ALLOWED_PROTON_DOMAINS: string[] = ["calendar.proton.me", "calendar.protonmail.com", "calendar.protonmail.ch"];
 
 function isProtonURL(url: string): boolean {
   try {
@@ -17,7 +17,12 @@ function isProtonURL(url: string): boolean {
     if (parsed.protocol !== "https:") {
       return false;
     }
-    return ALLOWED_PROTON_DOMAINS.some((domain) => parsed.hostname.endsWith(domain));
+    // Strict validation: must be an exact match or subdomain of allowed domains
+    // Prevents bypasses like "evilproton.me" or "proton.me.evil.com"
+    return ALLOWED_PROTON_DOMAINS.some((domain) => {
+      const hostname = parsed.hostname;
+      return hostname === domain || hostname.endsWith(`.${domain}`);
+    });
   } catch {
     return false;
   }
