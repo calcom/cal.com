@@ -402,7 +402,7 @@ class Office365CalendarService implements Calendar {
       >(response);
 
       if (responseJson?.onlineMeeting?.joinUrl) {
-        responseJson.url = responseJson.onlineMeeting.joinUrl;
+        responseJson.url = responseJson?.onlineMeeting?.joinUrl;
       }
 
       return { ...responseJson, iCalUID: responseJson.iCalUId };
