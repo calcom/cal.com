@@ -67,8 +67,6 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
 
   const userRepository = new UserRepository(prisma);
 
-  const billingService = getBillingProviderService();
-
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
     email: _email,
     organizationId: null,
