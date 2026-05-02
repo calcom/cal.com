@@ -1,6 +1,23 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import ICAL from "ical.js";
-import { BuildCalendarService } from "./CalendarService";
+import { BuildCalendarService } from "../lib";
+
+// Mock the crypto module
+vi.mock("@calcom/lib/crypto", () => ({
+  symmetricDecrypt: vi.fn().mockImplementation((key: string) => {
+    // Return valid JSON with urls
+    return JSON.stringify({ urls: ["https://calendar.proton.me/test.ics"] });
+  }),
+}));
+
+// Mock Prisma
+vi.mock("@calcom/prisma", () => ({
+  default: {
+    user: {
+      findUnique: vi.fn().mockResolvedValue({ timeZone: "Europe/London" }),
+    },
+  },
+}));
 
 // Mock ICS data
 const mockIcsConfirmedEvent = `BEGIN:VCALENDAR
@@ -57,7 +74,7 @@ describe("ProtonCalendarService", () => {
   const mockCredential = {
     id: 1,
     type: "proton_calendar" as const,
-    key: btoa(JSON.stringify({ urls: ["https://calendar.proton.me/test.ics"] })),
+    key: "encrypted-data",
     userId: 1,
     user: { email: "test@proton.me" },
   };

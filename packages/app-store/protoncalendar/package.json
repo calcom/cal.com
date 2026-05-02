@@ -4,6 +4,9 @@
   "name": "@calcom/proton-calendar",
   "version": "0.0.0",
   "main": "./index.ts",
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
     "@calcom/lib": "workspace:*",
     "@calcom/prisma": "workspace:*",
