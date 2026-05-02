@@ -156,7 +156,6 @@ You can use any of these credentials to sign in at [http://localhost:3000](http:
 > **Tip**: To view the full list of seeded users and their details, run `yarn db-studio` and visit [http://localhost:5555](http://localhost:5555)
 
 #### Development tip
-hello
 
 1. Add `export NODE_OPTIONS="--max-old-space-size=16384"` to your shell script to increase the memory limit for the node process. Alternatively, you can run this in your terminal before running the app. Replace 16384 with the amount of RAM you want to allocate to the node process.
 
