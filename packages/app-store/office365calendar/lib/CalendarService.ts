@@ -319,98 +319,174 @@ class Office365CalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarServiceEvent): Promise<NewCalendarEventType> {
-    try {
-      let rescheduledEvent: Event | undefined;
+  try {
+    let rescheduledEvent: Event | undefined;
 
-      // For MS Teams meetings, we must first GET the existing event to
-      // preserve the online meeting blob — otherwise it breaks the Teams link
-      if (event.location === MSTeamsLocationType) {
-        const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
-          method: "GET",
-        });
-        rescheduledEvent = await handleErrorsJson<Event>(response);
-      }
-
-      // Build the full translated event object
-      const translatedEvent = this.translateEvent(event, rescheduledEvent);
-
-      // Cache endpoint to avoid multiple async calls to getUserEndpoint()
-      const endpoint = await this.getUserEndpoint();
-
-      let response: Response;
-
-      if (event.seatsPerTimeSlot) {
-        // ─── SEATED EVENT FIX ──────────────────────────────────────────────
-        //
-        // PROBLEM:
-        // When a single attendee cancels their seat, the previous code sent
-        // one PATCH request containing ALL event properties (subject, body,
-        // start, end, AND attendees) together. Microsoft Graph API treats any
-        // mixed-property PATCH as an organizer-level meeting change and sends
-        // cancellation/update notifications to ALL remaining attendees —
-        // even though only one person cancelled their seat.
-        //
-        // FIX:
-        // Microsoft Graph API rule:
-        //   "A PATCH containing ONLY the attendees field will send meeting
-        //    updates only to the attendees that changed."
-        //
-        // So we split into TWO separate PATCH calls:
-        //   PATCH 1 — event details only (no attendees) → silent update
-        //   PATCH 2 — attendees only → Graph API notifies only the
-        //             removed attendee, remaining attendees hear nothing
-        //
-        // Reference: https://learn.microsoft.com/en-us/graph/api/event-update
-        // ───────────────────────────────────────────────────────────────────
-
-        // Destructure attendees out so we can send them separately in PATCH 2
-        const { attendees, ...eventWithoutAttendees } = translatedEvent;
-
-        // PATCH 1: Send all event details WITHOUT the attendees field.
-        // This updates title, time, location etc. without triggering
-        // Exchange to notify all attendees.
-        const patch1Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
-          method: "PATCH",
-          body: JSON.stringify(eventWithoutAttendees),
-        });
-        // Throw early if PATCH 1 fails — no point sending PATCH 2
-        await handleErrorsJson(patch1Response);
-
-        // PATCH 2: Send ONLY the attendees field in isolation.
-        // Per Graph API docs, this makes Exchange notify only the
-        // attendees that changed (i.e. the removed attendee) —
-        // all remaining attendees receive no notification.
-        response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
-          method: "PATCH",
-          body: JSON.stringify({ attendees }),
-        });
-
-      } else {
-        // ─── NON-SEATED EVENT ──────────────────────────────────────────────
-        // Original behaviour unchanged — send everything in one PATCH.
-        // Non-seated events are regular 1:1 bookings where notifying all
-        // attendees of any change is correct and expected behaviour.
-        // ───────────────────────────────────────────────────────────────────
-        response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
-          method: "PATCH",
-          body: JSON.stringify(translatedEvent),
-        });
-      }
-
-      const responseJson = await handleErrorsJson<
-        NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
-      >(response);
-
-      if (responseJson?.onlineMeeting?.joinUrl) {
-        responseJson.url = responseJson?.onlineMeeting?.joinUrl;
-      }
-
-      return { ...responseJson, iCalUID: responseJson.iCalUId };
-    } catch (error) {
-      this.log.error(error);
-      throw error;
+    // For MS Teams meetings, we must first GET the existing event to
+    // preserve the online meeting blob — otherwise it breaks the Teams link
+    if (event.location === MSTeamsLocationType) {
+      const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
+        method: "GET",
+      });
+      rescheduledEvent = await handleErrorsJson<Event>(response);
     }
+
+    // Build the full translated event object
+    const translatedEvent = this.translateEvent(event, rescheduledEvent);
+
+    // Cache endpoint to avoid multiple async calls to getUserEndpoint()
+    const endpoint = await this.getUserEndpoint();
+
+    let response: Response;
+
+    if (event.seatsPerTimeSlot) {
+      // ─── SEATED EVENT FIX ──────────────────────────────────────────────
+      //
+      // PROBLEM:
+      // When a single attendee cancels their seat, the previous code sent
+      // one PATCH request containing ALL event properties (subject, body,
+      // start, end, AND attendees) together. Microsoft Graph API treats any
+      // mixed-property PATCH as an organizer-level meeting change and sends
+      // cancellation/update notifications to ALL remaining attendees —
+      // even though only one person cancelled their seat.
+      //
+      // FIX:
+      // Microsoft Graph API rule:
+      //   "A PATCH containing ONLY the attendees field will send meeting
+      //    updates only to the attendees that changed."
+      //
+      // So we split into TWO separate PATCH calls:
+      //   PATCH 1 — event details only (no attendees) → silent update
+      //   PATCH 2 — attendees only → Graph API notifies only the
+      //             removed attendee, remaining attendees hear nothing
+      //
+      // Reference: https://learn.microsoft.com/en-us/graph/api/event-update
+      // ───────────────────────────────────────────────────────────────────
+
+      // Destructure attendees out so we can send them separately in PATCH 2
+      const { attendees, ...eventWithoutAttendees } = translatedEvent;
+
+      // PATCH 1: Send all event details WITHOUT the attendees field.
+      // This updates title, time, location etc. without triggering
+      // Exchange to notify all attendees.
+      // No retry here — if PATCH 1 fails the event is unchanged, safe to throw.
+      const patch1Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
+        method: "PATCH",
+        body: JSON.stringify(eventWithoutAttendees),
+      });
+      // Throw early if PATCH 1 fails — no point sending PATCH 2
+      await handleErrorsJson(patch1Response);
+
+      // PATCH 2: Send ONLY the attendees field in isolation.
+      // Per Graph API docs, this makes Exchange notify only the
+      // attendees that changed (i.e. the removed attendee) —
+      // all remaining attendees receive no notification.
+      //
+      // PARTIAL UPDATE RISK: If PATCH 1 succeeded but PATCH 2 fails,
+      // the event details are updated but the attendee list is stale.
+      // To reduce this risk we retry PATCH 2 up to 3 times with
+      // exponential backoff before propagating a richer error that
+      // includes enough context for reconciliation (uid, endpoint,
+      // HTTP status/body, operation tag "PATCH_ATTENDEES").
+      const MAX_RETRIES = 3;
+      const BACKOFF_MS = 500; // doubles each attempt: 500ms → 1000ms → 2000ms
+      let patch2Response: Response | undefined;
+      let lastError: Error | undefined;
+
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          patch2Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
+            method: "PATCH",
+            body: JSON.stringify({ attendees }),
+          });
+
+          // Clone before passing to handleErrorsJson because Response body
+          // streams can only be read once — we preserve the original for
+          // error extraction in the catch block if needed
+          await handleErrorsJson(patch2Response.clone());
+
+          // PATCH 2 succeeded — clear any previous error and exit retry loop
+          lastError = undefined;
+          break;
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error(String(err));
+
+          if (attempt < MAX_RETRIES) {
+            // Exponential backoff before next attempt
+            const backoff = BACKOFF_MS * Math.pow(2, attempt - 1);
+            this.log.warn(
+              `PATCH_ATTENDEES attempt ${attempt}/${MAX_RETRIES} failed for event uid=${uid}, retrying in ${backoff}ms`,
+              { err }
+            );
+            await new Promise((resolve) => setTimeout(resolve, backoff));
+          }
+        }
+      }
+
+      // All retries exhausted — build a richer error for reconciliation so
+      // downstream code can detect the partial-update state (PATCH 1 succeeded,
+      // PATCH 2 failed — event details updated but attendee list may be stale)
+      if (lastError) {
+        let httpStatus: number | undefined;
+        let httpBody: unknown;
+
+        if (patch2Response) {
+          httpStatus = patch2Response.status;
+          try {
+            httpBody = await patch2Response.json();
+          } catch {
+            httpBody = await patch2Response.text().catch(() => "unable to read response body");
+          }
+        }
+
+        this.log.error("PATCH_ATTENDEES final failure after all retries", {
+          operation: "PATCH_ATTENDEES",
+          uid,
+          endpoint,
+          httpStatus,
+          httpBody,
+          attempts: MAX_RETRIES,
+        });
+
+        throw new Error(
+          `PATCH_ATTENDEES failed for event uid=${uid} at endpoint=${endpoint} ` +
+          `after ${MAX_RETRIES} attempts. ` +
+          `HTTP status=${httpStatus ?? "unknown"}, ` +
+          `body=${JSON.stringify(httpBody ?? "unknown")}. ` +
+          `Event details were updated (PATCH 1 succeeded) but attendee list may be stale. ` +
+          `Original error: ${lastError.message}`
+        );
+      }
+
+      // PATCH 2 succeeded — use its response for the return value below
+      response = patch2Response!;
+
+    } else {
+      // ─── NON-SEATED EVENT ──────────────────────────────────────────────
+      // Original behaviour unchanged — send everything in one PATCH.
+      // Non-seated events are regular 1:1 bookings where notifying all
+      // attendees of any change is correct and expected behaviour.
+      // ───────────────────────────────────────────────────────────────────
+      response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
+        method: "PATCH",
+        body: JSON.stringify(translatedEvent),
+      });
+    }
+
+    const responseJson = await handleErrorsJson<
+      NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
+    >(response);
+
+    if (responseJson?.onlineMeeting?.joinUrl) {
+      responseJson.url = responseJson?.onlineMeeting?.joinUrl;
+    }
+
+    return { ...responseJson, iCalUID: responseJson.iCalUId };
+  } catch (error) {
+    this.log.error(error);
+    throw error;
   }
+}
 
   async deleteEvent(uid: string): Promise<void> {
     try {
