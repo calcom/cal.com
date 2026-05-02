@@ -182,7 +182,10 @@ export class BookingsService_2024_08_13 {
     if (!params.overrideAvailabilityRequested) {
       return false;
     }
-    if (!params.authUser || !params.userIsEventTypeAdminOrOwner) {
+    if (!params.authUser) {
+      throw new UnauthorizedException("overrideAvailability requires authentication");
+    }
+    if (!params.userIsEventTypeAdminOrOwner) {
       throw new ForbiddenException(
         "overrideAvailability is only permitted when authenticated as the event type owner or host, or as a team or organization administrator."
       );
