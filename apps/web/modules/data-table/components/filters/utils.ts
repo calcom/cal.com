@@ -1,7 +1,6 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { type TextFilterOperator, textFilterOperators } from "@calcom/features/data-table/lib/types";
-import type { TextFilterOperatorOption, NumberFilterOperatorOption } from "./types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { NumberFilterOperatorOption, TextFilterOperatorOption } from "./types";
 
 export const numberFilterOperatorOptions: NumberFilterOperatorOption[] = [
   { value: "eq", label: "=" },

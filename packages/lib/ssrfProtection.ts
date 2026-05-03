@@ -33,7 +33,7 @@ const CLOUD_METADATA_ENDPOINTS: string[] = [
 
 const LOOPBACK_HOSTNAMES: string[] = ["localhost", "127.0.0.1", "::1", "[::1]", "0.0.0.0"];
 
-// Hostnames blocked on Cal.com SaaS (includes metadata + loopback)
+// Hostnames blocked on Cal.diy SaaS (includes metadata + loopback)
 const BLOCKED_HOSTNAMES: string[] = [...CLOUD_METADATA_ENDPOINTS, ...LOOPBACK_HOSTNAMES];
 
 const CAL_AVATAR_PATH_REGEX = /^\/api\/avatar\/.+\.png$/;

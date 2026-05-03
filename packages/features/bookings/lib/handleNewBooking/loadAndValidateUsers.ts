@@ -1,5 +1,4 @@
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
-import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
@@ -16,7 +15,6 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Logger } from "tslog";
-
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 import { loadUsers } from "./loadUsers";
 
@@ -64,7 +62,6 @@ type InputProps = {
   routedTeamMemberIds: number[] | null;
   contactOwnerEmail: string | null;
   rescheduleUid: string | null;
-  routingFormResponse: RoutingFormResponse | null;
   isPlatform: boolean;
   hostname: string | undefined;
   forcedSlug: string | undefined;
@@ -79,7 +76,6 @@ const _loadAndValidateUsers = async ({
   routedTeamMemberIds,
   contactOwnerEmail,
   rescheduleUid,
-  routingFormResponse,
   isPlatform,
   hostname,
   forcedSlug,
@@ -171,7 +167,6 @@ const _loadAndValidateUsers = async ({
       routedTeamMemberIds: routedTeamMemberIds || [],
       rescheduleUid,
       contactOwnerEmail,
-      routingFormResponse,
       rrHostSubsetIds,
     });
   const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(

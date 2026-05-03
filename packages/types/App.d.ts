@@ -115,7 +115,7 @@ export interface App {
   url: string;
   /** Optional documentation website URL */
   docsUrl?: string;
-  /** Whether the app is verified by Cal.com or not */
+  /** Whether the app is verified by Cal.diy or not */
   verified?: boolean;
   /** Whether the app should appear in the trending section of the app store */
   trending?: boolean;
@@ -130,7 +130,6 @@ export interface App {
   isGlobal?: boolean;
   /**
    * For apps that are accessible on an alternate URL(which is simpler and shorter), this can be set.
-   * e.g. Routing Forms App is available as /routing-forms in addition to regular /apps/routing-forms.
    */
   simplePath?: string;
   /** A contact email, mainly to ask for support */
@@ -144,9 +143,6 @@ export interface App {
   /** only required for "usage-based" billing. % of commission for paid bookings */
   commission?: number;
   licenseRequired?: boolean;
-  teamsPlanRequired?: {
-    upgradeUrl: string;
-  };
   appData?: AppData;
   /** Represents paid app data, such as price, trials, etc */
   paid?: PaidAppData;

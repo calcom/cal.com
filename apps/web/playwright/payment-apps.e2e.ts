@@ -2,7 +2,7 @@ import prisma from "@calcom/prisma";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth, submitAndWaitForResponse } from "./lib/testUtils";
+import { IS_STRIPE_ENABLED, selectFirstAvailableTimeSlotNextMonth, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
@@ -90,6 +90,8 @@ test.describe("Payment app", () => {
   });
 
   test("Should be able to edit stripe price, currency", async ({ page, users }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
@@ -274,6 +276,8 @@ test.describe("Payment app", () => {
   });
 
   test("Should only be allowed to enable one payment app", async ({ page, users }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
@@ -322,6 +326,8 @@ test.describe("Payment app", () => {
     page,
     users,
   }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");

@@ -9,7 +9,7 @@ tags: app-store, integrations, generated-files
 
 ## Generated Files
 
-The Cal.com repository uses generated files (`*.generated.ts`) for app-store integrations. These files are created by the app-store-cli tool.
+The Cal.diy repository uses generated files (`*.generated.ts`) for app-store integrations. These files are created by the app-store-cli tool.
 
 **Do not manually modify** `*.generated.ts` files. If you need structural changes to how integrations are imported or used, update the CLI code that generates these files.
 

@@ -57,4 +57,4 @@ interface BookingResponse {
 - Give users ample time to migrate (minimum 6 months for public APIs)
 - Document exactly what changed and why
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

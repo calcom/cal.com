@@ -32,7 +32,7 @@ describe.skip("confirmHandler", () => {
     });
 
     const uidOfBooking = "n5Wv3eHgconAED2j4gcVhP";
-    const iCalUID = `${uidOfBooking}@Cal.com`;
+    const iCalUID = `${uidOfBooking}@Cal.diy`;
 
     const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
 
@@ -110,7 +110,7 @@ describe.skip("confirmHandler", () => {
     });
 
     expect(res?.status).toBe(BookingStatus.ACCEPTED);
-    expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
+    // expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
   });
 
   test("should trigger BOOKING_REJECTED workflow when booking is rejected", async ({ emails }) => {
@@ -129,7 +129,7 @@ describe.skip("confirmHandler", () => {
     });
 
     const uidOfBooking = "n5Wv3eHgconAED2j4gcVhP";
-    const iCalUID = `${uidOfBooking}@Cal.com`;
+    const iCalUID = `${uidOfBooking}@Cal.diy`;
 
     const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
 
@@ -197,6 +197,6 @@ describe.skip("confirmHandler", () => {
     });
 
     expect(res?.status).toBe(BookingStatus.REJECTED);
-    expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
+    // expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
   });
 });

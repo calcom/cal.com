@@ -3,7 +3,7 @@ Example apps using atoms - customizable UI components to integrate scheduling in
 
 ## Running examples apps locally
 
-1. Cal's backend is required to run example apps, so clone `https://github.com/calcom/cal.com` and follow setup instructions in the readme. Importantly, you need to have Google credentials setup by following [this section](https://github.com/calcom/cal.com?tab=readme-ov-file#obtaining-the-google-api-credentials) in the docs.
+1. Cal's backend is required to run example apps, so clone `https://github.com/calcom/cal.diy` and follow setup instructions in the readme. Importantly, you need to have Google credentials setup by following [this section](https://github.com/calcom/cal.diy?tab=readme-ov-file#obtaining-the-google-api-credentials) in the docs.
 
 2. Open "apps/api/v2/.env" and copy environment variables below, and then copy `NEXTAUTH_SECRET` from the root ".env" of repository cloned in step 1.
 ```jsx

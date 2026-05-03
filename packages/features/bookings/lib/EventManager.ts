@@ -151,7 +151,7 @@ export default class EventManager {
         // Backwards compatibility until CRM manager is implemented
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
       )
-      // see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
+      // see https://github.com/calcom/cal.diy/issues/11671#issue-1923600672
       // This sorting is mostly applicable for fallback which happens when there is no explicit destinationCalendar set.
       // That could be true for really old accounts but not for new
       .sort(latestCredentialFirst)
@@ -281,7 +281,7 @@ export default class EventManager {
    *
    * @param event
    * @param options.skipCalendarEvent - When true, skips calendar event creation but still creates video meetings.
-   *   This is useful for platform customers who manage their own calendar events but still want Cal.com to create
+   *   This is useful for platform customers who manage their own calendar events but still want Cal.diy to create
    *   video meetings for third-party video apps like Daily.co.
    */
   public async create(

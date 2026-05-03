@@ -32,7 +32,6 @@ import {
 } from "@calcom/ui/components/sheet";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { ExternalLinkIcon, RepeatIcon } from "@coss/ui/icons";
-import { BookingHistory } from "@calcom/web/modules/booking-audit/components/BookingHistory";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -428,9 +427,7 @@ function BookingDetailsSheetInner({
               </>
             )}
 
-            {bookingAuditEnabled && activeSegment === "history" && (
-              <BookingHistory bookingUid={booking.uid} />
-            )}
+            {/* Booking history removed (enterprise) */}
           </div>
         </SheetBody>
 

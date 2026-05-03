@@ -22,7 +22,7 @@ import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
 
 import { getRecurringBookingService } from "@calcom/features/bookings/di/RecurringBookingService.container";
-import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
@@ -214,7 +214,7 @@ describe("handleNewRecurringBooking", () => {
             booker,
             booking: {
               uid: createdBookings[0].uid!,
-              urlOrigin: WEBSITE_URL,
+              urlOrigin: WEBAPP_URL,
             },
             organizer,
             emails,

@@ -1,7 +1,7 @@
 import matchers from "@testing-library/jest-dom/matchers";
 import React from "react";
 import ResizeObserver from "resize-observer-polyfill";
-import { vi, afterEach, expect } from "vitest";
+import { afterEach, expect, vi } from "vitest";
 
 global.React = React;
 global.ResizeObserver = ResizeObserver;
@@ -55,10 +55,6 @@ vi.mock("@calcom/app-store/utils", () => ({
 
 vi.mock("@calcom/features/eventtypes/lib/eventNaming", () => ({
   getEventName: vi.fn(),
-}));
-
-vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
-  getOrgFullOrigin: vi.fn(),
 }));
 
 vi.mock("@calcom/web/modules/event-types/components", () => ({

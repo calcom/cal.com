@@ -1,10 +1,9 @@
 import type { ActiveFilter, ActiveFilters } from "@calcom/features/data-table";
 import { ColumnFilterType } from "@calcom/features/data-table";
-import type { ActiveFiltersValidator } from "~/data-table/DataTableProvider";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { useCallback, useMemo } from "react";
-
+import type { ActiveFiltersValidator } from "~/data-table/DataTableProvider";
 import { useEventTypes } from "./useEventTypes";
 
 interface UseActiveFiltersValidatorOptions {
@@ -59,10 +58,8 @@ export function useActiveFiltersValidator({
   canReadOthersBookings,
 }: UseActiveFiltersValidatorOptions): ActiveFiltersValidatorState {
   const eventTypes = useEventTypes();
-  const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery(undefined, {
-    enabled: canReadOthersBookings,
-  });
+  const teams = undefined as { id: number; name: string }[] | undefined;
+  const members = undefined as { id: number; name: string | null }[] | undefined;
   const { data: currentUser } = useMeQuery();
 
   const accessibleUserIds = useMemo(() => {

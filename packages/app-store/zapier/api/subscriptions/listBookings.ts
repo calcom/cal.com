@@ -1,9 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { listBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import { validateAccountOrApiKey } from "../../lib/validateAccountOrApiKey";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,17 +14,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ message: "Unable to get bookings." });
   }
   if (bookings.length === 0) {
-    const userInfo = validKey
-      ? validKey.userId
-      : authorizedAccount && !authorizedAccount.isTeam
-      ? authorizedAccount.name
-      : null;
-    const teamInfo = validKey
-      ? validKey.teamId
-      : authorizedAccount && authorizedAccount.isTeam
-      ? authorizedAccount.name
-      : null;
-
     return res.status(201).json([]);
   }
   res.status(201).json(bookings);

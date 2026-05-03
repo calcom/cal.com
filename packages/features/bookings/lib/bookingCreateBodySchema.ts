@@ -1,8 +1,8 @@
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 import z from "zod";
 
-import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+
 import { CreationSource } from "@calcom/prisma/enums";
 
 export const bookingCreateBodySchema = z.object({
@@ -26,16 +26,11 @@ export const bookingCreateBodySchema = z.object({
   crmOwnerRecordType: z.string().nullish(),
   crmRecordId: z.string().nullish(),
   routedTeamMemberIds: z.array(z.number()).nullish(),
-  routingFormResponseId: z.number().optional(),
   skipContactOwner: z.boolean().optional(),
   rrHostSubsetIds: z.array(z.number()).nullish(),
   crmAppSlug: z.string().nullish().optional(),
   cfToken: z.string().nullish().optional(),
 
-  /**
-   * Holds the corrected responses of the Form for a booking, provided during rerouting
-   */
-  reroutingFormResponses: routingFormResponseInDbSchema.optional(),
   /**
    * Used to identify if the booking is a dry run.
    */

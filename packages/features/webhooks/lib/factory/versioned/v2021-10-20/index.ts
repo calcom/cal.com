@@ -7,9 +7,6 @@
  */
 
 export { BookingPayloadBuilder } from "./BookingPayloadBuilder";
-export { FormPayloadBuilder } from "./FormPayloadBuilder";
 export { MeetingPayloadBuilder } from "./MeetingPayloadBuilder";
 export { RecordingPayloadBuilder } from "./RecordingPayloadBuilder";
 export { OOOPayloadBuilder } from "./OOOPayloadBuilder";
-export { InstantMeetingBuilder } from "./InstantMeetingBuilder";
-export { DelegationPayloadBuilder } from "./DelegationPayloadBuilder";

@@ -1,6 +1,5 @@
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
-import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -94,13 +93,6 @@ export const getEventTypesFromDB = async (id: number) => {
           createdByOAuthClientId: true,
         },
       },
-      workflows: {
-        select: {
-          workflow: {
-            select: workflowSelect,
-          },
-        },
-      },
       metadata: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
@@ -168,7 +160,7 @@ export const handleSeatsEventTypeOnBooking = async (
   seatReferenceUid?: string,
   isHost?: boolean
 ) => {
-  bookingInfo["responses"] = {};
+  bookingInfo.responses = {};
   type seatAttendee = {
     attendee: {
       email: string;
@@ -203,8 +195,8 @@ export const handleSeatsEventTypeOnBooking = async (
       description?: string;
       responses: Prisma.JsonValue;
     };
-    bookingInfo["description"] = seatAttendeeData.description ?? null;
-    bookingInfo["responses"] = bookingResponsesDbSchema.parse(seatAttendeeData.responses ?? {});
+    bookingInfo.description = seatAttendeeData.description ?? null;
+    bookingInfo.responses = bookingResponsesDbSchema.parse(seatAttendeeData.responses ?? {});
   }
 
   if (!eventType.seatsShowAttendees && !isHost) {
@@ -215,9 +207,9 @@ export const handleSeatsEventTypeOnBooking = async (
           (a.phoneNumber && a.phoneNumber === seatAttendee?.attendee?.phoneNumber)
         );
       });
-      bookingInfo["attendees"] = attendee ? [attendee] : [];
+      bookingInfo.attendees = attendee ? [attendee] : [];
     } else {
-      bookingInfo["attendees"] = [];
+      bookingInfo.attendees = [];
     }
   }
 

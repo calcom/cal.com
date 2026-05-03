@@ -1,7 +1,7 @@
 import { GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { Injectable } from "@nestjs/common";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsService } from "@/platform/calendars/services/calendars.service";
 
 type ConnectedCalendarsList = ConnectedDestinationCalendars["connectedCalendars"];
 type CalendarToLoad = { credentialId: number; externalId: string };

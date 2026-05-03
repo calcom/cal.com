@@ -1,7 +1,6 @@
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type {
   IBookingWebhookService,
-  IFormWebhookService,
   IOOOWebhookService,
   IRecordingWebhookService,
   IWebhookService,
@@ -85,15 +84,6 @@ export interface WebhookFeature {
    * - BOOKING_NO_SHOW_UPDATED
    */
   booking: IBookingWebhookService;
-
-  /**
-   * Form Webhook Service
-   *
-   * Handle form-related webhook events:
-   * - FORM_SUBMITTED
-   * - FORM_SUBMITTED_NO_EVENT
-   */
-  form: IFormWebhookService;
 
   /**
    * Recording Webhook Service

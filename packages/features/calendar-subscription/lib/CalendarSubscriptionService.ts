@@ -450,18 +450,6 @@ export class CalendarSubscriptionService {
     }
     const credential = await getCredentialForSelectedCalendar(selectedCalendar);
     if (!credential) return null;
-    return {
-      ...credential,
-      // biome-ignore lint/nursery/noTernary: conditional delegation credential mapping
-      delegatedTo: credential.delegatedTo?.serviceAccountKey?.client_email
-        ? {
-            serviceAccountKey: {
-              client_email: credential.delegatedTo.serviceAccountKey.client_email,
-              client_id: credential.delegatedTo.serviceAccountKey.client_id,
-              private_key: credential.delegatedTo.serviceAccountKey.private_key,
-            },
-          }
-        : null,
-    };
+    return credential;
   }
 }

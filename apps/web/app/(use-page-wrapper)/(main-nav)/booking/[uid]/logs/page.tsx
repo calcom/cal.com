@@ -1,5 +1,5 @@
 // Added as a separate route for now to ease the testing of the audit logs feature
-// It partially matches the figma design - https://www.figma.com/design/wleA2SR6rn60EK7ORxAfMy/Cal.com-New-Features?node-id=5641-6732&p=f
+// It partially matches the figma design - https://www.figma.com/design/wleA2SR6rn60EK7ORxAfMy/Cal.diy-New-Features?node-id=5641-6732&p=f
 // TOOD: Move it to the booking page side bar later
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { PageProps } from "app/_types";

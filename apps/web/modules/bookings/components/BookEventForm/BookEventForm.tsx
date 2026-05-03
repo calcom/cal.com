@@ -1,11 +1,9 @@
-import type { TFunction } from "i18next";
-import Link from "next/link";
-import { useMemo, useState } from "react";
-import type { FieldError } from "react-hook-form";
-
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
+import { formatEventFromTime } from "@calcom/features/bookings/Booker/utils/dates";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME, WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
@@ -16,10 +14,10 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
-
-import { formatEventFromTime } from "@calcom/features/bookings/Booker/utils/dates";
-import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
-import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
+import type { TFunction } from "i18next";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import type { FieldError } from "react-hook-form";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
@@ -30,7 +28,6 @@ type BookEventFormProps = {
   errorRef: React.RefObject<HTMLDivElement>;
   errors: UseBookingFormReturnType["errors"] & IUseBookingErrors;
   loadingStates: IUseBookingLoadingStates;
-  children?: React.ReactNode;
   bookingForm: UseBookingFormReturnType["bookingForm"];
   renderConfirmNotVerifyEmailButtonCond: boolean;
   extraOptions: Record<string, string | string[]>;
@@ -55,7 +52,6 @@ export const BookEventForm = ({
   loadingStates,
   renderConfirmNotVerifyEmailButtonCond,
   bookingForm,
-  children,
   extraOptions,
   isVerificationCodeSending,
   isPlatform = false,
@@ -76,7 +72,6 @@ export const BookEventForm = ({
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
   const username = useBookerStoreContext((state) => state.username);
-  const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const { timeFormat, timezone } = useBookerTime();
 
@@ -227,51 +222,40 @@ export const BookEventForm = ({
           </div>
         )}
         <div className="flex justify-end mt-auto space-x-2 modalsticky rtl:space-x-reverse">
-          {isInstantMeeting ? (
-            <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
-              {isPaidEvent ? t("pay_and_book") : t("confirm")}
+          {!!onCancel && (
+            <Button
+              color="minimal"
+              type="button"
+              onClick={onCancel}
+              data-testid="back"
+              className={classNames?.backButton}>
+              {t("back")}
             </Button>
-          ) : (
-            <>
-              {!!onCancel && (
-                <Button
-                  color="minimal"
-                  type="button"
-                  onClick={onCancel}
-                  data-testid="back"
-                  className={classNames?.backButton}>
-                  {t("back")}
-                </Button>
-              )}
-
-              <Button
-                type="submit"
-                color="primary"
-                disabled={
-                  (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
-                }
-                loading={
-                  loadingStates.creatingBooking ||
-                  loadingStates.creatingRecurringBooking ||
-                  isVerificationCodeSending
-                }
-                className={classNames?.confirmButton}
-                data-testid={
-                  rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
-                }>
-                {rescheduleUid && bookingData
-                  ? t("reschedule")
-                  : renderConfirmNotVerifyEmailButtonCond
-                    ? isPaidEvent
-                      ? t("pay_and_book")
-                      : t("confirm")
-                    : t("verify_email_button")}
-              </Button>
-            </>
           )}
+
+          <Button
+            type="submit"
+            color="primary"
+            disabled={
+              (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
+            }
+            loading={
+              loadingStates.creatingBooking ||
+              loadingStates.creatingRecurringBooking ||
+              isVerificationCodeSending
+            }
+            className={classNames?.confirmButton}
+            data-testid={rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"}>
+            {rescheduleUid && bookingData
+              ? t("reschedule")
+              : renderConfirmNotVerifyEmailButtonCond
+                ? isPaidEvent
+                  ? t("pay_and_book")
+                  : t("confirm")
+                : t("verify_email_button")}
+          </Button>
         </div>
       </Form>
-      {children}
     </div>
   );
 };

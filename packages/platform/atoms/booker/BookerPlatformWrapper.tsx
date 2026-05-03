@@ -25,7 +25,6 @@ import debounce from "lodash/debounce";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { shallow } from "zustand/shallow";
 import { useCreateBooking } from "../hooks/bookings/useCreateBooking";
-import { useCreateInstantBooking } from "../hooks/bookings/useCreateInstantBooking";
 import { useCreateRecurringBooking } from "../hooks/bookings/useCreateRecurringBooking";
 import {
   QUERY_KEY as BOOKING_RESCHEDULE_KEY,
@@ -54,7 +53,7 @@ const BookerPlatformWrapperComponent = (
   const {
     view = "MONTH_VIEW",
     bannerUrl,
-    routingFormSearchParams,
+    embedSearchParams,
     teamMemberEmail,
     crmAppSlug,
     crmOwnerRecordType,
@@ -272,8 +271,10 @@ const BookerPlatformWrapperComponent = (
   }>({});
 
   useEffect(() => {
-    const searchParams = routingFormSearchParams
-      ? new URLSearchParams(routingFormSearchParams)
+    const searchParams = embedSearchParams
+      ? new URLSearchParams(
+          Object.entries(embedSearchParams).flatMap(([key, value]) => (value == null ? [] : [[key, value]]))
+        )
       : new URLSearchParams(window.location.search);
 
     const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
@@ -287,7 +288,7 @@ const BookerPlatformWrapperComponent = (
       ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
       ...(isBookingDryRun ? { isBookingDryRun } : {}),
     });
-  }, [routingFormSearchParams]);
+  }, [embedSearchParams]);
   const schedule = useAvailableSlots({
     usernameList: getUsernameList(username),
     eventTypeId: event?.data?.id ?? 0,
@@ -299,10 +300,10 @@ const BookerPlatformWrapperComponent = (
     teamMemberEmail: teamMemberEmail ?? undefined,
     ...(props.isTeamEvent
       ? {
-        isTeamEvent: props.isTeamEvent,
-        teamId: teamId,
-        rrHostSubsetIds: rrHostSubsetIds,
-      }
+          isTeamEvent: props.isTeamEvent,
+          teamId: teamId,
+          rrHostSubsetIds: rrHostSubsetIds,
+        }
       : {}),
     enabled:
       Boolean(teamId || username) &&
@@ -374,19 +375,6 @@ const BookerPlatformWrapperComponent = (
     },
     onError: props.onCreateRecurringBookingError,
   });
-  const {
-    mutate: createInstantBooking,
-    isPending: creatingInstantBooking,
-    error: createInstantBookingError,
-    isError: isCreateInstantBookingError,
-  } = useCreateInstantBooking({
-    onSuccess: (data) => {
-      schedule.refetch();
-      props.onCreateInstantBookingSuccess?.(data);
-    },
-    onError: props.onCreateInstantBookingError,
-  });
-
   const slots = useSlots(event, {
     onReserveSlotSuccess: props.onReserveSlotSuccess,
     onReserveSlotError: props.onReserveSlotError,
@@ -446,15 +434,13 @@ const BookerPlatformWrapperComponent = (
     hashedLink: props.hashedLink,
     metadata: props.metadata ?? {},
     handleBooking: props?.handleCreateBooking ?? createBooking,
-    handleInstantBooking: createInstantBooking,
     handleRecBooking: props?.handleCreateRecurringBooking ?? createRecBooking,
     locationUrl: props.locationUrl,
-    routingFormSearchParams,
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
     ...(props.isTeamEvent
       ? {
-        rrHostSubsetIds: rrHostSubsetIds,
-      }
+          rrHostSubsetIds: rrHostSubsetIds,
+        }
       : {}),
   });
 
@@ -533,12 +519,6 @@ const BookerPlatformWrapperComponent = (
         confirmButtonDisabled={confirmButtonDisabled}
         fromUserNameRedirected=""
         hasSession={hasSession}
-        onGoBackInstantMeeting={(): void => {
-          throw new Error("Function not implemented.");
-        }}
-        onConnectNowInstantMeeting={(): void => {
-          throw new Error("Function not implemented.");
-        }}
         onOverlayClickNoCalendar={(): void => {
           throw new Error("Function not implemented.");
         }}
@@ -552,19 +532,16 @@ const BookerPlatformWrapperComponent = (
             handleBookEvent(timeSlot);
             return;
           },
-          expiryTime: undefined,
           bookingForm: bookerForm.bookingForm,
           bookerFormErrorRef: bookerForm.bookerFormErrorRef,
           errors: {
-            hasDataErrors: isCreateBookingError || isCreateRecBookingError || isCreateInstantBookingError,
-            dataErrors: createBookingError || createRecBookingError || createInstantBookingError,
+            hasDataErrors: isCreateBookingError || isCreateRecBookingError,
+            dataErrors: createBookingError || createRecBookingError,
           },
           loadingStates: {
             creatingBooking: creatingBooking,
             creatingRecurringBooking: creatingRecBooking,
-            creatingInstantBooking: creatingInstantBooking,
           },
-          instantVideoMeetingUrl: undefined,
         }}
         slots={slots}
         calendars={{

@@ -21,7 +21,6 @@ export type CancelBookingMeta = {
   platformCancelUrl?: string;
   platformBookingUrl?: string;
   arePlatformEmailsEnabled?: boolean;
-  impersonatedByUserUuid: string | null;
 };
 
 /**
