@@ -1,6 +1,6 @@
-import sanitizeHtml from "sanitize-html";
-
+import "server-only";
 import { md } from "@calcom/lib/markdownIt";
+import sanitizeHtml from "sanitize-html";
 
 if (typeof window !== "undefined") {
   // This file imports markdown parser which is a costly dependency, so we want to make sure it's not imported on the client side.
