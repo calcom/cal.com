@@ -71,8 +71,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
     },
   });
-  // set expiry date as offset from current time.
-  zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
+
+// expires_in is in seconds; Date.now() returns ms — convert before adding.
+// https://www.zoho.com/accounts/protocol/oauth/web-apps/access-token.html
+  zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + zohoCrmTokenInfo.data.expires_in * 1000);
   zohoCrmTokenInfo.data.accountServer = accountsServer;
 
   await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, zohoCrmTokenInfo.data, req);

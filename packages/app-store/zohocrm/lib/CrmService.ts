@@ -52,9 +52,18 @@ class ZohoCrmCrmService implements CRM {
   private client_id = "";
   private client_secret = "";
   private accessToken = "";
+  private apiDomain = "https://www.zohoapis.com"; 
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "zohocrm_crm";
+    const credentialKey = credential.key as unknown as ZohoToken;
+    if (credentialKey?.api_domain) {
+      /**
+       * Zoho is multi-DC — api_domain from the OAuth response is this account's API base URL.
+       * https://www.zoho.com/crm/developer/docs/api/v6/multi-dc.html
+       */
+      this.apiDomain = credentialKey.api_domain;
+    }
     this.auth = this.zohoCrmAuth(credential).then((r) => r);
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
@@ -74,7 +83,7 @@ class ZohoCrmCrmService implements CRM {
     });
     const response = await axios({
       method: "post",
-      url: `https://www.zohoapis.com/crm/v3/Contacts`,
+      url: `${this.apiDomain}/crm/v3/Contacts`,
       headers: {
         "content-type": "application/json",
         authorization: `Zoho-oauthtoken ${this.accessToken}`,
@@ -83,10 +92,10 @@ class ZohoCrmCrmService implements CRM {
     });
 
     const { data } = response;
-    return data.data.map((contact: ZohoContact) => {
+    return data.data.map((contact: { details: { id: string } }, index: number) => {
       return {
-        id: contact.id,
-        email: contact.email,
+        id: contact.details.id,
+        email: contactsToCreate[index].email,
       };
     });
   }
@@ -100,7 +109,7 @@ class ZohoCrmCrmService implements CRM {
 
     const response = await axios({
       method: "get",
-      url: `https://www.zohoapis.com/crm/v3/Contacts/search?criteria=${searchCriteria}`,
+      url: `${this.apiDomain}/crm/v3/Contacts/search?criteria=${searchCriteria}`,
       headers: {
         authorization: `Zoho-oauthtoken ${this.accessToken}`,
       },
@@ -110,11 +119,15 @@ class ZohoCrmCrmService implements CRM {
         this.log.error(e, e.response?.data);
       });
 
+   /**
+    * Zoho returns Email (PascalCase) per its field API name convention, not email.
+    * https://www.zoho.com/crm/developer/docs/api/v3/search-records.html
+    */
     return response
-      ? response.data.map((contact: ZohoContact) => {
+      ? response.data.map((contact: { id: string; Email: string }) => {
           return {
             id: contact.id,
-            email: contact.email,
+            email: contact.Email,
           };
         })
       : [];
@@ -145,7 +158,7 @@ class ZohoCrmCrmService implements CRM {
 
     return axios({
       method: "post",
-      url: `https://www.zohoapis.com/crm/v3/Events`,
+      url: `${this.apiDomain}/crm/v3/Events`,
       headers: {
         "content-type": "application/json",
         authorization: `Zoho-oauthtoken ${this.accessToken}`,
@@ -172,7 +185,7 @@ class ZohoCrmCrmService implements CRM {
     };
     return axios({
       method: "put",
-      url: `https://www.zohoapis.com/crm/v3/Events`,
+      url: `${this.apiDomain}/crm/v3/Events`,
       headers: {
         "content-type": "application/json",
         authorization: `Zoho-oauthtoken ${this.accessToken}`,
@@ -186,7 +199,7 @@ class ZohoCrmCrmService implements CRM {
   private deleteMeeting = async (uid: string) => {
     return axios({
       method: "delete",
-      url: `https://www.zohoapis.com/crm/v3/Events?ids=${uid}`,
+      url: `${this.apiDomain}/crm/v3/Events?ids=${uid}`,
       headers: {
         "content-type": "application/json",
         authorization: `Zoho-oauthtoken ${this.accessToken}`,
@@ -238,16 +251,22 @@ class ZohoCrmCrmService implements CRM {
           // set expiry date as offset from current time.
           zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60 * 1000);
 
+          const updatedKey = {
+            ...(zohoCrmTokenInfo.data as ZohoToken),
+            refresh_token: credentialKey.refresh_token,
+            accountServer: credentialKey.accountServer,
+            api_domain: zohoCrmTokenInfo.data.api_domain || credentialKey.api_domain,
+          };
+          if (updatedKey.api_domain) {
+            // Sync in-memory domain — the DB write only takes effect on next instantiation
+            this.apiDomain = updatedKey.api_domain;
+          }
           await prisma.credential.update({
             where: {
               id: credential.id,
             },
             data: {
-              key: {
-                ...(zohoCrmTokenInfo.data as ZohoToken),
-                refresh_token: credentialKey.refresh_token,
-                accountServer: credentialKey.accountServer,
-              },
+              key: updatedKey,
             },
           });
           this.accessToken = zohoCrmTokenInfo.data.access_token;
