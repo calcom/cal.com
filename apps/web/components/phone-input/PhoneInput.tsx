@@ -158,7 +158,7 @@ function BasePhoneInputWeb({
 // Maps IANA timezone to ISO 3166-1 alpha-2 country code (lowercase).
 // navigator.language region is unreliable — browser language ≠ user location.
 // Timezone is a much better proxy for physical location.
-const TIMEZONE_COUNTRY_MAP: Record<string, string> = {
+const TIMEZONE_COUNTRY_MAP: Record<string, CountryCode> = {
   "Asia/Kolkata": "in",
   "Asia/Calcutta": "in",
   "America/New_York": "us",
@@ -228,7 +228,7 @@ const TIMEZONE_COUNTRY_MAP: Record<string, string> = {
   "Asia/Tehran": "ir",
 };
 
-function getCountryFromTimezone(): string | undefined {
+function getCountryFromTimezone(): CountryCode | undefined {
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     return TIMEZONE_COUNTRY_MAP[tz];
@@ -253,23 +253,28 @@ const useDefaultCountry = () => {
         return;
       }
 
-      const data = query.data;
-      if (!data?.countryCode) {
+      // Wait until the query has settled. Empty countryCode (no CF/Vercel
+      // headers) is a valid resolved state and must fall through to the
+      // timezone fallback rather than returning early.
+      if (!query.isSuccess && !query.isError) {
         return;
       }
 
-      if (isSupportedCountry(data?.countryCode)) {
+      const data = query.data;
+      if (data?.countryCode && isSupportedCountry(data.countryCode)) {
         setDefaultCountry(data.countryCode.toLowerCase() as CountryCode);
-      } else {
-        const tzCountry = getCountryFromTimezone();
-        if (tzCountry && isSupportedCountry(tzCountry.toUpperCase())) {
-          setDefaultCountry(tzCountry as CountryCode);
-        } else {
-          setDefaultCountry("us");
-        }
+        return;
       }
+
+      const tzCountry = getCountryFromTimezone();
+      if (tzCountry && isSupportedCountry(tzCountry.toUpperCase())) {
+        setDefaultCountry(tzCountry);
+        return;
+      }
+
+      setDefaultCountry("us");
     },
-    [query.data, defaultPhoneCountryFromStore]
+    [query.data, query.isSuccess, query.isError, defaultPhoneCountryFromStore]
   );
 
   return defaultCountry;
