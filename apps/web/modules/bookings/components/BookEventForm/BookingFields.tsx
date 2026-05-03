@@ -6,7 +6,7 @@ import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { FormBuilderField } from "@calcom/web/modules/form-builder/components/FormBuilderField";
 import { useMemo, useRef } from "react";
@@ -95,7 +95,7 @@ export const BookingFields = ({
       ...field,
       label,
       ...(fieldsThatSupportLabelAsSafeHtml.includes(field.type) && field.labelAsSafeHtml
-        ? { labelAsSafeHtml: markdownToSafeHTML(label) }
+        ? { labelAsSafeHtml: markdownToSafeHTMLClient(label) }
         : { labelAsSafeHtml: undefined }),
     };
   };
