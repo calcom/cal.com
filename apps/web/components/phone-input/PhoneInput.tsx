@@ -236,11 +236,6 @@ function getResolvedTimezone(): string | undefined {
   }
 }
 
-function getCountryFromTimezone(): CountryCode | undefined {
-  const tz = getResolvedTimezone();
-  return tz ? TIMEZONE_COUNTRY_MAP[tz] : undefined;
-}
-
 const useDefaultCountry = () => {
   const defaultPhoneCountryFromStore = useBookerStore((state) => state.defaultPhoneCountry);
   const [defaultCountry, setDefaultCountry] = useState<CountryCode>(defaultPhoneCountryFromStore || "us");
@@ -270,7 +265,8 @@ const useDefaultCountry = () => {
         return;
       }
 
-      const tzCountry = getCountryFromTimezone();
+      const tz = getResolvedTimezone();
+      const tzCountry = tz ? TIMEZONE_COUNTRY_MAP[tz] : undefined;
       if (tzCountry && isSupportedCountry(tzCountry.toUpperCase())) {
         setDefaultCountry(tzCountry);
         return;
@@ -280,7 +276,6 @@ const useDefaultCountry = () => {
       // Only force "us" when the resolved zone is clearly North American.
       // Otherwise keep the initial default ("us" or whatever came from the
       // store) rather than overriding with a wrong guess.
-      const tz = getResolvedTimezone();
       if (tz?.startsWith("America/")) {
         setDefaultCountry("us");
       }
