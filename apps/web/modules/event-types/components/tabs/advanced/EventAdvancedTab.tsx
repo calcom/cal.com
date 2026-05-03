@@ -669,6 +669,7 @@ export const EventAdvancedTab = ({
       {!isPlatform && (
         <Controller
           name="requiresCancellationReason"
+          defaultValue={eventType.requiresCancellationReason ?? CancellationReasonRequirement.MANDATORY_HOST_ONLY}
           render={({ field: { value, onChange } }) => {
             const cancellationReasonOptions = [
               { value: CancellationReasonRequirement.MANDATORY_BOTH, label: t("mandatory_for_both") },
@@ -691,7 +692,7 @@ export const EventAdvancedTab = ({
                   </div>
                   <Select
                     value={cancellationReasonOptions.find(
-                      (opt) => opt.value === (value || CancellationReasonRequirement.MANDATORY_HOST_ONLY)
+                      (opt) => opt.value === (value ?? CancellationReasonRequirement.MANDATORY_HOST_ONLY)
                     )}
                     options={cancellationReasonOptions}
                     onChange={(selected) => onChange(selected?.value)}

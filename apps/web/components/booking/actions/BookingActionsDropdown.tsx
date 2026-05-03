@@ -486,6 +486,7 @@ export function BookingActionsDropdown({
         isHost={isHost}
         internalNotePresets={[]}
         eventTypeMetadata={booking.eventType?.metadata}
+        requiresCancellationReason={booking.eventType?.requiresCancellationReason}
       />
     </>
   );
