@@ -12,7 +12,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import type { Icon } from "@calcom/ui/components/icon";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
 import AppListCardWebWrapper from "@calcom/web/modules/apps/components/AppListCardWebWrapper";
@@ -28,6 +27,10 @@ interface IntegrationsContainerProps {
   exclude?: AppCategories[];
   handleDisconnect: HandleDisconnect;
 }
+
+const LEGACY_CATEGORY_MAP: Partial<Record<AppCategories, ActiveAppCategoryKeys>> = {
+  video: "conferencing",
+};
 
 const IntegrationsContainer = ({
   variant,
@@ -49,7 +52,13 @@ const IntegrationsContainer = ({
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
-  const isActiveCategory = (v: AppCategories): v is ActiveAppCategoryKeys => v in APP_CATEGORY_ENTRIES
+  const isActiveCategory = (v: AppCategories): v is ActiveAppCategoryKeys => v in APP_CATEGORY_ENTRIES;
+
+  const resolveEmptyStateVariant = (v?: AppCategories): ActiveAppCategoryKeys => {
+    if (!v) return "other";
+    if (isActiveCategory(v)) return v;
+    return LEGACY_CATEGORY_MAP[v] || "other";
+  };
 
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
     trpc.viewer.eventTypes.bulkEventFetch.useQuery();
@@ -104,7 +113,7 @@ const IntegrationsContainer = ({
       customLoader={<SkeletonLoader />}
       success={({ data }) => {
         if (!data.items.length) {
-          const resolvedVariant = variant && isActiveCategory(variant) ? variant : "other";
+          const resolvedVariant = resolveEmptyStateVariant(variant);
           const emptyHeaderCategory = getAppCategoryTitle(resolvedVariant, true);
 
           return (
