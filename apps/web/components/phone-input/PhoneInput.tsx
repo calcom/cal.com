@@ -228,13 +228,17 @@ const TIMEZONE_COUNTRY_MAP: Record<string, CountryCode> = {
   "Asia/Tehran": "ir",
 };
 
-function getCountryFromTimezone(): CountryCode | undefined {
+function getResolvedTimezone(): string | undefined {
   try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return TIMEZONE_COUNTRY_MAP[tz];
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
   } catch {
     return undefined;
   }
+}
+
+function getCountryFromTimezone(): CountryCode | undefined {
+  const tz = getResolvedTimezone();
+  return tz ? TIMEZONE_COUNTRY_MAP[tz] : undefined;
 }
 
 const useDefaultCountry = () => {
@@ -272,7 +276,14 @@ const useDefaultCountry = () => {
         return;
       }
 
-      setDefaultCountry("us");
+      // The map covers high-traffic timezones, not every IANA zone.
+      // Only force "us" when the resolved zone is clearly North American.
+      // Otherwise keep the initial default ("us" or whatever came from the
+      // store) rather than overriding with a wrong guess.
+      const tz = getResolvedTimezone();
+      if (tz?.startsWith("America/")) {
+        setDefaultCountry("us");
+      }
     },
     [query.data, query.isSuccess, query.isError, defaultPhoneCountryFromStore]
   );
