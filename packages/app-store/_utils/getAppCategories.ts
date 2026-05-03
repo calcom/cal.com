@@ -62,9 +62,19 @@ export const APP_CATEGORY_ENTRIES: Record<ActiveAppCategoryKeys, Omit<AppCategor
 
 const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryEntry[] => {
   const CATEGORY_ORDER = [
-    "analytics", "automation", "calendar", "conferencing",
-    "crm", "messaging", "payment", "other",
-  ] as const satisfies readonly ActiveAppCategoryKeys[];
+  "analytics",
+  "automation",
+  "calendar",
+  "conferencing",
+  "crm",
+  "messaging",
+  "payment",
+  "other",
+] as const satisfies readonly ActiveAppCategoryKeys[];
+
+  type OrderedCategory = (typeof CATEGORY_ORDER)[number];
+  type MissingInOrder = Exclude<ActiveAppCategoryKeys, OrderedCategory>;
+  type _AssertOrderIsExhaustive = MissingInOrder extends never ? true : never;
 
   return CATEGORY_ORDER.map((name): AppCategoryEntry => (
       {
