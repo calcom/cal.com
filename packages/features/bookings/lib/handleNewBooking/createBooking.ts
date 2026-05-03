@@ -1,4 +1,3 @@
-import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
@@ -10,7 +9,7 @@ import type { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type short from "short-uuid";
-import type { z } from "zod";
+
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
 import type { AwaitedBookingData, EventTypeId } from "./getBookingData";
 import type { NewBookingEventType } from "./getEventTypesFromDB";
@@ -22,8 +21,6 @@ type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
 type CreateBookingParams = {
   uid: short.SUUID;
-  routingFormResponseId: number | undefined;
-  reroutingFormResponses: z.infer<typeof routingFormResponseInDbSchema> | null;
   rescheduledBy: string | undefined;
   reqBody: {
     user: ReqBodyWithEnd["user"];
@@ -63,15 +60,6 @@ function updateEventDetails(
   }
 }
 
-async function getAssociatedBookingForFormResponse(formResponseId: number) {
-  const formResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
-    where: {
-      id: formResponseId,
-    },
-  });
-  return formResponse?.routedToBookingUid ?? null;
-}
-
 // Define the function with underscore prefix
 const _createBooking = async ({
   uid,
@@ -80,22 +68,15 @@ const _createBooking = async ({
   input,
   evt,
   originalRescheduledBooking,
-  routingFormResponseId,
-  reroutingFormResponses,
   rescheduledBy,
   creationSource,
   tracking,
 }: CreateBookingParams & { rescheduledBy: string | undefined }) => {
   updateEventDetails(evt, originalRescheduledBooking);
-  const associatedBookingForFormResponse = routingFormResponseId
-    ? await getAssociatedBookingForFormResponse(routingFormResponseId)
-    : null;
 
   const bookingAndAssociatedData = buildNewBookingData({
     uid,
     rescheduledBy,
-    routingFormResponseId: shouldConnectBookingToFormResponse() ? routingFormResponseId : undefined,
-    reroutingFormResponses,
     reqBody,
     eventType,
     input,
@@ -112,23 +93,6 @@ const _createBooking = async ({
     eventType.organizerUser,
     !!evt.seatsPerTimeSlot
   );
-
-  function shouldConnectBookingToFormResponse() {
-    const isRerouting = !!reroutingFormResponses;
-
-    // During rerouting, we want to connect the new booking to the existing form response for booking being rescheduled(original booking)
-    if (isRerouting) {
-      return true;
-    }
-    // If not rerouting and there is already an associated booking for the form response, we don't want to connect the new booking to the form response
-    // We allow only the first booking to be connected to the form response
-    // Other bookings could happen due to user doing a booking by using browser back button to reach the same booking form with same query params and changing the time
-    // Such case isn't what the Routing Form redirected the user to, so we avoid this at the moment.
-    if (associatedBookingForFormResponse) {
-      return false;
-    }
-    return true;
-  }
 };
 
 export const createBooking = withReporting(_createBooking, "createBooking");
@@ -140,8 +104,7 @@ async function saveBooking(
   organizerUser: CreateBookingParams["eventType"]["organizerUser"],
   isSeatedEvent: boolean
 ) {
-  const { newBookingData, reroutingFormResponseUpdateData, originalBookingUpdateDataForCancellation } =
-    bookingAndAssociatedData;
+  const { newBookingData, originalBookingUpdateDataForCancellation } = bookingAndAssociatedData;
   const createBookingObj = {
     include: {
       user: {
@@ -179,7 +142,6 @@ async function saveBooking(
   }
 
   /**
-   * Reschedule(Cancellation + Creation) with an update of reroutingFormResponse should be atomic.
    * The FOR UPDATE lock prevents TOCTOU race conditions where concurrent requests pass
    * the availability check but create overlapping bookings for the same organizer.
    */
@@ -205,9 +167,6 @@ async function saveBooking(
     }
 
     const booking = await tx.booking.create(createBookingObj);
-    if (reroutingFormResponseUpdateData) {
-      await tx.app_RoutingForms_FormResponse.update(reroutingFormResponseUpdateData);
-    }
 
     return { ...booking, userUuid: booking.user?.uuid ?? null };
   });
@@ -239,8 +198,6 @@ function buildNewBookingData(params: CreateBookingParams) {
     eventType,
     input,
     originalRescheduledBooking,
-    routingFormResponseId,
-    reroutingFormResponses,
     rescheduledBy,
     creationSource,
     tracking,
@@ -248,11 +205,6 @@ function buildNewBookingData(params: CreateBookingParams) {
 
   const attendeesData = getAttendeesData(evt);
   const eventTypeRel = getEventTypeRel(eventType.id);
-  const reroutingFormResponseUpdateData = getReroutingFormResponseUpdateData({
-    reroutingFormResponses,
-    routingFormResponseId,
-  });
-
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
     userPrimaryEmail: evt.organizer.email,
@@ -288,10 +240,6 @@ function buildNewBookingData(params: CreateBookingParams) {
             connect: { id: evt.destinationCalendar[0].id },
           }
         : undefined,
-
-    routedFromRoutingFormReponse: routingFormResponseId
-      ? { connect: { id: routingFormResponseId } }
-      : undefined,
     creationSource,
     tracking: tracking ? { create: tracking } : undefined,
   };
@@ -343,32 +291,8 @@ function buildNewBookingData(params: CreateBookingParams) {
 
   return {
     newBookingData,
-    reroutingFormResponseUpdateData,
     originalBookingUpdateDataForCancellation,
   };
-
-  function getReroutingFormResponseUpdateData({
-    reroutingFormResponses,
-    routingFormResponseId,
-  }: {
-    reroutingFormResponses: z.infer<typeof routingFormResponseInDbSchema> | null;
-    routingFormResponseId: number | undefined | null;
-  }) {
-    if (!routingFormResponseId) {
-      return null;
-    }
-
-    if (!reroutingFormResponses) {
-      return null;
-    }
-
-    return {
-      where: { id: routingFormResponseId },
-      data: {
-        response: reroutingFormResponses,
-      },
-    };
-  }
 }
 
 export type Booking = Awaited<ReturnType<typeof createBooking>>;

@@ -9,7 +9,7 @@ export const metadata = {
   type: "hubspot_crm",
   variant: "crm",
   logo: "icon.svg",
-  publisher: "Cal.com",
+  publisher: "Cal.diy",
   url: "https://hubspot.com/",
   categories: ["crm"],
   label: "HubSpot CRM",

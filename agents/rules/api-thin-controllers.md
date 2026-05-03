@@ -70,4 +70,4 @@ export async function POST(request: Request) {
 **The principle:**
 We must detach HTTP technology from our application. The way we transfer data between client and server (whether REST, tRPC, etc.) should not influence how our core application works. HTTP is a delivery mechanism, not an architectural driver.
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

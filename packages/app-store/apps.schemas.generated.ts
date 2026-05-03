@@ -36,7 +36,6 @@ import { appDataSchema as pipedrive_crm_zod_ts } from "./pipedrive-crm/zod";
 import { appDataSchema as plausible_zod_ts } from "./plausible/zod";
 import { appDataSchema as posthog_zod_ts } from "./posthog/zod";
 import { appDataSchema as qr_code_zod_ts } from "./qr_code/zod";
-import { appDataSchema as routing_forms_zod_ts } from "./routing-forms/zod";
 import { appDataSchema as salesforce_zod_ts } from "./salesforce/zod";
 import { appDataSchema as shimmervideo_zod_ts } from "./shimmervideo/zod";
 import { appDataSchema as stripepayment_zod_ts } from "./stripepayment/zod";
@@ -88,7 +87,6 @@ export const appDataSchemas = {
   plausible: plausible_zod_ts,
   posthog: posthog_zod_ts,
   qr_code: qr_code_zod_ts,
-  "routing-forms": routing_forms_zod_ts,
   salesforce: salesforce_zod_ts,
   shimmervideo: shimmervideo_zod_ts,
   stripe: stripepayment_zod_ts,

@@ -6,30 +6,26 @@
  *
  * For App Router, use app-providers-app-dir.tsx instead.
  */
+
+import process from "node:process";
+import type { ParsedUrlQuery } from "node:querystring";
+import { FeatureProvider } from "@calcom/features/flags/context/provider";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
+import { useViewerI18n } from "@components/I18nLanguageHandler";
+import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import { useNuqsParams } from "@lib/hooks/useNuqsParams";
+import type { WithLocaleProps } from "@lib/withLocale";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
+import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { appWithTranslation } from "next-i18next";
 import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
-import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import { NuqsAdapter } from "nuqs/adapters/next/pages";
-import type { ParsedUrlQuery } from "node:querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
-
-import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
-import { FeatureProvider } from "@calcom/features/flags/context/provider";
-import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
-import DynamicHelpscoutProvider from "@calcom/web/modules/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/web/modules/ee/support/lib/intercom/providerDynamic";
-
-import useIsBookingPage from "@lib/hooks/useIsBookingPage";
-import { useNuqsParams } from "@lib/hooks/useNuqsParams";
-import type { WithLocaleProps } from "@lib/withLocale";
-
-import { useViewerI18n } from "@components/I18nLanguageHandler";
 
 const I18nextAdapter = appWithTranslation<
   NextJsAppProps<SSRConfig> & {
@@ -81,7 +77,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   useEffect(() => {
     try {
       // @ts-expect-error TS2790: The operand of a 'delete' operator must be optional.
-      delete window.document.documentElement["lang"];
+      delete window.document.documentElement.lang;
 
       window.document.documentElement.lang = locale;
 
@@ -95,9 +91,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
         set: function (this) {
           // empty setter on purpose
         },
-        get: function () {
-          return locale;
-        },
+        get: () => locale,
       });
     } catch (error) {
       console.error(error);
@@ -123,7 +117,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   return <I18nextAdapter {...passedProps} />;
 };
 
-const enum ThemeSupport {
+enum ThemeSupport {
   // e.g. Login Page
   None = "none",
   // Entire App except Booking Pages
@@ -260,14 +254,8 @@ function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
   return <FeatureProvider value={flags}>{children}</FeatureProvider>;
 }
 
-function useOrgBrandingValues() {
-  const session = useSession();
-  return session?.data?.user.org;
-}
-
 function OrgBrandProvider({ children }: { children: React.ReactNode }) {
-  const orgBrand = useOrgBrandingValues();
-  return <OrgBrandingProvider value={{ orgBrand }}>{children}</OrgBrandingProvider>;
+  return <>{children}</>;
 }
 
 const AppProviders = (props: AppPropsWithChildren) => {
@@ -288,13 +276,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
           router={props.router}>
           <NuqsAdapter {...nuqsParams}>
             <FeatureFlagsProvider>
-              {_isBookingPage ? (
-                <OrgBrandProvider>{props.children}</OrgBrandProvider>
-              ) : (
-                <DynamicIntercomProvider>
-                  <OrgBrandProvider>{props.children}</OrgBrandProvider>
-                </DynamicIntercomProvider>
-              )}
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>
           </NuqsAdapter>
         </CalcomThemeProvider>
@@ -306,11 +288,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
     return RemainingProviders;
   }
 
-  return (
-    <>
-      <DynamicHelpscoutProvider>{RemainingProviders}</DynamicHelpscoutProvider>
-    </>
-  );
+  return RemainingProviders;
 };
 
 export default AppProviders;

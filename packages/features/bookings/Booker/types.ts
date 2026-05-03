@@ -84,13 +84,11 @@ export interface BookerProps {
    * Refers to the private link from event types page.
    */
   hashedLink?: string | null;
-  isInstantMeeting?: boolean;
   teamMemberEmail?: string | null;
   showNoAvailabilityDialog?: boolean;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
   crmRecordId?: string | null;
-  areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
   hasValidLicense?: boolean;
   useApiV2?: boolean;

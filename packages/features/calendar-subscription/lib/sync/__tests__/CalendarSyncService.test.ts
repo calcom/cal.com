@@ -42,7 +42,6 @@ const mockSelectedCalendar: SelectedCalendar = {
   externalId: "test@example.com",
   eventTypeId: null,
   delegationCredentialId: null,
-  domainWideDelegationCredentialId: null,
   googleChannelId: null,
   googleChannelKind: null,
   googleChannelResourceId: null,
@@ -159,7 +158,7 @@ describe("CalendarSyncService", () => {
   });
 
   describe("handleEvents", () => {
-    test("should process only Cal.com events", async () => {
+    test("should process only Cal.diy events", async () => {
       const events = [mockCalComEvent, mockNonCalComEvent, mockCancelledEvent];
 
       mockBookingRepository.findBookingByUidWithEventType = vi
@@ -178,7 +177,7 @@ describe("CalendarSyncService", () => {
       });
     });
 
-    test("should return early when no Cal.com events", async () => {
+    test("should return early when no Cal.diy events", async () => {
       const events = [mockNonCalComEvent];
 
       await service.handleEvents(mockSelectedCalendar, events);
@@ -231,8 +230,6 @@ describe("CalendarSyncService", () => {
 
       expect(mockHandleCancelBooking).toHaveBeenCalledWith({
         userId: mockBooking.userId,
-        actionSource: "SYSTEM",
-        impersonatedByUserUuid: null,
         bookingData: {
           uid: mockBooking.uid,
           cancellationReason: "Cancelled on user's calendar",
@@ -346,7 +343,6 @@ describe("CalendarSyncService", () => {
           skipCalendarSyncTaskCreation: true,
           skipAvailabilityCheck: true,
           skipEventLimitsCheck: true,
-          impersonatedByUserUuid: null,
         },
       });
       const lastCall = mockCreateBooking.mock.calls.at(-1)!;
@@ -439,7 +435,6 @@ describe("CalendarSyncService", () => {
           skipCalendarSyncTaskCreation: true,
           skipAvailabilityCheck: true,
           skipEventLimitsCheck: true,
-          impersonatedByUserUuid: null,
         },
       });
       const baseCall = mockCreateBooking.mock.calls.at(-1)!;

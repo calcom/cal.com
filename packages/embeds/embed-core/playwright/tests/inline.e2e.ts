@@ -30,7 +30,7 @@ test.describe("Inline Iframe", () => {
     await deleteAllBookingsByEmail("embed-user@example.com");
   });
 
-  // Enable this after fixing https://github.com/calcom/cal.com/issues/16571
+  // Enable this after fixing https://github.com/calcom/cal.diy/issues/16571
   test.skip("COEP flag if not enabled, embed is blocked", async ({ page, embeds }) => {
     const embedBlockedPromise = new Promise((resolve) => {
       page.on("requestfailed", (request) => {

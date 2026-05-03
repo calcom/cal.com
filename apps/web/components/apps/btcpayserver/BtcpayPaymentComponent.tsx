@@ -1,10 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import z from "zod";
-
 import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
-import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,6 +8,46 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Spinner } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useEffect, useState } from "react";
+import z from "zod";
+
+type PaymentPageProps = {
+  payment: {
+    id: number;
+    success: boolean;
+    refunded: boolean;
+    amount: number;
+    currency: string;
+    paymentOption: string | null;
+    data: Record<string, unknown>;
+  };
+  clientSecret?: string | null;
+  booking: {
+    id: number;
+    uid: string;
+    title: string;
+    startTime: string;
+    endTime: string;
+    status: string;
+    paid: boolean;
+    description?: string | null;
+    location?: string | null;
+    attendees?: Array<{ name: string; email: string; timeZone: string }>;
+    user?: { name: string | null; timeZone: string } | null;
+    responses?: Record<string, unknown>;
+  };
+  eventType: {
+    id: number;
+    title: string;
+    length: number;
+    price: number;
+    currency: string;
+    metadata: Record<string, unknown> | null;
+    successRedirectUrl?: string | null;
+    forwardParamsSuccessRedirect?: boolean | null;
+    recurringEvent?: unknown;
+  };
+};
 
 interface IPaymentComponentProps {
   payment: {
@@ -45,7 +81,7 @@ export const BtcpayPaymentComponent = (props: IPaymentComponentProps) => {
   };
 
   return (
-    <div className="mb-4 mt-8 flex h-full w-full flex-col items-center justify-center gap-4">
+    <div className="mt-8 mb-4 flex h-full w-full flex-col items-center justify-center gap-4">
       <PaymentChecker {...props.paymentPageProps} />
 
       {!iframeLoaded && (
@@ -69,7 +105,7 @@ export const BtcpayPaymentComponent = (props: IPaymentComponentProps) => {
           size="sm"
           color="secondary"
           onClick={() => copyToClipboard(checkoutUrl)}
-          className="text-subtle rounded-md"
+          className="rounded-md text-subtle"
           StartIcon={isCopied ? "clipboard-check" : "clipboard"}>
           Copy Payment Link
         </Button>
@@ -121,13 +157,24 @@ function PaymentChecker(props: PaymentCheckerProps) {
             };
 
             bookingSuccessRedirect({
-              successRedirectUrl: props.eventType.successRedirectUrl,
+              successRedirectUrl: props.eventType.successRedirectUrl ?? null,
               query: params,
-              booking: props.booking,
-              forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
+              booking: {
+                ...props.booking,
+                startTime: new Date(props.booking.startTime),
+                endTime: new Date(props.booking.endTime),
+                user: props.booking.user
+                  ? { ...props.booking.user, email: null }
+                  : { email: null, name: null },
+                responses: undefined,
+                attendees: undefined,
+                location: props.booking.location ?? null,
+                description: props.booking.description ?? null,
+              },
+              forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect ?? null,
             });
           }
-        } catch (e) {}
+        } catch (_e) {}
       })();
     }, 2000);
 
@@ -137,10 +184,8 @@ function PaymentChecker(props: PaymentCheckerProps) {
     props.booking,
     props.booking.id,
     props.booking.status,
-    props.eventType.id,
     props.eventType.successRedirectUrl,
     props.eventType.forwardParamsSuccessRedirect,
-    props.payment.success,
     searchParams,
     t,
     utils.viewer.bookings,

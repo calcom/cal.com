@@ -21,7 +21,6 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
-import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
@@ -74,69 +73,10 @@ describe("OAuth Clients Endpoints", () => {
     });
   });
 
-  describe("Organization is not platform", () => {
-    let usersFixtures: UserRepositoryFixture;
-    let membershipFixtures: MembershipRepositoryFixture;
-    let teamFixtures: TeamRepositoryFixture;
-    let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
-
-    let user: User;
-    let org: Team;
-    let app: INestApplication;
-    const userEmail = `oauth-clients-user-${randomString()}@api.com`;
-
-    beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          providers: [PrismaExceptionFilter, HttpExceptionFilter],
-          imports: [AppModule, OAuthClientModule, UsersModule, AuthModule, PrismaModule],
-        })
-      ).compile();
-      const strategy = moduleRef.get(ApiAuthStrategy);
-      expect(strategy).toBeInstanceOf(ApiAuthMockStrategy);
-      usersFixtures = new UserRepositoryFixture(moduleRef);
-      membershipFixtures = new MembershipRepositoryFixture(moduleRef);
-      teamFixtures = new TeamRepositoryFixture(moduleRef);
-      platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
-
-      user = await usersFixtures.create({
-        email: userEmail,
-      });
-      org = await teamFixtures.create({
-        name: `oauth-clients-organization-${randomString()}`,
-        isOrganization: true,
-        metadata: {
-          isOrganization: true,
-          orgAutoAcceptEmail: "api.com",
-          isOrganizationVerified: true,
-          isOrganizationConfigured: true,
-        },
-        isPlatform: false,
-      });
-      await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
-      await platformBillingRepositoryFixture.create(org.id);
-      app = moduleRef.createNestApplication();
-      bootstrap(app as NestExpressApplication);
-      await app.init();
-    });
-
-    it(`/GET`, () => {
-      return request(app.getHttpServer()).get("/api/v2/oauth-clients").expect(403);
-    });
-
-    afterAll(async () => {
-      await teamFixtures.delete(org.id);
-      await usersFixtures.delete(user.id);
-      await app.close();
-    });
-  });
-
   describe("User Is Authenticated", () => {
     let usersFixtures: UserRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let teamFixtures: TeamRepositoryFixture;
-    let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
     let oAuthClientsRepositoryFixture: OAuthClientRepositoryFixture;
 
     let user: User;
@@ -157,7 +97,6 @@ describe("OAuth Clients Endpoints", () => {
       usersFixtures = new UserRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       teamFixtures = new TeamRepositoryFixture(moduleRef);
-      platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
       oAuthClientsRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
 
       user = await usersFixtures.create({
@@ -174,7 +113,6 @@ describe("OAuth Clients Endpoints", () => {
         },
         isPlatform: true,
       });
-      await platformBillingRepositoryFixture.create(org.id);
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
       await app.init();
@@ -182,13 +120,13 @@ describe("OAuth Clients Endpoints", () => {
 
     describe("User is not part of an organization", () => {
       it(`/GET`, () => {
-        return request(app.getHttpServer()).get("/api/v2/oauth-clients").expect(403);
+        return request(app.getHttpServer()).get("/api/v2/oauth-clients").expect(401);
       });
       it(`/GET/:id`, () => {
         return request(app.getHttpServer()).get("/api/v2/oauth-clients/1234").expect(403);
       });
       it(`/POST`, () => {
-        return request(app.getHttpServer()).post("/api/v2/oauth-clients").expect(403);
+        return request(app.getHttpServer()).post("/api/v2/oauth-clients").expect(401);
       });
       it(`/PUT/:id`, () => {
         return request(app.getHttpServer()).patch("/api/v2/oauth-clients/1234").expect(403);
@@ -211,13 +149,13 @@ describe("OAuth Clients Endpoints", () => {
         return request(app.getHttpServer()).get("/api/v2/oauth-clients/1234").expect(404);
       });
       it(`/POST`, () => {
-        return request(app.getHttpServer()).post("/api/v2/oauth-clients").expect(403);
+        return request(app.getHttpServer()).post("/api/v2/oauth-clients").expect(400);
       });
       it(`/PUT/:id`, () => {
-        return request(app.getHttpServer()).patch("/api/v2/oauth-clients/1234").expect(403);
+        return request(app.getHttpServer()).patch("/api/v2/oauth-clients/1234").expect(404);
       });
       it(`/DELETE/:id`, () => {
-        return request(app.getHttpServer()).delete("/api/v2/oauth-clients/1234").expect(403);
+        return request(app.getHttpServer()).delete("/api/v2/oauth-clients/1234").expect(404);
       });
 
       afterAll(async () => {
@@ -416,7 +354,6 @@ describe("OAuth Clients Endpoints", () => {
     afterAll(async () => {
       await teamFixtures.delete(org.id);
       await usersFixtures.delete(user.id);
-      await platformBillingRepositoryFixture.deleteSubscriptionForTeam(org.id);
       await app.close();
     });
   });

@@ -1,8 +1,7 @@
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BuiltCalendarEvent } from "@calcom/features/CalendarEventBuilder";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -60,18 +59,13 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
     throw new Error(`event type not found for booking ${bookingUid}`);
   }
 
-  const organizerOrganizationId = booking.eventType.team?.parentId
-    ? booking.eventType.team.parentId
-    : await ProfileRepository.findFirstOrganizationIdForUser({
-        userId: booking.user.id,
-      });
-  const bookerUrl = await getBookerBaseUrl(organizerOrganizationId ?? null);
+  const bookerUrl = WEBAPP_URL;
   const organizerT = await getTranslation(booking.user?.locale ?? "en", "common");
 
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
     attendeePromises.push(
-      getTranslation(attendee.locale ?? "en", "common").then((tAttendee) => ({
+      getTranslation(attendee.locale ?? "en", "common").then((tAttendee: Awaited<ReturnType<typeof getTranslation>>) => ({
         email: attendee.email,
         name: attendee.name,
         timeZone: attendee.timeZone,

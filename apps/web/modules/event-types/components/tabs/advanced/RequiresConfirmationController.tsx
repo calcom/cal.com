@@ -1,23 +1,21 @@
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import type {
+  EventTypeSetup,
+  FormValues,
+  SettingsToggleClassNames,
+} from "@calcom/features/eventtypes/lib/types";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import classNames from "@calcom/ui/classNames";
+import { CheckboxField, Input, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { RadioField } from "@calcom/ui/components/radio";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
-
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
-import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import classNames from "@calcom/ui/classNames";
-import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { RadioField } from "@calcom/ui/components/radio";
 
 export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;
@@ -60,9 +58,10 @@ export default function RequiresConfirmationController({
     if (!requiresConfirmation) {
       formMethods.setValue("metadata.requiresConfirmationThreshold", undefined, { shouldDirty: true });
     }
-  }, [requiresConfirmation]);
+  }, [requiresConfirmation, formMethods.setValue]);
 
-  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
+  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
+  const shouldLockIndicator = (_field: string) => false;
   const requiresConfirmationLockedProps = shouldLockDisableProps("requiresConfirmation");
 
   const options = [
@@ -118,7 +117,7 @@ export default function RequiresConfirmationController({
                 }
                 onRequiresConfirmation(val);
               }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <div className="rounded-b-lg border border-subtle border-t-0 p-6">
                 <RadioGroup.Root
                   defaultValue={
                     requiresConfirmation
@@ -175,9 +174,7 @@ export default function RequiresConfirmationController({
                             "items-center",
                             customClassNames?.conditionalConfirmationRadio?.container
                           )}
-                          label={
-                            <>
-                              <ServerTrans
+                          label=<ServerTrans
                                 t={t}
                                 i18nKey="when_booked_with_less_than_notice"
                                 components={[
@@ -196,14 +193,12 @@ export default function RequiresConfirmationController({
                                             defaultRequiresConfirmationSetup.unit,
                                           time: val,
                                         });
-                                        formMethods.setValue(
-                                          "metadata.requiresConfirmationThreshold.time",
-                                          val,
-                                          { shouldDirty: true }
-                                        );
+                                    formMethods.setValue("metadata.requiresConfirmationThreshold.time", val, {
+                                      shouldDirty: true,
+                                    });
                                       }}
                                       className={classNames(
-                                        "border-default m-0! block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
+                                    "m-0! block w-16 rounded-r-none border-default border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
                                         customClassNames?.conditionalConfirmationRadio?.timeInput
                                       )}
                                       defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
@@ -217,9 +212,7 @@ export default function RequiresConfirmationController({
                                         options={options}
                                         isSearchable={false}
                                         isDisabled={requiresConfirmationLockedProps.disabled}
-                                        className={
-                                          customClassNames?.conditionalConfirmationRadio?.timeUnitSelect
-                                        }
+                                    className={customClassNames?.conditionalConfirmationRadio?.timeUnitSelect}
                                         innerClassNames={{
                                           control: "rounded-l-none max-h-4 px-3 bg-subtle py-1",
                                         }}
@@ -241,13 +234,11 @@ export default function RequiresConfirmationController({
                                     </label>
                                   </div>,
                                 ]}
-                              />
-                            </>
-                          }
+                          />
                           id="notice"
                           value="notice"
                         />
-                        <div className="-ml-1 stack-y-2">
+                        <div className="stack-y-2 -ml-1">
                           <CheckboxField
                             checked={requiresConfirmationWillBlockSlot}
                             descriptionAsLabel

@@ -42,4 +42,4 @@ We hold each other accountable for quality. Cutting corners might feel faster in
 - Focus on the code, not the person
 - Remember that quality standards protect everyone
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

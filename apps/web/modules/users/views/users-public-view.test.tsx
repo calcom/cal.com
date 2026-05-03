@@ -1,18 +1,11 @@
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { render } from "@testing-library/react";
 import { describe, it, vi } from "vitest";
-
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-
 import UserPage from "./users-public-view";
 
 vi.mock("@calcom/lib/constants", async () => {
   return await vi.importActual("@calcom/lib/constants");
 });
-
-vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
-  getOrgFullOrigin: vi.fn(),
-}));
 
 vi.mock("@calcom/lib/hooks/useRouterQuery", () => ({
   useRouterQuery: vi.fn(),
@@ -66,7 +59,7 @@ function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof
 }
 
 describe("UserPage Component", () => {
-  it("should render with no throw", () => {
+  it("should render with no throw", async () => {
     const mockData = {
       props: mockedUserPageComponentProps({
         entity: {
@@ -75,10 +68,6 @@ describe("UserPage Component", () => {
         },
       }),
     };
-
-    vi.mocked(getOrgFullOrigin).mockImplementation((orgSlug: string | null) => {
-      return `${orgSlug}.cal.local`;
-    });
 
     vi.mocked(useRouterQuery).mockReturnValue({
       uid: "uid",

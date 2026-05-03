@@ -133,32 +133,6 @@ test.describe("Popup Tests", () => {
     expect(cancelledBooking.status).toBe("CANCELLED");
   });
 
-  test("should open Routing Forms embed on click", async ({
-    page,
-    embeds: { addEmbedListeners, getActionFiredDetails },
-  }) => {
-    await deleteAllBookingsByEmail("embed-user@example.com");
-
-    const calNamespace = "routingFormAuto";
-    await addEmbedListeners(calNamespace);
-    await page.goto("/?only=prerender-test");
-    await page.click(
-      `[data-cal-namespace=${calNamespace}][data-cal-link="forms/948ae412-d995-4865-875a-48302588de03"]`
-    );
-    const embedIframe = await getEmbedIframe({
-      calNamespace,
-      page,
-      pathname: "/forms/948ae412-d995-4865-875a-48302588de03",
-    });
-    if (!embedIframe) {
-      throw new Error("Routing Form embed iframe not found");
-    }
-    await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
-      pathname: "/forms/948ae412-d995-4865-875a-48302588de03",
-    });
-    await expect(embedIframe.locator("text=Seeded Form - Pro")).toBeVisible();
-  });
-
   test.describe("Floating Button Popup", () => {
     test.describe("Pro User - Configured in App with default setting of system theme", () => {
       test("should open embed iframe according to system theme when no theme is configured through Embed API", async ({

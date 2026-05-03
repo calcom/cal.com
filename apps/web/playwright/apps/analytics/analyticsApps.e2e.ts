@@ -22,9 +22,9 @@ test.describe("check analytics Apps", () => {
         await page.goto("/event-types");
         await appsPage.goToEventType("30 min");
         await appsPage.goToAppsTab();
-        await appsPage.verifyAppsInfo(0);
+        await appsPage.verifyAppsInfo(1, 0);
         await appsPage.activeApp(app);
-        await appsPage.verifyAppsInfo(1);
+        await appsPage.verifyAppsInfo(1, 1);
       });
     });
   });

@@ -85,11 +85,15 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
   const eventTypeCrmCredentials: Record<number, { enabled: boolean }> = {};
 
   for (const appKey in eventTypeAppMetadata) {
-    const app = eventTypeAppMetadata[appKey as keyof typeof eventTypeAppMetadata];
-    if (app.appCategories && app.appCategories.some((category: string) => category === "crm")) {
-      eventTypeCrmCredentials[app.credentialId] = {
-        enabled: app.enabled,
-      };
+    const app = eventTypeAppMetadata[appKey as keyof typeof eventTypeAppMetadata] as
+      | { appCategories?: string[]; credentialId?: number; enabled?: boolean }
+      | undefined;
+    if (app?.appCategories && app.appCategories.some((category: string) => category === "crm")) {
+      if (app.credentialId !== undefined) {
+        eventTypeCrmCredentials[app.credentialId] = {
+          enabled: app.enabled ?? false,
+        };
+      }
     }
   }
 

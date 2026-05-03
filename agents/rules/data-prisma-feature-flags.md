@@ -9,7 +9,7 @@ tags: prisma, feature-flags, migrations
 
 ## Creating Feature Flag Migrations
 
-To seed new feature flags in Cal.com, create a Prisma migration:
+To seed new feature flags in Cal.diy, create a Prisma migration:
 
 ```bash
 yarn prisma migrate dev --create-only --name seed_[feature_name]_feature
