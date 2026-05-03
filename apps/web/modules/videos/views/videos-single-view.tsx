@@ -10,7 +10,7 @@ import {
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -585,7 +585,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
             {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
             <div
               className="prose-sm prose prose-invert"
-              dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
+              dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(booking.description) }}
             />
           </>
         )}

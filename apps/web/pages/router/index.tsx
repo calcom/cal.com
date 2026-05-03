@@ -2,7 +2,7 @@
 
 import Head from "next/head";
 
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -26,7 +26,7 @@ export default function Router({
             <div
               className="prose prose-sm dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{
-                __html: markdownToSafeHTML(message || errorMessage || null),
+                __html: markdownToSafeHTMLClient(message || errorMessage || null),
               }}
             />
           </div>
