@@ -770,10 +770,10 @@ export default function Signup({
               </>
             )}
           </div>
-          <div className="mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl border-subtle pl-4 lg:mt-0 lg:flex lg:max-w-full lg:border lg:bg-subtle lg:py-12 lg:pl-12 dark:bg-none">
+          <div className="mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl border-subtle pl-4 pr-4 lg:mt-0 lg:flex lg:max-w-full lg:border lg:bg-subtle lg:py-12 lg:pl-12 lg:pr-12 dark:bg-none">
             {IS_CALCOM && (
               <>
-                <div className="-mt-4 mr-12 mb-6 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
+                <div className="-mt-4 mb-6 grid w-full grid-cols-3 gap-5 sm:gap-3 lg:grid-cols-4">
                   <div>
                     {/* eslint-disable @next/next/no-img-element */}
                     <img
@@ -799,7 +799,7 @@ export default function Signup({
                     />
                   </div>
                 </div>
-                <div className="mr-12 mb-6 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
+                <div className="mb-6 grid w-full grid-cols-3 gap-5 sm:gap-3 lg:grid-cols-4">
                   <div>
                     {/* eslint-disable @next/next/no-img-element */}
                     <img
@@ -836,7 +836,7 @@ export default function Signup({
                 alt="Cal.diy Booking Page"
               />
             </div>
-            <div className="mt-8 mr-12 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
+            <div className="mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
               {FEATURES.map((feature, index) => (
                 <div key={index} className="mb-8 flex max-w-52 flex-col leading-none sm:mb-0">
                   <div className="items-center text-emphasis">
