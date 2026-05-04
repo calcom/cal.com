@@ -345,7 +345,7 @@ export class CreateBookingInput_2024_08_13 {
     ],
   })
   @Type(() => Object)
-  // note(Lauris): string is for backwards compatability
+  // note(Lauris): string is for backwards compatibility
   location?: BookingInputLocation_2024_08_13 | string;
 
   @ApiProperty({

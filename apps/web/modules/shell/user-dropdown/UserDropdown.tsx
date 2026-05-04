@@ -14,7 +14,6 @@ import {
   MenuTrigger,
 } from "@coss/ui/components/menu";
 import {
-  BlocksIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   CircleHelpIcon,
@@ -25,7 +24,6 @@ import {
   UserIcon,
 } from "@coss/ui/icons";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";
@@ -51,11 +49,8 @@ interface UserDropdownProps {
 }
 
 export function UserDropdown({ small }: UserDropdownProps) {
-  const isPlatformUser = false;
   const { t } = useLocale();
   const { data: user, isPending } = useMeQuery();
-  const pathname = usePathname();
-  const isPlatformPages = pathname?.startsWith("/settings/platform");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -166,23 +161,21 @@ export function UserDropdown({ small }: UserDropdownProps) {
 
       <>
         <MenuPopup align="start">
-          {!isPlatformPages && (
-            <>
-              <MenuItem render={<Link href="/settings/my-account/profile" />}>
-                <UserIcon />
-                {t("my_profile")}
-              </MenuItem>
-              <MenuItem render={<Link href="/settings/my-account/general" />}>
-                <SettingsIcon />
-                {t("my_settings")}
-              </MenuItem>
-              <MenuItem render={<Link href="/settings/my-account/out-of-office" />}>
-                <MoonIcon />
-                {t("out_of_office")}
-              </MenuItem>
-              <MenuSeparator />
-            </>
-          )}
+          <>
+            <MenuItem render={<Link href="/settings/my-account/profile" />}>
+              <UserIcon />
+              {t("my_profile")}
+            </MenuItem>
+            <MenuItem render={<Link href="/settings/my-account/general" />}>
+              <SettingsIcon />
+              {t("my_settings")}
+            </MenuItem>
+            <MenuItem render={<Link href="/settings/my-account/out-of-office" />}>
+              <MoonIcon />
+              {t("out_of_office")}
+            </MenuItem>
+            <MenuSeparator />
+          </>
 
           <MenuItem render={<a href={ROADMAP} target="_blank" rel="noreferrer" />}>
             <MapIcon />
@@ -192,12 +185,6 @@ export function UserDropdown({ small }: UserDropdownProps) {
             <CircleHelpIcon />
             {t("help")}
           </MenuItem>
-          {!isPlatformPages && isPlatformUser && (
-            <MenuItem render={<Link href="/settings/platform" />} className="todesktop:hidden hidden lg:flex">
-              <BlocksIcon />
-              {t("platform")}
-            </MenuItem>
-          )}
           <MenuSeparator />
 
           <MenuItem
