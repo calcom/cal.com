@@ -269,16 +269,13 @@ const useDefaultCountry = () => {
       const tzCountry = tz ? TIMEZONE_COUNTRY_MAP[tz] : undefined;
       if (tzCountry && isSupportedCountry(tzCountry.toUpperCase())) {
         setDefaultCountry(tzCountry);
-        return;
       }
 
-      // The map covers high-traffic timezones, not every IANA zone.
-      // Only force "us" when the resolved zone is clearly North American.
-      // Otherwise keep the initial default ("us" or whatever came from the
-      // store) rather than overriding with a wrong guess.
-      if (tz?.startsWith("America/")) {
-        setDefaultCountry("us");
-      }
+      // For unmapped timezones, keep the initial default ("us" or whatever
+      // came from the store). The previous explicit fallback used
+      // `tz.startsWith("America/")` to force "us", but `America/*` covers
+      // many non-US zones (Latin America, Caribbean) and would mis-detect
+      // those users as US.
     },
     [query.data, query.isSuccess, query.isError, defaultPhoneCountryFromStore]
   );
