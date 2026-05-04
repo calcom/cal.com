@@ -4,7 +4,10 @@ import { NextResponse } from "next/server";
 
 async function getHandler() {
   const headersList = await headers();
-  const country = headersList.get("cf-ipcountry") || headersList.get("x-vercel-ip-country") || "Unknown";
+  const raw = headersList.get("cf-ipcountry") ?? headersList.get("x-vercel-ip-country") ?? "";
+  // Headers should already be uppercase ISO 3166-1 alpha-2 codes, but
+  // normalize defensively so consumers can do strict equality (e.g. "US").
+  const country = raw.trim().toUpperCase() || "Unknown";
 
   const response = NextResponse.json({ country });
   // The response varies by request headers (cf-ipcountry / x-vercel-ip-country).

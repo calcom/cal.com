@@ -259,9 +259,9 @@ const useDefaultCountry = () => {
         return;
       }
 
-      const data = query.data;
-      if (data?.countryCode && isSupportedCountry(data.countryCode)) {
-        setDefaultCountry(data.countryCode.toLowerCase() as CountryCode);
+      const cc = (query.data?.countryCode ?? "").trim().toUpperCase();
+      if (cc && isSupportedCountry(cc)) {
+        setDefaultCountry(cc.toLowerCase() as CountryCode);
         return;
       }
 
