@@ -1,8 +1,6 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
-import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { useDisplayedFilterCount } from "~/data-table/hooks/useDisplayedFilterCount";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -20,7 +18,9 @@ import { useBookingListData } from "~/bookings/hooks/useBookingListData";
 import { useBookingStatusTab } from "~/bookings/hooks/useBookingStatusTab";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import { useListAutoSelector } from "~/bookings/hooks/useListAutoSelector";
-import { DataTableFilters } from "~/data-table/components";
+import { DataTableFilters, DataTableSegment } from "~/data-table/components";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useDisplayedFilterCount } from "~/data-table/hooks/useDisplayedFilterCount";
 import {
   BookingDetailsSheetStoreProvider,
   useBookingDetailsSheetStore,
@@ -187,6 +187,7 @@ function BookingListInner({
         {/* Desktop: auto-pushed to right via flex-grow spacer, Mobile: continue on second row */}
         <div className="hidden grow md:block" />
 
+        <DataTableSegment.Select />
         {/* <BookingsCsvDownload status={status} /> */}
         {bookingsV3Enabled && <ViewToggleButton bookingsV3Enabled={bookingsV3Enabled} />}
       </div>
@@ -199,6 +200,7 @@ function BookingListInner({
           <div className="hidden flex-grow md:block" />
 
           <DataTableFilters.ClearFiltersButton />
+          <DataTableSegment.SaveButton />
         </div>
       )}
       {status === "upcoming" && !isEmpty && (
