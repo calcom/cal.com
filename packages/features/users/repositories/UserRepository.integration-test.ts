@@ -85,7 +85,14 @@ describe("UserRepository Integration Tests - Signup Methods", () => {
 
       const updatedUser = await prisma.user.findUnique({
         where: { email: testEmail },
-        include: { password: true },
+        select: {
+          username: true,
+          password: {
+            select: {
+              hash: true
+            }
+          }
+        },
       });
       expect(updatedUser?.username).toBe(`user-${testRunId}-updated`);
       expect(updatedUser?.password?.hash).toBe(hashedPassword2);
@@ -138,9 +145,7 @@ describe("UserRepository Integration Tests - Signup Methods", () => {
       });
 
       expect(user?.emailVerified).not.toBeNull();
-      expect(user?.emailVerified?.getTime()).toBeLessThanOrEqual(
-        new Date().getTime()
-      );
+      expect(user?.emailVerified?.getTime()).toBe(verificationDate.getTime());
     });
 
     it("should create password record for new user", async () => {
@@ -159,7 +164,14 @@ describe("UserRepository Integration Tests - Signup Methods", () => {
 
       const userWithPassword = await prisma.user.findUnique({
         where: { email: testEmail },
-        include: { password: true },
+        select: {
+          password: {
+            select: {
+              hash: true,
+              userId: true
+            }
+          }
+        },
       });
 
       expect(userWithPassword?.password).not.toBeNull();
@@ -228,7 +240,16 @@ describe("UserRepository Integration Tests - Signup Methods", () => {
   
     const createdUser = await prisma.user.findUnique({  
       where: { email: testEmail },  
-      include: { password: true },  
+      select: {
+        email: true,
+        username: true,
+        organizationId: true,
+        password: {
+          select: {
+            userId: true
+          }
+        }
+      },  
     });  
     expect(createdUser?.email).toBe(testEmail);  
     expect(createdUser?.username).toBe(testUsername);  
