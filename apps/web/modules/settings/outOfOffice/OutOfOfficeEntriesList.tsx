@@ -103,6 +103,34 @@ function OutOfOfficeEntriesListContent({
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [deletedEntry, setDeletedEntry] = useState(0);
+  const getFallbackUserName = (user: OutOfOfficeEntry["user"]) => {
+    if (!user?.email) return undefined;
+    const emailName = user.email.split("@")[0];
+    return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+  };
+
+  const toBookingRedirectForm = (item: OutOfOfficeEntry): BookingRedirectForm => {
+    const startDateOffset = -1 * item.start.getTimezoneOffset();
+    const endDateOffset = -1 * item.end.getTimezoneOffset();
+
+    return {
+      uuid: item.uuid,
+      dateRange: {
+        startDate: dayjs(item.start).subtract(startDateOffset, "minute").toDate(),
+        endDate: dayjs(item.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
+      },
+      startDateOffset,
+      endDateOffset,
+      toTeamUserId: item.toUserId,
+      reasonId: item.reason?.id ?? 1,
+      notes: item.notes ?? undefined,
+      showNotePublicly: item.showNotePublicly ?? false,
+      forUserId: item.user?.id || null,
+      forUserName: item.user?.name || getFallbackUserName(item.user),
+      forUserAvatar: item.user?.avatarUrl,
+      toUserName: item.toUser?.name || item.toUser?.username,
+    };
+  };
 
   const { searchTerm } = useDataTable();
   const searchParams = useCompatSearchParams();
@@ -233,34 +261,7 @@ function OutOfOfficeEntriesListContent({
                       variant="icon"
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                       StartIcon="pencil"
-                      onClick={() => {
-                        const startDateOffset = -1 * item.start.getTimezoneOffset();
-                        const endDateOffset = -1 * item.end.getTimezoneOffset();
-                        const outOfOfficeEntryData: BookingRedirectForm = {
-                          uuid: item.uuid,
-                          dateRange: {
-                            startDate: dayjs(item.start).subtract(startDateOffset, "minute").toDate(),
-                            endDate: dayjs(item.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
-                          },
-                          startDateOffset,
-                          endDateOffset,
-                          toTeamUserId: item.toUserId,
-                          reasonId: item.reason?.id ?? 1,
-                          notes: item.notes ?? undefined,
-                          showNotePublicly: item.showNotePublicly ?? false,
-                          forUserId: item.user?.id || null,
-                          forUserName:
-                            item.user?.name ||
-                            (item.user?.email &&
-                              (() => {
-                                const emailName = item.user?.email.split("@")[0];
-                                return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-                              })()),
-                          forUserAvatar: item.user?.avatarUrl,
-                          toUserName: item.toUser?.name || item.toUser?.username,
-                        };
-                        onOpenEditDialog(outOfOfficeEntryData);
-                      }}
+                      onClick={() => onOpenEditDialog(toBookingRedirectForm(item))}
                       disabled={isPending || isFetching || !item.canEditAndDelete}
                     />
                   </Tooltip>
