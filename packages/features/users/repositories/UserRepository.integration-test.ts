@@ -15,6 +15,8 @@ async function cleanupTestUsers() {
         id: { in: createdUserIds },
       },
     });
+
+    createdUserIds.length = 0
   }
 }
 
