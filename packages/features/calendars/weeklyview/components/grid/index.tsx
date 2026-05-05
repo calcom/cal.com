@@ -1,4 +1,4 @@
-import type React from "react";
+import React from "react";
 
 type Props = {
   offsetHeight: number | undefined;
@@ -7,13 +7,10 @@ type Props = {
   zIndex?: number;
 };
 
-export const SchedulerColumns = function SchedulerColumns({
-  offsetHeight,
-  gridStopsPerDay,
-  children,
-  zIndex,
-  ref,
-}: Props & { ref?: React.RefObject<HTMLOListElement | null> }): JSX.Element {
+export const SchedulerColumns = React.forwardRef<HTMLOListElement, Props>(function SchedulerColumns(
+  { offsetHeight, gridStopsPerDay, children, zIndex },
+  ref
+) {
   return (
     <ol
       ref={ref}
@@ -23,4 +20,4 @@ export const SchedulerColumns = function SchedulerColumns({
       {children}
     </ol>
   );
-};
+});
