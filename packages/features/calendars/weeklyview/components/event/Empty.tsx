@@ -19,7 +19,7 @@ type EmptyCellProps = GridCellToDateProps & {
   topOffsetMinutes?: number;
 };
 
-export function EmptyCell(props: EmptyCellProps) {
+function EmptyCell(props: EmptyCellProps): JSX.Element {
   const cellToDate = gridCellToDateTime({
     day: props.day,
     gridCellIdx: props.gridCellIdx,
@@ -42,16 +42,16 @@ type AvailableCellProps = {
   renderOutOfOffice?: (props: OutOfOfficeRenderProps) => ReactNode;
 };
 
-export function AvailableCellsForDay({
+function AvailableCellsForDay({
   timezone,
   availableSlots,
   day,
   startHour,
   renderOutOfOffice,
-}: AvailableCellProps) {
+}: AvailableCellProps): JSX.Element | null {
   const date = dayjs(day);
   const dateFormatted = date.format("YYYY-MM-DD");
-  const slotsForToday = availableSlots && availableSlots[dateFormatted];
+  const slotsForToday = availableSlots?.[dateFormatted];
 
   const slots = useMemo(() => {
     const calculatedSlots: {
@@ -107,7 +107,8 @@ export function AvailableCellsForDay({
 
   if (slots.startEndTimeDuration) {
     const { firstSlot, startEndTimeDuration } = slots;
-    const renderOOO = renderOutOfOffice ?? ((p: OutOfOfficeRenderProps) => <DefaultOutOfOfficeSlot {...p} />);
+    const renderOOO =
+      renderOutOfOffice ?? ((p: OutOfOfficeRenderProps): JSX.Element => <DefaultOutOfOfficeSlot {...p} />);
     return (
       <CustomCell
         timeSlot={dayjs(firstSlot?.start).tz(slots.timezone)}
@@ -147,7 +148,7 @@ type CellProps = {
   timeSlot: Dayjs;
 };
 
-function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
+function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps): JSX.Element {
   const { timeFormat } = useTimePreferences();
 
   const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
@@ -157,6 +158,11 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
     }),
     shallow
   );
+
+  let topValue: string | undefined;
+  if (topOffsetMinutes !== undefined) {
+    topValue = `calc(${topOffsetMinutes}*var(--one-minute-height))`;
+  }
 
   return (
     <div
@@ -172,7 +178,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       style={{
         height: `calc(${hoverEventDuration}*var(--one-minute-height))`,
         overflow: "visible",
-        top: topOffsetMinutes !== undefined ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
+        top: topValue,
       }}
       onClick={() => {
         onEmptyCellClick?.(timeSlot.toDate());
@@ -180,7 +186,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       {!isDisabled && hoverEventDuration !== 0 && (
         <div
           className={classNames(
-            "bg-brand-default hover:bg-brand-default text-brand dark:border-emphasis absolute hidden rounded-[4px] p-[6px] text-xs font-semibold leading-5 group-hover:flex group-hover:cursor-pointer",
+            "absolute hidden rounded-[4px] bg-brand-default p-[6px] font-semibold text-brand text-xs leading-5 hover:bg-brand-default group-hover:flex group-hover:cursor-pointer dark:border-emphasis",
             hoverEventDuration && hoverEventDuration > 15 && "items-start pt-3",
             hoverEventDuration && hoverEventDuration < 15 && "items-center"
           )}
@@ -203,20 +209,25 @@ function CustomCell({
   children,
   topOffsetMinutes,
   startEndTimeDuration,
-}: CellProps & { children: React.ReactNode; startEndTimeDuration?: number }) {
+}: CellProps & { children: React.ReactNode; startEndTimeDuration?: number }): JSX.Element {
+  let topValue: string | undefined;
+  if (topOffsetMinutes !== undefined) {
+    topValue = `calc(${topOffsetMinutes}*var(--one-minute-height))`;
+  }
+
   return (
     <div
       className={classNames(
-        "bg-default dark:bg-cal-muted group absolute z-65 flex w-[calc(100%-1px)] items-center justify-center"
+        "group absolute z-65 flex w-[calc(100%-1px)] items-center justify-center bg-default dark:bg-cal-muted"
       )}
       data-slot={timeSlot.toISOString()}
       style={{
-        top: topOffsetMinutes !== undefined ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
+        top: topValue,
         overflow: "visible",
       }}>
       <div
         className={classNames(
-          "dark:border-emphasis bg-default dark:bg-cal-muted cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold dark:text-white"
+          "cursor-pointer rounded-[4px] bg-default p-[6px] font-semibold text-xs dark:border-emphasis dark:bg-cal-muted dark:text-white"
         )}
         style={{
           height: `calc(${startEndTimeDuration}*var(--one-minute-height) - 2px)`,
@@ -227,3 +238,5 @@ function CustomCell({
     </div>
   );
 }
+
+export { EmptyCell, AvailableCellsForDay };
