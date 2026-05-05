@@ -90,7 +90,7 @@ Here’s what you need to run Cal.diy.
    ```
 
    > If you are on Windows, run the following command in Git Bash with admin privileges:
-   > `git clone -c core.symlinks=true https://github.com/calcom/cal.diy.git`
+   > `git clone -c core.symlinks=true https://hub.docker.com/r/calcom/cal.com
 
 2. Go to the project folder
 
