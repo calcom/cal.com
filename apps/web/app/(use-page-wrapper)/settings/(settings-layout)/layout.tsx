@@ -18,7 +18,6 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
       teamFeatures={{}}
       permissions={{
         canViewRoles: false,
-        canViewOrganizationBilling: false,
         canUpdateOrganization: false,
         canViewAttributes: false,
       }}

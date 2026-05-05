@@ -2,11 +2,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { NextApiRequest } from "next";
 import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  BillingPortalServiceFactory,
-  TeamBillingPortalService,
-  UserBillingPortalService,
-} from "../../lib/BillingPortalService";
+import { BillingPortalServiceFactory, UserBillingPortalService } from "../../lib/BillingPortalService";
 import * as customerModule from "../../lib/customer";
 import { buildReturnUrl, validateAuthentication } from "../portal";
 
@@ -104,15 +100,6 @@ describe("Portal API - Service-Based Architecture", () => {
       const service = BillingPortalServiceFactory.createUserService();
 
       expect(service).toBeInstanceOf(UserBillingPortalService);
-    });
-  });
-
-  describe("TeamBillingPortalService", () => {
-    it("should return false for checkPermissions (EE feature removed)", async () => {
-      const service = new TeamBillingPortalService();
-      const result = await service.checkPermissions(123, 456);
-
-      expect(result).toBe(false);
     });
   });
 

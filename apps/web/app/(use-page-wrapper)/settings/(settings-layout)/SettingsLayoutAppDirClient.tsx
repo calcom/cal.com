@@ -263,7 +263,6 @@ const organizationAdminKeys = [
 
 interface SettingsPermissions {
   canViewRoles?: boolean;
-  canViewOrganizationBilling?: boolean;
   canUpdateOrganization?: boolean;
   canViewAttributes?: boolean;
 }
@@ -322,22 +321,7 @@ const useTabs = ({
               trackingMetadata: { section: "organization", page: "roles_and_permissions" },
             });
           }
-
-          if (permissions?.canViewOrganizationBilling) {
-            newArray.push({
-              name: "billing",
-              href: "/settings/organizations/billing",
-              trackingMetadata: { section: "organization", page: "billing" },
-            });
-          }
         } else {
-          if (permissions?.canUpdateOrganization) {
-            newArray.push({
-              name: "billing",
-              href: "/settings/organizations/billing",
-              trackingMetadata: { section: "organization", page: "billing" },
-            });
-          }
           // Show roles page (modal will appear if PBAC not enabled)
           if (permissions?.canUpdateOrganization) {
             newArray.push({
