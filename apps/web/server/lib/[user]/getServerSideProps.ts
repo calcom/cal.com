@@ -1,4 +1,3 @@
-import { encode } from "node:querystring";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
 import { getBrandingForUser } from "@calcom/features/profile/lib/getBranding";
@@ -7,6 +6,7 @@ import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { serializeNextQueryParams } from "@calcom/web/lib/serializeNextQueryParams";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { prisma } from "@calcom/prisma";
@@ -107,8 +107,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
     // EXAMPLE - context.params: { orgSlug: 'acme', user: 'member0+owner1' }
     // EXAMPLE - context.query: { redirect: 'undefined', orgRedirection: 'undefined', user: 'member0+owner1' }
-    const originalQueryString = new URLSearchParams(context.query as Record<string, string>).toString();
-    const destinationWithQuery = `${destinationUrl}?${originalQueryString}`;
+    const originalQueryString = serializeNextQueryParams(context.query);
+    const destinationWithQuery = originalQueryString
+      ? `${destinationUrl}?${originalQueryString}`
+      : destinationUrl;
     log.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
     return {
       redirect: {
@@ -169,7 +171,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     // Redirect but don't change the URL
     const urlDestination = `/${user.profile.username}/${eventTypes[0].slug}`;
     const { query } = context;
-    const urlQuery = new URLSearchParams(encode(query));
+    const urlQuery = new URLSearchParams(serializeNextQueryParams(query));
 
     return {
       redirect: {
