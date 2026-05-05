@@ -77,7 +77,9 @@ export async function handleConfirmation(args: {
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);
   const eventManager = new EventManager(user, apps);
   const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
-  const scheduleResult = await eventManager.create(evt, { skipCalendarEvent: !areCalendarEventsEnabled });
+  const scheduleResult = await eventManager.create(evt, {
+    skipCalendarEvent: !areCalendarEventsEnabled,
+  });
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
   const spanContext = distributedTracing.createSpan(traceContext, "handle_confirmation");
@@ -155,14 +157,14 @@ export async function handleConfirmation(args: {
   }[] = [];
 
   // meetingUrl for non-recurring bookings only (recurring occurrences each get their own below)
-const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
-const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
+  const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
+  const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
 
-let acceptedBookings: {
-  oldStatus: BookingStatus;
-  uid: string;
-}[];
-if (recurringEventId) {
+  let _acceptedBookings: {
+    oldStatus: BookingStatus;
+    uid: string;
+  }[];
+  if (recurringEventId) {
     // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
     // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
     const unconfirmedRecurringBookings = await prisma.booking.findMany({
@@ -171,14 +173,15 @@ if (recurringEventId) {
         status: BookingStatus.PENDING,
       },
     });
-    acceptedBookings = unconfirmedRecurringBookings.map((booking) => ({
+    _acceptedBookings = unconfirmedRecurringBookings.map((booking) => ({
       oldStatus: booking.status,
       uid: booking.uid,
     }));
     // Derive the video call URL from the video reference created for this confirmation.
     // Cal Video recurring series intentionally share one room URL across occurrences.
-    const videoReference = scheduleResult.referencesToCreate.find((ref) => ref.meetingUrl);
-
+    const videoReference = scheduleResult.referencesToCreate.find(
+      (ref) => ref.meetingUrl && (ref.type === evt.videoCallData?.type || ref.type.endsWith("_video"))
+    );
 
     const occurrenceMeetingUrl = videoReference?.meetingUrl || meetingUrl;
 
@@ -198,7 +201,6 @@ if (recurringEventId) {
             videoCallUrl: occurrenceMeetingUrl,
           },
         },
-
 
         select: {
           eventType: {
@@ -308,7 +310,7 @@ if (recurringEventId) {
       },
     });
     updatedBookings.push(updatedBooking);
-    acceptedBookings = [
+    _acceptedBookings = [
       {
         oldStatus: booking.status,
         uid: booking.uid,
@@ -369,6 +371,7 @@ if (recurringEventId) {
         );
       });
     });
+
     subscribersMeetingEnded.forEach((subscriber) => {
       updatedBookingsWithCalEventResponses.forEach((booking) => {
         scheduleTriggerPromises.push(
@@ -408,17 +411,29 @@ if (recurringEventId) {
       length: eventType?.length,
     };
 
-    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
-    const payload: EventPayloadType = {
-      ...evtWithoutAssignmentReason,
-      ...eventTypeInfo,
-      bookingId,
-      eventTypeId: eventType?.id,
-      status: "ACCEPTED",
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
-      ...(platformClientParams ? platformClientParams : {}),
-    };
+    const { assignmentReason: _, ...evtWithoutAssignmentReason } = evt;
+
+    const promises = updatedBookings.flatMap((updatedBooking) => {
+      const bookingMeetingUrl =
+        updatedBooking.metadata &&
+        typeof updatedBooking.metadata === "object" &&
+        "videoCallUrl" in updatedBooking.metadata
+          ? (updatedBooking.metadata as { videoCallUrl: string }).videoCallUrl
+          : meetingUrl;
+
+      const payload: EventPayloadType = {
+        ...evtWithoutAssignmentReason,
+        ...eventTypeInfo,
+        uid: updatedBooking.uid,
+        startTime: updatedBooking.startTime.toISOString(),
+        endTime: updatedBooking.endTime.toISOString(),
+        bookingId: updatedBooking.id,
+        eventTypeId: eventType?.id,
+        status: "ACCEPTED",
+        smsReminderNumber: booking.smsReminderNumber || undefined,
+        metadata: bookingMeetingUrl ? { videoCallUrl: bookingMeetingUrl } : {},
+        ...(platformClientParams ? platformClientParams : {}),
+      };
 
       return subscribersBookingCreated.map((sub) =>
         sendPayload(
@@ -435,6 +450,7 @@ if (recurringEventId) {
         })
       );
     });
+
     await Promise.all(promises);
   } catch (error) {
     // Silently fail
