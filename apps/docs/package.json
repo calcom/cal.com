@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next --turbopack",
-    "build": "next build",
+    "build": "next build && pagefind --site .next/server/app --output-path public/_pagefind",
     "start": "next start"
   },
   "dependencies": {
     "next": "^15.1.0",
     "nextra": "^4.2.0",
     "nextra-theme-docs": "^4.2.0",
+    "pagefind": "^1.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

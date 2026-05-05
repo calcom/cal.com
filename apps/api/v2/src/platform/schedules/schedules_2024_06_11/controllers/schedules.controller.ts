@@ -60,8 +60,8 @@ export class SchedulesController_2024_06_11 {
 
       The point of creating schedules is for event types to be available at specific times.
 
-      The first goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.
-      1. If you passed \`timeZone\` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. The managed user can then change the default schedule via the \`AvailabilitySettings\` atom.
+      The first goal of schedules is to have a default schedule. If you are a platform customer and have created managed users, then it is important to note that each managed user should have a default schedule.
+      1. If you passed \`timeZone\` when creating a managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. The managed user can then change the default schedule via the \`AvailabilitySettings\` atom.
       2. If you did not, then we assume you want the user to have this specific schedule right away. You should create a default schedule by specifying
       \`"isDefault": true\` in the request body. Until the user has a default schedule the user can't be booked nor manage their schedule via the AvailabilitySettings atom.
 
