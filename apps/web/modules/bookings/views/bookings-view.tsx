@@ -77,11 +77,6 @@ export default function Bookings(props: BookingsProps) {
 
 function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditEnabled }: BookingsProps) {
   const [view] = useBookingsView({ bookingsV3Enabled });
-  const router = useRouter();
-  const handleOptInSuccess = useCallback(() => {
-    router.refresh();
-  }, [router]);
-  const optInBanner = null;
 
   return (
     <div className={classNames(view === "calendar" && "-mb-8")}>
@@ -93,7 +88,6 @@ function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditE
           bookingAuditEnabled={bookingAuditEnabled}
         />
       )}
-      {optInBanner}
       {bookingsV3Enabled && view === "calendar" && (
         <BookingCalendarContainer
           status={status}
