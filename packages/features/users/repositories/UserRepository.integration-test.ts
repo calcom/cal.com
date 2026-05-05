@@ -2,7 +2,7 @@ import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@calcom/prisma";
 import { UserRepository } from "./UserRepository";
 import { getUserRepository } from "@calcom/features/users/di/UserRepository.container";
-import { CreationSource, IdentityProvider } from "@calcom/prisma/enums";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import bcrypt from "bcryptjs";
 
 const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
