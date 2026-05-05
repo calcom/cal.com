@@ -1483,7 +1483,7 @@ export class UserRepository {
   async findByEmailWithInvitedTo({ email }: { email: string } ) {
     return this.prismaClient.user.findUnique({
       where: {
-        email
+        email: email.toLowerCase()
       },
       select: {
         invitedTo: true
