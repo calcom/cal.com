@@ -23,7 +23,7 @@ async function postHandler(request: NextRequest) {
   }
 
   const secretHeader = request.headers.get(CREDENTIAL_SYNC_SECRET_HEADER_NAME);
-  if (secretHeader !== CREDENTIAL_SYNC_SECRET) {
+  if (!CREDENTIAL_SYNC_SECRET || secretHeader !== CREDENTIAL_SYNC_SECRET) {
     return NextResponse.json({ message: "Invalid credential sync secret" }, { status: 403 });
   }
 
