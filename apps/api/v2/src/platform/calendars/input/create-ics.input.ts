@@ -19,8 +19,7 @@ export class IsICSUrlConstraint implements ValidatorConstraintInterface {
     try {
       const urlObject = new URL(url);
       return (
-        (urlObject.protocol === "http:" || urlObject.protocol === "https:") &&
-        urlObject.pathname.endsWith(".ics")
+        urlObject.protocol === "http:" || urlObject.protocol === "https:"
       );
     } catch (error) {
       return false;
@@ -28,13 +27,13 @@ export class IsICSUrlConstraint implements ValidatorConstraintInterface {
   }
 
   defaultMessage() {
-    return "The URL must be a valid ICS URL (ending with .ics)";
+    return "The URL must be a valid HTTP or HTTPS URL pointing to an iCalendar feed";
   }
 }
 
 export class CreateIcsFeedInputDto {
   @ApiProperty({
-    example: ["https://cal.com/ics/feed.ics", "http://cal.com/ics/feed.ics"],
+    example: ["https://cal.com/ics/feed.ics", "https://caldav.example.com/calendars/MyCalendar?export"],
     description: "An array of ICS URLs",
     type: "array",
     items: {
