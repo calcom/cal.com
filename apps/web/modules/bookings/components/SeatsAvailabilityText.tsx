@@ -35,7 +35,7 @@ export const SeatsAvailabilityText = ({
   return (
     <span className="truncate">
       {showExact
-        ? `${availableSeats}${variant === "fraction" ? ` / ${totalSeats}` : ""} ${t("seats_available", {
+        ? `${availableSeats}${variant === "fraction" ? ` / ${totalSeats}` : ""} ${t("seats_left", {
             count: availableSeats,
           })}`
         : isNearlyFull

@@ -118,7 +118,22 @@ const SlotItem = ({
   const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);
   const isHalfFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
   const isNearlyFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
+  const isPartiallyBooked = slot.attendees && slot.attendees > 0 && !bookingFull;
+
   const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
+  const availableSeats = (seatsPerTimeSlot || 0) - (slot.attendees || 0);
+
+  const slotBgClass = isNearlyFull
+    ? "bg-semantic-error-subtle/30"
+    : isHalfFull
+      ? "bg-semantic-attention-subtle/30"
+      : "bg-brand-subtle/10";
+
+  const slotBorderClass = isNearlyFull
+    ? "border-semantic-error-emphasis/30"
+    : isHalfFull
+      ? "border-semantic-attention-emphasis/30"
+      : "border-brand-default/40";
 
   const nowDate = dayjs();
   const usersTimezoneDate = nowDate.tz(timezone);
@@ -165,9 +180,18 @@ const SlotItem = ({
           data-disabled={bookingFull}
           data-time={slot.time}
           onClick={onButtonClick}
+          aria-label={`${computedDateWithUsersTimezone.format(timeFormat)} - ${
+            bookingFull
+              ? t("booking_full")
+              : hasTimeSlots
+                ? t("seats_available", { count: availableSeats })
+                : t("available")
+          }`}
           className={classNames(
-            `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full grow flex-col justify-center py-2`,
+            `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full grow flex-col justify-center py-2 transition-all`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
+            hasTimeSlots && !bookingFull && isPartiallyBooked && `${slotBgClass} ${slotBorderClass}`,
+            bookingFull && "bg-subtle opacity-60 grayscale",
             `${customClassNames}`
           )}
           color="secondary">
@@ -182,7 +206,11 @@ const SlotItem = ({
             )}
             {computedDateWithUsersTimezone.format(timeFormat)}
           </div>
-          {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
+          {bookingFull && (
+            <p className="text-subtle mt-0.5 text-xs font-medium uppercase tracking-wider">
+              {t("booking_full")}
+            </p>
+          )}
           {hasTimeSlots && !bookingFull && (
             <p className="flex items-center text-sm">
               <span
