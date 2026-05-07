@@ -33,7 +33,6 @@ const createTestWatchlistEntry = async (overrides: {
       type: overrides.type,
       value: overrides.value,
       action: overrides.action,
-      createdById: 0,
       organizationId: overrides.organizationId,
       isGlobal: overrides.organizationId !== null ? false : true,
     },
