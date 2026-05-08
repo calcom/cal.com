@@ -27,7 +27,7 @@ export class IsICSUrlConstraint implements ValidatorConstraintInterface {
   }
 
   defaultMessage() {
-    return "The URL must be a valid HTTP or HTTPS URL pointing to an iCalendar feed";
+    return "The URL must be a valid HTTP or HTTPS URL";
   }
 }
 
