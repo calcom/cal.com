@@ -67,7 +67,7 @@ jobs:
 
       - name: Smoke test local database
         run: |
-          docker run --rm "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}" bash -lc "set -euo pipefail; pg_ctlcluster 15 main start; psql postgresql://postgres:postgres@localhost:5432/calendso -c 'select current_database();'; pg_ctlcluster 15 main stop"
+          docker run --rm "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}" bash -lc "set -euo pipefail; sudo pg_ctlcluster 15 main start; psql postgresql://postgres:postgres@localhost:5432/calendso -c 'select current_database();'; sudo pg_ctlcluster 15 main stop"
 
   pin-digest:
     name: pin-digest
