@@ -1,0 +1,37 @@
+{
+  "name": "cal-diy-journal",
+  "image": "ghcr.io/calcom/cal.diy-devcontainer:sha-a4a01a0fa8",
+  "workspaceMount": "source=cal-diy-workspace,target=/workspace/cal.diy,type=volume",
+  "workspaceFolder": "/workspace/cal.diy",
+  "remoteUser": "node",
+  "containerEnv": {
+    "CI": "true",
+    "CALCOM_TELEMETRY_DISABLED": "1",
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "YARN_HTTP_TIMEOUT": "1200000",
+    "NODE_OPTIONS": "--max-old-space-size=8192",
+    "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/calendso",
+    "DATABASE_DIRECT_URL": "postgresql://postgres:postgres@localhost:5432/calendso",
+    "NEXT_PUBLIC_WEBAPP_URL": "http://localhost:3000",
+    "NEXTAUTH_URL": "http://localhost:3000/api/auth",
+    "NEXTAUTH_SECRET": "RbyBOfiZFt/IsBL2E2Zy2idcKRH+WclnHEiu1FmRdf0=",
+    "CALENDSO_ENCRYPTION_KEY": "Lmqy57DlHKPvwwrtkwjL/8QtxJWxC/OV",
+    "REDIS_URL": "redis://localhost:6379",
+    "JOURNAL_SEED_DB": "0",
+    "PORT": "3000"
+  },
+  "onCreateCommand": "CI=true yarn install --immutable",
+  "updateContentCommand": "CI=true yarn install --immutable",
+  "postCreateCommand": "git config --global --add safe.directory /workspace/cal.diy",
+  "postStartCommand": "journal-start-calcom",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "web",
+      "protocol": "http"
+    }
+  },
+  "otherPortsAttributes": {
+    "protocol": "http"
+  }
+}

@@ -1,0 +1,36 @@
+# Keep this separate from the production .dockerignore: Journal wants the
+# development image to contain a usable .git checkout.
+
+node_modules
+**/node_modules
+
+.next
+**/.next
+dist
+**/dist
+build
+**/build
+.turbo
+**/.turbo
+
+coverage
+**/coverage
+test-results
+**/test-results
+playwright-report
+**/playwright-report
+
+.env
+.env.*
+!.env.example
+!.env.appStore.example
+!.env.test.example
+
+.codex
+.claude/plans
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
