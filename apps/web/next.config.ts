@@ -101,6 +101,28 @@ function getHttpsUrl(url: string | undefined): string | undefined {
   return url;
 }
 
+function isJournalPreviewHost(webappUrl: string | undefined): boolean {
+  if (!webappUrl) return false;
+
+  const journalPreviewHostSuffixes = [".e2b.app", ".e2b.dev", ".preview.bl.run"];
+
+  const parseHost = (value: string): string => {
+    try {
+      return new URL(value).hostname.toLowerCase();
+    } catch {
+      const normalized = value.includes("://") ? value : `https://${value}`;
+      try {
+        return new URL(normalized).hostname.toLowerCase();
+      } catch {
+        return value.toLowerCase();
+      }
+    }
+  };
+
+  const host = parseHost(webappUrl);
+  return journalPreviewHostSuffixes.some((suffix) => host.endsWith(suffix));
+}
+
 if (process.argv.includes("--experimental-https")) {
   env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
   env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
@@ -370,6 +392,7 @@ const nextConfig = (phase: string): NextConfig => {
     },
     async headers() {
       const { orgSlug } = nextJsOrgRewriteConfig;
+      const shouldAllowIframePreview = isJournalPreviewHost(process.env.NEXT_PUBLIC_WEBAPP_URL);
       const CORP_CROSS_ORIGIN_HEADER = {
         key: "Cross-Origin-Resource-Policy",
         value: "cross-origin",
@@ -381,24 +404,28 @@ const nextConfig = (phase: string): NextConfig => {
       };
 
       return [
-        {
-          source: "/auth/:path*",
-          headers: [
-            {
-              key: "X-Frame-Options",
-              value: "DENY",
-            },
-          ],
-        },
-        {
-          source: "/signup",
-          headers: [
-            {
-              key: "X-Frame-Options",
-              value: "DENY",
-            },
-          ],
-        },
+        ...(shouldAllowIframePreview
+          ? []
+          : [
+              {
+                source: "/auth/:path*",
+                headers: [
+                  {
+                    key: "X-Frame-Options",
+                    value: "DENY",
+                  },
+                ],
+              },
+              {
+                source: "/signup",
+                headers: [
+                  {
+                    key: "X-Frame-Options",
+                    value: "DENY",
+                  },
+                ],
+              },
+            ]),
         {
           source: "/:path*",
           headers: [
