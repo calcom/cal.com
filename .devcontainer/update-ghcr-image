@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BRANCH="${1:-main}"
+IMAGE_REPO="${IMAGE_REPO:-ghcr.io/endurancelabs/cal.diy-devcontainer}"
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "docker is required" >&2
+  exit 1
+fi
+
+if ! command -v git >/dev/null 2>&1; then
+  echo "git is required" >&2
+  exit 1
+fi
+
+if [[ -n "${GHCR_TOKEN:-}" && -n "${GHCR_USERNAME:-}" ]]; then
+  echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+fi
+
+git fetch origin "${BRANCH}"
+COMMIT_SHA="$(git rev-parse "origin/${BRANCH}")"
+SHORT_SHA="$(git rev-parse --short=12 "${COMMIT_SHA}")"
+
+WORKTREE_DIR="$(mktemp -d)"
+cleanup() {
+  git worktree remove --force "${WORKTREE_DIR}" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
+git worktree add --detach "${WORKTREE_DIR}" "${COMMIT_SHA}" >/dev/null
+
+BRANCH_TAG="${BRANCH}"
+SHA_TAG="sha-${SHORT_SHA}"
+
+docker buildx build \
+  --platform linux/amd64 \
+  --file "${WORKTREE_DIR}/.devcontainer/Dockerfile" \
+  --tag "${IMAGE_REPO}:${BRANCH_TAG}" \
+  --tag "${IMAGE_REPO}:${SHA_TAG}" \
+  --push \
+  "${WORKTREE_DIR}"
+
+echo "Published:"
+echo "  ${IMAGE_REPO}:${BRANCH_TAG}"
+echo "  ${IMAGE_REPO}:${SHA_TAG}"
