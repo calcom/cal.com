@@ -1,0 +1,151 @@
+name: Devcontainer Image PR
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".devcontainer/**"
+      - ".github/workflows/devcontainer-image-pr.yml"
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: devcontainer-image-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_REPO: ghcr.io/endurancelabs/cal.diy-devcontainer
+
+jobs:
+  build-test-push:
+    name: build-test-push
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      image_digest: ${{ steps.build.outputs.digest }}
+      image_tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PUSH_TOKEN }}
+
+      - name: Resolve image tag
+        id: meta
+        run: echo "tag=pr-${{ github.event.pull_request.number }}-$(echo '${{ github.sha }}' | cut -c1-12)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push candidate image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: .devcontainer/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.IMAGE_REPO }}:${{ steps.meta.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Smoke test tooling
+        run: |
+          docker pull "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}"
+          docker run --rm "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}" bash -lc "set -euo pipefail; node --version; yarn --version; psql --version; redis-server --version; command -v journal-start-calcom >/dev/null; command -v journal-prepare-calcom-db >/dev/null"
+
+      - name: Smoke test local database
+        run: |
+          docker run --rm "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}" bash -lc "set -euo pipefail; pg_ctlcluster 15 main start; psql postgresql://postgres:postgres@localhost:5432/calendso -c 'select current_database();'; pg_ctlcluster 15 main stop"
+
+  pin-digest:
+    name: pin-digest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    needs:
+      - build-test-push
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Pin digest in devcontainer config
+        id: pin
+        run: |
+          set -euo pipefail
+          DIGEST="${{ needs.build-test-push.outputs.image_digest }}"
+          if [[ -z "$DIGEST" ]]; then
+            echo "Missing image digest from build-test-push." >&2
+            exit 1
+          fi
+
+          IMAGE="${IMAGE_REPO}@${DIGEST}"
+          tmp_file="$(mktemp)"
+          jq --arg image "$IMAGE" '.image = $image' .devcontainer/devcontainer.json > "$tmp_file"
+          mv "$tmp_file" .devcontainer/devcontainer.json
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Detect digest pin change
+        id: diff
+        run: |
+          if git diff --quiet -- .devcontainer/devcontainer.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Loop guard for bot-triggered reruns
+        id: loop_guard
+        run: |
+          if [[ "${{ github.actor }}" == "github-actions[bot]" && "${{ steps.diff.outputs.changed }}" == "false" ]]; then
+            echo "skip_push=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip_push=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit digest pin
+        if: steps.diff.outputs.changed == 'true' && steps.loop_guard.outputs.skip_push != 'true'
+        env:
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .devcontainer/devcontainer.json
+          git commit -m "chore(devcontainer): pin image digest"
+          git push origin "HEAD:${PR_HEAD_REF}"
+
+  validate-digest-pin:
+    name: validate-digest-pin
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    needs:
+      - pin-digest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Validate digest-pinned image format
+        run: |
+          set -euo pipefail
+          image="$(jq -r '.image // ""' .devcontainer/devcontainer.json)"
+          pattern='^ghcr\.io/endurancelabs/cal\.diy-devcontainer@sha256:[a-f0-9]{64}$'
+          if [[ ! "$image" =~ $pattern ]]; then
+            echo "Expected digest-pinned image reference matching ${pattern}" >&2
+            echo "Found: $image" >&2
+            exit 1
+          fi
