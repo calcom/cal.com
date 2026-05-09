@@ -399,6 +399,8 @@ export class EventTypesAtomService {
         isTeamEvent: isTeamEvent,
         org: orgSlug,
         prisma: this.dbRead.prisma as unknown as PrismaClient,
+        // Platform and atoms access is gated behind a license, so unpublished org events can be served safely.
+        // If restriction is ever needed, introduce a `fromRedirectOfNonOrgLink` query param instead.
         fromRedirectOfNonOrgLink: true
       });
 
@@ -414,6 +416,8 @@ export class EventTypesAtomService {
               isTeamEvent: isTeamEvent,
               org: orgSlug,
               prisma: this.dbRead.prisma as unknown as PrismaClient,
+              // Platform and atoms access is gated behind a license, so unpublished org events can be served safely.
+              // If restriction is ever needed, introduce a `fromRedirectOfNonOrgLink` query param instead.
               fromRedirectOfNonOrgLink: true
             });
           }
