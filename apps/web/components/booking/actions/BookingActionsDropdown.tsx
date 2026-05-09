@@ -17,7 +17,6 @@ import {
 import type { ActionType } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { MeetingSessionDetailsDialog } from "@calcom/web/modules/ee/video/components/MeetingSessionDetailsDialog";
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { CancelBookingDialog } from "@components/dialog/CancelBookingDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -25,14 +24,11 @@ import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RejectionReasonDialog } from "@components/dialog/RejectionReasonDialog";
 import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
-import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import { WrongAssignmentDialog } from "@components/dialog/WrongAssignmentDialog";
 import { useState } from "react";
 import type { z } from "zod";
-import ViewRecordingsDialog from "~/ee/video/components/ViewRecordingsDialog";
 import { useBookingConfirmation } from "../hooks/useBookingConfirmation";
-import { RoutingTraceSheet } from "../RoutingTraceSheet";
 import type { BookingItemProps } from "../types";
 import { useBookingActionsStoreContext } from "./BookingActionsStoreProvider";
 import {
@@ -124,14 +120,8 @@ export function BookingActionsDropdown({
   const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
     (state) => state.setIsOpenWrongAssignmentDialog
   );
-  const rerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.rerouteDialogIsOpen);
-  const setRerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.setRerouteDialogIsOpen);
   const isCancelDialogOpen = useBookingActionsStoreContext((state) => state.isCancelDialogOpen);
   const setIsCancelDialogOpen = useBookingActionsStoreContext((state) => state.setIsCancelDialogOpen);
-  const isOpenRoutingTraceSheet = useBookingActionsStoreContext((state) => state.isOpenRoutingTraceSheet);
-  const setIsOpenRoutingTraceSheet = useBookingActionsStoreContext(
-    (state) => state.setIsOpenRoutingTraceSheet
-  );
 
   const cardCharged = booking?.payment[0]?.success;
 
@@ -188,7 +178,6 @@ export function BookingActionsDropdown({
     return "upcoming";
   };
 
-  const isBookingFromRoutingForm = !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 
   const userEmail = booking.loggedInUser.userEmail;
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
@@ -244,7 +233,6 @@ export function BookingActionsDropdown({
     isRecurring,
     isTabRecurring,
     isTabUnconfirmed,
-    isBookingFromRoutingForm,
     isDisabledCancelling,
     isDisabledRescheduling,
     isCalVideoLocation,
@@ -287,9 +275,7 @@ export function BookingActionsDropdown({
     onClick:
       action.id === "reschedule_request"
         ? () => setIsOpenRescheduleDialog(true)
-        : action.id === "reroute"
-          ? () => setRerouteDialogIsOpen(true)
-          : action.id === "change_location"
+        : action.id === "change_location"
             ? () => setIsOpenLocationDialog(true)
             : action.id === "add_members"
               ? () => setIsOpenAddGuestsDialog(true)
@@ -428,7 +414,6 @@ export function BookingActionsDropdown({
           setIsOpenDialog={setIsOpenReassignDialog}
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
-          bookingFromRoutingForm={isBookingFromRoutingForm}
           isManagedEvent={booking.eventType?.parentId != null}
         />
       )}
@@ -451,22 +436,6 @@ export function BookingActionsDropdown({
         isRecurring={isRecurring}
         status={getBookingStatus()}
       />
-      {isBookingFromRoutingForm && (
-        <>
-          <WrongAssignmentDialog
-            isOpenDialog={isOpenWrongAssignmentDialog}
-            setIsOpenDialog={setIsOpenWrongAssignmentDialog}
-            booking={booking}
-          />
-          <RoutingTraceSheet
-            isOpen={isOpenRoutingTraceSheet}
-            setIsOpen={setIsOpenRoutingTraceSheet}
-            bookingUid={booking.uid}
-            onReport={() => setIsOpenWrongAssignmentDialog(true)}
-            hasExistingReport={!!booking.report}
-          />
-        </>
-      )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
@@ -476,22 +445,7 @@ export function BookingActionsDropdown({
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {isCalVideoLocation && (
-        <ViewRecordingsDialog
-          booking={booking}
-          isOpenDialog={viewRecordingsDialogIsOpen}
-          setIsOpenDialog={setViewRecordingsDialogIsOpen}
-          timeFormat={booking.loggedInUser.userTimeFormat ?? null}
-        />
-      )}
-      {isCalVideoLocation && meetingSessionDetailsDialogIsOpen && (
-        <MeetingSessionDetailsDialog
-          booking={booking}
-          isOpenDialog={meetingSessionDetailsDialogIsOpen}
-          setIsOpenDialog={setMeetingSessionDetailsDialogIsOpen}
-          timeFormat={booking.loggedInUser.userTimeFormat ?? null}
-        />
-      )}
+      {/* Cal video recording dialogs removed (enterprise) */}
       {isNoShowDialogOpen && (
         <NoShowAttendeesDialog
           bookingUid={booking.uid}
@@ -533,30 +487,6 @@ export function BookingActionsDropdown({
         internalNotePresets={[]}
         eventTypeMetadata={booking.eventType?.metadata}
       />
-      {isBookingFromRoutingForm &&
-        parsedBooking.eventType &&
-        parsedBooking.eventType.id !== undefined &&
-        parsedBooking.eventType.slug !== undefined &&
-        parsedBooking.eventType.title !== undefined &&
-        parsedBooking.routedFromRoutingFormReponse && (
-          <RerouteDialog
-            isOpenDialog={rerouteDialogIsOpen}
-            setIsOpenDialog={setRerouteDialogIsOpen}
-            booking={{
-              ...parsedBooking,
-              metadata: parsedBooking.metadata as z.infer<typeof bookingMetadataSchema>,
-              routedFromRoutingFormReponse: parsedBooking.routedFromRoutingFormReponse,
-              eventType: {
-                length: parsedBooking.eventType.length ?? 0,
-                schedulingType: parsedBooking.eventType.schedulingType ?? null,
-                title: parsedBooking.eventType.title,
-                id: parsedBooking.eventType.id,
-                slug: parsedBooking.eventType.slug,
-                team: parsedBooking.eventType.team ?? null,
-              },
-            }}
-          />
-        )}
     </>
   );
 
@@ -669,20 +599,6 @@ export function BookingActionsDropdown({
                 </DropdownItem>
               </DropdownMenuItem>
             ))}
-            {isBookingFromRoutingForm && (
-              <DropdownMenuItem className="rounded-lg" key="view_routing_trace">
-                <DropdownItem
-                  type="button"
-                  StartIcon="git-merge"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsOpenRoutingTraceSheet(true);
-                  }}
-                  data-testid="view_routing_trace">
-                  {t("routing_trace")}
-                </DropdownItem>
-              </DropdownMenuItem>
-            )}
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
             {afterEventActions.map((action) => (
@@ -724,21 +640,6 @@ export function BookingActionsDropdown({
                   {reportActionWithHandler.label}
                 </DropdownItem>
               </DropdownMenuItem>
-              {isBookingFromRoutingForm && (
-                <DropdownMenuItem className="rounded-lg" key="report_wrong_assignment">
-                  <DropdownItem
-                    type="button"
-                    color="destructive"
-                    StartIcon="user-x"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsOpenWrongAssignmentDialog(true);
-                    }}
-                    data-testid="report_wrong_assignment">
-                    {t("report_wrong_assignment")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              )}
             </>
             <DropdownMenuSeparator />
             <Tooltip

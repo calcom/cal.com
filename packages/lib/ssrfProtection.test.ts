@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Default mock for Cal.com SaaS (IS_SELF_HOSTED = false)
+// Default mock for Cal.diy SaaS (IS_SELF_HOSTED = false)
 vi.mock("@calcom/lib/constants", () => ({
   IS_SELF_HOSTED: false,
   IS_PRODUCTION: false,

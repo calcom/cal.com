@@ -5,7 +5,6 @@ export const WEBHOOK_TOKENS = {
   // Core interfaces
   WEBHOOK_SERVICE: Symbol("IWebhookService"),
   BOOKING_WEBHOOK_SERVICE: Symbol("IBookingWebhookService"),
-  FORM_WEBHOOK_SERVICE: Symbol("IFormWebhookService"),
   RECORDING_WEBHOOK_SERVICE: Symbol("IRecordingWebhookService"),
   WEBHOOK_NOTIFIER: Symbol("IWebhookNotifier"),
   OOO_WEBHOOK_SERVICE: Symbol("OOO_WEBHOOK_SERVICE"),
@@ -28,7 +27,6 @@ export const WEBHOOK_TOKENS = {
   // Data Fetchers (Strategy Pattern implementations for WebhookTaskConsumer)
   BOOKING_DATA_FETCHER: Symbol("BookingWebhookDataFetcher"),
   PAYMENT_DATA_FETCHER: Symbol("PaymentWebhookDataFetcher"),
-  FORM_DATA_FETCHER: Symbol("FormWebhookDataFetcher"),
   RECORDING_DATA_FETCHER: Symbol("RecordingWebhookDataFetcher"),
   OOO_DATA_FETCHER: Symbol("OOOWebhookDataFetcher"),
 } as const;

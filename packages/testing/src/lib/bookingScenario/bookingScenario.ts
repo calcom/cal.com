@@ -18,10 +18,6 @@ import type {
   Membership,
   Prisma,
   WebhookTriggerEvents,
-  WorkflowActions,
-  WorkflowMethods,
-  WorkflowTemplates,
-  WorkflowTriggerEvents,
 } from "@calcom/prisma/client";
 import type {
   BookingStatus,
@@ -89,10 +85,7 @@ vi.mock("@calcom/app-store/video.adapters.generated", () => ({
   ),
 }));
 
-// We don't need to test it. Also, it causes Formbricks error when imported
-vi.mock("@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic", () => ({
-  default: {},
-}));
+// Routing forms feature removed - mock no longer needed
 
 vi.mock("@calcom/lib/crypto", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@calcom/lib/crypto")>();
@@ -121,22 +114,6 @@ type InputWebhook = {
   timeUnit?: TimeUnit | null;
 };
 
-type InputWorkflow = {
-  id?: number;
-  userId?: number | null;
-  teamId?: number | null;
-  name?: string;
-  activeOn?: number[];
-  activeOnTeams?: number[];
-  trigger: WorkflowTriggerEvents;
-  action: WorkflowActions;
-  template: WorkflowTemplates;
-  time?: number | null;
-  timeUnit?: TimeUnit | null;
-  sendTo?: string;
-  verifiedAt?: Date;
-};
-
 type InputPayment = {
   id?: number;
   uid: string;
@@ -150,16 +127,6 @@ type InputPayment = {
   data: Prisma.InputJsonValue;
   externalId: string;
   paymentOption?: PaymentOption;
-};
-
-type InputWorkflowReminder = {
-  id?: number;
-  bookingUid: string;
-  method: WorkflowMethods;
-  scheduledDate: Date;
-  scheduled: boolean;
-  workflowStepId?: number;
-  workflowId: number;
 };
 
 type InputHostLocation = {
@@ -206,7 +173,6 @@ export type ScenarioData = {
   apps?: Partial<AppMeta>[];
   bookings?: InputBooking[];
   webhooks?: InputWebhook[];
-  workflows?: InputWorkflow[];
   payment?: InputPayment[];
   selectedSlots?: InputSelectedSlot[];
 };
@@ -412,10 +378,7 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
 }
 
 export async function addEventTypesToDb(
-  eventTypes: (Omit<
-    Prisma.EventTypeCreateInput,
-    "users" | "workflows" | "destinationCalendar" | "schedule"
-  > & {
+  eventTypes: (Omit<Prisma.EventTypeCreateInput, "users" | "destinationCalendar" | "schedule"> & {
     id?: number;
     users?: ({ id: number } | undefined)[];
     userId?: number;
@@ -423,7 +386,6 @@ export async function addEventTypesToDb(
       user: InputUser | undefined;
       id: number;
     }[];
-    workflows?: Prisma.WorkflowCreateInput[];
     destinationCalendar?: {
       create: Prisma.DestinationCalendarCreateInput;
     };
@@ -456,7 +418,6 @@ export async function addEventTypesToDb(
   const allEventTypes = await prismock.eventType.findMany({
     include: {
       users: true,
-      workflows: true,
       destinationCalendar: true,
       schedule: true,
       hostGroups: true,
@@ -567,7 +528,6 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
     return {
       ...baseEventType,
       ...eventType,
-      workflows: [],
       users,
       hosts,
       hostGroups: eventType.hostGroups || [],
@@ -672,7 +632,6 @@ export async function addBookings(bookings: InputBooking[]) {
     }
     return {
       uid: booking.uid || uuidv4(),
-      workflowReminders: [],
       references: [],
       title: "Test Booking Title",
       ...booking,
@@ -746,96 +705,6 @@ async function addWebhooks(webhooks: InputWebhook[]) {
   log.silly("TestData: Creating Webhooks", safeStringify(webhooks));
 
   await addWebhooksToDb(webhooks);
-}
-
-async function addWorkflowsToDb(workflows: InputWorkflow[]) {
-  await Promise.all(
-    workflows.map(async (workflow) => {
-      const team = await prismock.team.findUnique({
-        where: {
-          id: workflow.teamId ?? 0,
-        },
-      });
-
-      if (workflow.teamId && !team) {
-        throw new Error(`Team with ID ${workflow.teamId} not found`);
-      }
-
-      const isOrg = team?.isOrganization;
-
-      // Create the workflow first
-      const createdWorkflow = await prismock.workflow.create({
-        data: {
-          ...(workflow.id && { id: workflow.id }),
-          userId: workflow.userId,
-          teamId: workflow.teamId,
-          trigger: workflow.trigger,
-          name: workflow.name ? workflow.name : "Test Workflow",
-          time: workflow.time,
-          timeUnit: workflow.timeUnit,
-        },
-        include: {
-          steps: true,
-        },
-      });
-
-      await prismock.workflowStep.create({
-        data: {
-          stepNumber: 1,
-          action: workflow.action,
-          template: workflow.template,
-          numberVerificationPending: false,
-          includeCalendarEvent: false,
-          sendTo: workflow.sendTo,
-          workflow: {
-            connect: {
-              id: createdWorkflow.id,
-            },
-          },
-          verifiedAt: workflow?.verifiedAt ?? new Date(),
-        },
-      });
-
-      //activate event types and teams on workflows
-      if (isOrg && workflow.activeOnTeams) {
-        await Promise.all(
-          workflow.activeOnTeams.map((id) =>
-            prismock.workflowsOnTeams.create({
-              data: {
-                workflowId: createdWorkflow.id,
-                teamId: id,
-              },
-            })
-          )
-        );
-      } else if (workflow.activeOn) {
-        await Promise.all(
-          workflow.activeOn.map((id) =>
-            prismock.workflowsOnEventTypes.create({
-              data: {
-                workflowId: createdWorkflow.id,
-                eventTypeId: id,
-              },
-            })
-          )
-        );
-      }
-    })
-  );
-}
-
-async function addWorkflows(workflows: InputWorkflow[]) {
-  log.silly("TestData: Creating Workflows", safeStringify(workflows));
-
-  return await addWorkflowsToDb(workflows);
-}
-
-export async function addWorkflowReminders(workflowReminders: InputWorkflowReminder[]) {
-  log.silly("TestData: Creating Workflow Reminders", safeStringify(workflowReminders));
-
-  return await prismock.workflowReminder.createMany({
-    data: workflowReminders,
-  });
 }
 
 export async function addUsersToDb(users: InputUser[]) {
@@ -1058,7 +927,6 @@ export async function createBookingScenario(data: ScenarioData) {
   // mockBusyCalendarTimes([]);
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
-  const workflows = await addWorkflows(data.workflows || []);
   await addPaymentToDb(data.payment || []);
 
   if (data.selectedSlots) {
@@ -1067,7 +935,6 @@ export async function createBookingScenario(data: ScenarioData) {
 
   return {
     eventTypes,
-    workflows,
   };
 }
 
@@ -1640,7 +1507,6 @@ export function getScenarioData(
     apps = [],
     users: _users,
     webhooks,
-    workflows,
     bookings,
     payment,
   }: {
@@ -1650,7 +1516,6 @@ export function getScenarioData(
     users?: ScenarioData["users"];
     usersApartFromOrganizer?: ScenarioData["users"];
     webhooks?: ScenarioData["webhooks"];
-    workflows?: ScenarioData["workflows"];
     bookings?: ScenarioData["bookings"];
     payment?: ScenarioData["payment"];
   },
@@ -1714,7 +1579,6 @@ export function getScenarioData(
     apps: [...apps],
     webhooks,
     bookings: bookings || [],
-    workflows,
     payment,
   } satisfies ScenarioData;
 }

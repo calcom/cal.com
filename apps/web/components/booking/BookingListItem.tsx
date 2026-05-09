@@ -66,7 +66,6 @@ type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;
 type TeamEventBooking = Omit<ParsedBooking, "eventType"> & {
   eventType: TeamEvent;
 };
-type ReroutableBooking = Ensure<TeamEventBooking, "routedFromRoutingFormReponse">;
 
 function buildParsedBooking(booking: BookingItemProps) {
   // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
@@ -87,14 +86,6 @@ function buildParsedBooking(booking: BookingItemProps) {
     metadata: bookingMetadata,
   };
 }
-
-const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooking => {
-  // We support only team bookings for now for rerouting
-  // Though `routedFromRoutingFormReponse` could be there for a non-team booking, we don't want to support it for now.
-  // Let's not support re-routing for a booking without an event-type for now.
-  // Such a booking has its event-type deleted and there might not be something to reroute to.
-  return !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
-};
 
 const ConditionalLink = ({
   children,
@@ -179,7 +170,6 @@ function BookingListItem(booking: BookingItemProps) {
 
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
-  const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
 
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
 
@@ -224,7 +214,6 @@ function BookingListItem(booking: BookingItemProps) {
     isRecurring,
     isTabRecurring,
     isTabUnconfirmed,
-    isBookingFromRoutingForm,
     isDisabledCancelling,
     isDisabledRescheduling,
     isCalVideoLocation:
@@ -279,9 +268,6 @@ function BookingListItem(booking: BookingItemProps) {
   );
   const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
     (state) => state.setIsOpenWrongAssignmentDialog
-  );
-  const setIsOpenRoutingTraceSheet = useBookingActionsStoreContext(
-    (state) => state.setIsOpenRoutingTraceSheet
   );
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
@@ -551,17 +537,8 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeFormat={userTimeFormat}
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
-        onAssignmentReasonClick={
-          booking.assignmentReasonSortedByCreatedAt.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
-        }
+        onAssignmentReasonClick={undefined}
       />
-      {isBookingFromRoutingForm && (
-        <WrongAssignmentDialog
-          isOpenDialog={isOpenWrongAssignmentDialog}
-          setIsOpenDialog={setIsOpenWrongAssignmentDialog}
-          booking={booking}
-        />
-      )}
     </div>
   );
 }
@@ -1151,7 +1128,7 @@ const AssignmentReasonTooltip = ({
   assignmentReason,
   onClick,
 }: {
-  assignmentReason: AssignmentReason;
+  assignmentReason: Pick<AssignmentReason, "reasonEnum" | "reasonString">;
   onClick?: () => void;
 }) => {
   const { t } = useLocale();

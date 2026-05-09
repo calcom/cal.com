@@ -144,94 +144,6 @@ test.describe("OAuth Provider", () => {
     await expect(page.locator("#account-select")).not.toBeVisible();
   });
 
-  test("should create valid access token & refresh token for team", async ({ page, users }) => {
-    const user = await users.create({ username: "test user", name: "test user" }, { hasTeam: true });
-    await user.apiLogin();
-
-    await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234&show_account_selector=true`
-    );
-
-    await page.locator("#account-select").click();
-    const teamOption = page
-      .locator('[id*="react-select-"][id*="-option-"]')
-      .filter({ hasText: /Team/i })
-      .first();
-    await teamOption.waitFor({ state: "visible" });
-    await teamOption.click();
-
-    await page.getByTestId("allow-button").click();
-
-    await page.waitForFunction(() => {
-      return window.location.href.startsWith("https://example.com");
-    });
-
-    const url = new URL(page.url());
-
-    // authorization code that is returned to client with redirect uri
-    const code = url.searchParams.get("code");
-
-    // request token with authorization code
-    const tokenForm = new URLSearchParams();
-    tokenForm.append("code", code ?? "");
-    tokenForm.append("client_id", client.clientId);
-    tokenForm.append("client_secret", client.orginalSecret);
-    tokenForm.append("grant_type", "authorization_code");
-    tokenForm.append("redirect_uri", client.redirectUri);
-    const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
-      body: tokenForm.toString(),
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-
-    const tokenData = await tokenResponse.json();
-
-    // test if token is valid
-    const meResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/me`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${tokenData.access_token}`,
-      },
-    });
-
-    const meData = await meResponse.json();
-
-    // Check if team access token is valid
-    expect(meData.username).toEqual(`user-id-${user.id}'s Team`);
-
-    // request new token with refresh token
-    const refreshTokenForm = new URLSearchParams();
-    refreshTokenForm.append("refresh_token", tokenData.refresh_token);
-    refreshTokenForm.append("client_id", client.clientId);
-    refreshTokenForm.append("client_secret", client.orginalSecret);
-    refreshTokenForm.append("grant_type", "refresh_token");
-    const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
-      body: refreshTokenForm.toString(),
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-
-    const refreshTokenData = await refreshTokenResponse.json();
-
-    expect(refreshTokenData.access_token).toBeDefined();
-
-    const validTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/me`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${tokenData.access_token}`,
-      },
-    });
-
-    const validTokenData = await validTokenResponse.json();
-    expect(validTokenData.username).toEqual(`user-id-${user.id}'s Team`);
-  });
-
   test("redirect not logged-in users to login page and after forward to authorization page", async ({
     page,
     users,
@@ -243,7 +155,7 @@ test.describe("OAuth Provider", () => {
     );
 
     // check if user is redirected to login page
-    await expect(page.getByRole("heading", { name: "Cal.com" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Cal.diy" })).toBeVisible();
     await expect(page.getByTestId("login-subtitle")).toBeVisible();
     await page.locator("#email").fill(user.email);
     await page.locator("#password").fill(user.username || "");

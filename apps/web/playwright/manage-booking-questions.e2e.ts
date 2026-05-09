@@ -229,47 +229,6 @@ test.describe("Manage Booking Questions", () => {
       });
     });
   });
-
-  test.describe("For Team EventType", () => {
-    // eslint-disable-next-line playwright/no-skipped-test
-    test("Do a booking with a user added question and verify a few thing in b/w", async ({
-      page,
-      users,
-      context,
-    }, testInfo) => {
-      // Considering there are many steps in it, it would need more than default test timeout
-      test.setTimeout(testInfo.timeout * 3);
-      const user = await createAndLoginUserWithEventTypes({ users, page });
-      const team = await prisma.team.findFirst({
-        where: {
-          members: {
-            some: {
-              userId: user.id,
-            },
-          },
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-      });
-
-      const teamId = team?.id;
-      const webhookReceiver = await addWebhook(undefined, teamId);
-
-      await test.step("Go to First Team Event", async () => {
-        const locator = page.getByTestId(`horizontal-tab-${team?.name}`);
-        await locator.click();
-        await expect(locator).toHaveAttribute("aria-current", "page");
-        const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
-        const firstEventTypeElement = $eventTypes.first();
-
-        await firstEventTypeElement.click();
-      });
-
-      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
-    });
-  });
 });
 
 async function runTestStepsCommonForTeamAndUserEventType(
@@ -650,9 +609,7 @@ async function createAndLoginUserWithEventTypes({
   users: ReturnType<typeof createUsersFixture>;
   page: Page;
 }) {
-  const user = await users.create(null, {
-    hasTeam: true,
-  });
+  const user = await users.create();
   await user.apiLogin();
   await page.goto("/event-types");
   // We wait until loading is finished

@@ -1,20 +1,22 @@
+import process from "node:process";
 import { enrichUserWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
-import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
   type EventTypeBrandingData,
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
+import { getTranslation } from "@calcom/i18n/server";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+
+const getBookerBaseUrl = async (_orgSlug?: string | number | null): Promise<string> =>
+  process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
 
 async function getEventType(id: number) {
   return prisma.eventType.findUnique({
@@ -77,13 +79,6 @@ export async function getBooking(bookingId: number) {
           },
           slug: true,
           schedulingType: true,
-          workflows: {
-            select: {
-              workflow: {
-                select: workflowSelect,
-              },
-            },
-          },
           bookingFields: true,
           team: {
             select: {

@@ -216,7 +216,7 @@ export function buildConfigWithPrerenderRelatedFields({
 
   if (!backgroundSlotsFetch) {
     // When prerendering, we don't want to preload slots as they might be outdated anyway by the time they are used
-    // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.com resources
+    // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.diy resources
     config["cal.skipSlotsFetch"] = "true";
   }
 

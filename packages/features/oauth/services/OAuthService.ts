@@ -1,6 +1,5 @@
 import { randomBytes } from "node:crypto";
 import process from "node:process";
-import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
@@ -50,18 +49,15 @@ interface DecodedRefreshToken {
 
 export class OAuthService {
   private readonly accessCodeRepository: AccessCodeRepository;
-  private readonly teamsRepository: TeamRepository;
   private readonly oAuthClientRepository: OAuthClientRepository;
 
   constructor(
-    private readonly deps: {
+    readonly deps: {
       oAuthClientRepository: OAuthClientRepository;
       accessCodeRepository: AccessCodeRepository;
-      teamsRepository: TeamRepository;
     }
   ) {
     this.accessCodeRepository = deps.accessCodeRepository;
-    this.teamsRepository = deps.teamsRepository;
     this.oAuthClientRepository = deps.oAuthClientRepository;
   }
 
@@ -85,7 +81,7 @@ export class OAuthService {
   async getClientForAuthorization(
     clientId: string,
     redirectUri: string,
-    loggedInUserId?: number
+    userId?: number
   ): Promise<OAuth2Client> {
     const client = await this.oAuthClientRepository.findByClientId(clientId);
 
@@ -95,7 +91,9 @@ export class OAuthService {
 
     this.validateRedirectUri(client.redirectUri, redirectUri);
 
-    this.ensureClientAccessAllowed(client, loggedInUserId);
+    // Allow PENDING clients if the logged-in user owns them (for developer testing).
+    // REJECTED clients are always blocked regardless of ownership.
+    this.ensureClientIsApprovedOrOwnedPending(client, userId);
 
     return {
       clientId: client.clientId,
@@ -109,11 +107,11 @@ export class OAuthService {
 
   async generateAuthorizationCode(
     clientId: string,
-    loggedInUserId: number,
+    userId: number,
     redirectUri: string,
     scopes: AccessScope[],
     state?: string,
-    teamSlug?: string,
+    _teamSlug?: string,
     codeChallenge?: string,
     codeChallengeMethod?: string
   ): Promise<AuthorizeResult> {
@@ -123,7 +121,9 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", { reason: "client_not_found" });
     }
 
-    this.ensureClientAccessAllowed(client, loggedInUserId);
+    // Allow PENDING clients if the logged-in user owns them (for developer testing).
+    // REJECTED clients are always blocked regardless of ownership.
+    this.ensureClientIsApprovedOrOwnedPending(client, userId);
 
     // RFC 6749 4.1.2.1: Redirect URI mismatch on Auth step is 'invalid_request'
     this.validateRedirectUri(client.redirectUri, redirectUri);
@@ -145,25 +145,12 @@ export class OAuthService {
       }
     }
 
-    let teamId: number | undefined;
-    if (teamSlug) {
-      const team = await this.teamsRepository.findTeamBySlugWithAdminRole(teamSlug, loggedInUserId);
-      if (!team) {
-        // Specific OAuth error for user denying or failing permission
-        throw new ErrorWithCode(ErrorCode.Unauthorized, "access_denied", {
-          reason: "team_not_found_or_no_access",
-        });
-      }
-      teamId = team.id;
-    }
-
     const authorizationCode = this.generateAuthorizationCodeString();
 
     await this.accessCodeRepository.create({
       code: authorizationCode,
       clientId,
-      userId: teamSlug ? undefined : loggedInUserId,
-      teamId,
+      userId,
       scopes,
       codeChallenge,
       codeChallengeMethod,
@@ -177,28 +164,46 @@ export class OAuthService {
     return { redirectUrl, authorizationCode, client };
   }
 
-  private ensureClientAccessAllowed(
-    client: { status: OAuthClientStatus; userId: number | null },
-    loggedInUserId?: number | null
-  ): void {
-    if (client.status === OAuthClientStatus.REJECTED) {
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", {
-        reason: "client_rejected",
-      });
-    }
-
-    const isOwner = loggedInUserId != null && loggedInUserId === client.userId;
-    if (!isOwner) {
-      this.ensureClientIsApproved(client);
-    }
-  }
-
   private ensureClientIsApproved(client: { status: OAuthClientStatus }): void {
     if (client.status !== OAuthClientStatus.APPROVED) {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", {
         reason: "client_not_approved",
       });
     }
+  }
+
+  /**
+   * Ensures the client is approved, with a special exception for PENDING clients
+   * owned by the requesting user (for developer testing).
+   * REJECTED clients are always blocked regardless of ownership.
+   */
+  private ensureClientIsApprovedOrOwnedPending(
+    client: { status: OAuthClientStatus; userId?: number | null },
+    userId?: number | null
+  ): void {
+    if (client.status === OAuthClientStatus.APPROVED) {
+      return;
+    }
+
+    if (client.status === OAuthClientStatus.REJECTED) {
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", {
+        reason: "client_rejected",
+      });
+    }
+
+    // PENDING: allow if owned by the requesting user
+    if (
+      client.status === OAuthClientStatus.PENDING &&
+      userId !== undefined &&
+      userId !== null &&
+      client.userId === userId
+    ) {
+      return;
+    }
+
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", {
+      reason: "client_not_approved",
+    });
   }
 
   private validateRedirectUri(registeredUri: string, providedUri: string): void {
@@ -303,7 +308,8 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "code_invalid_or_expired" });
     }
 
-    this.ensureClientAccessAllowed(client, accessCode.userId);
+    // Check approval status (allow owned PENDING clients for developer testing)
+    this.ensureClientIsApprovedOrOwnedPending(client, accessCode.userId);
 
     const pkceError = this.verifyPKCE(client, accessCode, codeVerifier);
     if (pkceError) {
@@ -350,7 +356,8 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "client_id_mismatch" });
     }
 
-    this.ensureClientAccessAllowed(client, decodedToken.userId);
+    // Check approval status (allow owned PENDING clients for developer testing)
+    this.ensureClientIsApprovedOrOwnedPending(client, decodedToken.userId);
 
     const tokens = this.createTokens({
       clientId,

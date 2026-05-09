@@ -3,7 +3,6 @@ import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
 import { type TaskTypes } from "./tasker";
-import { scanWorkflowBodySchema } from "./tasks/scanWorkflowBody";
 
 const whereSucceeded: Prisma.TaskWhereInput = {
   succeededAt: { not: null },
@@ -212,25 +211,6 @@ export class TaskRepository {
     // });
   }
 
-  async hasNewerScanTaskForStepId(workflowStepId: number, createdAt: string) {
-    const tasks = await this.deps.prismaClient.$queryRaw<{ payload: string }[]>`
-      SELECT "payload"
-      FROM "Task"
-      WHERE "type" = 'scanWorkflowBody'
-        AND "succeededAt" IS NULL
-        AND (payload::jsonb ->> 'workflowStepId')::int = ${workflowStepId}
-        `;
-
-    return tasks.some((task) => {
-      try {
-        const parsed = scanWorkflowBodySchema.parse(JSON.parse(task.payload));
-        if (!parsed.createdAt) return false;
-        return new Date(parsed.createdAt) > new Date(createdAt);
-      } catch {
-        return false;
-      }
-    });
-  }
 }
 
 // Export singleton instance for backward compatibility

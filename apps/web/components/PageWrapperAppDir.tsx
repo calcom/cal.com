@@ -1,7 +1,6 @@
 "use client";
 
 import "@calcom/embed-core/src/embed-iframe";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
 
 import AppProviders from "@lib/app-providers-app-dir";
 
@@ -28,7 +27,7 @@ function PageWrapper(props: PageWrapperProps) {
       <AppProviders {...providerProps}>
         <>
           {props.requiresLicense ? (
-            <LicenseRequired>{props.children}</LicenseRequired>
+            <>{props.children}</>
           ) : (
             <>{props.children}</>
           )}

@@ -160,7 +160,6 @@ describe("BookingWebhookFactory", () => {
         createdAt: null,
         updatedAt: null,
         delegationCredentialId: null,
-        domainWideDelegationCredentialId: null,
       };
 
       const payload = factory.createCancelledEventPayload({

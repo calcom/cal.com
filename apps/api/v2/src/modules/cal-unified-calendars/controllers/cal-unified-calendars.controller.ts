@@ -13,7 +13,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
-import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
+import { GetBusyTimesOutput } from "@/platform/calendars/outputs/busy-times.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -235,7 +235,7 @@ export class CalUnifiedCalendarsController {
   @ApiParam({
     name: "eventUid",
     description:
-      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
     type: String,
   })
   @Get(["/:calendar/events/:eventUid", "/:calendar/event/:eventUid"])
@@ -263,7 +263,7 @@ export class CalUnifiedCalendarsController {
   @ApiParam({
     name: "eventUid",
     description:
-      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
     type: String,
   })
   @Patch(["/:calendar/events/:eventUid", "/:calendar/event/:eventUid"])

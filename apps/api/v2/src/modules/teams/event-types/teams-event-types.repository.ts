@@ -1,12 +1,14 @@
+import type { SortOrderType } from "@calcom/platform-types";
+import { Injectable } from "@nestjs/common";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
-
-import type { SortOrderType } from "@calcom/platform-types";
 
 @Injectable()
 export class TeamsEventTypesRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async getTeamEventType(teamId: number, eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({

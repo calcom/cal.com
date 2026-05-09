@@ -33,18 +33,13 @@ vi.mock("@calcom/features/bookings/lib/getCalEventResponses", () => ({
   getCalEventResponses: vi.fn().mockReturnValue({}),
 }));
 
-vi.mock("@calcom/features/di/containers/FeaturesRepository");
-vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container");
-
-const MOCK_BOOKING_UID = "booking-uid-123";
-const MOCK_USER_UUID = "user-uuid-456";
 const MOCK_ORG_ID = 100;
 const MOCK_TOKEN = "instant-meeting-token";
 
 function createMockUser(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     id: 1,
-    uuid: MOCK_USER_UUID,
+    uuid: "user-uuid-456",
     email: "host@example.com",
     name: "Host User",
     username: "hostuser",
@@ -75,7 +70,7 @@ function mockPrismaForSuccessfulJoin({ oldStatus = BookingStatus.AWAITING_HOST }
 
   prisma.booking.update.mockResolvedValue({
     id: 10,
-    uid: MOCK_BOOKING_UID,
+    uid: "booking-uid-123",
     title: "Instant Meeting",
     description: null,
     customInputs: {},
@@ -132,77 +127,18 @@ function mockPrismaForSuccessfulJoin({ oldStatus = BookingStatus.AWAITING_HOST }
 }
 
 describe("connectAndJoin.handler", () => {
-  const mockOnBookingAccepted = vi.fn().mockResolvedValue(undefined);
-  const mockCheckIfTeamHasFeature = vi.fn();
-
   beforeEach(async () => {
     vi.clearAllMocks();
-
-    const { getBookingEventHandlerService } = await import(
-      "@calcom/features/bookings/di/BookingEventHandlerService.container"
-    );
-    vi.mocked(getBookingEventHandlerService).mockReturnValue({
-      onBookingAccepted: mockOnBookingAccepted,
-    } as any);
-
-    const { getFeaturesRepository } = await import("@calcom/features/di/containers/FeaturesRepository");
-    vi.mocked(getFeaturesRepository).mockReturnValue({
-      checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
-    } as any);
   });
 
-  describe("booking audit event", () => {
-    it("should fire booking accepted audit event with correct data", async () => {
-      mockCheckIfTeamHasFeature.mockResolvedValue(true);
-      mockPrismaForSuccessfulJoin({ oldStatus: BookingStatus.AWAITING_HOST });
+  it("should return meeting URL on successful join", async () => {
+    mockPrismaForSuccessfulJoin();
 
-      await Handler({
-        ctx: { user: createMockUser() },
-        input: { token: MOCK_TOKEN },
-      });
-
-      expect(mockCheckIfTeamHasFeature).toHaveBeenCalledWith(MOCK_ORG_ID, "booking-audit");
-
-      expect(mockOnBookingAccepted).toHaveBeenCalledTimes(1);
-      expect(mockOnBookingAccepted).toHaveBeenCalledWith({
-        bookingUid: MOCK_BOOKING_UID,
-        actor: { identifiedBy: "user", userUuid: MOCK_USER_UUID },
-        organizationId: MOCK_ORG_ID,
-        auditData: {
-          status: { old: BookingStatus.AWAITING_HOST, new: BookingStatus.ACCEPTED },
-        },
-        source: "WEBAPP",
-        isBookingAuditEnabled: true,
-      });
+    const result = await Handler({
+      ctx: { user: createMockUser() },
+      input: { token: MOCK_TOKEN },
     });
 
-    it("should pass isBookingAuditEnabled=false when feature is disabled", async () => {
-      mockCheckIfTeamHasFeature.mockResolvedValue(false);
-      mockPrismaForSuccessfulJoin();
-
-      await Handler({
-        ctx: { user: createMockUser() },
-        input: { token: MOCK_TOKEN },
-      });
-
-      expect(mockOnBookingAccepted).toHaveBeenCalledTimes(1);
-      expect(mockOnBookingAccepted).toHaveBeenCalledWith(
-        expect.objectContaining({ isBookingAuditEnabled: false })
-      );
-    });
-
-    it("should not throw when audit event fails", async () => {
-      mockCheckIfTeamHasFeature.mockResolvedValue(true);
-      mockOnBookingAccepted.mockRejectedValue(new Error("Audit handler failure"));
-      mockPrismaForSuccessfulJoin();
-
-      const result = await Handler({
-        ctx: { user: createMockUser() },
-        input: { token: MOCK_TOKEN },
-      });
-
-      expect(result.meetingUrl).toBe("https://daily.co/mock-meeting");
-      expect(mockOnBookingAccepted).toHaveBeenCalled();
-    });
+    expect(result.meetingUrl).toBe("https://daily.co/mock-meeting");
   });
 });
