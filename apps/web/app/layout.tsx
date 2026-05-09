@@ -116,8 +116,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
+            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")}, system-ui, sans-serif;
+            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")}, system-ui, sans-serif;
           }
         `}</style>
         {process.env.NODE_ENV === "development" && (

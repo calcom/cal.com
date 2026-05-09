@@ -89,8 +89,8 @@ function PageWrapper(props: AppProps) {
 
       <style jsx global>{`
         :root {
-          --font-sans: ${interFont.style.fontFamily};
-          --font-cal: ${calFont.style.fontFamily};
+          --font-sans: ${interFont.style.fontFamily}, system-ui, sans-serif;
+          --font-cal: ${calFont.style.fontFamily}, system-ui, sans-serif;
         }
       `}</style>
       <IconSprites />
