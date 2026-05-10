@@ -16,7 +16,12 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return { redirect: { permanent: false, destination: "/auth/login" } } as const;
   }
 
-  const teamId = query.teamId ? Number(query.teamId) : null;
+  const rawTeamId = Array.isArray(query.teamId) ? query.teamId[0] : query.teamId;
+  const teamId = rawTeamId ? Number(rawTeamId) : null;
+
+  if (teamId !== null && Number.isNaN(teamId)) {
+    return notFound;
+  }
 
   await throwIfNotHaveAdminAccessToTeam({ teamId, userId: session.user.id });
   const installForObject = teamId ? { teamId } : { userId: session.user.id };
@@ -28,7 +33,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
     select: {
       id: true,
-      key: true,
     },
   });
 
