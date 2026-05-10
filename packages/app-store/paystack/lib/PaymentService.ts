@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Booking, Payment, Prisma, PaymentOption } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -7,6 +9,8 @@ import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { appKeysSchema } from "../zod";
 import { PaystackClient } from "./PaystackClient";
+
+const log = logger.getSubLogger({ prefix: ["[paystackPaymentService]"] });
 
 class PaystackPaymentService implements IAbstractPaymentService {
   private client: PaystackClient | null;
@@ -187,7 +191,8 @@ class PaystackPaymentService implements IAbstractPaymentService {
         where: { id: paymentId },
       });
       return true;
-    } catch {
+    } catch (error) {
+      log.error(`deletePayment failed for payment ${paymentId}`, safeStringify(error));
       return false;
     }
   }

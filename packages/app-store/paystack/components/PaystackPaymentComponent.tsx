@@ -35,12 +35,20 @@ export default function PaystackPaymentComponent({
   const [errorMessage, setErrorMessage] = useState("");
   const { t } = useLocale();
 
-  const paymentData = payment.data as unknown as PaystackPaymentData;
+  const paymentData = payment.data;
 
-  const formattedAmount = new Intl.NumberFormat("en", {
-    style: "currency",
-    currency: currency.toUpperCase(),
-  }).format(convertFromSmallestToPresentableCurrencyUnit(amount, currency));
+  const presentableAmount = convertFromSmallestToPresentableCurrencyUnit(amount, currency);
+  let formattedAmount: string;
+  try {
+    formattedAmount = new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+    }).format(presentableAmount);
+  } catch {
+    // Intl.NumberFormat throws RangeError for unknown ISO codes. Stale event-type metadata
+    // could persist a currency that's no longer in our list — fall back to a plain number.
+    formattedAmount = `${presentableAmount} ${currency.toUpperCase()}`;
+  }
 
   const handlePayment = async () => {
     setStatus("loading");
