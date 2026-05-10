@@ -116,7 +116,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
       startTime: bookingToReschedule.startTime.toISOString(),
       endTime: bookingToReschedule.endTime.toISOString(),
       attendees: usersToPeopleType(
-        // username field doesn't exists on attendee but could be in the future
+        // username field doesn't exist on attendee but could be added in the future
         bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
         tAttendees
       ),
