@@ -22,27 +22,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const ownerFilter = teamIdNumber ? { teamId: teamIdNumber } : { userId: req.session.user.id };
 
   try {
-    const alreadyInstalled = await prisma.credential.findFirst({
-      where: {
-        type: appType,
-        ...ownerFilter,
-      },
+    const created = await prisma.$transaction(async (tx) => {
+      const alreadyInstalled = await tx.credential.findFirst({
+        where: { type: appType, ...ownerFilter },
+        select: { id: true },
+      });
+      if (alreadyInstalled) {
+        return null;
+      }
+      return tx.credential.create({
+        data: {
+          type: appType,
+          key: {},
+          appId: "paystack",
+          ...ownerFilter,
+        },
+        select: { id: true },
+      });
     });
-    if (alreadyInstalled) {
-      throw new Error("Already installed");
+
+    if (!created) {
+      return res.status(409).json({ message: "Already installed" });
     }
-    await prisma.credential.create({
-      data: {
-        type: appType,
-        key: {},
-        appId: "paystack",
-        ...ownerFilter,
-      },
-    });
   } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Already installed") {
-      return res.status(409).json({ message: error.message });
-    }
     const httpError = getServerErrorFromUnknown(error);
     return res.status(httpError.statusCode).json({ message: httpError.message });
   }
