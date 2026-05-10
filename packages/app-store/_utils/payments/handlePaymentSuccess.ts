@@ -1,24 +1,19 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
+import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import tasker from "@calcom/features/tasker";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -26,10 +21,8 @@ import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-
-import { getAppActor } from "../getAppActor";
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
 
@@ -46,9 +39,6 @@ export async function handlePaymentSuccess(params: {
   });
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
-  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
-  const actor = getAppActor({ appSlug, bookingId, apps });
-
   try {
     await tasker.cancelWithReference(booking.uid, "sendAwaitingPaymentEmail");
     log.debug(`Cancelled scheduled awaiting payment email for booking ${bookingId}`);
@@ -133,13 +123,8 @@ export async function handlePaymentSuccess(params: {
   });
   const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
   const userId = triggerForUser ? booking.userId : null;
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-  const bookerUrl = await getBookerBaseUrl(orgId ?? null);
 
   try {
-    // Get workflows for BOOKING_PAID trigger
-    const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
-
     const paymentExternalId = payment.externalId;
 
     const paymentMetadata = {
@@ -160,9 +145,8 @@ export async function handlePaymentSuccess(params: {
       length: booking.eventType?.length,
     };
 
-    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const payload: EventPayloadType = {
-      ...evtWithoutAssignmentReason,
+      ...evt,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: booking.eventType?.id,
@@ -179,7 +163,6 @@ export async function handlePaymentSuccess(params: {
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
       teamId: booking.eventType?.teamId,
-      orgId,
       oAuthClientId: platformClientParams?.platformClientId,
     });
 
@@ -201,40 +184,6 @@ export async function handlePaymentSuccess(params: {
 
     // Wait for webhook invocations to finish before returning
     await Promise.all(bookingPaidSubscribers);
-
-    // Trigger BOOKING_PAID workflows
-    try {
-      const meetingUrl = getVideoCallUrlFromCalEvent(evt);
-      const calendarEventForWorkflow = {
-        ...evt,
-        eventType: {
-          slug: booking.eventType?.slug || "",
-          schedulingType: booking.eventType?.schedulingType,
-          hosts:
-            booking.eventType?.hosts?.map((host) => ({
-              user: {
-                email: host.user.email,
-                destinationCalendar: host.user.destinationCalendar,
-              },
-            })) || [],
-        },
-        bookerUrl: bookerUrl,
-        metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
-      };
-
-      const creditService = new CreditService();
-
-      await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
-        workflows,
-        smsReminderNumber: booking.smsReminderNumber,
-        calendarEvent: calendarEventForWorkflow,
-        hideBranding: evt.hideBranding ?? false,
-        triggers: [WorkflowTriggerEvents.BOOKING_PAID],
-        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
-      });
-    } catch (error) {
-      log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));
-    }
   } catch (error) {
     log.error("Error while triggering BOOKING_PAID webhook", safeStringify(error));
   }
@@ -250,15 +199,11 @@ export async function handlePaymentSuccess(params: {
         paid: true,
         platformClientParams,
         traceContext: updatedTraceContext,
-        actionSource: "WEBHOOK",
-        impersonatedByUserUuid: null,
-        actor,
       });
     } else {
       await handleBookingRequested({
         evt,
         booking,
-        oAuthClientId: platformClientParams?.platformClientId,
       });
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }

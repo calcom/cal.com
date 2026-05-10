@@ -1,11 +1,6 @@
-import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import posthog from "posthog-js";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { type FilterSegmentScope } from "@calcom/prisma/enums";
+import type { FilterSegmentScope } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import {
@@ -16,9 +11,12 @@ import {
   DialogTrigger,
 } from "@calcom/ui/components/dialog";
 import { Form, Input, Label, Select, Switch } from "@calcom/ui/components/form";
-import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
+import { RadioField, RadioGroup } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { useSession } from "next-auth/react";
+import posthog from "posthog-js";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useDataTable } from "~/data-table/hooks";
 
 interface FormValues {
@@ -28,6 +26,16 @@ interface FormValues {
 }
 
 export function SaveFilterSegmentButton() {
+  const createSegmentMutation = {
+    mutate: (_args: Record<string, unknown>) => {},
+    mutateAsync: async (_args: Record<string, unknown>) => ({ id: "" }),
+  };
+  const updateSegmentMutation = {
+    mutate: (_args: Record<string, unknown>) => {},
+    mutateAsync: async (_args: Record<string, unknown>) => ({}),
+  };
+  const createSegment = (args: Record<string, unknown>) => createSegmentMutation.mutate(args);
+  const updateSegment = (args: Record<string, unknown>) => updateSegmentMutation.mutate(args);
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [isOpen, setIsOpen] = useState(false);
@@ -70,30 +78,7 @@ export function SaveFilterSegmentButton() {
     setSaveMode(selectedSegment && selectedSegment.type === "user" ? "update" : "create");
   }, [selectedSegment, isOpen]);
 
-  const { data: teams } = trpc.viewer.teams.list.useQuery();
-
-  const { mutate: createSegment } = trpc.viewer.filterSegments.create.useMutation({
-    onSuccess: (segment) => {
-      utils.viewer.filterSegments.list.invalidate();
-      showToast(t("filter_segment_saved"), "success");
-      setSegmentId({ id: segment.id, type: "user" }, { type: "user", ...segment });
-      setIsOpen(false);
-    },
-    onError: () => {
-      showToast(t("error_saving_filter_segment"), "error");
-    },
-  });
-
-  const { mutate: updateSegment } = trpc.viewer.filterSegments.update.useMutation({
-    onSuccess: () => {
-      utils.viewer.filterSegments.list.invalidate();
-      showToast(t("filter_segment_updated"), "success");
-      setIsOpen(false);
-    },
-    onError: () => {
-      showToast(t("error_updating_filter_segment"), "error");
-    },
-  });
+  const teams = null as { id: number; name: string; slug: string | null }[] | null;
 
   const onSubmit = (values: FormValues) => {
     if (isTeamSegment && !selectedTeamId) {

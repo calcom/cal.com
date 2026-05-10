@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import AdminAppsList from "~/apps/components/AdminAppsList";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -11,38 +11,25 @@ import { WizardForm } from "@calcom/ui/components/form";
 import type { WizardStep } from "@calcom/ui/components/form/wizard/WizardForm";
 
 import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";
-import LicenseSelection from "@components/setup/LicenseSelection";
 
 import type { getServerSideProps } from "@server/lib/setup/getServerSideProps";
 
 const SETUP_VIEW_SETPS = {
   ADMIN_USER: 1,
-  LICENSE: 2,
-  APPS: 3,
+  APPS: 2,
 } as const;
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export function Setup(props: PageProps) {
-  const [hasPickedAGPLv3, setHasPickedAGPLv3] = useState(false);
   const { t } = useLocale();
   const router = useRouter();
-  const [licenseOption, setLicenseOption] = useState<"FREE" | "EXISTING">(
-    props.hasValidLicense ? "EXISTING" : "FREE"
-  );
-
-  const hasLicenseStep = !props.hasValidLicense && !hasPickedAGPLv3;
 
   const defaultStep = useMemo(() => {
     if (props.userCount > 0) {
-      if (hasLicenseStep) {
-        return SETUP_VIEW_SETPS.LICENSE;
-      } else {
-        // License step is not shown, so apps step is at position 2 instead of 3
-        return SETUP_VIEW_SETPS.APPS - 1;
-      }
+      return SETUP_VIEW_SETPS.APPS;
     }
     return SETUP_VIEW_SETPS.ADMIN_USER;
-  }, [props.userCount, hasLicenseStep]);
+  }, [props.userCount]);
 
   const steps: WizardStep[] = [
     {
@@ -66,36 +53,6 @@ export function Setup(props: PageProps) {
       ),
     },
   ];
-
-  // Only show license selection step if there's no valid license already and AGPLv3 wasn't picked
-  if (hasLicenseStep) {
-    steps.push({
-      title: t("choose_a_license"),
-      description: t("choose_license_description"),
-      customActions: true,
-      content: (setIsPending, nav) => {
-        return (
-          <LicenseSelection
-            id="wizard-step-2"
-            name="wizard-step-2"
-            value={licenseOption}
-            onChange={setLicenseOption}
-            onSubmit={(values) => {
-              setIsPending(true);
-              if (licenseOption === "FREE") {
-                setHasPickedAGPLv3(true);
-                nav.onNext();
-              } else if (licenseOption === "EXISTING" && values.licenseKey) {
-                nav.onNext();
-              }
-            }}
-            onPrevStep={nav.onPrev}
-            onNextStep={nav.onNext}
-          />
-        );
-      },
-    });
-  }
 
   steps.push({
     title: t("enable_apps"),

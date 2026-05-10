@@ -1,17 +1,17 @@
-import * as RadioGroup from "@radix-ui/react-radio-group";
-import { useEffect, useRef, useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
-import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type {
+  EventTypeSetup,
+  FormValues,
+  SettingsToggleClassNames,
+} from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Input } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Input, SettingsToggle } from "@calcom/ui/components/form";
 import { RadioField } from "@calcom/ui/components/radio";
+import * as RadioGroup from "@radix-ui/react-radio-group";
+import { useEffect, useRef, useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
 
 export type DisableReschedulingCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;
@@ -56,7 +56,8 @@ export default function DisableReschedulingController({
     }
   }, [currentMinimumRescheduleNotice]);
 
-  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
+  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
+  const shouldLockIndicator = (_field: string) => false;
   const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
   const minimumRescheduleNoticeLocked = shouldLockDisableProps("minimumRescheduleNotice");
 
@@ -103,7 +104,7 @@ export default function DisableReschedulingController({
                 }
               }}>
               {shouldShowRadioButtons && (
-                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <div className="rounded-b-lg border border-subtle border-t-0 p-6">
                   <RadioGroup.Root
                     value={
                       disableRescheduling
@@ -149,9 +150,7 @@ export default function DisableReschedulingController({
                           "items-center",
                           customClassNames?.conditionalRescheduleRadio?.container
                         )}
-                        label={
-                          <>
-                            <ServerTrans
+                        label=<ServerTrans
                               t={t}
                               i18nKey="when_less_than_minutes_before_meeting"
                               components={[
@@ -173,7 +172,7 @@ export default function DisableReschedulingController({
                                       }
                                     }}
                                     className={classNames(
-                                      "border-default m-0! block w-20 text-sm [appearance:textfield] focus:z-10",
+                                  "m-0! block w-20 border-default text-sm [appearance:textfield] focus:z-10",
                                       customClassNames?.conditionalRescheduleRadio?.timeInput
                                     )}
                                     defaultValue={
@@ -184,9 +183,7 @@ export default function DisableReschedulingController({
                                   />
                                 </div>,
                               ]}
-                            />
-                          </>
-                        }
+                        />
                         id="notice"
                         value="notice"
                       />

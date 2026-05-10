@@ -1,12 +1,7 @@
 import { vi } from "vitest";
 
-export const getCredentialForSelectedCalendar = vi.fn().mockResolvedValue({
-  id: 1,
-  key: { access_token: "test-token" },
-  user: { email: "test@example.com" },
-  delegatedTo: null,
-});
+export const getCredentialForSelectedCalendar = vi.fn();
 
-vi.doMock("@calcom/app-store/delegationCredential", () => ({
+vi.mock("@calcom/app-store/delegationCredential", () => ({
   getCredentialForSelectedCalendar,
 }));

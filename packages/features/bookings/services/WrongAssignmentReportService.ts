@@ -1,20 +1,17 @@
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
 import { Prisma } from "@calcom/prisma/client";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { WrongAssignmentReportStatus } from "@calcom/prisma/enums";
-
-import { BookingRepository } from "../repositories/BookingRepository";
-import { WrongAssignmentReportRepository } from "../repositories/WrongAssignmentReportRepository";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { BookingRepository } from "../repositories/BookingRepository";
+import type { WrongAssignmentReportRepository } from "../repositories/WrongAssignmentReportRepository";
 
 export interface IWrongAssignmentReportServiceDeps {
   bookingRepo: BookingRepository;
   wrongAssignmentReportRepo: WrongAssignmentReportRepository;
-  teamRepo: TeamRepository;
 }
 
 const log = logger.getSubLogger({ prefix: ["WrongAssignmentReportService"] });
@@ -50,8 +47,6 @@ export class WrongAssignmentReportService {
 
     const teamId = booking.eventType?.team?.id ?? null;
     const orgId = booking.eventType?.team?.parentId ?? null;
-    const routingFormId = booking.routedFromRoutingFormReponse?.formId || null;
-
     let report: { id: string };
     try {
       report = await wrongAssignmentReportRepo.createReport({
@@ -60,7 +55,6 @@ export class WrongAssignmentReportService {
         correctAssignee: input.correctAssignee || null,
         additionalNotes: input.additionalNotes,
         teamId,
-        routingFormId,
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -85,45 +79,11 @@ export class WrongAssignmentReportService {
     };
   }
 
-  async listReports(input: {
-    teamId: number;
-    isAll: boolean;
-    statuses: WrongAssignmentReportStatus[];
-    routingFormId?: string;
-    reportedById?: number;
-    limit: number;
-    offset: number;
-  }) {
-    const { wrongAssignmentReportRepo, teamRepo } = this.deps;
-
-    let teamIds: number[];
-
-    if (input.isAll) {
-      const childTeams = await teamRepo.findAllByParentId({ parentId: input.teamId, select: { id: true } });
-      teamIds = [input.teamId, ...childTeams.map((t) => t.id)];
-    } else {
-      teamIds = [input.teamId];
-    }
-
-    const { reports, totalCount } = await wrongAssignmentReportRepo.findByTeamIdsAndStatuses({
-      teamIds,
-      statuses: [...input.statuses],
-      routingFormId: input.routingFormId,
-      reportedById: input.reportedById,
-      limit: input.limit,
-      offset: input.offset,
-    });
-
-    return {
-      reports,
-      totalCount,
-      hasMore: input.offset + reports.length < totalCount,
-    };
-  }
-
   private async sendWebhooks(params: {
     booking: NonNullable<
-      Awaited<ReturnType<BookingRepository["findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason"]>>
+      Awaited<
+        ReturnType<BookingRepository["findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason"]>
+      >
     >;
     teamId: number | null;
     orgId: number | null;

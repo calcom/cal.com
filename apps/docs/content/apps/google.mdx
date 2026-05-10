@@ -21,11 +21,11 @@
 9. **Add Authorized Redirect URIs** - Under Authorized redirect URI's, add the URIs:
 
 ```
-<Cal.com URL>/api/integrations/googlecalendar/callback
-<Cal.com URL>/api/auth/callback/google
+<Cal.diy URL>/api/integrations/googlecalendar/callback
+<Cal.diy URL>/api/auth/callback/google
 ```
 
-Replace `<Cal.com URL>` with the URL where your application runs.
+Replace `<Cal.diy URL>` with the URL where your application runs.
 
 10. **Download the OAuth Client ID JSON** - The key will be created, redirecting you back to the Credentials page. Select the new client ID under "OAuth 2.0 Client IDs", then click "Download JSON". Copy the JSON file contents and paste the entire string into the `.env` and `.env.appStore` files under the `GOOGLE_API_CREDENTIALS` key.
 
@@ -37,7 +37,7 @@ GOOGLE_LOGIN_ENABLED=false
 
 This will configure the Google integration as an Internal app, restricting login access.
 
-### Adding Google Calendar to Cal.com App Store
+### Adding Google Calendar to Cal.diy App Store
 
 After adding Google credentials, you can now add the Google Calendar App to the app store. Repopulate the App store by running:
 

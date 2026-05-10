@@ -1,0 +1,39 @@
+import { TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
+import { Injectable, PipeTransform } from "@nestjs/common";
+import { plainToClass } from "class-transformer";
+import {
+  DatabaseTeamEventType,
+  OutputTeamEventTypesService,
+} from "@/modules/teams/event-types/services/output-team-event-types.service";
+
+@Injectable()
+export class OutputTeamEventTypesResponsePipe implements PipeTransform {
+  constructor(private readonly outputTeamEventTypesService: OutputTeamEventTypesService) {}
+
+  private async transformEventType(item: DatabaseTeamEventType): Promise<TeamEventTypeOutput_2024_06_14> {
+    return plainToClass(
+      TeamEventTypeOutput_2024_06_14,
+      await this.outputTeamEventTypesService.getResponseTeamEventType(item, true),
+      { strategy: "exposeAll" }
+    );
+  }
+
+  // Implementing function overloading to ensure correct return types based on input type:
+  async transform(value: DatabaseTeamEventType[]): Promise<TeamEventTypeOutput_2024_06_14[]>;
+
+  async transform(value: DatabaseTeamEventType): Promise<TeamEventTypeOutput_2024_06_14>;
+
+  async transform(
+    value: DatabaseTeamEventType | DatabaseTeamEventType[]
+  ): Promise<TeamEventTypeOutput_2024_06_14 | TeamEventTypeOutput_2024_06_14[]>;
+
+  async transform(
+    value: DatabaseTeamEventType | DatabaseTeamEventType[]
+  ): Promise<TeamEventTypeOutput_2024_06_14 | TeamEventTypeOutput_2024_06_14[]> {
+    if (Array.isArray(value)) {
+      return await Promise.all(value.map((item) => this.transformEventType(item)));
+    } else {
+      return await this.transformEventType(value);
+    }
+  }
+}

@@ -16,9 +16,9 @@ Famulor.io is a no-code platform for building, testing, deploying, and monitorin
 
 Build and test complex workflows in minutes using our visual builder, then deploy them via phone calls, web calls, or anywhere else. Handle millions of calls with scalable concurrent calling and support over 50 parallel conversations to reduce wait times.
 
-## 🔗 Cal.com 1-Click Integration
+## 🔗 Cal.diy 1-Click Integration
 
-Connecting your Cal.com account is now faster and simpler than ever:
+Connecting your Cal.diy account is now faster and simpler than ever:
 
 - Use the new one-click connect button to instantly link your calendar
 - Built-in troubleshooting tools help you identify and fix sync issues quickly
@@ -44,7 +44,7 @@ Support over 100 languages, including regional accents and cultural adaptations,
 
 ## Preset Functions
 
-Easy-to-use functions like booking meetings at [Cal.com](https://cal.com), call transfer, voicemail detection, and more. Comprehensive call management with audio recordings, searchable transcripts, and detailed reports to monitor performance and campaign results.
+Easy-to-use functions like booking meetings at [Cal.diy](https://cal.com), call transfer, voicemail detection, and more. Comprehensive call management with audio recordings, searchable transcripts, and detailed reports to monitor performance and campaign results.
 
 ## GDPR Compliant
 

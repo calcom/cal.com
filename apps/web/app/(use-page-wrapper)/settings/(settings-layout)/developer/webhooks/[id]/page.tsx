@@ -4,8 +4,8 @@ import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
+import prisma from "@calcom/prisma";
 import { APP_NAME } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -34,16 +34,17 @@ const Page = async ({ params: _params }: PageProps) => {
   const webhookRepository = WebhookRepository.getInstance();
   const webhook = await webhookRepository.findByWebhookId(id);
 
-  // Ownership check: align with PBAC middleware in webhook/util.ts
+  // Ownership check: verify user has access to this webhook
   if (webhook.teamId) {
-    const permissionService = new PermissionCheckService();
-    const hasPermission = await permissionService.checkPermission({
-      userId: session.user.id,
-      teamId: webhook.teamId,
-      permission: "webhook.read",
-      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId: session.user.id,
+        teamId: webhook.teamId,
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER] },
+      },
+      select: { id: true },
     });
-    if (!hasPermission) {
+    if (!membership) {
       notFound();
     }
   } else if (webhook.userId !== session.user.id) {

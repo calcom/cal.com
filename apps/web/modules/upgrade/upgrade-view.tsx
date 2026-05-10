@@ -19,21 +19,16 @@ export default function UpgradePage() {
   const { t } = useLocale();
 
   const router = useRouter();
-  const publishOrgMutation = trpc.viewer.organizations.publish.useMutation({
-    onSuccess(data) {
-      router.push(data.url);
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const publishOrgMutation = { mutate: (..._args: unknown[]) => {}, mutateAsync: async () => ({}), isPending: false };
 
-  const doesUserHaveOrgToUpgrade = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
+
+  const upgradeData = { data: undefined as { canUpgrade?: boolean } | undefined };
+
 
   return (
     <Shell>
       <div className="max-w-(--breakpoint-lg)">
-        {doesUserHaveOrgToUpgrade.data ? (
+        {upgradeData.data ? (
           <EmptyScreen
             headline={t("your_upgrade_is_here")}
             description={t("your_upgrade_is_here_description")}

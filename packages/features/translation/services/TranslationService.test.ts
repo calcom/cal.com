@@ -7,9 +7,6 @@ vi.mock("@calcom/lib/logger", () => ({
 
 describe("TranslationService", () => {
   let mockLocalizeText: ReturnType<typeof vi.fn>;
-  let mockWorkflowStepTranslationRepository: {
-    findByLocale: ReturnType<typeof vi.fn>;
-  };
   let mockEventTypeTranslationRepository: {
     findByLocale: ReturnType<typeof vi.fn>;
   };
@@ -18,15 +15,11 @@ describe("TranslationService", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     mockLocalizeText = vi.fn();
-    mockWorkflowStepTranslationRepository = {
-      findByLocale: vi.fn(),
-    };
     mockEventTypeTranslationRepository = {
       findByLocale: vi.fn(),
     };
     service = new TranslationService({
       localizeText: mockLocalizeText,
-      workflowStepTranslationRepository: mockWorkflowStepTranslationRepository as never,
       eventTypeTranslationRepository: mockEventTypeTranslationRepository as never,
     });
   });
@@ -134,74 +127,6 @@ describe("TranslationService", () => {
       await service.translateText({ text: "Hello World", sourceLocale: "en" });
 
       expect(mockLocalizeText).toHaveBeenCalledWith("Hello World", "en", expect.any(String));
-    });
-  });
-
-  describe("getWorkflowStepTranslation", () => {
-    it("should return translated body when includeBody is true", async () => {
-      mockWorkflowStepTranslationRepository.findByLocale.mockResolvedValue({
-        translatedText: "Translated body",
-      });
-
-      const result = await service.getWorkflowStepTranslation(1, "es", { includeBody: true });
-
-      expect(result.translatedBody).toBe("Translated body");
-      expect(mockWorkflowStepTranslationRepository.findByLocale).toHaveBeenCalledWith(
-        1,
-        "REMINDER_BODY",
-        "es"
-      );
-    });
-
-    it("should return translated subject when includeSubject is true", async () => {
-      mockWorkflowStepTranslationRepository.findByLocale.mockResolvedValue({
-        translatedText: "Translated subject",
-      });
-
-      const result = await service.getWorkflowStepTranslation(1, "es", { includeSubject: true });
-
-      expect(result.translatedSubject).toBe("Translated subject");
-      expect(mockWorkflowStepTranslationRepository.findByLocale).toHaveBeenCalledWith(
-        1,
-        "EMAIL_SUBJECT",
-        "es"
-      );
-    });
-
-    it("should return both body and subject when both options are true", async () => {
-      mockWorkflowStepTranslationRepository.findByLocale
-        .mockResolvedValueOnce({ translatedText: "Translated body" })
-        .mockResolvedValueOnce({ translatedText: "Translated subject" });
-
-      const result = await service.getWorkflowStepTranslation(1, "es", {
-        includeBody: true,
-        includeSubject: true,
-      });
-
-      expect(result.translatedBody).toBe("Translated body");
-      expect(result.translatedSubject).toBe("Translated subject");
-    });
-
-    it("should return empty object when no translation found", async () => {
-      mockWorkflowStepTranslationRepository.findByLocale.mockResolvedValue(null);
-
-      const result = await service.getWorkflowStepTranslation(1, "es", { includeBody: true });
-
-      expect(result.translatedBody).toBeUndefined();
-    });
-
-    it("should default to includeBody: true when no options provided", async () => {
-      mockWorkflowStepTranslationRepository.findByLocale.mockResolvedValue({
-        translatedText: "Translated body",
-      });
-
-      await service.getWorkflowStepTranslation(1, "es");
-
-      expect(mockWorkflowStepTranslationRepository.findByLocale).toHaveBeenCalledWith(
-        1,
-        "REMINDER_BODY",
-        "es"
-      );
     });
   });
 

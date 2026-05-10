@@ -1,11 +1,8 @@
-import { useFormContext } from "react-hook-form";
-
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-
+import { useFormContext } from "react-hook-form";
 import type { TeamMembers } from "../../EventType";
 import { EventAvailabilityTab } from "./EventAvailabilityTab";
 
@@ -25,11 +22,10 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
   const scheduleId = formMethods.watch("schedule");
   const restrictionScheduleId = formMethods.watch("restrictionScheduleId");
 
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
-    eventType: props.eventType,
-    translate: t,
-    formMethods,
-  });
+  const isManagedEventType = false;
+  const isChildrenManagedEventType = false;
+  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
+  const shouldLockIndicator = (_field: string) => false;
 
   // Check if team has restriction schedule feature enabled
   const { data: isRestrictionScheduleEnabled = false } = trpc.viewer.features.checkTeamFeature.useQuery(

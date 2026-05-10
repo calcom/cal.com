@@ -3,12 +3,11 @@ import type {
   CancelBookingMeta,
   HandleCancelBookingResponse,
 } from "../dto/BookingCancel";
-import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+type ValidActionSource = string;
 
 export interface IBookingCancelService {
   cancelBooking(input: {
     bookingData: CancelRegularBookingData;
     bookingMeta?: CancelBookingMeta;
-    actionSource: ValidActionSource;
   }): Promise<HandleCancelBookingResponse>;
 }

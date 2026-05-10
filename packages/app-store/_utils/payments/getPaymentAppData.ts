@@ -22,7 +22,17 @@ export function getPaymentAppData(
   };
   const metadataApps = eventType.metadata?.apps;
   if (!metadataApps) {
-    return { enabled: false, price: 0, currency: "usd", appId: null };
+    return {
+      enabled: false,
+      price: 0,
+      currency: "usd",
+      appId: null,
+      paymentOption: "ON_BOOKING" as const,
+      credentialId: undefined,
+      refundPolicy: undefined,
+      refundDaysCount: undefined,
+      refundCountCalendarDays: undefined,
+    };
   }
   type appId = keyof typeof metadataApps;
   // @TODO: a lot of unknowns types here can be improved later
@@ -38,7 +48,7 @@ export function getPaymentAppData(
     price: number;
     currency: string;
     appId: EventTypeAppsList | null;
-    paymentOption: typeof paymentOptionEnum;
+    paymentOption: z.infer<typeof paymentOptionEnum>;
     credentialId?: number;
     refundPolicy?: string;
     refundDaysCount?: number;
@@ -47,8 +57,16 @@ export function getPaymentAppData(
   for (const appId of paymentAppIds) {
     const appData = getEventTypeAppData(eventType, appId, forcedGet);
     if (appData && paymentAppData === null) {
+      const data = appData as { enabled?: boolean; price?: number; currency?: string; paymentOption?: string; credentialId?: number; refundPolicy?: string; refundDaysCount?: number; refundCountCalendarDays?: boolean };
       paymentAppData = {
-        ...appData,
+        enabled: data.enabled ?? false,
+        price: data.price ?? 0,
+        currency: data.currency ?? "usd",
+        paymentOption: (data.paymentOption ?? "ON_BOOKING") as z.infer<typeof paymentOptionEnum>,
+        credentialId: data.credentialId,
+        refundPolicy: data.refundPolicy,
+        refundDaysCount: data.refundDaysCount,
+        refundCountCalendarDays: data.refundCountCalendarDays,
         appId,
       };
     }

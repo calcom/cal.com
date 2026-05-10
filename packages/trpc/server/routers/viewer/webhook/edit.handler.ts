@@ -1,4 +1,3 @@
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import {
   updateTriggerForExistingBookings,
   deleteWebhookScheduledTriggers,
@@ -6,7 +5,6 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -51,24 +49,7 @@ export const editHandler = async ({ input, ctx }: EditOptions) => {
     }
   }
 
-  if (webhook.teamId) {
-    const permissionService = new PermissionCheckService();
-
-    const hasPermission = await permissionService.checkPermission({
-      userId: ctx.user.id,
-      teamId: webhook.teamId,
-      permission: "webhook.update",
-      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-    });
-
-    if (!hasPermission) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-      });
-    }
-  }
-
-  const updatedWebhook = await prisma.webhook.update({
+  const updatedWebhook= await prisma.webhook.update({
     where: {
       id,
     },

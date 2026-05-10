@@ -1,22 +1,14 @@
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
+import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
-import { AvailabilitySliderTable } from "@calcom/web/modules/timezone-buddy/components/AvailabilitySliderTable";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
-import { AvailabilityList, AvailabilityCTA } from "~/availability/availability-view";
-
+import { AvailabilityCTA, AvailabilityList } from "~/availability/availability-view";
 import { ShellMainAppDir } from "../ShellMainAppDir";
 
 export const generateMetadata = async () => {
@@ -60,32 +52,12 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
     schedules: cachedAvailabilities.schedules.map((schedule) => getScheduleListItemData(schedule)),
   };
 
-  const organizationId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
-  const organizationRepository = getOrganizationRepository();
-  const isOrgPrivate = organizationId
-    ? await organizationRepository.checkIfPrivate({
-        orgId: organizationId,
-      })
-    : false;
-
-  const permissionService = new PermissionCheckService();
-  const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
-    userId: session.user.id,
-    permission: "availability.read",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-  });
-  const canViewTeamAvailability = teamIdsWithPermission.length > 0 || !isOrgPrivate;
-
   return (
     <ShellMainAppDir
       heading={t("availability")}
       subtitle={t("configure_availability")}
-      CTA={<AvailabilityCTA canViewTeamAvailability={canViewTeamAvailability} />}>
-      {searchParams?.type === "team" && canViewTeamAvailability ? (
-        <AvailabilitySliderTable isOrg={!!organizationId} />
-      ) : (
-        <AvailabilityList availabilities={availabilities ?? { schedules: [] }} />
-      )}
+      CTA={<AvailabilityCTA />}>
+      <AvailabilityList availabilities={availabilities ?? { schedules: [] }} />
     </ShellMainAppDir>
   );
 };

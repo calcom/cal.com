@@ -1,16 +1,11 @@
-import { AtomsWrapper } from "@/components/atoms-wrapper";
-
 import CreateEventTypeForm from "@calcom/features/eventtypes/components/CreateEventTypeForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui/components/button";
-import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
-
-import { useCreateEventTypeForm } from "../../hooks/event-types/private/useCreateEventTypeForm";
 import { useCreateEventType } from "../../hooks/event-types/private/useCreateEventType";
-import { useCreateTeamEventType } from "../../hooks/event-types/private/useCreateTeamEventType";
-import { useTeams } from "../../hooks/teams/useTeams";
+import { useCreateEventTypeForm } from "../../hooks/event-types/private/useCreateEventTypeForm";
 import { cn } from "../../src/lib/utils";
+import { AtomsWrapper } from "@/components/atoms-wrapper";
 
 type ActionButtonsClassNames = {
   container?: string;
@@ -72,49 +67,10 @@ export const CreateEventTypePlatformWrapper = ({
 }: CreateEventTypeProps) => {
   const { form, isManagedEventType } = useCreateEventTypeForm();
   const createEventTypeQuery = useCreateEventType({ onSuccess, onError });
-  const createTeamEventTypeQuery = useCreateTeamEventType({ onSuccess, onError });
-  const { data: teams } = useTeams();
-  const team = teams?.find((t) => t.id === teamId);
   const { t } = useLocale();
 
-  const permissions = {
-    canCreateEventType: team?.role === "ADMIN" || team?.role === "OWNER",
-  };
 
-  return teamId && team ? (
-    <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
-      <TeamEventTypeForm
-        teamSlug={team?.slug}
-        teamId={teamId}
-        permissions={permissions}
-        urlPrefix=""
-        isPending={createTeamEventTypeQuery.isPending}
-        form={form}
-        isManagedEventType={isManagedEventType}
-        handleSubmit={(values) => {
-          !isDryRun &&
-            createTeamEventTypeQuery.mutate({
-              lengthInMinutes: values.length,
-              title: values.title,
-              slug: values.slug,
-              description: values.description ?? "",
-              schedulingType: values.schedulingType ?? "COLLECTIVE",
-              hosts: [],
-              teamId,
-            });
-        }}
-        SubmitButton={(isPending) =>
-          ActionButtons({
-            isPending,
-            onCancel,
-            submitLabel: t("continue"),
-            cancelLabel: t("cancel"),
-            customClassNames: customClassNames?.buttons,
-          })
-        }
-      />
-    </AtomsWrapper>
-  ) : (
+  return (
     <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <CreateEventTypeForm
         urlPrefix=""

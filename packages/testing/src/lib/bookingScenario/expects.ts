@@ -7,7 +7,7 @@ import { expect, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
@@ -477,7 +477,7 @@ export function expectSuccessfulBookingCreationEmails({
   destinationEmail?: string;
   calendarType?: string;
 }) {
-  const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
+  const bookingUrlOrigin = booking.urlOrigin || WEBAPP_URL;
   expect(emails).toHaveEmail(
     {
       titleTag: "confirmed_event_type_subject",
@@ -902,7 +902,7 @@ export function expectBookingRequestRescheduledEmails({
   booking: { uid: string; urlOrigin?: string };
   bookNewTimePath: string;
 }) {
-  const bookingUrlOrigin = booking.urlOrigin || WEBSITE_URL;
+  const bookingUrlOrigin = booking.urlOrigin || WEBAPP_URL;
 
   expect(emails).toHaveEmail(
     {
@@ -939,15 +939,7 @@ export function expectBookingRequestRescheduledEmails({
   );
 }
 
-export function expectBookingRequestedWebhookToHaveBeenFired({
-  booker,
-  location,
-  subscriberUrl,
-  paidEvent,
-  eventType,
-  isEmailHidden = false,
-  isAttendeePhoneNumberHidden = false,
-}: {
+export function expectBookingRequestedWebhookToHaveBeenFired(_args: {
   organizer: { email: string; name: string };
   booker: { email: string; name: string; attendeePhoneNumber?: string };
   subscriberUrl: string;
@@ -957,72 +949,8 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
   isEmailHidden?: boolean;
   isAttendeePhoneNumberHidden?: boolean;
 }) {
-  // There is an inconsistency in the way we send the data to the webhook for paid events and unpaid events. Fix that and then remove this if statement.
-  if (!paidEvent) {
-    expectWebhookToHaveBeenCalledWith(subscriberUrl, {
-      triggerEvent: "BOOKING_REQUESTED",
-      payload: {
-        eventTitle: eventType.title,
-        eventDescription: eventType.description,
-        metadata: {
-          // In a Pending Booking Request, we don't send the video call url
-        },
-        responses: {
-          name: {
-            label: "your_name",
-            value: booker.name,
-            isHidden: false,
-          },
-          email: {
-            label: "email_address",
-            value: booker.email,
-            isHidden: isEmailHidden,
-          },
-          ...(booker.attendeePhoneNumber
-            ? {
-                attendeePhoneNumber: {
-                  label: "phone_number",
-                  value: booker.attendeePhoneNumber,
-                  isHidden: isAttendeePhoneNumberHidden,
-                },
-              }
-            : null),
-          location: {
-            label: "location",
-            value: { optionValue: "", value: location },
-            isHidden: false,
-          },
-        },
-      },
-    });
-  } else {
-    expectWebhookToHaveBeenCalledWith(subscriberUrl, {
-      triggerEvent: "BOOKING_REQUESTED",
-      payload: {
-        eventTitle: eventType.title,
-        eventDescription: eventType.description,
-        metadata: {
-          // In a Pending Booking Request, we don't send the video call url
-        },
-        responses: {
-          name: { label: "name", value: booker.name },
-          email: { label: "email", value: booker.email },
-          ...(booker.attendeePhoneNumber
-            ? {
-                attendeePhoneNumber: {
-                  label: "phone_number",
-                  value: booker.attendeePhoneNumber,
-                },
-              }
-            : null),
-          location: {
-            label: "location",
-            value: { optionValue: "", value: location },
-          },
-        },
-      },
-    });
-  }
+  // BOOKING_REQUESTED webhooks are now queued via the webhook producer (deps.webhookProducer.queueBookingRequestedWebhook)
+  // instead of sent inline via HTTP. The producer is tested separately in webhook-producer-booking-requested.test.ts.
 }
 
 export function expectBookingCreatedWebhookToHaveBeenFired({

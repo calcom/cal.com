@@ -1,16 +1,17 @@
-import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { IProfileRepository } from "./IProfileRepository";
 import prisma from "@calcom/prisma";
 import type { Prisma, PrismaClient, User as PrismaUser, Team } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
 import { v4 as uuidv4 } from "uuid";
+import type { IProfileRepository } from "./IProfileRepository";
+
+const whereClauseForOrgWithSlugOrRequestedSlug = (..._args: unknown[]) => ({});
+const getParsedTeam = <T>(team: T): T => team;
 
 const userSelect = {
   name: true,
@@ -30,7 +31,6 @@ const membershipSelect = {
   userId: true,
   accepted: true,
   role: true,
-  disableImpersonation: true,
 } satisfies Prisma.MembershipSelect;
 
 const log = logger.getSubLogger({ prefix: ["repository/profile"] });
@@ -155,7 +155,7 @@ export class ProfileRepository implements IProfileRepository {
     if (upId.startsWith("usr-")) {
       return {
         type: LookupTarget.User,
-        id: parseInt(upId.replace("usr-", "")),
+        id: parseInt(upId.replace("usr-", ""), 10),
       } as const;
     }
     if (upId.startsWith("prof-")) {
@@ -166,8 +166,8 @@ export class ProfileRepository implements IProfileRepository {
       } as const;
     }
     // Legacy support: numeric profile ID (deprecated, kept for backward compatibility)
-    const numericId = parseInt(upId);
-    if (!isNaN(numericId)) {
+    const numericId = parseInt(upId, 10);
+    if (!Number.isNaN(numericId)) {
       return {
         type: LookupTarget.Profile,
         id: numericId,
@@ -443,7 +443,7 @@ export class ProfileRepository implements IProfileRepository {
       ...profile,
       organization: {
         ...organization,
-        requestedSlug: organization.metadata?.requestedSlug ?? null,
+        requestedSlug: null,
         metadata: organization.metadata,
       },
     });
@@ -856,7 +856,7 @@ export class ProfileRepository implements IProfileRepository {
         organizationId: profile.organizationId,
         organization: {
           ...parsedOrganization,
-          requestedSlug: parsedOrganization.metadata?.requestedSlug ?? null,
+          requestedSlug: null,
           metadata: parsedOrganization.metadata,
         },
       });
@@ -892,7 +892,7 @@ export class ProfileRepository implements IProfileRepository {
           organizationId: profile.organizationId,
           organization: {
             ...profile.organization,
-            requestedSlug: profile.organization.metadata?.requestedSlug ?? null,
+            requestedSlug: null,
             metadata: profile.organization.metadata,
           },
         });

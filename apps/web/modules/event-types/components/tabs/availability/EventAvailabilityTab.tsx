@@ -1,20 +1,10 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { UseQueryResult } from "@tanstack/react-query";
-import { useState, memo, useEffect } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-import type { OptionProps, SingleValueProps } from "react-select";
-import { components } from "react-select";
-
-import type { GetAllSchedulesByUserIdQueryType } from "./EventAvailabilityTabWebWrapper";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { TeamMembers } from "@calcom/web/modules/event-types/components/EventType";
 import type {
   AvailabilityOption,
-  FormValues,
   EventTypeSetup,
+  FormValues,
   Host,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
@@ -28,13 +18,19 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { Spinner } from "@calcom/ui/components/icon";
-import { GlobeIcon, UserIcon } from "@coss/ui/icons";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { Spinner } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+import type { TeamMembers } from "@calcom/web/modules/event-types/components/EventType";
+import { GlobeIcon, UserIcon } from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { UseQueryResult } from "@tanstack/react-query";
+import { memo, useEffect, useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
+import type { GetAllSchedulesByUserIdQueryType } from "./EventAvailabilityTabWebWrapper";
 
 export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
@@ -203,7 +199,7 @@ const EventTypeScheduleDetails = memo(
 
     return (
       <div>
-        <div className={classNames("border-subtle stack-y-4 border-x p-6", customClassNames?.tableContainer)}>
+        <div className={classNames("stack-y-4 border-subtle border-x p-6", customClassNames?.tableContainer)}>
           <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
             {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
@@ -216,7 +212,7 @@ const EventTypeScheduleDetails = memo(
                   )}>
                   <span
                     className={classNames(
-                      "w-20 font-medium sm:w-32 ",
+                      "w-20 font-medium sm:w-32",
                       !isAvailable ? "text-subtle line-through" : "text-default",
                       customClassNames?.day
                     )}>
@@ -230,7 +226,7 @@ const EventTypeScheduleDetails = memo(
                         <div
                           key={i}
                           className={classNames(
-                            "text-default flex items-center leading-4",
+                            "flex items-center text-default leading-4",
                             customClassNames?.dayAvailabilityContainer
                           )}>
                           <span
@@ -251,7 +247,7 @@ const EventTypeScheduleDetails = memo(
                     </div>
                   ) : (
                     <span
-                      className={classNames("text-subtle ml-6 sm:ml-0", customClassNames?.dayUnavailable)}>
+                      className={classNames("ml-6 text-subtle sm:ml-0", customClassNames?.dayUnavailable)}>
                       {t("unavailable")}
                     </span>
                   )}
@@ -260,9 +256,9 @@ const EventTypeScheduleDetails = memo(
             })}
           </ol>
         </div>
-        <div className="bg-cal-muted border-subtle flex flex-col items-center gap-2 rounded-b-md border p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-center gap-2 rounded-b-md border border-subtle bg-cal-muted p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2">
-            <span className="text-default flex items-center justify-center text-center text-sm sm:justify-start">
+            <span className="flex items-center justify-center text-center text-default text-sm sm:justify-start">
               <GlobeIcon className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
               {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
@@ -329,7 +325,7 @@ const EventTypeRestrictionScheduleDetails = memo(
 
     return (
       <div>
-        <div className={classNames("border-subtle stack-y-4 border-x p-6", customClassNames?.tableContainer)}>
+        <div className={classNames("stack-y-4 border-subtle border-x p-6", customClassNames?.tableContainer)}>
           <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
             {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
@@ -342,7 +338,7 @@ const EventTypeRestrictionScheduleDetails = memo(
                   )}>
                   <span
                     className={classNames(
-                      "w-20 font-medium sm:w-32 ",
+                      "w-20 font-medium sm:w-32",
                       !isAvailable ? "text-subtle line-through" : "text-default",
                       customClassNames?.day
                     )}>
@@ -356,7 +352,7 @@ const EventTypeRestrictionScheduleDetails = memo(
                         <div
                           key={i}
                           className={classNames(
-                            "text-default flex items-center leading-4",
+                            "flex items-center text-default leading-4",
                             customClassNames?.dayAvailabilityContainer
                           )}>
                           <span
@@ -377,7 +373,7 @@ const EventTypeRestrictionScheduleDetails = memo(
                     </div>
                   ) : (
                     <span
-                      className={classNames("text-subtle ml-6 sm:ml-0", customClassNames?.dayUnavailable)}>
+                      className={classNames("ml-6 text-subtle sm:ml-0", customClassNames?.dayUnavailable)}>
                       {t("unavailable")}
                     </span>
                   )}
@@ -386,11 +382,11 @@ const EventTypeRestrictionScheduleDetails = memo(
             })}
           </ol>
         </div>
-        <div className="bg-cal-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
+        <div className="flex flex-col justify-center gap-2 rounded-b-md border border-subtle bg-cal-muted p-6 sm:flex-row sm:justify-between">
           <div className="flex flex-col gap-2">
             <span
               className={classNames(
-                "text-default flex items-center justify-center text-sm sm:justify-start",
+                "flex items-center justify-center text-default text-sm sm:justify-start",
                 useBookerTimezone && "text-muted line-through"
               )}>
               <GlobeIcon
@@ -447,8 +443,10 @@ const EventTypeSchedule = ({
 }: EventTypeScheduleProps) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
-    useLockedFieldsManager({ eventType, translate: t, formMethods });
+  const isManagedEventType = false;
+  const isChildrenManagedEventType = false;
+  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
+  const shouldLockIndicator = (_field: string) => false;
   const { watch, setValue } = formMethods;
 
   // Map the fieldName to the actual form field name
@@ -470,7 +468,15 @@ const EventTypeSchedule = ({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scheduleId, schedulesQueryData]);
+  }, [
+    scheduleId,
+    schedulesQueryData,
+    eventType.restrictionScheduleId,
+    fieldName,
+    formFieldName,
+    isManagedEventType,
+    setValue,
+  ]);
 
   if (isSchedulesPending || !schedulesQueryData) {
     return <SelectSkeletonLoader />;
@@ -559,13 +565,13 @@ const EventTypeSchedule = ({
     <div>
       <div
         className={classNames(
-          "border-subtle rounded-t-md border p-6",
+          "rounded-t-md border border-subtle p-6",
           customClassNames?.availabilitySectionContainer
         )}>
         <label
           htmlFor="availability"
           className={classNames(
-            "text-default mb-2 block text-sm font-medium leading-none",
+            "mb-2 block font-medium text-default text-sm leading-none",
             customClassNames?.availabilitySelect?.label
           )}>
           {t("availability")}
@@ -625,7 +631,7 @@ const EventTypeSchedule = ({
       ) : (
         isManagedEventType &&
         fieldName === "schedule" && (
-          <p className="mt-2! ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
+          <p className="mt-2! ml-1 text-gray-600 text-sm">{t("members_default_schedule_description")}</p>
         )
       )}
     </div>
@@ -680,7 +686,7 @@ const TeamMemberSchedule = ({
       <div className={classNames("flex w-full items-center", customClassNames?.labelContainer)}>
         {!isPlatform && <Avatar size="sm" imageSrc={avatar} alt={label || ""} />}
         {isPlatform && <UserIcon className={classNames("h-4 w-4", customClassNames?.labelAvatar)} />}
-        <p className={classNames("text-emphasis my-auto ms-3 text-sm", customClassNames?.label)}>{label}</p>
+        <p className={classNames("my-auto ms-3 text-emphasis text-sm", customClassNames?.label)}>{label}</p>
       </div>
       <div className="flex w-full flex-col pt-2">
         {isPending ? (
@@ -729,59 +735,57 @@ const TeamAvailability = ({
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
   const hosts = watch("hosts");
   return (
-    <>
+    <div
+      className={classNames(
+        "flex flex-col rounded-md border-subtle",
+        customClassNames?.teamAvailibilityContainer
+      )}>
       <div
         className={classNames(
-          "border-subtle flex flex-col rounded-md",
-          customClassNames?.teamAvailibilityContainer
+          "mt-5 rounded-t-md border border-subtle p-6 pb-5",
+          customClassNames?.chooseHostSchedulesLabelContainer
         )}>
-        <div
+        <Label
+          className={classNames("mb-1 font-semibold text-sm", customClassNames?.chooseHostSchedulesLabel)}>
+          {t("choose_hosts_schedule")}
+        </Label>
+        <p
           className={classNames(
-            "border-subtle mt-5 rounded-t-md border p-6 pb-5",
-            customClassNames?.chooseHostSchedulesLabelContainer
+            "wrap-break-word max-w-full text-sm text-subtle leading-tight",
+            customClassNames?.chooseHostSchedulesLabelDescription
           )}>
-          <Label
-            className={classNames("mb-1 text-sm font-semibold", customClassNames?.chooseHostSchedulesLabel)}>
-            {t("choose_hosts_schedule")}
-          </Label>
-          <p
-            className={classNames(
-              "text-subtle max-w-full wrap-break-word text-sm leading-tight",
-              customClassNames?.chooseHostSchedulesLabelDescription
-            )}>
-            {t("hosts_schedule_description")}
-          </p>
-        </div>
-        <div className="border-subtle rounded-b-md border border-t-0 p-6">
-          {hosts && hosts.length > 0 ? (
-            <ul
-              className={classNames("mb-4 mt-3 rounded-md", hosts.length >= 1 && "border-subtle border")}
-              ref={animationRef}>
-              {hosts?.map((host, index) => (
-                <li
-                  key={host.userId}
-                  className={classNames(
-                    `flex flex-col px-3 py-2 ${index === hosts.length - 1 ? "" : "border-subtle border-b"}`,
-                    customClassNames?.teamMemberSchedule?.container
-                  )}>
-                  <TeamMemberSchedule
-                    host={host}
-                    index={index}
-                    teamMembers={teamMembers}
-                    hostScheduleQuery={hostSchedulesQuery}
-                    customClassNames={customClassNames?.teamMemberSchedule}
-                  />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-subtle max-w-full wrap-break-word text-sm leading-tight">
-              {t("no_hosts_description")}
-            </p>
-          )}
-        </div>
+          {t("hosts_schedule_description")}
+        </p>
       </div>
-    </>
+      <div className="rounded-b-md border border-subtle border-t-0 p-6">
+        {hosts && hosts.length > 0 ? (
+          <ul
+            className={classNames("mt-3 mb-4 rounded-md", hosts.length >= 1 && "border border-subtle")}
+            ref={animationRef}>
+            {hosts?.map((host, index) => (
+              <li
+                key={host.userId}
+                className={classNames(
+                  `flex flex-col px-3 py-2 ${index === hosts.length - 1 ? "" : "border-subtle border-b"}`,
+                  customClassNames?.teamMemberSchedule?.container
+                )}>
+                <TeamMemberSchedule
+                  host={host}
+                  index={index}
+                  teamMembers={teamMembers}
+                  hostScheduleQuery={hostSchedulesQuery}
+                  customClassNames={customClassNames?.teamMemberSchedule}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="wrap-break-word max-w-full text-sm text-subtle leading-tight">
+            {t("no_hosts_description")}
+          </p>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -838,7 +842,7 @@ const UseTeamEventScheduleSettingsToggle = ({
 
   return (
     <div className="stack-y-4">
-      <div className="border-subtle stack-y-6 rounded-lg border p-6">
+      <div className="stack-y-6 rounded-lg border border-subtle p-6">
         <SettingsToggle
           checked={!useHostSchedulesForTeamEvent}
           onCheckedChange={toggleScheduleState}
@@ -862,7 +866,7 @@ const UseTeamEventScheduleSettingsToggle = ({
         )}
       </div>
       {!isPlatform && isRestrictionScheduleEnabled ? (
-        <div className="border-subtle stack-y-6 rounded-lg border p-6">
+        <div className="stack-y-6 rounded-lg border border-subtle p-6">
           <SettingsToggle
             checked={restrictScheduleForHosts}
             onCheckedChange={toggleRestrictScheduleState}

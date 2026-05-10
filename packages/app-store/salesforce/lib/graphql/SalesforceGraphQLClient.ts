@@ -1,17 +1,15 @@
-import { Client, cacheExchange, fetchExchange } from "@urql/core";
-import { retryExchange } from "@urql/exchange-retry";
-
+import process from "node:process";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Contact } from "@calcom/types/CrmService";
-
+import { Client, cacheExchange, fetchExchange } from "@urql/core";
+import { retryExchange } from "@urql/exchange-retry";
+import type { RRSkipFieldRule } from "../../zod";
+import { RRSkipFieldRuleActionEnum } from "../../zod";
 import { SalesforceRecordEnum } from "../enums";
-import { SalesforceRoutingTraceService } from "../tracing";
 import getAllPossibleWebsiteValuesFromEmailDomain from "../utils/getAllPossibleWebsiteValuesFromEmailDomain";
 import getDominantAccountId from "../utils/getDominantAccountId";
 import { GetAccountRecordsForRRSkip } from "./documents/queries";
-import type { RRSkipFieldRule } from "../../zod";
-import { RRSkipFieldRuleActionEnum } from "../../zod";
 
 export class SalesforceGraphQLClient {
   private log: typeof logger;
@@ -64,36 +62,21 @@ export class SalesforceGraphQLClient {
    * 2. If no contact is found, then find an account that is an exact match of the email domain
    * 3. If no account is found, then find contacts that match the email domain and find the account that the majority of contacts are connect to
    */
-  async GetAccountRecordsForRRSkip(
-    email: string,
-    fieldRules?: RRSkipFieldRule[]
-  ): Promise<Contact[]> {
+  async GetAccountRecordsForRRSkip(email: string, fieldRules?: RRSkipFieldRule[]): Promise<Contact[]> {
     const log = logger.getSubLogger({
       prefix: [`[getAccountRecordsForRRSkip]:${email}`],
     });
     const emailDomain = email.split("@")[1];
-    const websites =
-      this.getAllPossibleAccountWebsiteFromEmailDomain(emailDomain);
-
-    // Trace query initiation
-    SalesforceRoutingTraceService.graphqlQueryInitiated({
-      email,
-      emailDomain,
-    });
+    const websites = this.getAllPossibleAccountWebsiteFromEmailDomain(emailDomain);
 
     log.info(`Query against email and email domain of ${emailDomain}`);
 
     const hasFieldRules = fieldRules && fieldRules.length > 0;
-    const fieldRuleFields = hasFieldRules
-      ? Array.from(new Set(fieldRules.map((r) => r.field)))
-      : [];
+    const fieldRuleFields = hasFieldRules ? Array.from(new Set(fieldRules.map((r) => r.field))) : [];
     log.info(`fieldRuleFields`, fieldRuleFields);
 
     if (hasFieldRules) {
-      log.info(
-        "Using dynamic query with field rule fields",
-        safeStringify({ fieldRuleFields, fieldRules })
-      );
+      log.info("Using dynamic query with field rule fields", safeStringify({ fieldRuleFields, fieldRules }));
     }
 
     // Use dynamic query if field rules require extra fields, otherwise use static typed query
@@ -138,25 +121,12 @@ export class SalesforceGraphQLClient {
         if (hasFieldRules && accountNode) {
           const failedRule = this.getFailingFieldRule(accountNode, fieldRules);
           if (failedRule) {
-            log.info(
-              `Contact ${contact.Id}'s account filtered out by field rules, checking next contact`
-            );
-            SalesforceRoutingTraceService.fieldRuleFilteredRecord({
-              tier: "contact",
-              recordId: contact.Id,
-              reason: "Contact's account filtered out by field rules",
-              failedRule: { field: failedRule.field, value: failedRule.value, action: failedRule.action },
-            });
+            log.info(`Contact ${contact.Id}'s account filtered out by field rules, checking next contact`);
             continue;
           }
         }
 
         log.info(`Existing contact found with id ${contact.Id}`);
-        SalesforceRoutingTraceService.graphqlExistingContactFound({
-          contactId: contact.Id,
-          accountId: contact.AccountId?.value || contact.Id,
-          ownerEmail: contact.Account?.Owner?.Email?.value || "",
-        });
         return [
           {
             id: contact.AccountId?.value || contact.Id,
@@ -181,15 +151,7 @@ export class SalesforceGraphQLClient {
         if (hasFieldRules) {
           const failedRule = this.getFailingFieldRule(account, fieldRules);
           if (failedRule) {
-            log.info(
-              `Account ${account.Id} filtered out by field rules, checking next account`
-            );
-            SalesforceRoutingTraceService.fieldRuleFilteredRecord({
-              tier: "account",
-              recordId: account.Id,
-              reason: "Account filtered out by field rules",
-              failedRule: { field: failedRule.field, value: failedRule.value, action: failedRule.action },
-            });
+            log.info(`Account ${account.Id} filtered out by field rules, checking next account`);
             continue;
           }
         }
@@ -197,10 +159,6 @@ export class SalesforceGraphQLClient {
         log.info(
           `Existing account with website that matches email domain of ${emailDomain} found with id ${account.Id}`
         );
-        SalesforceRoutingTraceService.graphqlAccountFoundByWebsite({
-          accountId: account.Id,
-          ownerEmail: account.Owner?.Email?.value || "",
-        });
         return [
           {
             id: account.Id,
@@ -215,16 +173,13 @@ export class SalesforceGraphQLClient {
 
     // If no account is found, find an account based on existing contacts
     if (queryData.uiapi.query.relatedContacts) {
-      const relatedContactsResults =
-        queryData.uiapi.query.relatedContacts?.edges;
+      const relatedContactsResults = queryData.uiapi.query.relatedContacts?.edges;
 
       if (!relatedContactsResults) return [];
 
       // Collect all valid related contacts and store their Account nodes for field rule checks
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const accountNodesByAccountId = new Map<string, Record<string, any>>();
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - in CD/CI pipeline this will have any type
       const relatedContacts = relatedContactsResults.reduce(
         (contacts, edge) => {
           const node = edge?.node;
@@ -233,21 +188,15 @@ export class SalesforceGraphQLClient {
             return contacts;
           }
           if (!node.AccountId?.value) {
-            log.error(
-              `A related contact with id ${node.Id} didn't have an account id`
-            );
+            log.error(`A related contact with id ${node.Id} didn't have an account id`);
             return contacts;
           }
           if (!node.Account?.Owner?.Id) {
-            log.error(
-              `A related contact with id ${node.Id} didn't have an account owner id`
-            );
+            log.error(`A related contact with id ${node.Id} didn't have an account owner id`);
             return contacts;
           }
           if (!node.Account?.Owner?.Email?.value) {
-            log.error(
-              `A related contact with id ${node.Id} didn't have an account owner email`
-            );
+            log.error(`A related contact with id ${node.Id} didn't have an account owner email`);
             return contacts;
           }
 
@@ -273,17 +222,7 @@ export class SalesforceGraphQLClient {
         }[]
       );
 
-      // Trace searching by contact domain
-      SalesforceRoutingTraceService.graphqlSearchingByContactDomain({
-        emailDomain,
-        contactCount: relatedContacts.length,
-      });
-
       if (relatedContacts.length === 0) {
-        SalesforceRoutingTraceService.graphqlNoAccountFound({
-          email,
-          reason: "No valid related contacts found",
-        });
         return [];
       }
 
@@ -304,25 +243,13 @@ export class SalesforceGraphQLClient {
           if (accountNode) {
             const failedRule = this.getFailingFieldRule(accountNode, fieldRules);
             if (failedRule) {
-              log.info(
-                `Dominant account ${accountId} filtered out by field rules, trying next account`
-              );
-              SalesforceRoutingTraceService.fieldRuleFilteredRecord({
-                tier: "related_contacts",
-                recordId: accountId,
-                reason: "Dominant account filtered out by field rules",
-                failedRule: { field: failedRule.field, value: failedRule.value, action: failedRule.action },
-              });
+              log.info(`Dominant account ${accountId} filtered out by field rules, trying next account`);
               continue;
             }
           }
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore - in CD/CI pipeline this will have any type
-        const contactUnderAccount = relatedContacts.find(
-          (contact) => contact.AccountId === accountId
-        );
+        const contactUnderAccount = relatedContacts.find((contact) => contact.AccountId === accountId);
         if (!contactUnderAccount) {
           log.error(
             `Could not find a contact under account id ${accountId}`,
@@ -331,21 +258,7 @@ export class SalesforceGraphQLClient {
           continue;
         }
 
-        // Trace account selection
-        const contactsUnderAccount = relatedContacts.filter(
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          (contact) => contact.AccountId === accountId
-        );
-        SalesforceRoutingTraceService.graphqlDominantAccountSelected({
-          accountId,
-          contactCount: contactsUnderAccount.length,
-          ownerEmail: contactUnderAccount.ownerEmail,
-        });
-
-        log.info(
-          `Account found via related contacts with account id ${accountId}`
-        );
+        log.info(`Account found via related contacts with account id ${accountId}`);
         return [
           {
             id: accountId,
@@ -358,18 +271,10 @@ export class SalesforceGraphQLClient {
       }
 
       log.info("All related contact accounts filtered out by field rules");
-      SalesforceRoutingTraceService.graphqlNoAccountFound({
-        email,
-        reason: "All accounts filtered out by field rules",
-      });
       return [];
     }
 
     log.info("No account found for attendee");
-    SalesforceRoutingTraceService.graphqlNoAccountFound({
-      email,
-      reason: "No account found via any tier",
-    });
     return [];
   }
 
@@ -401,17 +306,7 @@ export class SalesforceGraphQLClient {
       );
 
       if (rule.action === RRSkipFieldRuleActionEnum.IGNORE && matches) {
-        log.info(
-          `FILTERED: ignore rule matched — field "${rule.field}" equals "${ruleValue}"`
-        );
-        SalesforceRoutingTraceService.fieldRuleEvaluated({
-          field: rule.field,
-          action: rule.action,
-          ruleValue,
-          actualValue,
-          matches,
-          result: "filtered",
-        });
+        log.info(`FILTERED: ignore rule matched — field "${rule.field}" equals "${ruleValue}"`);
         return rule;
       }
 
@@ -419,14 +314,6 @@ export class SalesforceGraphQLClient {
         log.info(
           `FILTERED: must_include rule failed — field "${rule.field}" is "${actualValue}", expected "${ruleValue}"`
         );
-        SalesforceRoutingTraceService.fieldRuleEvaluated({
-          field: rule.field,
-          action: rule.action,
-          ruleValue,
-          actualValue,
-          matches,
-          result: "filtered",
-        });
         return rule;
       }
     }
@@ -440,9 +327,7 @@ export class SalesforceGraphQLClient {
    * but injects extra fields into all Account selections.
    */
   private buildDynamicAccountQuery(fieldRuleFields: string[]): string {
-    const extraFields = fieldRuleFields
-      .map((field) => `${field} { value }`)
-      .join("\n              ");
+    const extraFields = fieldRuleFields.map((field) => `${field} { value }`).join("\n              ");
 
     return `
       query GetAccountRecordsForRRSkipWithFields($email: Email!, $websites: [Url!]!, $emailDomain: Email!) {

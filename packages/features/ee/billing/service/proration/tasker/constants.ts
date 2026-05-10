@@ -1,1 +1,0 @@
-export const MONTHLY_PRORATION_BATCH_SIZE = 10;

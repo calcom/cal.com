@@ -36,14 +36,9 @@ export function shouldIncludeTeamMembership(
 
 export function createTeamSlug(
   teamSlug: string | null,
-  hasParent: boolean,
-  forRoutingForms: boolean
+  hasParent: boolean
 ): string | null {
   if (!teamSlug) return null;
-
-  if (forRoutingForms) {
-    return `team/${teamSlug}`;
-  }
 
   return hasParent ? teamSlug : `team/${teamSlug}`;
 }

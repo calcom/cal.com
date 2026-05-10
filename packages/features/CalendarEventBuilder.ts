@@ -1,14 +1,14 @@
+import process from "node:process";
 import { ALL_APPS } from "@calcom/app-store/utils";
 import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
   type EventTypeBrandingData,
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
-import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/i18n/server";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type {
   Attendee,
@@ -23,6 +23,9 @@ import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-u
 import type { AppsStatus, CalEventResponses, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 import type { TFunction } from "i18next";
+
+const getBookerBaseUrl = async (_orgSlug?: string | number | null): Promise<string> =>
+  process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
 
 type CalendarEventRequiredFields = Required<
   Pick<CalendarEvent, "startTime" | "endTime" | "type" | "bookerUrl" | "title" | "organizer" | "attendees">

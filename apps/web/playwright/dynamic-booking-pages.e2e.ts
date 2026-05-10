@@ -1,13 +1,10 @@
 import { expect } from "@playwright/test";
 
-import { MembershipRole } from "@calcom/prisma/enums";
-
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
   confirmReschedule,
   confirmBooking,
-  doOnOrgDomain,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
   cancelBookingFromBookingsList,
@@ -156,76 +153,4 @@ test.skip("it contains the right event details", async ({ page }) => {
   await expect(page.locator('[data-testid="event-meta"]')).toContainText("Acme Inc");
 
   expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(3);
-});
-
-test.describe("Organization:", () => {
-  test.afterEach(({ orgs, users }) => {
-    orgs.deleteAll();
-    users.deleteAll();
-  });
-  test("Can book a time slot for an organization", async ({ page, users, orgs }) => {
-    const org = await orgs.create({
-      name: "TestOrg",
-    });
-
-    const user1 = await users.create({
-      organizationId: org.id,
-      name: "User 1",
-      roleInOrganization: MembershipRole.ADMIN,
-    });
-
-    const user2 = await users.create({
-      organizationId: org.id,
-      name: "User 2",
-      roleInOrganization: MembershipRole.ADMIN,
-    });
-    await doOnOrgDomain(
-      {
-        orgSlug: org.slug,
-        page,
-      },
-      async () => {
-        await page.goto(`/${user1.username}+${user2.username}`);
-        await selectFirstAvailableTimeSlotNextMonth(page);
-        await bookTimeSlot(page, {
-          title: "Test meeting",
-        });
-        await expect(page.getByTestId("success-page")).toBeVisible();
-        // All the teammates should be in the booking
-
-        await expect(page.getByText(user1.name!, { exact: true })).toBeVisible();
-
-        await expect(page.getByText(user2.name!, { exact: true })).toBeVisible();
-      }
-    );
-  });
-
-  test("dynamic booking for usernames with special characters", async ({ page, users, orgs }) => {
-    const org = await orgs.create({
-      name: "TestOrg",
-    });
-
-    const user1 = await users.create({
-      organizationId: org.id,
-      name: "User 1",
-      roleInOrganization: MembershipRole.MEMBER,
-    });
-
-    const user2 = await users.create({
-      username: "ßenny-Joo", // ß is a special character
-      organizationId: org.id,
-      name: "User 2",
-      roleInOrganization: MembershipRole.MEMBER,
-    });
-    await doOnOrgDomain(
-      {
-        orgSlug: org.slug,
-        page,
-      },
-      async () => {
-        const response = await page.goto(`/${user1.username}+${user2.username}`);
-        expect(response?.status()).not.toBe(500);
-      }
-    );
-  });
 });

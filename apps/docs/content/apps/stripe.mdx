@@ -8,10 +8,10 @@
 
 3. **Activate OAuth for Standard Accounts** - Go to [Stripe Connect Settings](https://dashboard.stripe.com/settings/connect) and activate OAuth for Standard Accounts.
 
-4. **Add the redirect URL** - Add the following redirect URL, replacing `<Cal.com URL>` with your application's URL:
+4. **Add the redirect URL** - Add the following redirect URL, replacing `<Cal.diy URL>` with your application's URL:
 
 ```
-<Cal.com URL>/api/integrations/stripepayment/callback
+<Cal.diy URL>/api/integrations/stripepayment/callback
 ```
 
 5. **Save the Stripe Client ID** - Copy your client ID (`ca_...`) to `STRIPE_CLIENT_ID` in the `.env` file.
@@ -19,7 +19,7 @@
 6. **Set up a Stripe webhook** - Open [Stripe Webhooks](https://dashboard.stripe.com/webhooks) and add:
 
 ```
-<Cal.com URL>/api/integrations/stripepayment/webhook
+<Cal.diy URL>/api/integrations/stripepayment/webhook
 ```
 
 as the webhook for connected applications.

@@ -78,12 +78,12 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
                   setCredentialToDelete({
                     id: cred.id,
                     teamId: cred.teamId,
-                    name: cred.team?.name || getUserDisplayName(cred.user) || null,
+                    name: getUserDisplayName(cred.user) || null,
                   });
                   setConfirmationDialogOpen(true);
                 }}>
                 <div className="flex flex-col text-left">
-                  <span>{cred.team?.name || getUserDisplayName(cred.user) || t("unnamed")}</span>
+                  <span>{getUserDisplayName(cred.user) || t("unnamed")}</span>
                 </div>
               </DropdownItem>
             </DropdownMenuItem>

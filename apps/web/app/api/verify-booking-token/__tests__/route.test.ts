@@ -185,7 +185,7 @@ describe("verify-booking-token route", () => {
   });
 
   describe("GET handler", () => {
-    it("should process rejection via GET (for email clients that don't support POST)", async () => {
+    it("should redirect rejection via GET with error requiring POST method", async () => {
       createMockBooking({
         id: 1,
         uid: "abc123",
@@ -212,16 +212,9 @@ describe("verify-booking-token route", () => {
 
       expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(redirectUrl.pathname).toBe("/booking/abc123");
-      expect(redirectUrl.searchParams.get("error")).toBeNull();
-      expect(mockConfirmHandler).toHaveBeenCalledWith(
-        expect.objectContaining({
-          input: expect.objectContaining({
-            bookingId: 1,
-            confirmed: false,
-            actionSource: "MAGIC_LINK",
-          }),
-        })
-      );
+      // GET handler does not process rejections — requires POST
+      expect(redirectUrl.searchParams.get("error")).toBe("Rejection requires POST method");
+      expect(mockConfirmHandler).not.toHaveBeenCalled();
     });
 
     it("should redirect with error when query params are invalid (missing action)", async () => {
@@ -376,7 +369,6 @@ describe("verify-booking-token route", () => {
             bookingId: 1,
             confirmed: true,
             emailsEnabled: true,
-            actionSource: "MAGIC_LINK",
           }),
         })
       );
@@ -452,8 +444,6 @@ describe("verify-booking-token route", () => {
             confirmed: false,
             reason: "test",
             emailsEnabled: true,
-            actionSource: "MAGIC_LINK",
-            actor: { type: "user", id: "test-uuid" },
           }),
         })
       );
