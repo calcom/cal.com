@@ -64,8 +64,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!payment?.bookingId) {
-      log.error("Payment not found for reference", { reference });
-      throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+      // Unknown reference (e.g. test events from the Paystack dashboard, or a
+      // payment that was deleted on our side). Ack with 200 so Paystack stops
+      // retrying, and skip the noisy error log.
+      log.warn("Webhook for unknown payment reference; acknowledging", { reference });
+      res.status(200).json({ message: "Unknown reference, acknowledged" });
+      return;
     }
 
     // Find the credential to verify the signature
@@ -141,23 +145,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         traceContext,
       });
     } catch (processingError) {
-      // handlePaymentSuccess signals success by throwing HttpCode(200); only roll back on real failures
+      // handlePaymentSuccess signals success by throwing HttpCode(200). Treat that as a
+      // successful confirmation (the booking is already finalized), don't roll back the
+      // idempotency lock, and don't re-throw — re-throwing would surface the success
+      // sentinel in the outer catch as a "Webhook Error" log line on every happy path.
       const isSuccessSentinel = processingError instanceof HttpCode && processingError.statusCode < 400;
-      if (!isSuccessSentinel) {
+      if (isSuccessSentinel) {
+        // Fall through to the 200 response below.
+      } else {
         await prisma.payment.update({
           where: { id: payment.id },
           data: { success: false },
         });
+        throw processingError;
       }
-      throw processingError;
     }
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
     log.error(`Webhook Error: ${err.message}`, safeStringify(err));
-    res.status(err.statusCode).send({
-      message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.cause?.stack,
-    });
+    // Avoid sending a body on 204 (RFC 7230 §3.3.3 forbids it). For any other status,
+    // include the error message so observability tooling can see the failure.
+    if (err.statusCode === 204) {
+      res.status(204).end();
+    } else {
+      res.status(err.statusCode).send({
+        message: err.message,
+        stack: IS_PRODUCTION ? undefined : err.cause?.stack,
+      });
+    }
     return;
   }
 
