@@ -21,9 +21,10 @@ export default function PaystackSetup() {
   });
 
   const [paystackCredentials] = integrations.data?.items || [];
-  const [credentialId] = paystackCredentials?.userCredentialIds || [-1];
+  const credentialId = paystackCredentials?.userCredentialIds?.[0];
 
-  const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
+  const showContent =
+    !!integrations.data && integrations.isSuccess && typeof credentialId === "number" && credentialId > 0;
 
   const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
     onSuccess: () => {
@@ -54,6 +55,7 @@ export default function PaystackSetup() {
               className="mt-5"
               onSubmit={(e) => {
                 e.preventDefault();
+                if (typeof credentialId !== "number") return;
                 saveKeysMutation.mutate({
                   credentialId,
                   key: {
