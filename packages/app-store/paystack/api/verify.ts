@@ -20,8 +20,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
 
-    const reference = req.query.reference as string;
-    if (!reference) {
+    const { reference } = req.query;
+    if (typeof reference !== "string" || !reference) {
       throw new HttpCode({ statusCode: 400, message: "Missing reference parameter" });
     }
 
@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpCode({ statusCode: 500, message: "Malformed credentials" });
     }
 
-    // Verify with Paystack
+    // Verify with Paystack before claiming the idempotency lock
     const client = new PaystackClient(parsedKeys.data.secret_key);
     const verification = await client.verifyTransaction(reference);
 
@@ -85,17 +85,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    // Confirm booking
-    const traceContext = distributedTracing.createTrace("paystack_verify", {
-      meta: { reference, bookingId: payment.bookingId },
+    // Atomic idempotency lock: only one of webhook/verify can flip success false → true.
+    // Without this, a webhook hitting at the same moment as the client redirect would let
+    // both paths invoke handlePaymentSuccess and duplicate calendar events, BOOKING_PAID
+    // webhooks, workflow runs, and confirmation emails.
+    const claimed = await prisma.payment.updateMany({
+      where: { id: payment.id, success: false },
+      data: { success: true },
     });
 
-    await handlePaymentSuccess({
-      paymentId: payment.id,
-      bookingId: payment.bookingId,
-      appSlug: "paystack",
-      traceContext,
-    });
+    if (claimed.count === 0) {
+      res.status(200).json({ status: "success", message: "Payment already confirmed" });
+      return;
+    }
+
+    // Confirm booking — roll back the lock on failure so retries can re-process.
+    try {
+      const traceContext = distributedTracing.createTrace("paystack_verify", {
+        meta: { reference, bookingId: payment.bookingId },
+      });
+
+      await handlePaymentSuccess({
+        paymentId: payment.id,
+        bookingId: payment.bookingId,
+        appSlug: "paystack",
+        traceContext,
+      });
+    } catch (processingError) {
+      // handlePaymentSuccess signals success by throwing HttpCode(200); only roll back on real failures.
+      const isSuccessSentinel = processingError instanceof HttpCode && processingError.statusCode < 400;
+      if (!isSuccessSentinel) {
+        await prisma.payment.update({ where: { id: payment.id }, data: { success: false } });
+        throw processingError;
+      }
+    }
 
     res.status(200).json({ status: "success", message: "Payment confirmed" });
   } catch (_err) {
