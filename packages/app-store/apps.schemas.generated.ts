@@ -9,6 +9,7 @@ import { appDataSchema as closecom_zod_ts } from "./closecom/zod";
 import { appDataSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appDataSchema as databuddy_zod_ts } from "./databuddy/zod";
 import { appDataSchema as dub_zod_ts } from "./dub/zod";
+import { appDataSchema as dzylo_zod_ts } from "./dzylo/zod";
 import { appDataSchema as fathom_zod_ts } from "./fathom/zod";
 import { appDataSchema as feishucalendar_zod_ts } from "./feishucalendar/zod";
 import { appDataSchema as ga4_zod_ts } from "./ga4/zod";
@@ -60,6 +61,7 @@ export const appDataSchemas = {
   dailyvideo: dailyvideo_zod_ts,
   databuddy: databuddy_zod_ts,
   dub: dub_zod_ts,
+  dzylo: dzylo_zod_ts,
   fathom: fathom_zod_ts,
   feishucalendar: feishucalendar_zod_ts,
   ga4: ga4_zod_ts,

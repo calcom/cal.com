@@ -1,0 +1,18 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Dzylo",
+  "slug": "dzylo",
+  "type": "dzylo_crm",
+  "logo": "logo.png",
+  "url": "https://dzylo.ai",
+  "variant": "crm",
+  "categories": ["crm"],
+  "extendsFeature": "EventType",
+  "publisher": "dzylo.ai",
+  "email": "contact@dzylo.com",
+  "description": "Dzylo is a All in one Business Management Platform for Interior Businesses. It allows managing Interior Leads, Projects, Finances, and Whatsapp Automation among many others. It includes Modular and Interior Quotation tool. With cal.com integration you can automate leads ingestion and updates in CRM.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic",
+  "isOAuth": true
+}
