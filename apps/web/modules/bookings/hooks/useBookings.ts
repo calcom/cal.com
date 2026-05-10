@@ -17,6 +17,7 @@ import { getFullName } from "@calcom/features/form-builder/utils";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { showToast } from "@calcom/ui/components/toast";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
@@ -303,6 +304,17 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
           attendees: error.data?.attendees,
         } as unknown as GetBookingType);
       }
+
+      // Surface the failure as a toast as a defence-in-depth signal — the
+      // inline <Alert> in BookEventForm covers the common case, but the booker
+      // modal unmounts whenever `selectedTimeslot` clears, which can hide the
+      // alert. A toast guarantees the user sees something instead of a
+      // near-empty container. See issue #29291.
+      const errorMessage = error?.message;
+      const translated = errorMessage
+        ? (t(errorMessage, { defaultValue: errorMessage }) as string)
+        : t("can_you_try_again");
+      showToast(translated, "error");
     },
   });
 
@@ -406,6 +418,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       console.error("Error creating recurring booking", err);
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+
+      // Mirror the toast added on createBookingMutation onError — same
+      // rationale: the inline alert can be hidden when the booker modal
+      // unmounts on `selectedTimeslot` clearing. See issue #29291.
+      const errorMessage = err instanceof Error ? err.message : "";
+      const translated = errorMessage
+        ? (t(errorMessage, { defaultValue: errorMessage }) as string)
+        : t("can_you_try_again");
+      showToast(translated, "error");
     },
   });
 
