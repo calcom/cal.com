@@ -1,10 +1,57 @@
 export const PAYSTACK_BASE_URL = "https://api.paystack.co";
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
+type PaystackEnvelope<T> = {
+  status?: boolean;
+  message?: string;
+  data?: T;
+};
+
 export class PaystackClient {
   private secretKey: string;
 
   constructor(secretKey: string) {
     this.secretKey = secretKey;
+  }
+
+  private async request<T>(
+    path: string,
+    init: { method: "GET" | "POST"; body?: unknown }
+  ): Promise<PaystackEnvelope<T>> {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.secretKey}`,
+    };
+    if (init.body !== undefined) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(`${PAYSTACK_BASE_URL}${path}`, {
+        method: init.method,
+        headers,
+        body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : "network error";
+      throw new Error(`Paystack API error: ${reason}`);
+    }
+
+    let json: PaystackEnvelope<T> | undefined;
+    try {
+      json = (await response.json()) as PaystackEnvelope<T>;
+    } catch {
+      json = undefined;
+    }
+
+    if (!response.ok || !json?.status) {
+      const message = json?.message || `HTTP ${response.status} ${response.statusText}`.trim();
+      throw new Error(`Paystack API error: ${message}`);
+    }
+
+    return json;
   }
 
   async initializeTransaction(params: {
@@ -19,21 +66,15 @@ export class PaystackClient {
     access_code: string;
     reference: string;
   }> {
-    const response = await fetch(`${PAYSTACK_BASE_URL}/transaction/initialize`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.secretKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(params),
-    });
+    const json = await this.request<{
+      authorization_url: string;
+      access_code: string;
+      reference: string;
+    }>("/transaction/initialize", { method: "POST", body: params });
 
-    const json = await response.json();
-
-    if (!response.ok || !json.status) {
-      throw new Error(`Paystack API error: ${json.message || "Unknown error"}`);
+    if (!json.data) {
+      throw new Error("Paystack API error: missing transaction data");
     }
-
     return json.data;
   }
 
@@ -44,19 +85,17 @@ export class PaystackClient {
     reference: string;
     paid_at: string | null;
   }> {
-    const response = await fetch(`${PAYSTACK_BASE_URL}/transaction/verify/${reference}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${this.secretKey}`,
-      },
-    });
+    const json = await this.request<{
+      status: string;
+      amount: number;
+      currency: string;
+      reference: string;
+      paid_at: string | null;
+    }>(`/transaction/verify/${reference}`, { method: "GET" });
 
-    const json = await response.json();
-
-    if (!response.ok || !json.status) {
-      throw new Error(`Paystack API error: ${json.message || "Unknown error"}`);
+    if (!json.data) {
+      throw new Error("Paystack API error: missing verification data");
     }
-
     return json.data;
   }
 
@@ -64,21 +103,7 @@ export class PaystackClient {
     transaction: string;
     amount?: number;
   }): Promise<{ status: boolean; data: unknown }> {
-    const response = await fetch(`${PAYSTACK_BASE_URL}/refund`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.secretKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(params),
-    });
-
-    const json = await response.json();
-
-    if (!response.ok || !json.status) {
-      throw new Error(`Paystack API error: ${json.message || "Unknown error"}`);
-    }
-
-    return json;
+    const json = await this.request<unknown>("/refund", { method: "POST", body: params });
+    return { status: !!json.status, data: json.data };
   }
 }

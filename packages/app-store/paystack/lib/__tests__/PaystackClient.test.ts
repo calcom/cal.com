@@ -39,21 +39,25 @@ describe("PaystackClient", () => {
         metadata: { bookingId: 42 },
       });
 
-      expect(fetch).toHaveBeenCalledWith(`${PAYSTACK_BASE_URL}/transaction/initialize`, {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer sk_test_xxxxx",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: "test@example.com",
-          amount: 500000,
-          currency: "NGN",
-          reference: "cal_42_ref123",
-          callback_url: CALLBACK_URL,
-          metadata: { bookingId: 42 },
-        }),
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        `${PAYSTACK_BASE_URL}/transaction/initialize`,
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            Authorization: "Bearer sk_test_xxxxx",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: "test@example.com",
+            amount: 500000,
+            currency: "NGN",
+            reference: "cal_42_ref123",
+            callback_url: CALLBACK_URL,
+            metadata: { bookingId: 42 },
+          }),
+          signal: expect.any(AbortSignal),
+        })
+      );
 
       expect(result).toEqual({
         authorization_url: "https://checkout.paystack.com/abc123",
@@ -107,12 +111,16 @@ describe("PaystackClient", () => {
 
       const result = await client.verifyTransaction("cal_42_ref123");
 
-      expect(fetch).toHaveBeenCalledWith(`${PAYSTACK_BASE_URL}/transaction/verify/cal_42_ref123`, {
-        method: "GET",
-        headers: {
-          Authorization: "Bearer sk_test_xxxxx",
-        },
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        `${PAYSTACK_BASE_URL}/transaction/verify/cal_42_ref123`,
+        expect.objectContaining({
+          method: "GET",
+          headers: {
+            Authorization: "Bearer sk_test_xxxxx",
+          },
+          signal: expect.any(AbortSignal),
+        })
+      );
 
       expect(result).toEqual({
         status: "success",
@@ -144,14 +152,18 @@ describe("PaystackClient", () => {
 
       const result = await client.createRefund({ transaction: "cal_42_ref123" });
 
-      expect(fetch).toHaveBeenCalledWith(`${PAYSTACK_BASE_URL}/refund`, {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer sk_test_xxxxx",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ transaction: "cal_42_ref123" }),
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        `${PAYSTACK_BASE_URL}/refund`,
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            Authorization: "Bearer sk_test_xxxxx",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ transaction: "cal_42_ref123" }),
+          signal: expect.any(AbortSignal),
+        })
+      );
 
       expect(result.status).toBe(true);
     });
