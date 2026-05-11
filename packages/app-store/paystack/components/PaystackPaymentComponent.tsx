@@ -60,7 +60,8 @@ export default function PaystackPaymentComponent({
 
           // Backup verification — call our verify endpoint
           try {
-            await fetch(`/api/integrations/paystack/verify?reference=${paymentData.reference}`);
+            const params = new URLSearchParams({ reference: paymentData.reference });
+            await fetch(`/api/integrations/paystack/verify?${params.toString()}`);
           } catch {
             // Webhook will handle it if this fails
           }
