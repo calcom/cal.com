@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -55,14 +56,14 @@ class PaystackPaymentService implements IAbstractPaymentService {
     }
 
     const uid = uuidv4();
-    const reference = `cal_${bookingId}_${uid.slice(0, 8)}`;
+    const reference = `cal_${bookingId}_${uid.replace(/-/g, "")}`;
 
     const paystackResponse = await this.client.initializeTransaction({
       email: bookerEmail,
       amount: payment.amount,
       currency: payment.currency.toUpperCase(),
       reference,
-      callback_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/paystack/verify`,
+      callback_url: `${WEBAPP_URL}/api/integrations/paystack/verify`,
       metadata: {
         bookingId,
         eventTitle: eventTitle || booking.title,
@@ -90,7 +91,7 @@ class PaystackPaymentService implements IAbstractPaymentService {
           authorization_url: paystackResponse.authorization_url,
           publicKey: this.credentials.public_key,
           reference,
-        } as unknown as Prisma.InputJsonValue,
+        } satisfies Prisma.InputJsonObject,
         fee: 0,
         refunded: false,
         success: false,
@@ -135,26 +136,21 @@ class PaystackPaymentService implements IAbstractPaymentService {
   }
 
   async refund(paymentId: Payment["id"]): Promise<Payment | null> {
-    const payment = await prisma.payment.findUnique({
-      where: { id: paymentId },
-      select: {
-        id: true,
-        success: true,
-        refunded: true,
-        externalId: true,
-      },
-    });
+    const payment = await prisma.payment.findUnique({ where: { id: paymentId } });
 
     if (!payment) {
       return null;
     }
 
     if (payment.refunded) {
-      return await prisma.payment.findUnique({ where: { id: paymentId } });
+      return payment;
     }
 
     if (!payment.success) {
-      return await prisma.payment.findUnique({ where: { id: paymentId } });
+      throw new ErrorWithCode(
+        ErrorCode.BadRequest,
+        "Cannot refund a Paystack payment that did not succeed"
+      );
     }
 
     if (!this.client) {
