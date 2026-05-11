@@ -17,14 +17,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   }
 
   const rawTeamId = Array.isArray(query.teamId) ? query.teamId[0] : query.teamId;
-  const teamId = rawTeamId ? Number(rawTeamId) : null;
+  const teamId = rawTeamId === undefined ? null : Number(rawTeamId);
 
-  if (teamId !== null && Number.isNaN(teamId)) {
+  if (teamId !== null && !Number.isInteger(teamId)) {
     return notFound;
   }
 
   await throwIfNotHaveAdminAccessToTeam({ teamId, userId: session.user.id });
-  const installForObject = teamId ? { teamId } : { userId: session.user.id };
+  const installForObject = teamId !== null ? { teamId } : { userId: session.user.id };
 
   const credential = await prisma.credential.findFirst({
     where: {

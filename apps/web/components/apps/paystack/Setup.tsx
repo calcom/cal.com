@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Toaster } from "sonner";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -100,7 +101,7 @@ export default function PaystackSetup() {
             <div className="mt-5">
               <p className="text-default font-bold">{t("getting_started")}</p>
               <p className="text-default mt-2">
-                {t("paystack_getting_started_description")}{" "}
+                {t("paystack_getting_started_description", { appName: APP_NAME })}{" "}
                 <a
                   className="text-blue-600 underline"
                   target="_blank"

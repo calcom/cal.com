@@ -3742,7 +3742,7 @@
   "paystack_app_description": "Accept payments via Paystack for your events",
   "paystack_public_key": "Public Key",
   "paystack_secret_key": "Secret Key",
-  "paystack_getting_started_description": "To use Paystack with Cal.com, you need a Paystack account. Get your API keys from your",
+  "paystack_getting_started_description": "To use Paystack with {{appName}}, you need a Paystack account. Get your API keys from your",
   "paystack_dashboard": "Paystack Dashboard",
   "paystack_webhook_setup": "Webhook Setup",
   "paystack_webhook_setup_description": "Add this webhook URL in your Paystack dashboard under Settings > API Keys & Webhooks:",
