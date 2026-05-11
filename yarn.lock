@@ -2850,8 +2850,10 @@ __metadata:
   resolution: "@calcom/paystack@workspace:packages/app-store/paystack"
   dependencies:
     "@calcom/lib": "workspace:*"
+    "@calcom/prisma": "workspace:*"
     "@calcom/types": "workspace:*"
     "@paystack/inline-js": "npm:^2.0.0"
+    "@types/paystack__inline-js": "npm:^1.0.2"
     "@types/uuid": "npm:^9.0.0"
     uuid: "npm:^9.0.0"
   languageName: unknown
@@ -16824,6 +16826,13 @@ __metadata:
   dependencies:
     "@types/express": "npm:*"
   checksum: 10/0ee7b9a46192cb60fb4e49038417b0c10b38e50204ed05b5204b3ea9a73e25da34ca8fe05205eaf42fe977610cdbd3a0d5f2228f8661fe0b303bc758fa2a158f
+  languageName: node
+  linkType: hard
+
+"@types/paystack__inline-js@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@types/paystack__inline-js@npm:1.0.2"
+  checksum: 10/d70d701567f6c358603bf5c5185997d25ea908df44a0ddbf5b6d6fdede666301e46077ad58e123fc257ae96be5fb6a22c6c95c677cb4b8a74816b3d9ef501909
   languageName: node
   linkType: hard
 

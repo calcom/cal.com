@@ -24,7 +24,6 @@
   "include": [
     /* Find a way to not require this - App files don't belong here. */
     "../../packages/app-store/routing-forms/env.d.ts",
-    "../../packages/app-store/paystack/inline-js.d.ts",
     "next-env.d.ts",
     "../../packages/trpc/types/router.d.ts",
     "../../packages/types/*.d.ts",
