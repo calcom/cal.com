@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -45,11 +47,11 @@ class PaystackPaymentService implements IAbstractPaymentService {
     });
 
     if (!booking) {
-      throw new Error("Booking not found");
+      throw new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
     }
 
     if (!this.client || !this.credentials) {
-      throw new Error("Paystack credentials not configured");
+      throw new ErrorWithCode(ErrorCode.MissingPaymentCredential, "Paystack credentials not configured");
     }
 
     const uid = uuidv4();
@@ -106,14 +108,20 @@ class PaystackPaymentService implements IAbstractPaymentService {
     _bookerEmail: string,
     _bookerPhoneNumber?: string | null
   ): Promise<Payment> {
-    throw new Error("Paystack does not support card hold. Only ON_BOOKING payment is available.");
+    throw new ErrorWithCode(
+      ErrorCode.BadRequest,
+      "Paystack does not support card hold. Only ON_BOOKING payment is available."
+    );
   }
 
   async chargeCard(
     _payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     _bookingId?: Booking["id"]
   ): Promise<Payment> {
-    throw new Error("Paystack does not support card hold. Only ON_BOOKING payment is available.");
+    throw new ErrorWithCode(
+      ErrorCode.BadRequest,
+      "Paystack does not support card hold. Only ON_BOOKING payment is available."
+    );
   }
 
   async update(
@@ -150,7 +158,7 @@ class PaystackPaymentService implements IAbstractPaymentService {
     }
 
     if (!this.client) {
-      throw new Error("Paystack credentials not configured");
+      throw new ErrorWithCode(ErrorCode.MissingPaymentCredential, "Paystack credentials not configured");
     }
 
     await this.client.createRefund({
@@ -168,7 +176,7 @@ class PaystackPaymentService implements IAbstractPaymentService {
   }
 
   async getPaymentDetails(): Promise<Payment> {
-    throw new Error("Method not implemented.");
+    throw new ErrorWithCode(ErrorCode.InternalServerError, "Method not implemented.");
   }
 
   async afterPayment(
