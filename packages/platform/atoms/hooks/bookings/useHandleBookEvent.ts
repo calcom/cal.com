@@ -67,7 +67,7 @@ export const useHandleBookEvent = ({
   const handleBookEvent = (inputTimeSlot?: string) => {
     const values = bookingForm.getValues();
     const timeslot = inputTimeSlot ?? storeTimeSlot;
-    const callbacks = inputTimeSlot && !isPlatform ? { onError: handleError } : undefined;
+    const callbacks = !isPlatform ? { onError: handleError } : undefined;
     if (timeslot) {
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});
