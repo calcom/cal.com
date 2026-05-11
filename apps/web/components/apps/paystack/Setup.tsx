@@ -71,7 +71,6 @@ export default function PaystackSetup() {
                 id="public_key"
                 value={newPublicKey}
                 onChange={(e) => setNewPublicKey(e.target.value)}
-                role="presentation"
                 className="mb-6"
                 placeholder="pk_test_xxxxxxxxx"
               />
@@ -83,7 +82,6 @@ export default function PaystackSetup() {
                 id="secret_key"
                 value={newSecretKey}
                 autoComplete="new-password"
-                role="presentation"
                 onChange={(e) => setNewSecretKey(e.target.value)}
                 placeholder="sk_test_xxxxxxxxx"
               />
