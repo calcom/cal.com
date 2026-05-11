@@ -55,16 +55,16 @@ export default function PaystackPaymentComponent({
       const popup = new PaystackPop();
 
       popup.resumeTransaction(paymentData.access_code, {
-        onSuccess: async () => {
+        onSuccess: () => {
           setStatus("success");
 
-          // Backup verification — call our verify endpoint
-          try {
-            const params = new URLSearchParams({ reference: paymentData.reference });
-            await fetch(`/api/integrations/paystack/verify?${params.toString()}`);
-          } catch {
-            // Webhook will handle it if this fails
-          }
+          // Backup verification — fire-and-forget so a slow/hung endpoint can't block
+          // the redirect. The webhook is the source of truth; this just nudges
+          // server-side reconciliation along.
+          const params = new URLSearchParams({ reference: paymentData.reference });
+          fetch(`/api/integrations/paystack/verify?${params.toString()}`).catch(() => {
+            /* webhook will handle it */
+          });
 
           // replace() keeps the payment step out of browser history
           setTimeout(() => {
