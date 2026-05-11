@@ -2,7 +2,6 @@
 
 import { convertFromSmallestToPresentableCurrencyUnit } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Payment } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui/components/button";
 import { useState } from "react";
 
@@ -14,10 +13,7 @@ interface PaystackPaymentData {
 }
 
 interface PaystackPaymentComponentProps {
-  payment: Payment & {
-    data: PaystackPaymentData;
-  };
-  clientId: string;
+  payment: { data: PaystackPaymentData };
   bookingUid: string;
   bookingTitle: string;
   amount: number;

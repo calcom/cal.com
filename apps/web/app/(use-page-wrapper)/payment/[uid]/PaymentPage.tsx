@@ -61,7 +61,10 @@ const BtcpayPaymentComponent = dynamic(
 );
 
 const PaystackPaymentComponent = dynamic(
-  () => import("@calcom/app-store/paystack/components/PaystackPaymentComponent"),
+  () =>
+    import("@calcom/web/components/apps/paystack/PaystackPaymentComponent").then(
+      (m) => m.PaystackPaymentComponent
+    ),
   {
     ssr: false,
   }
@@ -181,9 +184,6 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   {props.payment.appId === "paystack" && !props.payment.success && (
                     <PaystackPaymentComponent
                       payment={props.payment}
-                      clientId={
-                        (props.payment.data as unknown as { publicKey: string }).publicKey ?? ""
-                      }
                       bookingUid={props.booking.uid}
                       bookingTitle={eventName}
                       amount={props.payment.amount}
