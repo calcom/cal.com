@@ -9,6 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Logo } from "@calcom/ui/components/logo";
 
+import "@calcom/embed-core/src/sdk-event";
+
 type OnboardingLayoutProps = {
   userEmail: string;
   currentStep?: number;
