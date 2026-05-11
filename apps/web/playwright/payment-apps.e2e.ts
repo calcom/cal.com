@@ -239,8 +239,8 @@ test.describe("Payment app", () => {
 
     await page.getByRole("button", { name: "Setup" }).click();
 
-    // Expect "Getting started with Paypal APP" to be displayed
-    await expect(page.locator("text=Getting started with Paypal APP").first()).toBeVisible();
+    await expect(page).toHaveURL(/\/apps\/paypal\/setup/);
+    await expect(page.getByText("Getting started with the PayPal app")).toBeVisible();
   });
 
   /**

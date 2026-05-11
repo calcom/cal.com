@@ -4,7 +4,7 @@ import { nextJsOrgRewriteConfig } from "./getNextjsOrgRewriteConfig";
 
 // Top-level route names that are explicitly allowed for org rewrite (whitelist)
 export const topLevelRouteNamesWhitelistedForRewrite: string[] = [
-  // We don't allow all dashboard route names to be used as slug because people are probably accustomed to access links like acme.cal.com/event-types etc.
+  // We don't allow all dashboard route names to be used as slug because people are probably accustomed to accessing links like acme.cal.com/event-types etc.
   // So, we carefully allow, what is absolutely needed.
   // Allowed to be a team/user slug in organization because onboarding is a common team name
   "onboarding",
@@ -81,7 +81,7 @@ function getRegExpMatchingAllReservedRoutes(suffix: string): string {
   const staticAssets = ["embed"];
 
   // FIXME: I am not sure why public is needed here, an asset 'test' in public isn't accessible through "/public/test" but only through "/test"
-  // We should infact scan through all files in public and exclude them instead.
+  // We should in fact scan through all files in public and exclude them instead.
   const nextJsSpecialPaths = ["_next", "public"];
 
   const allTopLevelRoutesExcludedFromOrgRewrite = topLevelRoutesExcludedFromOrgRewrite

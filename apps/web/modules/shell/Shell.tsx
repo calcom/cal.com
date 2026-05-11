@@ -42,13 +42,13 @@ const Layout = (props: LayoutProps) => {
       <DynamicModals />
 
       <div className="flex min-h-screen flex-col">
-        {banners && !props.isPlatformUser && <BannerContainer banners={banners} />}
+        {banners && <BannerContainer banners={banners} />}
 
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer ? (
             cloneElement(props.SidebarContainer, { bannersHeight })
           ) : (
-            <SideBarContainer isPlatformUser={props.isPlatformUser} bannersHeight={bannersHeight} />
+            <SideBarContainer bannersHeight={bannersHeight} />
           )}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
@@ -86,7 +86,6 @@ export type LayoutProps = {
   beforeCTAactions?: JSX.Element;
   afterHeading?: ReactNode;
   smallHeading?: boolean;
-  isPlatformUser?: boolean;
   disableSticky?: boolean;
 };
 
@@ -198,7 +197,6 @@ export function ShellMain(props: LayoutProps) {
 }
 
 function MainContainer({
-  isPlatformUser,
   MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
   TopNavContainer: TopNavContainerProp = <TopNavContainer />,
   ...props
