@@ -417,7 +417,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 isReady={!isLoading}
                 disabled={disableEditableHeading}
                 {...field}
-                data-testid="availablity-title"
+                data-testid="availability-title"
               />
             )}
           />

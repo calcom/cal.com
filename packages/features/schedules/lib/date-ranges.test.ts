@@ -1185,7 +1185,7 @@ describe("intersect function comprehensive tests", () => {
   });
 
   describe("timezone offset exclusion bug", () => {
-    it("should succesfully mix UTC and timezone-aware dayjs objects in subtract", () => {
+    it("should successfully mix UTC and timezone-aware dayjs objects in subtract", () => {
       const TIMEZONE = "Asia/Kolkata"; // IST timezone (+05:30)
 
       const sourceRanges = [

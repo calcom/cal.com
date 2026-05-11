@@ -287,8 +287,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                 </>
               )}
             />
-            <div className="text-gray text-subtle mt-2 flex items-center text-xs">
-              <Icon name="info" className="mr-2" />
+            <div className="text-gray text-subtle mt-2 flex items-start text-xs">
+              <Icon name="info" className="mr-2 mt-0.25" />
               {t("timeformat_profile_hint")}
             </div>
             <Controller

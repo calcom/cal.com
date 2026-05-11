@@ -83,19 +83,19 @@ export default function PayPalSetup() {
               </div>
             </form>
             <div>
-              <p className="text-lgf text-default mt-5 font-bold">Getting started with Paypal APP</p>
+              <p className="text-lgf text-default mt-5 font-bold">Getting started with the PayPal app</p>
               <p className="text-default font-semi mt-2">
-                Here in Cal.diy we offer Paypal as one of our payment gateway. You can use your own Paypal
-                Business account to receive payments from your customers enabling and setting up price and
-                currency for each of your event types.
+                Cal.diy offers PayPal as one of its payment gateways. You can use your own PayPal
+                Business account to receive payments from your customers by setting a price and currency
+                for each of your event types.
               </p>
 
               <p className="text-lgf text-default mt-5 inline-flex font-bold">
                 <CircleAlertIcon className="mr-2 mt-1 h-4 w-4" /> Important requirements:
               </p>
               <ul className="text-default ml-1 mt-2 list-disc pl-2">
-                <li>Paypal Business account</li>
-                <li>Paypal Developer account</li>
+                <li>PayPal Business account</li>
+                <li>PayPal Developer account</li>
               </ul>
 
               <p className="text-default mb-2 mt-5 font-bold">Resources:</p>
@@ -118,7 +118,7 @@ export default function PayPalSetup() {
               <ol className="text-default ml-1 mt-5 list-decimal pl-2">
                 {/* @TODO: translate */}
                 <li>
-                  Log into your Paypal Developer account and create a new app{" "}
+                  Log into your PayPal Developer account and create a new app{" "}
                   <a
                     target="_blank"
                     href="https://developer.paypal.com/dashboard/applications/live"
