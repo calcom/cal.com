@@ -2637,7 +2637,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar":
+"@calcom/ics-feed@workspace:*, @calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar"
   dependencies:
@@ -2962,6 +2962,21 @@ __metadata:
     zod-prisma-types: "npm:3.2.4"
   bin:
     prisma-enum-generator: ./run-enum-generator.js
+  languageName: unknown
+  linkType: soft
+
+"@calcom/proton-calendar@workspace:packages/app-store/protoncalendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/proton-calendar@workspace:packages/app-store/protoncalendar"
+  dependencies:
+    "@calcom/ics-feed": "workspace:*"
+    "@calcom/lib": "workspace:*"
+    "@calcom/prisma": "workspace:*"
+    "@calcom/types": "workspace:*"
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+    react-hook-form: ^7.0.0
   languageName: unknown
   linkType: soft
 

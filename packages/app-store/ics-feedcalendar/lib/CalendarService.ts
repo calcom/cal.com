@@ -16,7 +16,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import ICAL from "ical.js";
 
 // for Apple's Travel Time feature only (for now)
-const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
+const getTravelDurationInSeconds = (vevent: ICAL.Component): number => {
   const travelDuration: ICAL.Duration = vevent.getFirstPropertyValue("x-apple-travel-duration");
   if (!travelDuration) return 0;
 
@@ -31,7 +31,7 @@ const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
   }
 };
 
-const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
+const applyTravelDuration = (event: ICAL.Event, seconds: number): ICAL.Event => {
   if (seconds <= 0) return event;
   // move event start date back by the specified travel time
   event.startDate.second -= seconds;
@@ -40,29 +40,59 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-class ICSFeedCalendarService implements Calendar {
+export class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
   protected integrationName = "ics-feed_calendar";
+  protected readOnlyWarning = "ICS feed is read-only";
+  protected defaultCalendarName = "ICS Feed";
 
   constructor(credential: CredentialPayload) {
     const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
     this.urls = urls;
   }
 
+  protected fetchCalendar(url: string): Promise<Response> {
+    return fetch(url);
+  }
+
+  protected shouldIgnoreEvent(_vevent: ICAL.Component): boolean {
+    return false;
+  }
+
+  protected getIgnoredRecurrenceIds(_vevents: ICAL.Component[]): Set<string> {
+    return new Set();
+  }
+
+  protected getRecurrenceKey(uid: string, recurrenceId: ICAL.Time): string {
+    const dateTime = [
+      recurrenceId.year,
+      recurrenceId.month,
+      recurrenceId.day,
+      recurrenceId.hour,
+      recurrenceId.minute,
+      recurrenceId.second,
+    ].join("-");
+    return `${uid}:${dateTime}`;
+  }
+
+  protected getExternalCalendarId(url: string): string {
+    return url;
+  }
+
   createEvent(_event: CalendarEvent, _credentialId: number): Promise<NewCalendarEventType> {
-    console.warn("createEvent called on ICS (read-only) feed");
+    console.warn(`createEvent called on ${this.integrationName} (read-only) feed`);
     return Promise.resolve({
       uid: _event.uid || "",
       type: this.integrationName,
       id: "",
       password: "",
       url: "",
-      additionalInfo: { calWarnings: ["ICS feed is read-only"] },
+      additionalInfo: { calWarnings: [this.readOnlyWarning] },
     });
   }
 
   deleteEvent(_uid: string, _event: CalendarEvent, _externalCalendarId?: string): Promise<unknown> {
-    console.warn("deleteEvent called on ICS (read-only) feed");
+    console.warn(`deleteEvent called on ${this.integrationName} (read-only) feed`);
     return Promise.resolve();
   }
 
@@ -71,23 +101,27 @@ class ICSFeedCalendarService implements Calendar {
     _event: CalendarEvent,
     _externalCalendarId?: string
   ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
-    console.warn("updateEvent called on ICS (read-only) feed");
+    console.warn(`updateEvent called on ${this.integrationName} (read-only) feed`);
     return Promise.resolve({
       uid: _event.uid || "",
       type: this.integrationName,
       id: "",
       password: "",
       url: "",
-      additionalInfo: { calWarnings: ["ICS feed is read-only"] },
+      additionalInfo: { calWarnings: [this.readOnlyWarning] },
     });
   }
 
   fetchCalendars = async (): Promise<{ url: string; vcalendar: ICAL.Component }[]> => {
-    const reqPromises = await Promise.allSettled(this.urls.map((x) => fetch(x).then((y) => [x, y])));
+    const reqPromises = await Promise.allSettled(
+      this.urls.map(async (url): Promise<[string, Response]> => [url, await this.fetchCalendar(url)])
+    );
     const reqs = reqPromises
       .filter((x) => x.status === "fulfilled")
       .map((x) => (x as PromiseFulfilledResult<[string, Response]>).value);
-    const res = await Promise.all(reqs.map((x) => x[1].text().then((y) => [x[0], y])));
+    const res = await Promise.all(
+      reqs.map(async ([url, response]): Promise<[string, string]> => [url, await response.text()])
+    );
     return res
       .map((x) => {
         try {
@@ -149,7 +183,11 @@ class ICSFeedCalendarService implements Calendar {
 
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
+      const ignoredRecurrenceIds = this.getIgnoredRecurrenceIds(vevents);
+
       vevents.forEach((vevent) => {
+        if (this.shouldIgnoreEvent(vevent)) return;
+
         // if event status is free or transparent, DON'T return (unlike usual getAvailability)
         //
         // commented out because a lot of public ICS feeds that describe stuff like
@@ -250,6 +288,7 @@ class ICSFeedCalendarService implements Calendar {
               }
             }
             if (!currentEvent) return;
+            if (ignoredRecurrenceIds.has(this.getRecurrenceKey(event.uid, current))) continue;
             // do not mix up caldav and icalendar! For the recurring events here, the timezone
             // provided is relevant, not as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
             // where recurring events are always in utc (in caldav!). Thus, apply the time zone here.
@@ -282,6 +321,7 @@ class ICSFeedCalendarService implements Calendar {
 
         const finalStartISO = dayjs(event.startDate.toJSDate()).toISOString();
         const finalEndISO = dayjs(event.endDate.toJSDate()).toISOString();
+
         return events.push({
           start: finalStartISO,
           end: finalEndISO,
@@ -297,11 +337,11 @@ class ICSFeedCalendarService implements Calendar {
     const vcals = await this.fetchCalendars();
 
     return vcals.map(({ url, vcalendar }) => {
-      const name: string = vcalendar.getFirstPropertyValue("x-wr-calname");
+      const name: string | null = vcalendar.getFirstPropertyValue("x-wr-calname");
       return {
-        name,
+        name: name || this.defaultCalendarName,
         readOnly: true,
-        externalId: url,
+        externalId: this.getExternalCalendarId(url),
         integration: this.integrationName,
       };
     });
