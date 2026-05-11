@@ -52,15 +52,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    // Find credential
+    // Find credential. Fail closed if we have neither a specific credentialId nor a
+    // concrete booking userId — otherwise a `{ userId: null }` fallback could match a
+    // credential where userId IS NULL and silently use the wrong row.
     const metadata = payment.booking?.eventType?.metadata as Record<string, unknown> | null;
     const paystackAppData = (metadata?.apps as Record<string, unknown> | undefined)?.paystack as
       | { credentialId?: number }
       | undefined;
 
-    const credentialQuery = paystackAppData?.credentialId
-      ? { id: paystackAppData.credentialId }
-      : { userId: payment.booking?.userId, appId: "paystack" as const };
+    let credentialQuery: { id: number } | { userId: number; appId: "paystack" };
+    if (paystackAppData?.credentialId) {
+      credentialQuery = { id: paystackAppData.credentialId };
+    } else if (payment.booking?.userId) {
+      credentialQuery = { userId: payment.booking.userId, appId: "paystack" };
+    } else {
+      throw new HttpCode({ statusCode: 500, message: "Cannot resolve payment credentials" });
+    }
 
     const credential = await prisma.credential.findFirst({
       where: credentialQuery,
