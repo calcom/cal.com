@@ -29,14 +29,14 @@ export default function PaystackPaymentComponent({
 }: PaystackPaymentComponentProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const paymentData = payment.data;
 
   const presentableAmount = convertFromSmallestToPresentableCurrencyUnit(amount, currency);
   let formattedAmount: string;
   try {
-    formattedAmount = new Intl.NumberFormat("en", {
+    formattedAmount = new Intl.NumberFormat(i18n.language || "en", {
       style: "currency",
       currency: currency.toUpperCase(),
     }).format(presentableAmount);
