@@ -99,7 +99,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    // Confirm booking — roll back the lock on failure so retries can re-process.
+    // Confirm booking — roll back the idempotency lock on failure so retries can re-process.
+    //
+    // handlePaymentSuccess uses an exception as its success signal: on a successful
+    // confirmation it throws `new HttpCode({ statusCode: 200, message: ... })` rather
+    // than returning. That means a 200-class HttpCode here is success — we leave
+    // `payment.success: true` in place and swallow it. Anything else is a genuine
+    // failure: undo the lock so a retry can re-run the confirmation, then rethrow
+    // for the outer handler.
     try {
       const traceContext = distributedTracing.createTrace("paystack_verify", {
         meta: { reference, bookingId: payment.bookingId },
@@ -112,7 +119,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         traceContext,
       });
     } catch (processingError) {
-      // handlePaymentSuccess signals success by throwing HttpCode(200); only roll back on real failures.
       const isSuccessSentinel = processingError instanceof HttpCode && processingError.statusCode < 400;
       if (!isSuccessSentinel) {
         await prisma.payment.update({ where: { id: payment.id }, data: { success: false } });
