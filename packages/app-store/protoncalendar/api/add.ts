@@ -15,10 +15,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!Array.isArray(urls) || urls.length === 0 || urls.some((url) => typeof url !== "string")) {
-      return res.status(400).json({ message: "Invalid ICS feed URLs" });
+      return res.status(400).json({ message: "Invalid Proton Calendar URLs" });
     }
 
-    // Get user
     const user = await prisma.user.findFirstOrThrow({
       where: {
         id: req.session.user.id,
@@ -40,30 +39,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     try {
-      const dav = BuildCalendarService({
+      const protonCalendar = BuildCalendarService({
         id: 0,
         ...data,
         user: { email: user.email },
         encryptedKey: null,
       });
-      const listedCals = await dav.listCalendars();
+      const listedCals = await protonCalendar.listCalendars();
 
       if (listedCals.length !== urls.length) {
-        throw new Error(`Listed cals and URLs mismatch: ${listedCals.length} vs. ${urls.length}`);
+        throw new Error(`Listed calendars and URLs mismatch: ${listedCals.length} vs. ${urls.length}`);
       }
 
       await prisma.credential.create({
         data,
       });
     } catch (e) {
-      logger.error("Could not add ICS feeds", e);
-      return res.status(500).json({ message: "Could not add ICS feeds" });
+      logger.error("Could not add Proton Calendar", e);
+      return res.status(500).json({ message: "Could not add Proton Calendar" });
     }
 
-    return res.status(200).json({ url: getInstalledAppPath({ variant: "calendar", slug: "ics-feed" }) });
+    return res
+      .status(200)
+      .json({ url: getInstalledAppPath({ variant: "calendar", slug: "proton-calendar" }) });
   }
 
   if (req.method === "GET") {
-    return res.status(200).json({ url: "/apps/ics-feed/setup" });
+    return res.status(200).json({ url: "/apps/proton-calendar/setup" });
   }
 }

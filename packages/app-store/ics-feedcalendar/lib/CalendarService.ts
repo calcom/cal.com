@@ -4,6 +4,7 @@
 import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { logBlockedSSRFAttempt, validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
 import type {
   Calendar,
   CalendarEvent,
@@ -39,14 +40,48 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
 };
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+const ICS_FETCH_TIMEOUT_MS = 10000;
+const MAX_ICS_REDIRECTS = 3;
 
-class ICSFeedCalendarService implements Calendar {
+type ICSFeedCalendarServiceOptions = {
+  integrationName?: string;
+  allowedHostnames?: string[];
+  defaultCalendarName?: string;
+  requireHttps?: boolean;
+};
+
+const isHostnameAllowed = (hostname: string, allowedHostnames?: string[]) => {
+  if (!allowedHostnames?.length) return true;
+
+  const normalizedHostname = hostname.toLowerCase().replace(/\.$/, "");
+  return allowedHostnames.some((allowedHostname) => {
+    const normalizedAllowedHostname = allowedHostname.toLowerCase().replace(/\.$/, "");
+    return (
+      normalizedHostname === normalizedAllowedHostname ||
+      normalizedHostname.endsWith(`.${normalizedAllowedHostname}`)
+    );
+  });
+};
+
+const getRecurrenceKey = (uid: string | undefined, recurrenceId: ICAL.Time | undefined) => {
+  if (!uid || !recurrenceId) return null;
+  return `${uid}:${recurrenceId.toString()}`;
+};
+
+export class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
   protected integrationName = "ics-feed_calendar";
+  private allowedHostnames?: string[];
+  private defaultCalendarName = "ICS Feed";
+  private requireHttps = false;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, options?: ICSFeedCalendarServiceOptions) {
     const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
     this.urls = urls;
+    this.integrationName = options?.integrationName || this.integrationName;
+    this.allowedHostnames = options?.allowedHostnames;
+    this.defaultCalendarName = options?.defaultCalendarName || this.defaultCalendarName;
+    this.requireHttps = options?.requireHttps || false;
   }
 
   createEvent(_event: CalendarEvent, _credentialId: number): Promise<NewCalendarEventType> {
@@ -82,13 +117,75 @@ class ICSFeedCalendarService implements Calendar {
     });
   }
 
+  private validateCalendarUrl = async (url: string) => {
+    const validation = await validateUrlForSSRF(url);
+    if (!validation.isValid) {
+      logBlockedSSRFAttempt(url, validation.error || "Invalid ICS feed URL", {
+        integration: this.integrationName,
+      });
+      throw new Error("Invalid ICS feed URL");
+    }
+
+    const parsedUrl = new URL(url);
+    if (this.requireHttps && parsedUrl.protocol !== "https:") {
+      logBlockedSSRFAttempt(url, "Only HTTPS URLs are allowed for this calendar integration", {
+        integration: this.integrationName,
+      });
+      throw new Error("Only HTTPS URLs are supported by this integration");
+    }
+
+    if (!isHostnameAllowed(parsedUrl.hostname, this.allowedHostnames)) {
+      logBlockedSSRFAttempt(url, "Hostname is not allowed for this calendar integration", {
+        integration: this.integrationName,
+      });
+      throw new Error("This calendar URL is not supported by this integration");
+    }
+
+    return parsedUrl;
+  };
+
+  private fetchCalendarText = async (url: string, redirects = 0): Promise<string> => {
+    const parsedUrl = await this.validateCalendarUrl(url);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), ICS_FETCH_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(parsedUrl.toString(), {
+        redirect: "manual",
+        signal: controller.signal,
+      });
+
+      if (response.status >= 300 && response.status < 400) {
+        if (redirects >= MAX_ICS_REDIRECTS) {
+          throw new Error("Too many redirects while fetching ICS feed");
+        }
+
+        const location = response.headers.get("location");
+        if (!location) {
+          throw new Error("ICS feed redirected without a location header");
+        }
+
+        return this.fetchCalendarText(new URL(location, parsedUrl).toString(), redirects + 1);
+      }
+
+      if (!response.ok) {
+        throw new Error("Could not fetch ICS feed");
+      }
+
+      return response.text();
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+
   fetchCalendars = async (): Promise<{ url: string; vcalendar: ICAL.Component }[]> => {
-    const reqPromises = await Promise.allSettled(this.urls.map((x) => fetch(x).then((y) => [x, y])));
+    const reqPromises = await Promise.allSettled(
+      this.urls.map((url) => this.fetchCalendarText(url).then((text) => [url, text] as [string, string]))
+    );
     const reqs = reqPromises
       .filter((x) => x.status === "fulfilled")
-      .map((x) => (x as PromiseFulfilledResult<[string, Response]>).value);
-    const res = await Promise.all(reqs.map((x) => x[1].text().then((y) => [x[0], y])));
-    return res
+      .map((x) => (x as PromiseFulfilledResult<[string, string]>).value);
+    return reqs
       .map((x) => {
         try {
           const jcalData = ICAL.parse(x[1]);
@@ -149,7 +246,23 @@ class ICSFeedCalendarService implements Calendar {
 
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
+      const cancelledRecurringInstances = new Set<string>();
+
       vevents.forEach((vevent) => {
+        const status = String(vevent.getFirstPropertyValue("status") || "").toUpperCase();
+        if (status !== "CANCELLED") return;
+
+        const recurrenceKey = getRecurrenceKey(
+          vevent.getFirstPropertyValue("uid"),
+          vevent.getFirstPropertyValue("recurrence-id")
+        );
+        if (recurrenceKey) cancelledRecurringInstances.add(recurrenceKey);
+      });
+
+      vevents.forEach((vevent) => {
+        const status = String(vevent.getFirstPropertyValue("status") || "").toUpperCase();
+        if (status === "CANCELLED") return;
+
         // if event status is free or transparent, DON'T return (unlike usual getAvailability)
         //
         // commented out because a lot of public ICS feeds that describe stuff like
@@ -261,6 +374,11 @@ class ICSFeedCalendarService implements Calendar {
             currentStart = dayjs(currentEvent.startDate.toJSDate());
 
             if (currentStart.isBetween(start, end) === true) {
+              const recurrenceKey = getRecurrenceKey(vevent.getFirstPropertyValue("uid"), current);
+              if (recurrenceKey && cancelledRecurringInstances.has(recurrenceKey)) {
+                continue;
+              }
+
               events.push({
                 start: currentStart.toISOString(),
                 end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
@@ -299,7 +417,7 @@ class ICSFeedCalendarService implements Calendar {
     return vcals.map(({ url, vcalendar }) => {
       const name: string = vcalendar.getFirstPropertyValue("x-wr-calname");
       return {
-        name,
+        name: name || this.defaultCalendarName,
         readOnly: true,
         externalId: url,
         integration: this.integrationName,
