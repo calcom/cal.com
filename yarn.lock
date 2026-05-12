@@ -2307,6 +2307,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/dzylo@workspace:packages/app-store/dzylo":
+  version: 0.0.0-use.local
+  resolution: "@calcom/dzylo@workspace:packages/app-store/dzylo"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/ee@workspace:packages/features/ee":
   version: 0.0.0-use.local
   resolution: "@calcom/ee@workspace:packages/features/ee"
