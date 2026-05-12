@@ -142,9 +142,8 @@ const buildGoogleCalendarEventLink = ({
   eventId: string;
   calendarId: string;
 }) => {
-  // Google Calendar eid = URL-safe base64(eventId + " " + calendarId)
-  const eid = Buffer.from(`${eventId} ${calendarId}`)
-    .toString("base64")
+  
+  const eid = btoa(`${eventId} ${calendarId}`)
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");

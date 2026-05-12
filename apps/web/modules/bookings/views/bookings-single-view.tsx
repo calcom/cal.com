@@ -151,7 +151,7 @@ export default function Success(props: PageProps) {
   const parsedBookingMetadata = parsed.success ? parsed.data : null;
 
   const googleCalRef = bookingInfo.references?.find(
-    (ref: { type: string }) => ref.type === "google_calendar"
+    (ref) => ref.type === "google_calendar"
   );
 
   const bookingWithParsedMetadata = {
