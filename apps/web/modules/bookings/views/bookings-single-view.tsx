@@ -150,9 +150,15 @@ export default function Success(props: PageProps) {
   const parsed = bookingMetadataSchema.safeParse(bookingInfo?.metadata ?? null);
   const parsedBookingMetadata = parsed.success ? parsed.data : null;
 
+  const googleCalRef = bookingInfo.references?.find(
+    (ref: { type: string }) => ref.type === "google_calendar"
+  );
+
   const bookingWithParsedMetadata = {
     ...bookingInfo,
     metadata: parsedBookingMetadata,
+    googleCalendarEventId: googleCalRef?.uid ?? null,
+    googleCalendarId: googleCalRef?.externalCalendarId ?? null,
   };
   const locationVideoCallUrl = bookingWithParsedMetadata.metadata?.videoCallUrl;
 
@@ -406,9 +412,9 @@ export default function Success(props: PageProps) {
   const isWithinMinimumRescheduleNotice = isHost
     ? false // Organizers can always reschedule
     : isWithinMinimumRescheduleNoticeUtil(
-        bookingInfo?.startTime ?? null,
-        eventType?.minimumRescheduleNotice ?? null
-      );
+      bookingInfo?.startTime ?? null,
+      eventType?.minimumRescheduleNotice ?? null
+    );
   const isRescheduleDisabled = !canReschedule || isWithinMinimumRescheduleNotice;
   const paymentStatusMessage = usePaymentStatus({
     bookingStatus: bookingInfo.status,
@@ -417,10 +423,10 @@ export default function Success(props: PageProps) {
     userId: eventType?.owner?.id,
     payment: props.paymentStatus
       ? {
-          success: props.paymentStatus.success,
-          refunded: props.paymentStatus.refunded,
-          paymentOption: props.paymentStatus.paymentOption,
-        }
+        success: props.paymentStatus.success,
+        refunded: props.paymentStatus.refunded,
+        paymentOption: props.paymentStatus.paymentOption,
+      }
       : { success: false, refunded: false },
     refundPolicy: eventType?.metadata?.apps?.stripe?.refundPolicy,
     refundDaysCount: eventType?.metadata?.apps?.stripe?.refundDaysCount,
@@ -505,7 +511,7 @@ export default function Success(props: PageProps) {
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
                   !isBackgroundTransparent &&
-                    " bg-default dark:bg-cal-muted border-booker border-booker-width",
+                  " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -531,7 +537,7 @@ export default function Success(props: PageProps) {
                         className={classNames(
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
-                            "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
+                          "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
                             ? "bg-cal-success"
                             : "",
@@ -755,7 +761,7 @@ export default function Success(props: PageProps) {
                               {showUtmParams && (
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
-                                  0 ? (
+                                    0 ? (
                                     <ul className="stack-y-1 list-disc p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
@@ -783,7 +789,7 @@ export default function Success(props: PageProps) {
                                 <Badge
                                   variant="gray"
                                   className="mb-2 cursor-pointer hover:opacity-80"
->
+                                >
                                   {t(
                                     assignmentReasonBadgeTitleMap(
                                       bookingInfo.assignmentReason[0].reasonEnum as AssignmentReasonEnum
@@ -874,50 +880,49 @@ export default function Success(props: PageProps) {
                             (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
                             canReschedule) ||
                             (!isBookingInPast && canCancel)) && (
-                            <>
-                              <hr className="border-subtle mb-8" />
-                              <div className="text-center last:pb-0">
-                                <span className="text-emphasis ltr:mr-2 rtl:ml-2">
-                                  {t("need_to_make_a_change")}
-                                </span>
+                              <>
+                                <hr className="border-subtle mb-8" />
+                                <div className="text-center last:pb-0">
+                                  <span className="text-emphasis ltr:mr-2 rtl:ml-2">
+                                    {t("need_to_make_a_change")}
+                                  </span>
 
-                                <>
-                                  {!props.recurringBookings &&
-                                    (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
-                                    canReschedule &&
-                                    !isRescheduleDisabled && (
-                                      <span className="text-default inline">
-                                        <Link
-                                          href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                            currentUserEmail
+                                  <>
+                                    {!props.recurringBookings &&
+                                      (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
+                                      canReschedule &&
+                                      !isRescheduleDisabled && (
+                                        <span className="text-default inline">
+                                          <Link
+                                            href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${currentUserEmail
                                               ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
                                               : ""
-                                          }`}
-                                          className="underline"
-                                          data-testid="reschedule-link">
-                                          {t("reschedule")}
-                                        </Link>
-                                        {!isBookingInPast && canCancel && (
-                                          <span className="mx-2">{t("or_lowercase")}</span>
-                                        )}
-                                      </span>
-                                    )}
-
-                                  {!isBookingInPast && canCancel && (
-                                    <button
-                                      data-testid="cancel"
-                                      className={classNames(
-                                        "text-default underline",
-                                        props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                              }`}
+                                            className="underline"
+                                            data-testid="reschedule-link">
+                                            {t("reschedule")}
+                                          </Link>
+                                          {!isBookingInPast && canCancel && (
+                                            <span className="mx-2">{t("or_lowercase")}</span>
+                                          )}
+                                        </span>
                                       )}
-                                      onClick={() => setIsCancellationMode(true)}>
-                                      {t("cancel")}
-                                    </button>
-                                  )}
-                                </>
-                              </div>
-                            </>
-                          )}
+
+                                    {!isBookingInPast && canCancel && (
+                                      <button
+                                        data-testid="cancel"
+                                        className={classNames(
+                                          "text-default underline",
+                                          props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                        )}
+                                        onClick={() => setIsCancellationMode(true)}>
+                                        {t("cancel")}
+                                      </button>
+                                    )}
+                                  </>
+                                </div>
+                              </>
+                            )}
                         </>
                       ) : (
                         <>

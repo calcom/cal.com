@@ -62,6 +62,13 @@ const getUserBooking = async (uid: string) => {
           referenceUid: true,
         },
       },
+      references: {
+        select: {
+          type: true,
+          uid: true,
+          externalCalendarId: true,
+        },
+      },
       tracking: {
         select: {
           utm_source: true,

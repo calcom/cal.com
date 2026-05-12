@@ -135,6 +135,22 @@ const buildMicrosoftOutlookLink = ({
   return microsoftOutlookLink;
 };
 
+const buildGoogleCalendarEventLink = ({
+  eventId,
+  calendarId,
+}: {
+  eventId: string;
+  calendarId: string;
+}) => {
+  // Google Calendar eid = URL-safe base64(eventId + " " + calendarId)
+  const eid = Buffer.from(`${eventId} ${calendarId}`)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+  return `https://calendar.google.com/calendar/event?eid=${eid}`;
+};
+
 export const getCalendarLinks = ({
   booking,
   eventType,
@@ -147,6 +163,8 @@ export const getCalendarLinks = ({
     title: string;
     responses: Prisma.JsonObject;
     metadata: Prisma.JsonObject | null;
+    googleCalendarEventId?: string | null;
+    googleCalendarId?: string | null;       
   };
   eventType: {
     recurringEvent: RecurringEventOrPrismaJsonObject;
@@ -190,14 +208,20 @@ export const getCalendarLinks = ({
   const endTime = dayjs(booking.endTime);
   const recurringEvent = eventType.recurringEvent;
 
-  const googleCalendarLink = buildGoogleCalendarLink({
-    startTime,
-    endTime,
-    eventName,
-    eventDescription,
-    bookingLocation: videoCallUrl ?? null,
-    recurringEvent,
-  });
+  const googleCalendarLink =
+  booking.googleCalendarEventId
+    ? buildGoogleCalendarEventLink({
+        eventId: booking.googleCalendarEventId,
+        calendarId: booking.googleCalendarId ?? "primary",
+      })
+    : buildGoogleCalendarLink({
+        startTime,
+        endTime,
+        eventName,
+        eventDescription,
+        bookingLocation: videoCallUrl ?? null,
+        recurringEvent,
+      });
 
   const microsoftOfficeLink = buildMicrosoftOfficeLink({
     startTime,
@@ -252,3 +276,4 @@ export const getCalendarLinks = ({
     },
   ];
 };
+
