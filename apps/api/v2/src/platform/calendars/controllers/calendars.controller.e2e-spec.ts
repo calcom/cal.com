@@ -218,7 +218,7 @@ describeCalendars("Platform Calendars Endpoints", () => {
 
   it(`/POST/v2/calendars/${ICS_CALENDAR}/save with access token should fail to create a new ics feed calendar credentials with invalid urls`, async () => {
     const body = {
-      urls: ["https://cal.com/ics/feed.ics", "https://not-an-ics-feed.com"],
+      urls: ["https://cal.com/ics/feed.ics", "not-a-url"],
       readOnly: false,
     };
     await request(app.getHttpServer())
@@ -231,7 +231,7 @@ describeCalendars("Platform Calendars Endpoints", () => {
 
   it(`/POST/v2/calendars/${ICS_CALENDAR}/save with access token should create a new ics feed calendar credentials`, async () => {
     const body = {
-      urls: ["https://cal.com/ics/feed.ics"],
+      urls: ["https://caldav.soverin.net/calendars/MyCalendar?export"],
       readOnly: false,
     };
     mockBuildIcsFeedCalendarService.mockReturnValue({

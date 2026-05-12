@@ -15,20 +15,19 @@ export class IsICSUrlConstraint implements ValidatorConstraintInterface {
   validate(url: unknown) {
     if (typeof url !== "string") return false;
 
-    // Check if it's a valid URL and ends with .ics
+    // Check if it's a valid HTTP(S) URL
+    // Per RFC 5545 and RFC 4791, ICS feeds don't require .ics suffix
+    // Validation should be based on response content-type, not URL structure
     try {
       const urlObject = new URL(url);
-      return (
-        (urlObject.protocol === "http:" || urlObject.protocol === "https:") &&
-        urlObject.pathname.endsWith(".ics")
-      );
+      return urlObject.protocol === "http:" || urlObject.protocol === "https:";
     } catch (error) {
       return false;
     }
   }
 
   defaultMessage() {
-    return "The URL must be a valid ICS URL (ending with .ics)";
+    return "The URL must be a valid HTTP(S) URL pointing to a public host";
   }
 }
 
