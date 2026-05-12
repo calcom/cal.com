@@ -829,3 +829,6 @@ Cal.diy is built on the foundation created by [Cal.com](https://cal.com) and the
 - [Day.js](https://day.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
+
+
+<!-- Formatting update -->
