@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/src/app.e2e-spec.ts module purpose and public usage context */
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 import type { PlatformOAuthClient, RateLimit, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
