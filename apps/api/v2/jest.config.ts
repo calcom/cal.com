@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/jest.config.ts module purpose and public usage context */
 import type { Config } from "jest";
 
 const config: Config = {
