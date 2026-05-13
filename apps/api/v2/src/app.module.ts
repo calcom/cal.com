@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/src/app.module.ts module purpose and public usage context */
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 import { BullModule } from "@nestjs/bull";
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
