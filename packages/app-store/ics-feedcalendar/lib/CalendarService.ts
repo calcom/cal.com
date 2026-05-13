@@ -4,6 +4,8 @@
 import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { logBlockedSSRFAttempt, validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
 import type {
   Calendar,
@@ -123,7 +125,7 @@ export class ICSFeedCalendarService implements Calendar {
       logBlockedSSRFAttempt(url, validation.error || "Invalid ICS feed URL", {
         integration: this.integrationName,
       });
-      throw new Error("Invalid ICS feed URL");
+      throw new ErrorWithCode(ErrorCode.BadRequest, "Invalid ICS feed URL");
     }
 
     const parsedUrl = new URL(url);
@@ -131,14 +133,14 @@ export class ICSFeedCalendarService implements Calendar {
       logBlockedSSRFAttempt(url, "Only HTTPS URLs are allowed for this calendar integration", {
         integration: this.integrationName,
       });
-      throw new Error("Only HTTPS URLs are supported by this integration");
+      throw new ErrorWithCode(ErrorCode.BadRequest, "Only HTTPS URLs are supported by this integration");
     }
 
     if (!isHostnameAllowed(parsedUrl.hostname, this.allowedHostnames)) {
       logBlockedSSRFAttempt(url, "Hostname is not allowed for this calendar integration", {
         integration: this.integrationName,
       });
-      throw new Error("This calendar URL is not supported by this integration");
+      throw new ErrorWithCode(ErrorCode.BadRequest, "This calendar URL is not supported by this integration");
     }
 
     return parsedUrl;
@@ -157,19 +159,19 @@ export class ICSFeedCalendarService implements Calendar {
 
       if (response.status >= 300 && response.status < 400) {
         if (redirects >= MAX_ICS_REDIRECTS) {
-          throw new Error("Too many redirects while fetching ICS feed");
+          throw new ErrorWithCode(ErrorCode.BadRequest, "Too many redirects while fetching ICS feed");
         }
 
         const location = response.headers.get("location");
         if (!location) {
-          throw new Error("ICS feed redirected without a location header");
+          throw new ErrorWithCode(ErrorCode.BadRequest, "ICS feed redirected without a location header");
         }
 
         return this.fetchCalendarText(new URL(location, parsedUrl).toString(), redirects + 1);
       }
 
       if (!response.ok) {
-        throw new Error("Could not fetch ICS feed");
+        throw new ErrorWithCode(ErrorCode.BadRequest, "Could not fetch ICS feed");
       }
 
       return response.text();

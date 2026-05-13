@@ -14,9 +14,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: "You must be logged in to do this" });
     }
 
-    if (!Array.isArray(urls) || urls.length === 0 || urls.some((url) => typeof url !== "string")) {
+    if (
+      !Array.isArray(urls) ||
+      urls.length === 0 ||
+      urls.some((url) => typeof url !== "string" || url.trim().length === 0)
+    ) {
       return res.status(400).json({ message: "Invalid ICS feed URLs" });
     }
+
+    const normalizedUrls = urls.map((url) => url.trim());
 
     // Get user
     const user = await prisma.user.findFirstOrThrow({
@@ -31,7 +37,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = {
       type: appConfig.type,
-      key: symmetricEncrypt(JSON.stringify({ urls }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
+      key: symmetricEncrypt(
+        JSON.stringify({ urls: normalizedUrls }),
+        process.env.CALENDSO_ENCRYPTION_KEY || ""
+      ),
       userId: user.id,
       teamId: null,
       appId: appConfig.slug,
@@ -48,8 +57,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       const listedCals = await dav.listCalendars();
 
-      if (listedCals.length !== urls.length) {
-        throw new Error(`Listed cals and URLs mismatch: ${listedCals.length} vs. ${urls.length}`);
+      if (listedCals.length !== normalizedUrls.length) {
+        throw new Error(`Listed cals and URLs mismatch: ${listedCals.length} vs. ${normalizedUrls.length}`);
       }
 
       await prisma.credential.create({

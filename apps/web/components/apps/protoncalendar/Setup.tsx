@@ -18,6 +18,14 @@ export default function ProtonCalendarSetup() {
   const [urls, setUrls] = useState<string[]>([""]);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const parseJsonResponse = async (res: Response) => {
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
+  };
+
   return (
     <div className="bg-emphasis flex h-screen">
       <div className="bg-default m-auto rounded p-5 md:w-[560px] md:p-10">
@@ -26,30 +34,40 @@ export default function ProtonCalendarSetup() {
             {/* eslint-disable @next/next/no-img-element */}
             <img
               src="/api/app-store/protoncalendar/icon.svg"
-              alt="Proton Calendar"
+              alt={t("proton_calendar.alt")}
               className="h-12 w-12 max-w-2xl"
             />
           </div>
           <div className="flex w-10/12 flex-col">
-            <h1 className="text-default">Connect Proton Calendar</h1>
+            <h1 className="text-default">{t("proton_calendar.title")}</h1>
             <div className="mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
             <div className="my-2 mt-3">
               <Form
                 form={form}
                 handleSubmit={async (_) => {
                   setErrorMessage("");
-                  const res = await fetch("/api/integrations/protoncalendar/add", {
-                    method: "POST",
-                    body: JSON.stringify({ urls }),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                  });
-                  const json = await res.json();
-                  if (!res.ok) {
-                    setErrorMessage(json?.message || t("something_went_wrong"));
-                  } else {
+                  try {
+                    const res = await fetch("/api/integrations/protoncalendar/add", {
+                      method: "POST",
+                      body: JSON.stringify({ urls }),
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    const json = await parseJsonResponse(res);
+                    if (!res.ok) {
+                      setErrorMessage(json?.message || t("something_went_wrong"));
+                      return;
+                    }
+
+                    if (typeof json?.url !== "string") {
+                      setErrorMessage(t("something_went_wrong"));
+                      return;
+                    }
+
                     router.push(json.url);
+                  } catch {
+                    setErrorMessage(t("something_went_wrong"));
                   }
                 }}>
                 <fieldset className="stack-y-2" disabled={form.formState.isSubmitting}>
@@ -65,11 +83,12 @@ export default function ProtonCalendarSetup() {
                           const newVal = e.target.value as string;
                           setUrls((urls) => urls.map((x, ii) => (ii === i ? newVal : x)));
                         }}
-                        placeholder="https://calendar.proton.me/..."
+                        placeholder={t("proton_calendar.placeholder")}
                       />
                       {i !== 0 ? (
                         <button
                           type="button"
+                          aria-label={t("proton_calendar.remove_url", { index: i + 1 })}
                           className="mb-2 h-min text-sm"
                           onClick={() => setUrls((urls) => urls.filter((_, ii) => i !== ii))}>
                           <TrashIcon size={16} />

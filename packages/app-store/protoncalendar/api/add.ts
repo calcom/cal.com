@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
-import { BuildCalendarService } from "../lib";
+import BuildCalendarService from "../lib/CalendarService";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -14,9 +14,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: "You must be logged in to do this" });
     }
 
-    if (!Array.isArray(urls) || urls.length === 0 || urls.some((url) => typeof url !== "string")) {
+    if (
+      !Array.isArray(urls) ||
+      urls.length === 0 ||
+      urls.some((url) => typeof url !== "string" || url.trim().length === 0)
+    ) {
       return res.status(400).json({ message: "Invalid Proton Calendar URLs" });
     }
+
+    const encryptionKey = process.env.CALENDSO_ENCRYPTION_KEY;
+    if (!encryptionKey) {
+      logger.error("Missing CALENDSO_ENCRYPTION_KEY while adding Proton Calendar");
+      return res.status(500).json({ message: "Could not add Proton Calendar" });
+    }
+
+    const normalizedUrls = urls.map((url) => url.trim());
 
     const user = await prisma.user.findFirstOrThrow({
       where: {
@@ -30,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = {
       type: appConfig.type,
-      key: symmetricEncrypt(JSON.stringify({ urls }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
+      key: symmetricEncrypt(JSON.stringify({ urls: normalizedUrls }), encryptionKey),
       userId: user.id,
       teamId: null,
       appId: appConfig.slug,
@@ -47,8 +59,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       const listedCals = await protonCalendar.listCalendars();
 
-      if (listedCals.length !== urls.length) {
-        throw new Error(`Listed calendars and URLs mismatch: ${listedCals.length} vs. ${urls.length}`);
+      if (listedCals.length !== normalizedUrls.length) {
+        throw new Error(
+          `Listed calendars and URLs mismatch: ${listedCals.length} vs. ${normalizedUrls.length}`
+        );
       }
 
       await prisma.credential.create({
@@ -67,4 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     return res.status(200).json({ url: "/apps/proton-calendar/setup" });
   }
+
+  res.setHeader("Allow", "GET, POST");
+  return res.status(405).json({ error: "Method Not Allowed" });
 }
