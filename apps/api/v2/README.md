@@ -1,3 +1,4 @@
+<!-- Documents apps/api/v2/README.md module purpose and public usage context -->
 Cal.diy api v2 is a [Nest.js](https://github.com/nestjs/nest) project.
 
 # Local development
