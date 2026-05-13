@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/src/config/app.ts module purpose and public usage context */
 import { getEnv } from "@/env";
 import type { AppConfig } from "./type";
 
