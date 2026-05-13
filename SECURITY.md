@@ -23,7 +23,7 @@ better protect our clients and our systems.
 - Email spoofing
 - Missing DNSSEC, CAA, CSP headers
 - Lack of Secure or HTTP only flag on non-sensitive cookies
-- Deadlinks
+- Dead links
 
 ## Please do the following
 
