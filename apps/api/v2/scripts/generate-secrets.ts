@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/scripts/generate-secrets.ts module purpose and public usage context */
 import fs from "node:fs";
 import path from "node:path";
 
