@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/src/lib/api-versions.ts module purpose and public usage context */
 import { VersionValue } from "@nestjs/common/interfaces";
 
 import {
