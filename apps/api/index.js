@@ -1,3 +1,4 @@
+/** Documents apps/api/index.js module purpose and public usage context */
 const http = require("node:http");
 const connect = require("connect");
 const { createProxyMiddleware } = require("http-proxy-middleware");
