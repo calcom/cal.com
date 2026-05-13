@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/src/bootstrap.ts module purpose and public usage context */
 import "./instrument";
 
 import {
