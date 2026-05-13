@@ -28,7 +28,6 @@ import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { GetOrgId } from "@/modules/auth/decorators/get-org-id/get-org-id.decorator";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
 import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
@@ -36,7 +35,6 @@ import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientsService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients.service";
 import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 
 @Controller({
@@ -44,7 +42,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
   version: API_VERSIONS_VALUES,
 })
 @ApiTags("Deprecated: Platform OAuth Clients")
-@UseGuards(ApiAuthGuard, OrganizationRolesGuard)
+@UseGuards(ApiAuthGuard)
 @ApiHeader(API_KEY_HEADER)
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
@@ -52,8 +50,7 @@ export class OAuthClientsController {
   constructor(
     private readonly oAuthClientUsersOutputService: OAuthClientUsersOutputService,
     private readonly oAuthClientsService: OAuthClientsService,
-    private readonly userRepository: UsersRepository,
-    private readonly teamsRepository: OrganizationsRepository
+    private readonly userRepository: UsersRepository
   ) {}
 
   @Post("/")
@@ -72,13 +69,6 @@ export class OAuthClientsController {
     @Body() body: CreateOAuthClientInput
   ): Promise<CreateOAuthClientResponseDto> {
     this.logger.log(`Creating OAuth Client for organisation ${organizationId}`);
-
-    const organization = await this.teamsRepository.findByIdIncludeBilling(organizationId);
-    if (!organization?.platformBilling || !organization?.platformBilling?.subscriptionId) {
-      throw new BadRequestException(
-        "Team is not subscribed to platform plan, cannot create an OAuth Client."
-      );
-    }
 
     const oAuthClientCredentials = await this.oAuthClientsService.createOAuthClient(organizationId, body);
 

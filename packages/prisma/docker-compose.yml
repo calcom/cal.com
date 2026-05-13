@@ -1,4 +1,4 @@
-# this file is a helper to run Cal.com locally
+# this file is a helper to run Cal.diy locally
 # starts a postgres 18 instance on port 5450 to use as a local db
 services:
   postgres:

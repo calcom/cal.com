@@ -3,12 +3,12 @@ import type { AppMeta } from "@calcom/types/App";
 export const metadata = {
   name: "Zapier",
   description:
-    "Workflow automation for everyone. Use the Cal.com Zapier app to trigger your workflows when a booking is created, rescheduled, or cancelled, or after a meeting ends.",
+    "Workflow automation for everyone. Use the Cal.diy Zapier app to trigger your workflows when a booking is created, rescheduled, or cancelled, or after a meeting ends.",
   installed: true,
   category: "automation",
   categories: ["automation"],
   logo: "icon.svg",
-  publisher: "Cal.com",
+  publisher: "Cal.diy",
   slug: "zapier",
   title: "Zapier",
   type: "zapier_automation",

@@ -16,8 +16,8 @@ import { JWT } from "googleapis-common";
 import type { CreateUnifiedCalendarEventInput } from "../inputs/create-unified-calendar-event.input";
 import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
 import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input-pipe";
-import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
-import { GoogleCalendarService as GCalService } from "@/ee/calendars/services/gcal.service";
+import { BookingReferencesRepository_2024_08_13 } from "@/platform/bookings/2024-08-13/repositories/booking-references.repository";
+import { GoogleCalendarService as GCalService } from "@/platform/calendars/services/gcal.service";
 import { GoogleCalendarEventResponse } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 

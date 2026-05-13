@@ -14,7 +14,6 @@ import {
   runAsap,
   isBookerReady,
   isLinkReady,
-  recordResponseIfQueued,
   keepParentInformedAboutDimensionChanges,
   isPrerendering,
   isBrowser,
@@ -330,31 +329,6 @@ function showPageAsNonEmbed() {
   }
 }
 
-async function ensureRoutingFormResponseIdInUrl({
-  newlyRecordedResponseId,
-  toBeThereParams,
-  toRemoveParams,
-}: {
-  newlyRecordedResponseId: number;
-  toBeThereParams: Record<string, string | string[]>;
-  toRemoveParams: string[];
-}) {
-  // Update routingFormResponseId in url only after connect is completed, to keep things simple
-  // Adding cal.routingFormResponseId in query param later shouldn't change anything in UI plus no slot request would go again due ot this.
-
-  const { stopEnsuringQueryParamsInUrl } =
-    embedStore.router.ensureQueryParamsInUrl({
-      toBeThereParams: {
-        ...toBeThereParams,
-        "cal.routingFormResponseId": newlyRecordedResponseId.toString(),
-      },
-      toRemoveParams,
-    });
-  // Immediately stop ensuring query params in url as the page is already ready
-  // We could think about doing it after some time if needed later.
-  stopEnsuringQueryParamsInUrl();
-}
-
 async function waitForRenderStateToBeCompleted() {
   return new Promise<void>((resolve) => {
     (function tryToConnect() {
@@ -376,7 +350,7 @@ export const methods = {
 
     if (stylesConfig) {
       console.warn(
-        "Cal.com Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect. Here is a list of CSS variables that are supported. https://github.com/calcom/cal.com/blob/main/packages/config/tailwind-preset.js#L19"
+        "Cal.diy Embed: `styles` prop is deprecated. Use `cssVarsPerTheme` instead to achieve the same effect. Here is a list of CSS variables that are supported. https://github.com/calcom/cal.diy/blob/main/packages/config/tailwind-preset.js#L19"
       );
     }
 
@@ -520,18 +494,6 @@ export const methods = {
       toRemoveParams,
     });
 
-    // We now record the response to routingFormResponse and connect that with queuedResponse, as the user actually opened the modal which is confirmed by this connect method call
-    const newlyRecordedResponseId = await recordResponseIfQueued(params);
-    // Allow 0 which is for dry run
-    // Negative values are not possible
-    if (typeof newlyRecordedResponseId !== "number") {
-      return;
-    }
-    await ensureRoutingFormResponseIdInUrl({
-      newlyRecordedResponseId,
-      toBeThereParams,
-      toRemoveParams,
-    });
   },
   __reloadInitiated: function __reloadInitiated(_unused: unknown) {
     log("Method: __reloadInitiated called");
@@ -585,7 +547,7 @@ function main() {
   // If embed link is opened in top, and not in iframe. Let the page be visible.
   if (top === window) {
     showPageAsNonEmbed();
-    // We would want to avoid a situation where Cal.com embeds cal.com and then embed-iframe is in the top as well. In such case, we would want to avoid infinite loop of events being passed.
+    // We would want to avoid a situation where Cal.diy embeds cal.com and then embed-iframe is in the top as well. In such case, we would want to avoid infinite loop of events being passed.
     log("Embed SDK Skipped as we are in top");
     return;
   }

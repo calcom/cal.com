@@ -1,6 +1,3 @@
-import MarkdownIt from "markdown-it";
-import type { GetServerSidePropsContext } from "next";
-
 import {
   generateGuestMeetingTokenFromOwnerMeetingToken,
   setEnableRecordingUIAndUserIdForOrganizer,
@@ -8,13 +5,14 @@ import {
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
 import prisma from "@calcom/prisma";
+import MarkdownIt from "markdown-it";
+import type { GetServerSidePropsContext } from "next";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
@@ -167,7 +165,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ).profile
     : null;
 
-  const organizationRepository = getOrganizationRepository();
+  const organizationRepository = { findCalVideoLogoByOrgId: async (_args: { id: number }) => null as string | null };
 
   const calVideoLogo = profile?.organization
     ? await organizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })
@@ -179,8 +177,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   //find out if the meeting is in the past
   const isPast = booking?.endTime <= exitDate;
-  const testingUid =
-    CAL_VIDEO_MEETING_LINK_FOR_TESTING && CAL_VIDEO_MEETING_LINK_FOR_TESTING?.split("/").pop();
+  const testingUid = CAL_VIDEO_MEETING_LINK_FOR_TESTING?.split("/").pop();
   const isTestingLink = booking?.uid === testingUid;
 
   if (isPast && !isTestingLink) {

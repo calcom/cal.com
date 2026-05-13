@@ -22,7 +22,6 @@ export interface EventGroupBuilderInput {
   userId: number;
   userUpId: string;
   filters?: FilterContext["filters"];
-  forRoutingForms?: boolean;
 }
 
 export class EventGroupBuilder {
@@ -32,7 +31,7 @@ export class EventGroupBuilder {
     eventTypeGroups: EventTypeGroup[];
     teamPermissionsMap: Map<number, TeamPermissions>;
   }> {
-    const { userId, userUpId, filters, forRoutingForms } = input;
+    const { userId, userUpId, filters } = input;
 
     // Get user profile with authorization check
     const profile = await this.dependencies.profileRepository.findByUpIdWithAuth(userUpId, userId);
@@ -105,8 +104,7 @@ export class EventGroupBuilder {
 
           const teamSlug = createTeamSlug(
             membership.team.slug,
-            !!membership.team.parentId,
-            forRoutingForms ?? false
+            !!membership.team.parentId
           );
 
           return createTeamEventGroup(membership, effectiveRole, teamSlug, permissions);

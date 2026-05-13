@@ -1,5 +1,4 @@
 import process from "node:process";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
@@ -92,9 +91,6 @@ async function handler(request: NextRequest) {
               platformBookingUrl,
             }
           : undefined,
-        actionSource: "MAGIC_LINK",
-        actor: makeUserActor(user.uuid),
-        impersonatedByUserUuid: null,
       },
     });
   } catch (e) {

@@ -12,34 +12,14 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
     import("./triggerNoShow/triggerHostNoShow").then((module) => module.triggerHostNoShow),
   triggerGuestNoShowWebhook: () =>
     import("./triggerNoShow/triggerGuestNoShow").then((module) => module.triggerGuestNoShow),
-  triggerFormSubmittedNoEventWebhook: () =>
-    import("./triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook").then(
-      (module) => module.triggerFormSubmittedNoEventWebhook
-    ),
-  triggerFormSubmittedNoEventWorkflow: () =>
-    import("./triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWorkflow").then(
-      (module) => module.triggerFormSubmittedNoEventWorkflow
-    ),
   sendSms: () => Promise.resolve(() => Promise.reject(new Error("Not implemented"))),
   translateEventTypeData: () =>
     import("./translateEventTypeData").then((module) => module.translateEventTypeData),
-  translateWorkflowStepData: () =>
-    import("./translateWorkflowStepData").then((module) => module.translateWorkflowStepData),
   createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
-  sendWorkflowEmails: () => import("./sendWorkflowEmails").then((module) => module.sendWorkflowEmails),
-  scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
-  scanWorkflowUrls: () => import("./scanWorkflowUrls").then((module) => module.scanWorkflowUrls),
   sendAnalyticsEvent: () =>
     import("./analytics/sendAnalyticsEvent").then((module) => module.sendAnalyticsEvent),
-  executeAIPhoneCall: () => import("./executeAIPhoneCall").then((module) => module.executeAIPhoneCall),
   sendAwaitingPaymentEmail: () =>
     import("./sendAwaitingPaymentEmail").then((module) => module.sendAwaitingPaymentEmail),
-  sendProrationInvoiceEmail: () =>
-    import("./sendProrationInvoiceEmail").then((module) => module.sendProrationInvoiceEmail),
-  sendProrationReminderEmail: () =>
-    import("./sendProrationReminderEmail").then((module) => module.sendProrationReminderEmail),
-  cancelProrationReminder: () =>
-    import("./cancelProrationReminder").then((module) => module.cancelProrationReminder),
   bookingAudit: () => import("./bookingAudit").then((module) => module.bookingAudit),
   webhookDelivery: () => import("./webhookDelivery").then((module) => module.webhookDelivery),
 };
@@ -48,9 +28,6 @@ export const tasksConfig = {
   createCRMEvent: {
     minRetryIntervalMins: IS_PRODUCTION ? 10 : 1,
     maxAttempts: 10,
-  },
-  executeAIPhoneCall: {
-    maxAttempts: 1,
   },
   webhookDelivery: {
     minRetryIntervalMins: IS_PRODUCTION ? 5 : 1,

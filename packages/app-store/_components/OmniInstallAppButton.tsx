@@ -6,7 +6,7 @@ import useAddAppMutation from "../_utils/useAddAppMutation";
 import { InstallAppButton } from "../InstallAppButton";
 import type { AppCardApp } from "../types";
 
-type AppData = Pick<AppCardApp, "type" | "variant" | "slug" | "teamsPlanRequired">;
+type AppData = Pick<AppCardApp, "type" | "variant" | "slug">;
 
 /**
  * Use this component to allow installing an app from anywhere on the app.
@@ -45,7 +45,6 @@ export default function OmniInstallAppButton({
   return (
     <InstallAppButton
       type={app.type}
-      teamsPlanRequired={app.teamsPlanRequired}
       wrapperClassName={classNames("[@media(max-width:260px)]:w-full", className)}
       render={({ useDefaultComponent, ...props }) => {
         if (useDefaultComponent) {

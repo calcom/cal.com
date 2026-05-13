@@ -15,16 +15,6 @@ export type TranslateTextResult = {
   failedLocales: string[];
 };
 
-export type WorkflowStepTranslationLookupResult = {
-  translatedBody?: string;
-  translatedSubject?: string;
-};
-
-export type WorkflowStepTranslationLookupOptions = {
-  includeBody?: boolean;
-  includeSubject?: boolean;
-};
-
 export type EventTypeTranslationLookupResult = {
   translatedTitle?: string;
   translatedDescription?: string;
@@ -38,11 +28,6 @@ export type EventTypeTranslationLookupOptions = {
 export interface ITranslationService {
   translateText(params: TranslateTextParams): Promise<TranslateTextResult>;
   getTargetLocales(sourceLocale: string): TranslationSupportedLocale[];
-  getWorkflowStepTranslation(
-    workflowStepId: number,
-    targetLocale: string,
-    options?: WorkflowStepTranslationLookupOptions
-  ): Promise<WorkflowStepTranslationLookupResult>;
   getEventTypeTranslation(
     eventTypeId: number,
     targetLocale: string,

@@ -2,8 +2,7 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
-import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui/components/avatar";
@@ -49,7 +48,7 @@ export const EventMembers = ({
   }
 
   if (schedulingType === SchedulingType.ROUND_ROBIN && hideOrgTeamAvatar) {
-    return <p className="text-subtle pt-6 text-sm font-semibold">{profile.name}</p>;
+    return <p className="pt-6 font-semibold text-sm text-subtle">{profile.name}</p>;
   }
 
   const orgOrTeamAvatarItem =
@@ -62,8 +61,8 @@ export const EventMembers = ({
               isEmbed || isPlatform || isPrivateLink || entity.hideProfileLink
                 ? null
                 : entity.teamSlug
-                  ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
-                  : getBookerBaseUrlSync(entity.orgSlug),
+                  ? `${WEBAPP_URL}/team/${entity.teamSlug}`
+                  : WEBAPP_URL,
             image: entity.logoUrl ?? profile.image ?? "",
             alt: entity.name ?? profile.name ?? "",
             title: entity.name ?? profile.name ?? "",
@@ -81,9 +80,7 @@ export const EventMembers = ({
             href:
               isPlatform || isPrivateLink || entity.hideProfileLink
                 ? null
-                : `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
-                    user.profile?.username
-                  }?redirect=false`,
+                : `${WEBAPP_URL}/${user.profile?.username}?redirect=false`,
             alt: user.name || "",
             title: user.name || "",
             image: getUserAvatarUrl(user),
@@ -91,7 +88,7 @@ export const EventMembers = ({
         ]}
       />
 
-      <p className="text-subtle mt-2 text-sm font-semibold">
+      <p className="mt-2 font-semibold text-sm text-subtle">
         {showOnlyProfileName
           ? profile.name
           : shownUsers

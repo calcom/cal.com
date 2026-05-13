@@ -18,7 +18,6 @@ export class WrongAssignmentReportRepository {
     correctAssignee: string | null;
     additionalNotes: string;
     teamId: number | null;
-    routingFormId: string | null;
   }): Promise<{ id: string }> {
     return this.prismaClient.wrongAssignmentReport.create({
       data: input,
@@ -39,14 +38,12 @@ export class WrongAssignmentReportRepository {
   async findByTeamIdsAndStatuses({
     teamIds,
     statuses,
-    routingFormId,
     reportedById,
     limit,
     offset,
   }: {
     teamIds: number[];
     statuses: WrongAssignmentReportStatus[];
-    routingFormId?: string;
     reportedById?: number;
     limit: number;
     offset: number;
@@ -54,10 +51,8 @@ export class WrongAssignmentReportRepository {
     const where: {
       teamId: { in: number[] };
       status: { in: WrongAssignmentReportStatus[] };
-      routingFormId?: string;
       reportedById?: number;
     } = { teamId: { in: teamIds }, status: { in: statuses } };
-    if (routingFormId) where.routingFormId = routingFormId;
     if (reportedById) where.reportedById = reportedById;
     const [reports, totalCount] = await Promise.all([
       this.prismaClient.wrongAssignmentReport.findMany({
@@ -89,11 +84,6 @@ export class WrongAssignmentReportRepository {
                   email: true,
                 },
               },
-              routedFromRoutingFormReponse: {
-                select: {
-                  id: true,
-                },
-              },
             },
           },
           reportedBy: {
@@ -101,12 +91,6 @@ export class WrongAssignmentReportRepository {
               id: true,
               name: true,
               email: true,
-            },
-          },
-          routingForm: {
-            select: {
-              id: true,
-              name: true,
             },
           },
           reviewedBy: {

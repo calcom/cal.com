@@ -1,7 +1,6 @@
 import { BookingHistoryViewerService } from "@calcom/features/booking-audit/lib/service/BookingHistoryViewerService";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { moduleLoader as bookingAuditViewerServiceModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditViewerService.module";
-import { moduleLoader as routingFormResponseRepositoryModuleLoader } from "@calcom/features/routing-forms/di/RoutingFormResponseRepository.module";
 
 import { createModule, bindModuleToClassOnToken } from "../../di/di";
 
@@ -18,7 +17,6 @@ const loadModule = bindModuleToClassOnToken({
   classs: BookingHistoryViewerService,
   depsMap: {
     bookingAuditViewerService: bookingAuditViewerServiceModuleLoader,
-    routingFormResponseRepository: routingFormResponseRepositoryModuleLoader,
   },
 });
 

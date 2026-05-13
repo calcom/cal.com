@@ -1,6 +1,3 @@
-import { useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -12,17 +9,22 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { DateRangePicker, TextArea, Input, Checkbox } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import {
+  Checkbox,
+  DateRangePicker,
+  Input,
+  Label,
+  Select,
+  Switch,
+  TextArea,
+} from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-
-import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
+import { useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 export type { BookingRedirectForm } from "~/settings/outOfOffice/types";
+
 import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
 
 type Option = { value: number; label: string };
@@ -45,13 +47,19 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const [searchMember, setSearchMember] = useState("");
   const debouncedSearchMember = useDebounce(searchMember, 500);
-  const oooForMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    { limit: 10, searchText: debouncedSearchMember, adminOrOwnedTeamsOnly: true },
-    {
-      enabled: oooType === OutOfOfficeTab.TEAM,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
+  const oooForMembers = undefined as
+    | {
+        data?: {
+          pages: {
+            members: { id: number; name: string | null; username: string | null; avatarUrl: string | null }[];
+          }[];
+        };
+        hasNextPage: boolean;
+        isFetchingNextPage: boolean;
+        fetchNextPage: () => void;
+      }
+    | undefined;
+
   const oooMemberListOptions: {
     value: number;
     label: string;
@@ -65,41 +73,64 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         },
       ]
     : oooForMembers?.data?.pages
-        .flatMap((page) => page.members)
-        ?.filter((member) => me?.data?.id !== member.id)
-        .map((member) => ({
-          value: member.id,
-          label: member.name || member.username || "",
-          avatarUrl: member.avatarUrl,
-        })) || [];
+        ?.flatMap(
+          (page: {
+            members: { id: number; name: string | null; username: string | null; avatarUrl: string | null }[];
+          }) => page.members
+        )
+        ?.filter(
+          (member: { id: number; name: string | null; username: string | null; avatarUrl: string | null }) =>
+            me?.data?.id !== member.id
+        )
+        .map(
+          (member: {
+            id: number;
+            name: string | null;
+            username: string | null;
+            avatarUrl: string | null;
+          }) => ({
+            value: member.id,
+            label: member.name || member.username || "",
+            avatarUrl: member.avatarUrl,
+          })
+        ) || [];
   const [searchRedirectMember, setSearchRedirectMember] = useState("");
   const debouncedSearchRedirect = useDebounce(searchRedirectMember, 500);
-  const redirectMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    {
-      limit: 10,
-      searchText: debouncedSearchRedirect,
-      adminOrOwnedTeamsOnly: oooType === OutOfOfficeTab.TEAM,
-    },
-    {
-      enabled: true,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
+  const redirectMembers = undefined as
+    | {
+        data?: {
+          pages: {
+            members: { id: number; name: string | null; username: string | null; avatarUrl: string | null }[];
+          }[];
+        };
+        hasNextPage: boolean;
+        isFetchingNextPage: boolean;
+        fetchNextPage: () => void;
+      }
+    | undefined;
+
   const redirectToMemberListOptions: {
     value: number;
     label: string;
     avatarUrl: string | null;
   }[] =
     redirectMembers?.data?.pages
-      .flatMap((page) => page.members)
-      ?.filter((member) =>
-        oooType === OutOfOfficeTab.MINE ? me?.data?.id !== member.id : oooType === OutOfOfficeTab.TEAM
+      ?.flatMap(
+        (page: {
+          members: { id: number; name: string | null; username: string | null; avatarUrl: string | null }[];
+        }) => page.members
       )
-      .map((member) => ({
-        value: member.id,
-        label: member.name || member.username || "",
-        avatarUrl: member.avatarUrl,
-      })) || [];
+      ?.filter(
+        (member: { id: number; name: string | null; username: string | null; avatarUrl: string | null }) =>
+          me?.data?.id !== member.id
+      )
+      .map(
+        (member: { id: number; name: string | null; username: string | null; avatarUrl: string | null }) => ({
+          value: member.id,
+          label: member.name || member.username || "",
+          avatarUrl: member.avatarUrl,
+        })
+      ) || [];
 
   const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
     trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
@@ -110,7 +141,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const [profileRedirect, setProfileRedirect] = useState(!!currentlyEditingOutOfOfficeEntry?.toTeamUserId);
 
-  const { hasTeamPlan } = useHasTeamPlan();
+  const hasTeamPlan = false;
 
   const {
     handleSubmit,
@@ -206,55 +237,9 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           <div className="h-full px-1">
             <DialogHeader
               title={
-                currentlyEditingOutOfOfficeEntry
-                  ? t("edit_an_out_of_office")
-                  : oooType === "team"
-                    ? t("create_ooo_dialog_team_title")
-                    : t("create_an_out_of_office")
-              }
-              subtitle={
-                oooType === "team"
-                  ? currentlyEditingOutOfOfficeEntry
-                    ? t("edit_ooo_dialog_team_subtitle")
-                    : t("create_ooo_dialog_team_subtitle")
-                  : undefined
+                currentlyEditingOutOfOfficeEntry ? t("edit_an_out_of_office") : t("create_an_out_of_office")
               }
             />
-
-            {/* In case of Team, Select Member for whom OOO is created */}
-            {oooType === OutOfOfficeTab.TEAM && (
-              <div className="mb-4">
-                <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
-                <Controller
-                  control={control}
-                  name="forUserId"
-                  render={({ field: { onChange, value } }) => (
-                    <Select
-                      className="mt-2"
-                      data-testid="ooofor_username_select"
-                      isSearchable={true}
-                      isDisabled={!!currentlyEditingOutOfOfficeEntry}
-                      menuPlacement="bottom"
-                      value={oooMemberListOptions.find((member) => member.value === value)}
-                      placeholder={t("search")}
-                      options={oooMemberListOptions}
-                      onInputChange={(newValue) => setSearchMember(newValue)}
-                      onChange={(selectedOption) => {
-                        if (selectedOption?.value) {
-                          onChange(selectedOption.value);
-                        }
-                      }}
-                      onMenuScrollToBottom={() => {
-                        if (oooForMembers.hasNextPage && !oooForMembers.isFetchingNextPage) {
-                          oooForMembers.fetchNextPage();
-                        }
-                      }}
-                      isLoading={oooForMembers.isFetchingNextPage}
-                    />
-                  )}
-                />
-              </div>
-            )}
 
             <div>
               <p className="text-emphasis mb-1 block text-sm font-medium capitalize">{t("dates")}</p>
@@ -383,11 +368,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   }}
                   label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
                 />
-                {!hasTeamPlan && (
-                  <div className="mx-2" data-testid="upgrade-team-badge">
-                    <UpgradeTeamsBadge />
-                  </div>
-                )}
+                {!hasTeamPlan && <div className="mx-2" data-testid="upgrade-team-badge"></div>}
               </div>
 
               {profileRedirect && (
@@ -415,11 +396,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                           }
                         }}
                         onMenuScrollToBottom={() => {
-                          if (redirectMembers.hasNextPage && !redirectMembers.isFetchingNextPage) {
-                            redirectMembers.fetchNextPage();
+                          if (redirectMembers?.hasNextPage && !redirectMembers?.isFetchingNextPage) {
+                            redirectMembers?.fetchNextPage();
                           }
                         }}
-                        isLoading={redirectMembers.isFetchingNextPage}
+                        isLoading={redirectMembers?.isFetchingNextPage}
                       />
                     )}
                   />

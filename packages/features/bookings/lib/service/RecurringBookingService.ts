@@ -1,21 +1,9 @@
 import type { CreateBookingMeta, CreateRecurringBookingData } from "@calcom/features/bookings/lib/dto/types";
 import type { BookingResponse } from "@calcom/features/bookings/types";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { CreationSource, SchedulingType } from "@calcom/prisma/enums";
+import { type CreationSource, SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
-import { v4 as uuidv4 } from "uuid";
-import type { BookingStatus } from "@calcom/prisma/enums";
 import type { IBookingService } from "../interfaces/IBookingService";
 import type { RegularBookingService } from "./RegularBookingService";
-import type { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
-import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
-import { criticalLogger } from "@calcom/lib/logger.server";
-import { getAuditActionSource } from "../handleNewBooking/getAuditActionSource";
-import { safeStringify } from "@calcom/lib/safeStringify";
-import {
-  buildBookingCreatedAuditData,
-  buildBookingRescheduledAuditData,
-} from "../handleNewBooking/buildBookingEventAuditData";
 export type BookingHandlerInput = {
   bookingData: CreateRecurringBookingData;
 } & CreateBookingMeta;
@@ -48,7 +36,7 @@ export const handleNewRecurringBooking = async function (
   const firstBooking = data[0];
   const isRoundRobin = firstBooking.schedulingType === SchedulingType.ROUND_ROBIN;
 
-  let luckyUsers = undefined;
+  let luckyUsers;
 
   const handleBookingMeta = {
     userId: input.userId,
@@ -77,7 +65,6 @@ export const handleNewRecurringBooking = async function (
       bookingMeta: {
         hostname: input.hostname || "",
         forcedSlug: input.forcedSlug as string | undefined,
-        impersonatedByUserUuid: input.impersonatedByUserUuid ?? null,
         ...handleBookingMeta,
       },
     });
@@ -121,12 +108,11 @@ export const handleNewRecurringBooking = async function (
       bookingMeta: {
         hostname: input.hostname || "",
         forcedSlug: input.forcedSlug as string | undefined,
-        impersonatedByUserUuid: input.impersonatedByUserUuid ?? null,
         ...handleBookingMeta,
       },
     });
 
-    const eachRecurringBooking= await promiseEachRecurringBooking;
+    const eachRecurringBooking = await promiseEachRecurringBooking;
 
     createdBookings.push(eachRecurringBooking);
 
@@ -142,158 +128,18 @@ export const handleNewRecurringBooking = async function (
     }
   }
 
-  if (createdBookings.length > 0) {
-    await this.fireBookingEvents({
-      createdBookings,
-      eventTypeId: firstBooking.eventTypeId,
-      rescheduleUid: firstBooking.rescheduleUid ?? null,
-      actorUserUuid: input.userUuid ?? null,
-      rescheduledBy: firstBooking.rescheduledBy ?? null,
-      creationSource,
-      impersonatedByUserUuid: input.impersonatedByUserUuid ?? null,
-    });
-  }
-
   return createdBookings;
 };
 
 export interface IRecurringBookingServiceDependencies {
   regularBookingService: RegularBookingService;
-  bookingEventHandler: BookingEventHandlerService;
-  featuresRepository: FeaturesRepository;
 }
 
 /**
  * Recurring Booking Service takes care of creating/rescheduling recurring bookings.
  */
 export class RecurringBookingService implements IBookingService {
-  constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
-
-  async fireBookingEvents({
-    createdBookings,
-    eventTypeId,
-    rescheduleUid,
-    actorUserUuid,
-    rescheduledBy,
-    creationSource,
-    impersonatedByUserUuid,
-  }: {
-    createdBookings: BookingResponse[];
-    eventTypeId: number;
-    rescheduleUid: string | null;
-    actorUserUuid: string | null;
-    rescheduledBy: string | null;
-    creationSource: CreationSource | undefined;
-    impersonatedByUserUuid: string | null;
-  }) {
-    try {
-      type ValidBooking = BookingResponse & {
-        uid: string;
-        startTime: Date;
-        endTime: Date;
-        status: BookingStatus;
-        userUuid: string | null;
-      };
-      type ValidRescheduledBooking = ValidBooking & {
-        previousBooking: ValidBooking & { status: BookingStatus };
-      };
-
-      const isReschedule = !!rescheduleUid;
-      const firstCreatedBooking = createdBookings[0];
-      const eventOrganizationId = firstCreatedBooking.organizationId;
-      const bookerAttendee = firstCreatedBooking.attendees?.[0];
-      const bookerAttendeeId = bookerAttendee?.id;
-      const bookerName = bookerAttendee?.name || "";
-      const bookerEmail = bookerAttendee?.email || "";
-
-      const isBookingAuditEnabled = eventOrganizationId
-        ? await this.deps.featuresRepository.checkIfTeamHasFeature(eventOrganizationId, "booking-audit")
-        : false;
-
-      const rescheduledByAttendeeId = firstCreatedBooking.attendees?.find(
-        (attendee) => attendee.email === rescheduledBy
-      )?.id;
-      // TODO: Note that user.email is always null here as RegularBookingService intentionally sets it to null. To fix, we need to separate out external facing .createBooking and one that is used by RecurringBookingService, so that if we expose something there it doesn't get exposed elsewhere
-      const rescheduledByUserUuid =
-        firstCreatedBooking.user?.email === rescheduledBy ? firstCreatedBooking.userUuid : null;
-
-      const auditActor = getBookingAuditActorForNewBooking({
-        bookerAttendeeId: bookerAttendeeId ?? null,
-        actorUserUuid,
-        bookerEmail,
-        bookerName,
-        rescheduledBy: rescheduledBy
-          ? {
-              attendeeId: rescheduledByAttendeeId ?? null,
-              userUuid: rescheduledByUserUuid ?? null,
-              email: rescheduledBy,
-            }
-          : null,
-        logger: criticalLogger,
-      });
-
-      const actionSource = getAuditActionSource({ creationSource, eventTypeId, rescheduleUid });
-
-      const operationId = uuidv4();
-
-      const isValidBooking = (booking: BookingResponse): booking is ValidBooking => {
-        return !!(booking.uid && booking.startTime && booking.endTime && booking.status);
-      };
-
-      const isValidRescheduledBooking = (booking: BookingResponse): booking is ValidRescheduledBooking => {
-        return !!(
-          isValidBooking(booking) &&
-          booking.previousBooking &&
-          booking.previousBooking.uid &&
-          booking.previousBooking.startTime &&
-          booking.previousBooking.endTime
-        );
-      };
-
-      const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
-
-      if (isReschedule) {
-        const bulkRescheduledBookings = createdBookings.filter(isValidRescheduledBooking).map((booking) => ({
-          bookingUid: booking.previousBooking.uid,
-          auditData: buildBookingRescheduledAuditData({
-            oldBooking: booking.previousBooking,
-            newBooking: booking,
-          }),
-        }));
-
-        if (bulkRescheduledBookings.length > 0) {
-          await this.deps.bookingEventHandler.onBulkBookingsRescheduled({
-            bookings: bulkRescheduledBookings,
-            actor: auditActor,
-            organizationId: eventOrganizationId,
-            operationId,
-            source: actionSource,
-            context: auditContext,
-            isBookingAuditEnabled,
-          });
-        }
-      } else {
-        const bulkCreatedBookings = createdBookings.filter(isValidBooking).map((booking) => ({
-          bookingUid: booking.uid,
-          auditData: buildBookingCreatedAuditData({ booking, attendeeSeatId: null }),
-        }));
-
-        if (bulkCreatedBookings.length > 0) {
-          await this.deps.bookingEventHandler.onBulkBookingsCreated({
-            bookings: bulkCreatedBookings,
-            actor: auditActor,
-            organizationId: eventOrganizationId,
-            operationId,
-            source: actionSource,
-            context: auditContext,
-            isBookingAuditEnabled,
-          });
-        }
-      }
-    } catch (error) {
-      criticalLogger.error("Error while firing booking events", safeStringify(error));
-    }
-  }
+  constructor(private readonly deps: IRecurringBookingServiceDependencies) {}
 
   async createBooking(input: {
     bookingData: CreateRecurringBookingData;
@@ -303,7 +149,6 @@ export class RecurringBookingService implements IBookingService {
     const handlerInput = {
       bookingData: input.bookingData,
       ...(input.bookingMeta || {}),
-      impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
     };
     return handleNewRecurringBooking.bind(this)({
       input: handlerInput,
@@ -320,7 +165,6 @@ export class RecurringBookingService implements IBookingService {
     const handlerInput = {
       bookingData: input.bookingData,
       ...(input.bookingMeta || {}),
-      impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
     };
     return handleNewRecurringBooking.bind(this)({
       input: handlerInput,

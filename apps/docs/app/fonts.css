@@ -1,0 +1,17 @@
+/* Cal Sans for headlines */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-cal), sans-serif;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-feature-settings: normal;
+}
+
+/* Cal Sans UI for body text */
+body {
+  font-family: var(--font-cal-ui), sans-serif;
+}

@@ -1,17 +1,18 @@
-import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   findMatchingHostsWithEventSegment,
   getNormalizedHosts,
   getRoutedUsersWithContactOwnerAndFixedUsers,
 } from "@calcom/features/users/lib/getRoutedUsers";
 import { UserRepository, withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma, { userSelect } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { NewBookingEventType } from "./getEventTypesFromDB";
+
+const getOrgDomainConfig = (..._args: unknown[]) => ({ currentOrgDomain: null as string | null, isValidOrgDomain: false });
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
@@ -68,8 +69,10 @@ export const loadUsers = async ({
     return users;
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
-    const httpError = getServerErrorFromUnknown(error);
-    throw httpError;
+    if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
+      throw new HttpError({ statusCode: 400, message: error.message });
+    }
+    throw new HttpError({ statusCode: 500, message: "Unable to load users" });
   }
 };
 

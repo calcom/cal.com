@@ -1,24 +1,22 @@
 "use client";
 
-import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
-import { useQueryState } from "nuqs";
-import { createContext, useContext, useRef, useMemo } from "react";
-
-import { useElementByClassName } from "@calcom/lib/hooks/useElementByClassName";
-
 import {
   activeFiltersParser,
-  sortingParser,
-  columnVisibilityParser,
   columnSizingParser,
-  segmentIdParser,
+  columnVisibilityParser,
+  DEFAULT_PAGE_SIZE,
   pageIndexParser,
   pageSizeParser,
   searchTermParser,
-  DEFAULT_PAGE_SIZE,
+  segmentIdParser,
+  sortingParser,
 } from "@calcom/features/data-table/lib/parsers";
 import type { ActiveFilters, SegmentIdentifier } from "@calcom/features/data-table/lib/types";
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
+import { useElementByClassName } from "@calcom/lib/hooks/useElementByClassName";
+import type { ColumnSizingState, OnChangeFn, SortingState, VisibilityState } from "@tanstack/react-table";
+import { useQueryState } from "nuqs";
+import { createContext, useContext, useMemo, useRef } from "react";
 
 export type ActiveFiltersValidator = (filters: ActiveFilters) => ActiveFilters;
 

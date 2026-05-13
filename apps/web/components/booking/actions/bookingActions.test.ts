@@ -86,7 +86,6 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
       seatsReferences: [],
       assignmentReasonSortedByCreatedAt: [],
       metadata: null,
-      routedFromRoutingFormReponse: null,
       listingStatus: "upcoming",
       recurringInfo: undefined,
       loggedInUser: {
@@ -108,7 +107,6 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
     isRecurring: false,
     isTabRecurring: false,
     isTabUnconfirmed: false,
-    isBookingFromRoutingForm: false,
     isDisabledCancelling: false,
     isDisabledRescheduling: false,
     isCalVideoLocation: true,
@@ -269,14 +267,6 @@ describe("Booking Actions", () => {
       expect(actionIds).toContain("add_members");
     });
 
-    it("should include reroute action for routing form bookings", () => {
-      const context = createMockContext({ isBookingFromRoutingForm: true });
-      const actions = getEditEventActions(context);
-
-      const rerouteAction = actions.find((a) => a.id === "reroute");
-      expect(rerouteAction).toBeDefined();
-    });
-
     it("should include reassign action for round robin events with no host groups", () => {
       const context = createMockContext({
         booking: {
@@ -399,17 +389,6 @@ describe("Booking Actions", () => {
       expect(addMembersAction?.disabled).toBe(true);
     });
 
-    it("should disable reroute for past bookings from routing form", () => {
-      const context = createMockContext({
-        isBookingFromRoutingForm: true,
-        isBookingInPast: true,
-      });
-      const actions = getEditEventActions(context);
-
-      const rerouteAction = actions.find((a) => a.id === "reroute");
-      expect(rerouteAction?.disabled).toBe(true);
-    });
-
     it("should disable reassign for cancelled round robin bookings", () => {
       const context = createMockContext({
         isCancelled: true,
@@ -433,7 +412,6 @@ describe("Booking Actions", () => {
         isBookingInPast: false,
         isCancelled: false,
         isRejected: false,
-        isBookingFromRoutingForm: true,
         booking: {
           ...createMockContext().booking,
           eventType: {
@@ -447,12 +425,10 @@ describe("Booking Actions", () => {
 
       const changeLocationAction = actions.find((a) => a.id === "change_location");
       const addMembersAction = actions.find((a) => a.id === "add_members");
-      const rerouteAction = actions.find((a) => a.id === "reroute");
       const reassignAction = actions.find((a) => a.id === "reassign");
 
       expect(changeLocationAction?.disabled).toBe(false);
       expect(addMembersAction?.disabled).toBe(false);
-      expect(rerouteAction?.disabled).toBe(false);
       expect(reassignAction?.disabled).toBe(false);
     });
   });
@@ -654,32 +630,6 @@ describe("Booking Actions", () => {
           isRejected: false,
         });
         expect(isActionDisabled("add_members", context)).toBe(false);
-      });
-    });
-
-    describe("reroute action", () => {
-      it("should be disabled for past bookings", () => {
-        const context = createMockContext({ isBookingInPast: true });
-        expect(isActionDisabled("reroute", context)).toBe(true);
-      });
-
-      it("should be disabled for cancelled bookings", () => {
-        const context = createMockContext({ isCancelled: true });
-        expect(isActionDisabled("reroute", context)).toBe(true);
-      });
-
-      it("should be disabled for rejected bookings", () => {
-        const context = createMockContext({ isRejected: true });
-        expect(isActionDisabled("reroute", context)).toBe(true);
-      });
-
-      it("should be enabled for upcoming active bookings", () => {
-        const context = createMockContext({
-          isBookingInPast: false,
-          isCancelled: false,
-          isRejected: false,
-        });
-        expect(isActionDisabled("reroute", context)).toBe(false);
       });
     });
 

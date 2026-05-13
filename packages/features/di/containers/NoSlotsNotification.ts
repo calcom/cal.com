@@ -6,12 +6,10 @@ import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNo
 
 import { createContainer } from "../di";
 import { noSlotsNotificationModule } from "../modules/NoSlotsNotification";
-import { teamRepositoryModule } from "../modules/Team";
 
 const container = createContainer();
 container.load(DI_TOKENS.REDIS_CLIENT, redisModule);
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
-container.load(DI_TOKENS.TEAM_REPOSITORY_MODULE, teamRepositoryModule);
 container.load(DI_TOKENS.MEMBERSHIP_REPOSITORY_MODULE, membershipRepositoryModule);
 container.load(DI_TOKENS.NO_SLOTS_NOTIFICATION_SERVICE_MODULE, noSlotsNotificationModule);
 

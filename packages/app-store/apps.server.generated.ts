@@ -58,7 +58,6 @@ export const apiHandlers = {
   qr_code: import("./qr_code/api"),
   riverside: import("./riverside/api"),
   roam: import("./roam/api"),
-  "routing-forms": import("./routing-forms/api"),
   salesforce: import("./salesforce/api"),
   salesroom: import("./salesroom/api"),
   sendgrid: import("./sendgrid/api"),
