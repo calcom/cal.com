@@ -1,11 +1,9 @@
 import { createHash } from "node:crypto";
-import { describe, expect, test, vi, beforeEach } from "vitest";
-
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { BBBApi } from "./bbbapi";
 import { Role } from "./types";
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 const options = {
   url: "https://bbb.example.com/bigbluebutton/api",
@@ -59,7 +57,12 @@ function xmlResponse(xml: string, ok = true) {
 
 describe("BBBApi", () => {
   beforeEach(() => {
+    vi.stubGlobal("fetch", mockFetch);
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   test("signs API URLs using the configured hash", () => {

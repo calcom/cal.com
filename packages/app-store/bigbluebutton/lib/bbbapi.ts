@@ -1,14 +1,15 @@
 import { createHash } from "node:crypto";
-import { XMLParser, XMLValidator } from "fast-xml-parser";
-import { z } from "zod";
-
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { logBlockedSSRFAttempt, validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
-
+import { XMLParser, XMLValidator } from "fast-xml-parser";
+import { z } from "zod";
 import type { bbbOptions, Role } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["app-store/bigbluebutton/lib/bbbapi"] });
 const MIN_API_VERSION = 2.4;
+const REQUEST_TIMEOUT_MS = 10_000;
 
 const xmlParser = new XMLParser({
   ignoreDeclaration: true,
@@ -37,13 +38,10 @@ const joinMeetingResponseSchema = z.object({
   url: z.string().url(),
 });
 
-class BBBError extends Error {
-  constructor(
-    public code: "checksum" | "network" | "xml" | "server",
-    message?: string
-  ) {
-    super(message);
-  }
+type BBBErrorCode = "checksum" | "network" | "xml" | "server";
+
+function createBBBError(code: BBBErrorCode, message = "BigBlueButton request failed") {
+  return new ErrorWithCode(ErrorCode.InternalServerError, message, { bbbCode: code });
 }
 
 export class BBBApi {
@@ -117,40 +115,48 @@ export class BBBApi {
       logBlockedSSRFAttempt(this.options.url, validation.error ?? "Invalid BigBlueButton URL", {
         app: "bigbluebutton",
       });
-      throw new BBBError("network", validation.error ?? "Invalid BigBlueButton URL");
+      throw createBBBError("network", validation.error ?? "Invalid BigBlueButton URL");
     }
 
     const url = this.createUrl(action, new URLSearchParams(params));
-    const response = await fetch(url, { method: "GET" }).catch(() => {
-      throw new BBBError("network", "BigBlueButton server is unreachable");
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    let response: Response;
+
+    try {
+      response = await fetch(url, { method: "GET", signal: controller.signal });
+    } catch {
+      throw createBBBError("network", "BigBlueButton server is unreachable");
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
-      throw new BBBError("network", "BigBlueButton server is unreachable");
+      throw createBBBError("network", "BigBlueButton server is unreachable");
     }
 
     const responseBody = await response.text();
     if (XMLValidator.validate(responseBody) !== true) {
-      throw new BBBError("xml", "BigBlueButton server returned invalid XML");
+      throw createBBBError("xml", "BigBlueButton server returned invalid XML");
     }
 
     const parsed = basicResponseSchema.safeParse(xmlParser.parse(responseBody));
     if (!parsed.success) {
-      throw new BBBError("xml", "BigBlueButton server returned an unexpected response");
+      throw createBBBError("xml", "BigBlueButton server returned an unexpected response");
     }
 
     const data = parsed.data.response;
     if (data.returncode === "SUCCESS") return data;
 
     if (data.messageKey === "checksumError") {
-      throw new BBBError("checksum", "BigBlueButton checksum validation failed");
+      throw createBBBError("checksum", "BigBlueButton checksum validation failed");
     }
 
-    throw new BBBError("server", data.message);
+    throw createBBBError("server", data.message ?? "BigBlueButton server returned an error");
   }
 
   private toFailure(error: unknown) {
-    if (error instanceof BBBError) {
+    if (error instanceof ErrorWithCode) {
       return { success: false, message: error.message } as const;
     }
 

@@ -50,8 +50,8 @@ export default function BBBSetup() {
             />
           </div>
           <div className="ml-2 md:ml-5 ltr:mr-2 rtl:ml-2">
-            <div className="text-default">Set up your BigBlueButton integration</div>
-            <div className="mt-1 text-xl">Connect to BigBlueButton</div>
+            <div className="text-default">{t("set_up_your_bigbluebutton_integration")}</div>
+            <div className="mt-1 text-xl">{t("connect_to_bigbluebutton")}</div>
 
             <Form
               className="mt-5"
@@ -84,7 +84,7 @@ export default function BBBSetup() {
                 name="url"
                 render={({ field: { value, onChange } }) => (
                   <>
-                    <Label className="text-emphasis">Server URL</Label>
+                    <Label className="text-emphasis">{t("bbb_server_url")}</Label>
                     <TextField
                       required
                       type="url"
@@ -99,7 +99,7 @@ export default function BBBSetup() {
                 name="secret"
                 render={({ field: { value, onChange } }) => (
                   <>
-                    <Label className="mt-6 text-emphasis">Shared secret</Label>
+                    <Label className="mt-6 text-emphasis">{t("bbb_shared_secret")}</Label>
                     <PasswordField required value={value} onChange={onChange} />
                   </>
                 )}
@@ -109,7 +109,7 @@ export default function BBBSetup() {
                 name="hash"
                 render={({ field: { value, onChange } }) => (
                   <>
-                    <Label className="mt-6 text-emphasis">Checksum algorithm</Label>
+                    <Label className="mt-6 text-emphasis">{t("bbb_checksum_algorithm")}</Label>
                     <Select<{ label: string; value: string }>
                       className="capitalize"
                       required
@@ -131,13 +131,11 @@ export default function BBBSetup() {
               </div>
             </Form>
             <div>
-              <p className="mt-5 font-bold text-default text-lg">Getting started with BigBlueButton</p>
-              <p className="mt-2 font-semi text-sm">
-                To connect your BigBlueButton server, you&apos;ll need your API endpoint and shared secret.
-              </p>
+              <p className="mt-5 font-bold text-default text-lg">{t("getting_started_with_bigbluebutton")}</p>
+              <p className="mt-2 font-semi text-sm">{t("connect_bigbluebutton_server_help")}</p>
               <ol className="mt-3 list-inside list-decimal space-y-2 text-default text-sm">
                 <li>
-                  <span>Run this command on your BigBlueButton server:</span>
+                  <span>{t("run_this_command_on_your_bigbluebutton_server")}</span>
                   <div className="my-2">
                     <code className="h-full w-full whitespace-pre-wrap rounded-md bg-subtle py-[6px] pr-2 pl-2">
                       $ bbb-conf --secret
@@ -145,9 +143,7 @@ export default function BBBSetup() {
                   </div>
                 </li>
                 <li>
-                  <span>
-                    Copy the <b>URL</b> and <b>Secret</b> from the output. Example:
-                  </span>
+                  <span>{t("copy_bigbluebutton_url_and_secret_from_output")}</span>
                   <div className="my-2">
                     <code className="block h-full w-full whitespace-pre-wrap rounded-md bg-subtle py-[6px] pr-2 pl-2">
                       URL: https://example.com/bigbluebutton/api
@@ -157,9 +153,7 @@ export default function BBBSetup() {
                   </div>
                 </li>
                 <li>
-                  <span>
-                    Paste them in the fields above, select the signature algorithm, and save to finish setup.
-                  </span>
+                  <span>{t("paste_bigbluebutton_credentials_and_save")}</span>
                 </li>
               </ol>
             </div>

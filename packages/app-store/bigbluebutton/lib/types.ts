@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 export const bbbOptionsSchema = z.object({
   url: z.string().url(),
@@ -8,7 +8,7 @@ export const bbbOptionsSchema = z.object({
 export type bbbOptions = z.infer<typeof bbbOptionsSchema>;
 
 export const bbbEncryptedSchema = z.object({
-  private: z.string(),
+  private: z.string().min(1),
 });
 
 export enum Role {

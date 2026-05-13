@@ -4768,5 +4768,15 @@
   "user_updated_successfully": "User updated successfully.",
   "error_updating_user": "There was an error updating this user.",
   "please_reschedule": "Please reschedule.",
+  "set_up_your_bigbluebutton_integration": "Set up your BigBlueButton integration",
+  "connect_to_bigbluebutton": "Connect to BigBlueButton",
+  "bbb_server_url": "Server URL",
+  "bbb_shared_secret": "Shared secret",
+  "bbb_checksum_algorithm": "Checksum algorithm",
+  "getting_started_with_bigbluebutton": "Getting started with BigBlueButton",
+  "connect_bigbluebutton_server_help": "To connect your BigBlueButton server, you'll need your API endpoint and shared secret.",
+  "run_this_command_on_your_bigbluebutton_server": "Run this command on your BigBlueButton server:",
+  "copy_bigbluebutton_url_and_secret_from_output": "Copy the URL and Secret from the output. Example:",
+  "paste_bigbluebutton_credentials_and_save": "Paste them in the fields above, select the signature algorithm, and save to finish setup.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
