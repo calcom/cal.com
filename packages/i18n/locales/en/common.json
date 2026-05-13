@@ -4770,6 +4770,7 @@
   "please_reschedule": "Please reschedule.",
   "set_up_your_bigbluebutton_integration": "Set up your BigBlueButton integration",
   "connect_to_bigbluebutton": "Connect to BigBlueButton",
+  "bigbluebutton_video": "BigBlueButton Video",
   "bbb_server_url": "Server URL",
   "bbb_shared_secret": "Shared secret",
   "bbb_checksum_algorithm": "Checksum algorithm",

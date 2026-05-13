@@ -46,7 +46,7 @@ export default function BBBSetup() {
             <img
               className="h-11"
               src={`/api/app-store/${appConfig.slug}/icon.svg`}
-              alt="BigBlueButton Video"
+              alt={t("bigbluebutton_video")}
             />
           </div>
           <div className="ml-2 md:ml-5 ltr:mr-2 rtl:ml-2">
