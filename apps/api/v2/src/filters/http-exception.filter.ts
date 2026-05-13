@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/src/filters/http-exception.filter.ts module purpose and public usage context */
 import { extractUserContext } from "@/lib/extract-user-context";
 import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from "@nestjs/common";
