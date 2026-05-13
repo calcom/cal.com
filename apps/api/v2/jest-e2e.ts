@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/jest-e2e.ts module purpose and public usage context */
 import type { Config } from "jest";
 
 // Detect if sharding is being used by checking for --shard flag
