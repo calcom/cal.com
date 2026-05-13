@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/src/lib/filterReqHeaders.ts module purpose and public usage context */
 import { IncomingHttpHeaders } from "node:http";
 
 export function filterReqHeaders(headers: IncomingHttpHeaders): Partial<IncomingHttpHeaders> {
