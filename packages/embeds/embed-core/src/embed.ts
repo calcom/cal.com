@@ -975,6 +975,16 @@ class CalApi {
     containerEl.appendChild(template.content);
   }
 
+  connect({
+    config,
+    params,
+  }: {
+    config: PrefillAndIframeAttrsConfig;
+    params: Record<string, string | string[]>;
+  }) {
+    this.cal.connect({ config, params });
+  }
+
   floatingButton({
     calLink,
     buttonText = "Book my Cal",

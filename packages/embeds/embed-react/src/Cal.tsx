@@ -24,13 +24,17 @@ const Cal = function Cal(props: CalProps) {
     throw new Error("calLink is required");
   }
   const initializedRef = useRef(false);
+  const lastConfigRef = useRef<string>();
   const Cal = useEmbed(embedJsUrl);
   const ref = useRef<HTMLDivElement>(null);
+  const configJson = JSON.stringify(config ?? {});
+
   useEffect(() => {
     if (!Cal || initializedRef.current || !ref.current) {
       return;
     }
     initializedRef.current = true;
+    lastConfigRef.current = configJson;
     const element = ref.current;
     if (namespace) {
       Cal("init", namespace, {
@@ -40,7 +44,7 @@ const Cal = function Cal(props: CalProps) {
       Cal.ns[namespace]("inline", {
         elementOrSelector: element,
         calLink,
-        config,
+        config: config ? { ...config } : undefined,
       });
     } else {
       Cal("init", {
@@ -50,10 +54,32 @@ const Cal = function Cal(props: CalProps) {
       Cal("inline", {
         elementOrSelector: element,
         calLink,
-        config,
+        config: config ? { ...config } : undefined,
       });
     }
-  }, [Cal, calLink, config, namespace, calOrigin, initConfig]);
+  }, [Cal, calLink, namespace, calOrigin, initConfig, configJson]);
+
+  useEffect(() => {
+    const CalApi = namespace ? Cal?.ns[namespace] : Cal;
+    if (!CalApi || !initializedRef.current || lastConfigRef.current === configJson) {
+      return;
+    }
+
+    lastConfigRef.current = configJson;
+    CalApi("connect", {
+      config: config ? { ...config } : {},
+      params: {},
+    });
+
+    const uiConfig = {
+      ...(config?.theme ? { theme: config.theme } : {}),
+      ...(config?.layout ? { layout: config.layout } : {}),
+    };
+
+    if (Object.keys(uiConfig).length) {
+      CalApi("ui", uiConfig);
+    }
+  }, [Cal, config, configJson, namespace]);
 
   if (!Cal) {
     return null;
