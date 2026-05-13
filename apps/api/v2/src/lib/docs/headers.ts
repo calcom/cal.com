@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/src/lib/docs/headers.ts module purpose and public usage context */
 import { ApiHeaderOptions } from "@nestjs/swagger";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
