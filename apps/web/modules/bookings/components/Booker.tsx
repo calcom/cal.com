@@ -49,6 +49,7 @@ import { HavingTroubleFindingTime } from "./HavingTroubleFindingTime";
 import { LargeCalendar } from "./LargeCalendar";
 import { OverlayCalendar } from "./OverlayCalendar/OverlayCalendar";
 import { SlotSelectionModalHeader } from "./SlotSelectionModalHeader";
+import { ChristmasEasterEgg } from "./ChristmasEasterEgg";
 import { NotFound } from "./Unavailable";
 import { VerifyCodeDialog } from "./VerifyCodeDialog";
 
@@ -120,6 +121,11 @@ const BookerComponent = ({
     shallow
   );
   const { selectedTimeslot, setSelectedTimeslot, allSelectedTimeslots } = slots;
+
+  // dayjs month() is 0-indexed: December = 11
+  const isChristmasSelected = selectedDate
+    ? dayjs(selectedDate).month() === 11 && dayjs(selectedDate).date() === 25
+    : false;
   const [dayCount, setDayCount] = useBookerStoreContext(
     (state) => [state.dayCount, state.setDayCount],
     shallow
@@ -623,6 +629,7 @@ const BookerComponent = ({
           />
         </DialogContent>
       </Dialog>
+      {isChristmasSelected && <ChristmasEasterEgg key={selectedDate} />}
       <Toaster position="bottom-right" />
     </>
   );
