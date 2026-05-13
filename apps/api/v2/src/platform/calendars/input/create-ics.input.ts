@@ -33,12 +33,12 @@ export class IsICSUrlConstraint implements ValidatorConstraintInterface {
 
 export class CreateIcsFeedInputDto {
   @ApiProperty({
-    example: ["https://cal.com/ics/feed.ics", "http://cal.com/ics/feed.ics"],
+    example: ["https://cal.com/ics/feed.ics", "https://caldav.example.com/calendars/user@example.com?export"],
     description: "An array of ICS URLs",
     type: "array",
     items: {
       type: "string",
-      example: "https://cal.com/ics/feed.ics",
+      example: "https://caldav.example.com/calendars/user@example.com?export",
     },
     required: true,
   })
