@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/src/env.ts module purpose and public usage context */
 import { logLevels } from "@/lib/logger";
 
 export type Environment = {
