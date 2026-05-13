@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/src/config/type.ts module purpose and public usage context */
 export type AppConfig = {
   env: {
     type: "production" | "development";
