@@ -1,3 +1,4 @@
+/** Documents apps/api/v2/scripts/docker-start.ts module purpose and public usage context */
 import { execSync } from "node:child_process";
 
 function checkCommandExists(command: string): boolean {
