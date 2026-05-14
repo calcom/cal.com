@@ -1,7 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
-
+import { describe, expect, it, vi } from "vitest";
 import {
   buildDateRanges,
   intersect,
@@ -716,6 +714,291 @@ describe("buildDateRanges", () => {
     expect(results[0]).toEqual({
       start: dayjs.utc("2023-06-12T06:00:00Z").tz(timeZone),
       end: dayjs.utc("2023-06-12T10:00:00Z").tz(timeZone),
+    });
+  });
+
+  it("should clip spillover availability when next day is fully unavailable via override", () => {
+    const timeZone = "Asia/Kolkata"; // UTC+5:30
+    const dateFrom = dayjs("2026-01-27").tz(timeZone, true);
+    const dateTo = dayjs("2026-01-30").tz(timeZone, true);
+
+    // Simulation of a shift from 9:00 PM to 3:00 AM (next day)
+    const workingHours = [
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 21, 0)), // 21:00
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 23:59
+      },
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 00:00
+        endTime: new Date(Date.UTC(0, 0, 0, 3, 0)), // 03:00
+      },
+    ];
+
+    // Date Override: Jan 28th Unavailable
+    const overrides = [
+      {
+        date: new Date("2026-01-28T00:00:00.000Z"),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+      },
+    ];
+
+    const availability = [...workingHours, ...overrides];
+
+    const { dateRanges } = buildDateRanges({
+      availability,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    const rangesTouching28th = dateRanges.filter(
+      (r) =>
+        dayjs(r.start).tz(timeZone).format("YYYY-MM-DD") === "2026-01-28" ||
+        dayjs(r.end).tz(timeZone).format("YYYY-MM-DD") === "2026-01-28"
+    );
+
+    // There should be exactly one range touching 28th (the one ending at midnight)
+    expect(rangesTouching28th.length).toBe(1);
+    const clippedRange = rangesTouching28th[0];
+
+    // Start of range should be 27th 21:00.
+    // End should be 28th 00:00.
+    expect(clippedRange).toEqual({
+      start: dayjs("2026-01-27T21:00:00Z").tz(timeZone, true),
+      end: dayjs("2026-01-28T00:00:00Z").tz(timeZone, true),
+    });
+  });
+
+  it("should clip spillover availability when next day has non-contiguous time override", () => {
+    const timeZone = "Asia/Kolkata";
+    const dateFrom = dayjs("2026-01-27").tz(timeZone, true);
+    const dateTo = dayjs("2026-01-30").tz(timeZone, true);
+
+    // Simulation of a shift from 9:00 PM to 3:00 AM (next day)
+    const workingHours = [
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 21, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)),
+      },
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 3, 0)),
+      },
+    ];
+
+    // Override on Jan 28th: Only available 10:00 AM - 14:00 PM
+    const overrides = [
+      {
+        date: new Date("2026-01-28T00:00:00.000Z"),
+        startTime: new Date(Date.UTC(0, 0, 0, 10, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 14, 0)),
+      },
+    ];
+
+    const availability = [...workingHours, ...overrides];
+
+    const { dateRanges } = buildDateRanges({
+      availability,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    // Check 28th. Should ONLY have 10am-2pm. The spillover (00:00-03:00) should be gone.
+    const rangesOn28th = dateRanges.filter(
+      (r) =>
+        dayjs(r.start).tz(timeZone).format("YYYY-MM-DD") === "2026-01-28" ||
+        dayjs(r.end).tz(timeZone).format("YYYY-MM-DD") === "2026-01-28"
+    );
+
+    // We expect:
+    // 1. The spillover range (clipped to end at 00:00)
+    // 2. The override range (10:00 - 14:00).
+    const clippedSpillover = rangesOn28th.find((r) => dayjs(r.start).tz(timeZone).date() === 27);
+    const overrideRange = rangesOn28th.find((r) => dayjs(r.start).tz(timeZone).date() === 28);
+
+    expect(clippedSpillover).toBeDefined();
+    expect(clippedSpillover).toEqual({
+      start: dayjs("2026-01-27T21:00:00Z").tz(timeZone, true),
+      end: dayjs("2026-01-28T00:00:00Z").tz(timeZone, true),
+    });
+
+    expect(overrideRange).toBeDefined();
+    expect(overrideRange).toEqual({
+      start: dayjs("2026-01-28T10:00:00Z").tz(timeZone, true),
+      end: dayjs("2026-01-28T14:00:00Z").tz(timeZone, true),
+    });
+  });
+
+  it("should spillover availability to next day when override range is contiguous", () => {
+    const timeZone = "Asia/Kolkata";
+    const dateFrom = dayjs("2026-01-27").tz(timeZone, true);
+    const dateTo = dayjs("2026-01-30").tz(timeZone, true);
+
+    // Simulation of a shift from 9:00 PM to 3:00 AM (next day)
+    const workingHours = [
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 21, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)),
+      },
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 3, 0)),
+      },
+    ];
+
+    // Day 2 Override: 00:00 - 00:30 AM
+    const overrides = [
+      {
+        date: new Date("2026-01-28T00:00:00.000Z"),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 0, 30)),
+      },
+    ];
+
+    const availability = [...workingHours, ...overrides];
+
+    const { dateRanges } = buildDateRanges({
+      availability,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    const rangesOnBoundary = dateRanges.filter((r) => {
+      const start = dayjs(r.start).tz(timeZone);
+      return start.date() === 27 && start.hour() > 12;
+    });
+
+    // We should have ONE range starting at 21:00 (Day 1) and ending at 00:30 (Day 2).
+    expect(rangesOnBoundary.length).toBe(1);
+    expect(rangesOnBoundary[0]).toEqual({
+      start: dayjs("2026-01-27T21:00:00Z").tz(timeZone, true),
+      end: dayjs("2026-01-28T00:30:00Z").tz(timeZone, true),
+    });
+  });
+
+  it("should clip spillover availability when next day is fully unavailable via override (UTC timezone)", () => {
+    const timeZone = "UTC";
+    const dateFrom = dayjs("2026-01-27").tz(timeZone, true);
+    const dateTo = dayjs("2026-01-30").tz(timeZone, true);
+
+    // Simulation of a shift from 9:00 PM to 3:00 AM (next day)
+    const workingHours = [
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 21, 0)), // 21:00
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 23:59
+      },
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 00:00
+        endTime: new Date(Date.UTC(0, 0, 0, 3, 0)), // 03:00
+      },
+    ];
+
+    // Date Override: Jan 28th Unavailable
+    const overrides = [
+      {
+        date: new Date("2026-01-28T00:00:00.000Z"),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+      },
+    ];
+
+    const availability = [...workingHours, ...overrides];
+
+    const { dateRanges } = buildDateRanges({
+      availability,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    const rangesTouching28th = dateRanges.filter(
+      (r) =>
+        dayjs(r.start).tz(timeZone).format("YYYY-MM-DD") === "2026-01-28" ||
+        dayjs(r.end).tz(timeZone).format("YYYY-MM-DD") === "2026-01-28"
+    );
+
+    // There should be exactly one range touching 28th (the one ending at midnight)
+    expect(rangesTouching28th.length).toBe(1);
+    const clippedRange = rangesTouching28th[0];
+
+    // Start of range should be 27th 21:00.
+    // End should be 28th 00:00.
+    expect(clippedRange).toEqual({
+      start: dayjs("2026-01-27T21:00:00Z").tz(timeZone, true),
+      end: dayjs("2026-01-28T00:00:00Z").tz(timeZone, true),
+    });
+  });
+
+  it("should preserve next day working hours when override replaces the previous day", () => {
+    const timeZone = "UTC";
+    const dateFrom = dayjs("2026-01-27").tz(timeZone, true);
+    const dateTo = dayjs("2026-01-30").tz(timeZone, true);
+
+    // Simulation of a shift from 9:00 PM to 3:00 AM (next day)
+    const workingHours = [
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 21, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)),
+      },
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 3, 0)),
+      },
+    ];
+
+    // Override: Jan 28th fully unavailable
+    const overrides = [
+      {
+        date: new Date("2026-01-28T00:00:00.000Z"),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+      },
+    ];
+
+    const availability = [...workingHours, ...overrides];
+
+    const { dateRanges } = buildDateRanges({
+      availability,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    // Jan 29 should still have working hours despite Jan 28 being overridden.
+    const rangesStartingOn29th = dateRanges.filter(
+      (r) => dayjs(r.start).tz(timeZone).format("YYYY-MM-DD") === "2026-01-29"
+    );
+
+    expect(rangesStartingOn29th.length).toBe(2);
+
+    // 00:00-03:00 
+    expect(rangesStartingOn29th[0]).toEqual({
+      start: dayjs("2026-01-29T00:00:00Z").tz(timeZone, true),
+      end: dayjs("2026-01-29T03:00:00Z").tz(timeZone, true),
+    });
+
+    // 21:00-00:00
+    expect(rangesStartingOn29th[1]).toEqual({
+      start: dayjs("2026-01-29T21:00:00Z").tz(timeZone, true),
+      end: dayjs("2026-01-30T00:00:00Z").tz(timeZone, true),
     });
   });
 });
