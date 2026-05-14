@@ -1,0 +1,15 @@
+{
+  "name": "Proton Calendar",
+  "title": "Proton Calendar",
+  "slug": "proton-calendar",
+  "dirName": "protoncalendar",
+  "type": "protoncalendar_calendar",
+  "logo": "icon.svg",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Use a Proton Calendar ICS subscription URL for availability checks in Cal.com.",
+  "isTemplate": false,
+  "__createdUsingCli": true
+}

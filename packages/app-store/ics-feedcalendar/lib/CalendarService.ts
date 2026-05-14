@@ -40,13 +40,14 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-class ICSFeedCalendarService implements Calendar {
+export class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
-  protected integrationName = "ics-feed_calendar";
+  protected integrationName: string;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, integrationName = "ics-feed_calendar") {
     const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
     this.urls = urls;
+    this.integrationName = integrationName;
   }
 
   createEvent(_event: CalendarEvent, _credentialId: number): Promise<NewCalendarEventType> {
