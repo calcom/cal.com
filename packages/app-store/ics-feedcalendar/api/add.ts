@@ -23,6 +23,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const normalizedUrls = urls.map((url) => url.trim());
+    const encryptionKey = process.env.CALENDSO_ENCRYPTION_KEY;
+    if (!encryptionKey) {
+      logger.error("Missing CALENDSO_ENCRYPTION_KEY while adding ICS feeds");
+      return res.status(500).json({ message: "Could not add ICS feeds" });
+    }
 
     // Get user
     const user = await prisma.user.findFirstOrThrow({
@@ -37,10 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = {
       type: appConfig.type,
-      key: symmetricEncrypt(
-        JSON.stringify({ urls: normalizedUrls }),
-        process.env.CALENDSO_ENCRYPTION_KEY || ""
-      ),
+      key: symmetricEncrypt(JSON.stringify({ urls: normalizedUrls }), encryptionKey),
       userId: user.id,
       teamId: null,
       appId: appConfig.slug,

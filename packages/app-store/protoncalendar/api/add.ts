@@ -1,5 +1,7 @@
 import process from "node:process";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -30,27 +32,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const normalizedUrls = urls.map((url) => url.trim());
 
-    const user = await prisma.user.findFirstOrThrow({
-      where: {
-        id: req.session.user.id,
-      },
-      select: {
-        id: true,
-        email: true,
-      },
-    });
-
-    const data = {
-      type: appConfig.type,
-      key: symmetricEncrypt(JSON.stringify({ urls: normalizedUrls }), encryptionKey),
-      userId: user.id,
-      teamId: null,
-      appId: appConfig.slug,
-      invalid: false,
-      delegationCredentialId: null,
-    };
-
     try {
+      const user = await prisma.user.findUniqueOrThrow({
+        where: {
+          id: req.session.user.id,
+        },
+        select: {
+          id: true,
+          email: true,
+        },
+      });
+
+      const data = {
+        type: appConfig.type,
+        key: symmetricEncrypt(JSON.stringify({ urls: normalizedUrls }), encryptionKey),
+        userId: user.id,
+        teamId: null,
+        appId: appConfig.slug,
+        invalid: false,
+        delegationCredentialId: null,
+      };
+
       const protonCalendar = BuildCalendarService({
         id: 0,
         ...data,
@@ -60,7 +62,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const listedCals = await protonCalendar.listCalendars();
 
       if (listedCals.length !== normalizedUrls.length) {
-        throw new Error(
+        throw new ErrorWithCode(
+          ErrorCode.BadRequest,
           `Listed calendars and URLs mismatch: ${listedCals.length} vs. ${normalizedUrls.length}`
         );
       }
@@ -70,12 +73,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     } catch (e) {
       logger.error("Could not add Proton Calendar", e);
+      if (e instanceof ErrorWithCode && e.code === ErrorCode.BadRequest) {
+        return res.status(400).json({ message: e.message });
+      }
       return res.status(500).json({ message: "Could not add Proton Calendar" });
     }
 
-    return res
-      .status(200)
-      .json({ url: getInstalledAppPath({ variant: "calendar", slug: "proton-calendar" }) });
+    return res.status(200).json({ url: getInstalledAppPath({ variant: "calendar", slug: appConfig.slug }) });
   }
 
   if (req.method === "GET") {
