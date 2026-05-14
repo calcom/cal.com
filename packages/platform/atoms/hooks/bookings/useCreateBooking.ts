@@ -1,11 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
-
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
-
+import type { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import { useMutation } from "@tanstack/react-query";
 import http from "../../lib/http";
+import { normalizeBookingError } from "../../lib/normalizeError";
 
 export type UseCreateBookingInput = BookingCreateBody & { locationUrl?: string };
 
@@ -40,18 +39,7 @@ export const useCreateBooking = (
       }
     },
     onError: (err) => {
-      // Normalize error to ensure consistent structure for consumers
-      // Some errors may be plain Error objects without axios properties
-      const normalizedError = {
-        message: err.message || "An error occurred",
-        // Preserve axios properties if they exist
-        ...("config" in err && err.config ? { config: err.config } : {}),
-        ...("response" in err && err.response ? { response: err.response } : {}),
-        ...("request" in err && err.request ? { request: err.request } : {}),
-        // Include original error for debugging
-        originalError: err,
-      };
-      onError?.(normalizedError as ApiErrorResponse | Error);
+      onError?.(normalizeBookingError(err));
     },
   });
   return createBooking;
