@@ -39,21 +39,30 @@ export default function ProtonCalendarSetup() {
                 form={form}
                 handleSubmit={async (_) => {
                   setErrorMessage("");
-                  const res = await fetch("/api/integrations/protoncalendar/add", {
-                    method: "POST",
-                    body: JSON.stringify({ urls }),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                  });
-                  const json = await res.json();
-                  if (!res.ok) {
-                    setErrorMessage(json?.message || t("something_went_wrong"));
-                    if (json.actionUrl) {
-                      setErrorActionUrl(json.actionUrl);
+                  setErrorActionUrl("");
+
+                  try {
+                    const res = await fetch("/api/integrations/protoncalendar/add", {
+                      method: "POST",
+                      body: JSON.stringify({ urls }),
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    const json = await res.json().catch(() => ({}));
+
+                    if (!res.ok) {
+                      setErrorMessage(json?.message || t("something_went_wrong"));
+                      if (json?.actionUrl) {
+                        setErrorActionUrl(json.actionUrl);
+                      }
+                      return;
                     }
-                  } else {
+
                     router.push(json.url);
+                  } catch {
+                    setErrorMessage(t("something_went_wrong"));
+                    setErrorActionUrl("");
                   }
                 }}>
                 <fieldset className="stack-y-2" disabled={form.formState.isSubmitting}>
@@ -74,6 +83,7 @@ export default function ProtonCalendarSetup() {
                       {i !== 0 ? (
                         <button
                           type="button"
+                          aria-label={t("remove")}
                           className="mb-2 h-min text-sm"
                           onClick={() => setUrls((urls) => urls.filter((_, ii) => i !== ii))}>
                           <TrashIcon size={16} />
@@ -103,7 +113,7 @@ export default function ProtonCalendarSetup() {
                           color="secondary"
                           target="_blank"
                           className="ml-5 w-32 p-5!">
-                          Go to Admin
+                          {t("go_to_admin")}
                         </Button>
                       ) : undefined
                     }

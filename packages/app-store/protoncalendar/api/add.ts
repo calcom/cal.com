@@ -5,13 +5,18 @@ import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
-import { BuildCalendarService } from "../lib";
+import BuildCalendarService from "../lib/CalendarService";
 import { isValidProtonCalendarUrl, normalizeProtonCalendarUrl } from "../lib/validateProtonCalendarUrl";
 
 export { isValidProtonCalendarUrl, normalizeProtonCalendarUrl };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
+    const userId = req.session?.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const urls: string[] = Array.isArray(req.body.urls)
       ? req.body.urls.map((url: unknown) => String(url).trim()).filter(Boolean)
       : [];
@@ -24,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const user = await prisma.user.findFirstOrThrow({
       where: {
-        id: req.session?.user?.id,
+        id: userId,
       },
       select: {
         id: true,

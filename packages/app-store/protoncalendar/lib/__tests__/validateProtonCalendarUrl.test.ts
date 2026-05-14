@@ -18,8 +18,24 @@ describe("Proton Calendar URL validation", () => {
   });
 
   it("rejects non-HTTPS URLs", () => {
-    expect(isValidProtonCalendarUrl("http://calendar.proton.me/calendar.ics")).toBe(false);
-    expect(isValidProtonCalendarUrl("ftp://calendar.proton.me/calendar.ics")).toBe(false);
+    expect(isValidProtonCalendarUrl("http://calendar.proton.me/api/calendar/v1/url/token/calendar.ics")).toBe(
+      false
+    );
+    expect(isValidProtonCalendarUrl("ftp://calendar.proton.me/api/calendar/v1/url/token/calendar.ics")).toBe(
+      false
+    );
     expect(isValidProtonCalendarUrl("not a url")).toBe(false);
+  });
+
+  it("rejects HTTPS URLs from non-Proton hosts", () => {
+    expect(isValidProtonCalendarUrl("https://example.com/calendar.ics")).toBe(false);
+    expect(isValidProtonCalendarUrl("https://192.168.0.1/calendar.ics")).toBe(false);
+    expect(isValidProtonCalendarUrl("https://localhost/calendar.ics")).toBe(false);
+  });
+
+  it("rejects Proton URLs outside the calendar ICS endpoint", () => {
+    expect(isValidProtonCalendarUrl("https://proton.me/calendar.ics")).toBe(false);
+    expect(isValidProtonCalendarUrl("https://account.proton.me/calendar.ics")).toBe(false);
+    expect(isValidProtonCalendarUrl("https://calendar.proton.me/api/calendar/v1/url/token")).toBe(false);
   });
 });
