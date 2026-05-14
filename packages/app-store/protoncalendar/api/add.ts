@@ -11,11 +11,15 @@ import BuildCalendarService from "../lib/CalendarService";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    const { urls } = req.body;
     if (!req.session?.user?.id) {
       return res.status(401).json({ message: "You must be logged in to do this" });
     }
 
+    if (!req.body || typeof req.body !== "object") {
+      return res.status(400).json({ message: "Invalid Proton Calendar URLs" });
+    }
+
+    const urls = req.body.urls;
     if (
       !Array.isArray(urls) ||
       urls.length === 0 ||
@@ -87,5 +91,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   res.setHeader("Allow", "GET, POST");
-  return res.status(405).json({ error: "Method Not Allowed" });
+  return res.status(405).json({ message: "Method Not Allowed" });
 }
