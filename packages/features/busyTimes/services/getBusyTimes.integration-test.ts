@@ -157,4 +157,33 @@ describe("getBusyTimesForLimitChecks (integration)", () => {
 
     expect(busyTimes).toHaveLength(0);
   });
+
+  it("includes cross-midnight bookings that overlap the checked period", async () => {
+    const user = await createTestUser();
+    const eventType = await createTestEventType(user.id);
+
+    const dayStart = dayjs().add(3, "day").startOf("day");
+    const dayEnd = dayStart.endOf("day");
+
+    // Booking that crosses midnight: 23:30 on the checked day -> 00:30 next day
+    await createTestBooking({
+      userId: user.id,
+      eventTypeId: eventType.id,
+      uid: `busy-times-${Date.now()}-cross-midnight`,
+      startTime: dayStart.set("hour", 23).set("minute", 30).toDate(),
+      endTime: dayStart.add(1, "day").set("hour", 0).set("minute", 30).toDate(),
+    });
+
+    const busyTimes = await getBusyTimesService().getBusyTimesForLimitChecks({
+      userIds: [user.id],
+      eventTypeId: eventType.id,
+      startDate: dayStart.toISOString(),
+      endDate: dayEnd.toISOString(),
+      bookingLimits: { PER_DAY: 1 },
+    });
+
+    // The cross-midnight booking should be counted because it overlaps the checked day
+    expect(busyTimes).toHaveLength(1);
+    expect(busyTimes[0].userId).toBe(user.id);
+  });
 });

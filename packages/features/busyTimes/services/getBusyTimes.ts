@@ -469,12 +469,13 @@ export class BusyTimesService {
       },
       eventTypeId,
       status: BookingStatus.ACCEPTED,
-      // FIXME: bookings that overlap on one side will never be counted
+      // Use interval overlap logic: a booking overlaps the period when
+      // booking.start < period.end AND booking.end > period.start
       startTime: {
-        gte: startTimeDate,
+        lt: endTimeDate,
       },
       endTime: {
-        lte: endTimeDate,
+        gt: startTimeDate,
       },
     };
 

@@ -145,7 +145,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
       let totalBookings = 0;
 
       for (const booking of bookings) {
-        // consider booking part of period independent of end date
+        // consider booking part of period if it overlaps at all (checks both start and end)
         if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone || "UTC")) {
           continue;
         }
@@ -225,7 +225,7 @@ const _getBusyTimesFromDurationLimits = async (
       let totalDuration = selectedDuration;
 
       for (const booking of bookings) {
-        // consider booking part of period independent of end date
+        // consider booking part of period if it overlaps at all (checks both start and end)
         if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone || "UTC")) {
           continue;
         }

@@ -397,4 +397,33 @@ describe("getBusyTimesForLimitChecks", () => {
     expect(busyTimes).toHaveLength(1);
     expect(busyTimes[0].userId).toBeNull();
   });
+
+  it("should use overlap query to catch bookings that cross period boundaries", async () => {
+    // Booking that crosses midnight: starts at 23:30 on the checked day and ends 00:30 next day
+    const crossMidnightBooking = createMockBookingResult({
+      id: 10,
+      startTime: startOfTomorrow.set("hour", 23).set("minute", 30).toDate(),
+      endTime: startOfTomorrow.add(1, "day").set("hour", 0).set("minute", 30).toDate(),
+    });
+    vi.mocked(prisma.booking.findMany).mockResolvedValue([crossMidnightBooking]);
+
+    const busyTimesService = getBusyTimesService();
+    const busyTimes = await busyTimesService.getBusyTimesForLimitChecks({
+      userIds: [1],
+      eventTypeId: 1,
+      startDate: startOfTomorrow.format(),
+      endDate: startOfTomorrow.endOf("day").format(),
+      bookingLimits: { PER_DAY: 1 },
+    });
+
+    expect(busyTimes).toHaveLength(1);
+    expect(busyTimes[0].start).toEqual(crossMidnightBooking.startTime);
+    expect(busyTimes[0].end).toEqual(crossMidnightBooking.endTime);
+
+    // Verify the query uses overlap logic (lt/gt) not containment logic (gte/lte)
+    const callArgs = vi.mocked(prisma.booking.findMany).mock.calls[0][0];
+    const where = callArgs?.where as Record<string, unknown>;
+    expect(where.startTime).toEqual({ lt: expect.any(Date) });
+    expect(where.endTime).toEqual({ gt: expect.any(Date) });
+  });
 });

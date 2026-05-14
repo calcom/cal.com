@@ -32,12 +32,14 @@ export function extractDateParameters(
 }
 
 /**
- * Checks if a booking is within a given period
+ * Checks if a booking overlaps a given period using interval overlap logic.
+ * A booking overlaps the period when booking.start < period.end AND booking.end > period.start.
+ * This correctly handles bookings that cross period boundaries (e.g., midnight).
  * @param booking The booking to check
  * @param periodStart The start of the period
  * @param periodEnd The end of the period
  * @param timeZone The timezone to use
- * @returns Boolean indicating if the booking is within the period
+ * @returns Boolean indicating if the booking overlaps the period
  */
 export function isBookingWithinPeriod(
   booking: EventBusyDetails,
@@ -45,14 +47,11 @@ export function isBookingWithinPeriod(
   periodEnd: Dayjs,
   timeZone: string
 ) {
-  const { bookingDay, periodStartDay, periodEndDay } = extractDateParameters(
-    booking,
-    periodStart,
-    periodEnd,
-    timeZone
-  );
+  const bookingStart = dayjs(booking.start).tz(timeZone);
+  const bookingEnd = dayjs(booking.end).tz(timeZone);
 
-  return !(bookingDay < periodStartDay || bookingDay > periodEndDay);
+  // Standard interval overlap: not (bookingEnd <= periodStart || bookingStart >= periodEnd)
+  return !(bookingEnd.isSameOrBefore(periodStart) || bookingStart.isSameOrAfter(periodEnd));
 }
 
 /**
