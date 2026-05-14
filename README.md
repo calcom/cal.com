@@ -229,7 +229,7 @@ A Dev Container configuration is included so you can spin up a fully working dev
 
 6. Open [http://localhost:3000](http://localhost:3000).
 
-> **Note:** PostgreSQL is exposed on host port `5450` and Redis on `6379`, matching the defaults in `.env.example`. This lets you connect to the database with tools like TablePlus or psql from your host machine without any extra configuration.
+> **Note:** PostgreSQL is exposed on host port `5450` (credentials: `postgres` / `postgres`) and Redis on `6379`, matching the defaults in `.env.example`. This lets you connect to the database with tools like TablePlus or psql from your host machine. The database URL for host access is `postgresql://postgres:postgres@localhost:5450/calendso`.
 
 #### Manual setup
 

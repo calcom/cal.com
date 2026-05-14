@@ -26,6 +26,9 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    ports:
+      # Expose on 6379 to allow host access with redis-cli or GUI tools
+      - "6379:6379"
     volumes:
       - redis-data:/data
 
