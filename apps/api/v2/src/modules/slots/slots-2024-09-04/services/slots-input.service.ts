@@ -23,7 +23,7 @@ export type InternalGetSlotsQuery = {
   eventTypeId: number;
   eventTypeSlug: string;
   usernameList: string[];
-  timeZone: string | undefined;
+  timeZone: string;
   orgSlug: string | null | undefined;
   rescheduleUid: string | null;
   rrHostSubsetIds?: number[];

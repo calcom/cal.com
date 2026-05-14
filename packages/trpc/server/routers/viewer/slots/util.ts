@@ -93,13 +93,13 @@ export function getStartTimeForRollingWindowComputation({
   startTime: string;
   isRollingWindowPeriodType: boolean;
 }): string {
-  const isStartTimeInPast = dayjs(startTime).isBefore(dayjs().subtract(1, "day").startOf("day"));
+  const isStartTimeInPast = dayjs.utc(startTime).isBefore(dayjs.utc().subtract(1, "day").startOf("day"));
 
   if (isStartTimeInPast || !isRollingWindowPeriodType) {
     return startTime;
   }
 
-  return dayjs(startTime).subtract(1, "month").toISOString();
+  return dayjs.utc(startTime).subtract(1, "month").toISOString();
 }
 
 export interface IAvailableSlotsService {
