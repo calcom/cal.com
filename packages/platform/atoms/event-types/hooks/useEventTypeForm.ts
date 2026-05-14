@@ -11,6 +11,7 @@ import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
+import { CancellationReasonRequirement } from "@calcom/prisma/enums";
 import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
@@ -95,6 +96,8 @@ export const useEventTypeForm = ({
       minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
       disabledCancelling: eventType.disableCancelling ?? false,
       disabledRescheduling: eventType.disableRescheduling ?? false,
+      requiresCancellationReason:
+        eventType.requiresCancellationReason ?? CancellationReasonRequirement.MANDATORY_HOST_ONLY,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,

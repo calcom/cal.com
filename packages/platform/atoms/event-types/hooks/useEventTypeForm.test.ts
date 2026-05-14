@@ -1,8 +1,179 @@
-import { describe, it, expect } from "vitest";
-
+/**
+ * @vitest-environment jsdom
+ */
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import { stripChildrenForPayload } from "@calcom/features/eventtypes/lib/childrenEventType";
-import { MembershipRole } from "@calcom/prisma/enums";
+import type { EventTypeUpdateInput } from "@calcom/features/eventtypes/lib/types";
+import { CancellationReasonRequirement, MembershipRole, PeriodType } from "@calcom/prisma/enums";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { useEventTypeForm } from "./useEventTypeForm";
+
+vi.mock("@calcom/lib/hooks/useLocale", () => ({
+  useLocale: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+type HookEventType = Parameters<typeof useEventTypeForm>[0]["eventType"];
+
+const createEventType = (overrides: Partial<HookEventType> = {}): HookEventType =>
+  ({
+    id: 1,
+    title: "Test Event",
+    slug: "test-event",
+    afterEventBuffer: 0,
+    beforeEventBuffer: 0,
+    eventName: "",
+    scheduleName: null,
+    periodDays: null,
+    requiresBookerEmailVerification: false,
+    seatsPerTimeSlot: null,
+    seatsShowAttendees: false,
+    seatsShowAvailabilityCount: true,
+    lockTimeZoneToggleOnBookingPage: false,
+    lockedTimeZone: null,
+    locations: [],
+    destinationCalendar: null,
+    recurringEvent: null,
+    isInstantEvent: false,
+    instantMeetingParameters: [],
+    instantMeetingExpiryTimeOffsetInSeconds: 90,
+    description: null,
+    schedule: null,
+    instantMeetingSchedule: null,
+    bookingLimits: null,
+    onlyShowFirstAvailableSlot: false,
+    durationLimits: null,
+    length: 30,
+    hidden: false,
+    hashedLink: [],
+    eventTypeColor: null,
+    periodStartDate: null,
+    periodEndDate: null,
+    hideCalendarNotes: false,
+    hideCalendarEventDetails: false,
+    offsetStart: 0,
+    bookingFields: [],
+    periodType: PeriodType.UNLIMITED,
+    periodCountCalendarDays: false,
+    schedulingType: null,
+    requiresConfirmation: false,
+    canSendCalVideoTranscriptionEmails: true,
+    requiresConfirmationWillBlockSlot: false,
+    requiresConfirmationForFreeEmail: false,
+    slotInterval: null,
+    minimumBookingNotice: 120,
+    minimumRescheduleNotice: null,
+    disableCancelling: false,
+    disableRescheduling: false,
+    requiresCancellationReason: null,
+    allowReschedulingPastBookings: false,
+    hideOrganizerEmail: false,
+    metadata: {},
+    hosts: [],
+    hostGroups: [],
+    successRedirectUrl: null,
+    forwardParamsSuccessRedirect: true,
+    users: [],
+    useEventTypeDestinationCalendarEmail: false,
+    secondaryEmailId: null,
+    children: [],
+    autoTranslateDescriptionEnabled: false,
+    autoTranslateInstantMeetingTitleEnabled: true,
+    rescheduleWithSameRoundRobinHost: false,
+    assignAllTeamMembers: false,
+    assignRRMembersUsingSegment: false,
+    rrSegmentQueryValue: null,
+    isRRWeightsEnabled: false,
+    maxLeadThreshold: null,
+    includeNoShowInRRCalculation: false,
+    useEventLevelSelectedCalendars: false,
+    customReplyToEmail: null,
+    calVideoSettings: null,
+    maxActiveBookingsPerBooker: null,
+    maxActiveBookingPerBookerOfferReschedule: false,
+    showOptimizedSlots: false,
+    enablePerHostLocations: false,
+    team: null,
+    teamId: null,
+    owner: null,
+    parent: null,
+    fieldTranslations: [],
+    restrictionScheduleId: null,
+    restrictionScheduleName: null,
+    useBookerTimezone: false,
+    currency: "usd",
+    price: 0,
+    webhooks: [],
+    customInputs: [],
+    ...overrides,
+  }) as HookEventType;
+
+afterEach(() => {
+  cleanup();
+});
+
+describe("useEventTypeForm - cancellation reason requirement", () => {
+  it("should hydrate the saved cancellation reason requirement", () => {
+    const { result } = renderHook(() =>
+      useEventTypeForm({
+        eventType: createEventType({
+          requiresCancellationReason: CancellationReasonRequirement.MANDATORY_ATTENDEE_ONLY,
+        }),
+        onSubmit: vi.fn(),
+      })
+    );
+
+    expect(result.current.form.getValues("requiresCancellationReason")).toBe(
+      CancellationReasonRequirement.MANDATORY_ATTENDEE_ONLY
+    );
+  });
+
+  it("should use the legacy host-only default when the saved value is null", () => {
+    const { result } = renderHook(() =>
+      useEventTypeForm({
+        eventType: createEventType({ requiresCancellationReason: null }),
+        onSubmit: vi.fn(),
+      })
+    );
+
+    expect(result.current.form.getValues("requiresCancellationReason")).toBe(
+      CancellationReasonRequirement.MANDATORY_HOST_ONLY
+    );
+  });
+
+  it("should submit the selected cancellation reason requirement when changed", async () => {
+    const onSubmit = vi.fn((_data: EventTypeUpdateInput) => undefined);
+    const { result } = renderHook(() =>
+      useEventTypeForm({
+        eventType: createEventType(),
+        onSubmit,
+      })
+    );
+
+    act(() => {
+      result.current.form.setValue(
+        "requiresCancellationReason",
+        CancellationReasonRequirement.OPTIONAL_BOTH,
+        { shouldDirty: true }
+      );
+    });
+
+    await waitFor(() => expect(result.current.form.formState.isDirty).toBe(true));
+
+    await act(async () => {
+      await result.current.handleSubmit(result.current.form.getValues());
+    });
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 1,
+        requiresCancellationReason: CancellationReasonRequirement.OPTIONAL_BOTH,
+      })
+    );
+  });
+});
 
 describe("useEventTypeForm - children payload stripping", () => {
   it("should strip avatar, profile, username, and membership from children payload", () => {
