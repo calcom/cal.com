@@ -20,7 +20,7 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }
     onDatesChange?.(newDate ?? new Date());
   }
   const fromDate = minDate ?? new Date();
-  const calender = (
+  const calendar = (
     <Calendar
       initialFocus
       fromDate={minDate === null ? undefined : fromDate}
@@ -53,7 +53,7 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }
           align="start"
           sideOffset={4}
           >
-          {calender}
+          {calendar}
         </Popover.Content>
         </Popover.Portal>
       </Popover.Root>

@@ -20,7 +20,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   if (Array.isArray(where.AND)) {
     if (input.eventTypeId) {
       where.AND.push({ eventTypeId: input.eventTypeId });
-    } else if (ctx.user.role == "ADMIN") {
+    } else if (ctx.user.role === "ADMIN") {
       where.AND.push({ OR: [{ platform: true }, { userId: ctx.user.id }] });
     } else {
       where.AND.push({ userId: ctx.user.id });

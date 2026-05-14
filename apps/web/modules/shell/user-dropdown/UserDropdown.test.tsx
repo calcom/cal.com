@@ -6,10 +6,6 @@ vi.mock("next-auth/react", () => ({
   signOut: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => "/settings",
-}));
-
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: () => ({
     t: (key: string) => key,
@@ -27,12 +23,6 @@ vi.mock("@calcom/lib/hooks/useUserAgentData", () => ({
 const mockUseMeQuery = vi.fn();
 vi.mock("@calcom/trpc/react/hooks/useMeQuery", () => ({
   default: () => mockUseMeQuery(),
-}));
-
-vi.mock("@calcom/web/components/settings/platform/hooks/useGetUserAttributes", () => ({
-  useGetUserAttributes: () => ({
-    isPlatformUser: false,
-  }),
 }));
 
 vi.mock("@calcom/web/modules/api-keys/support/lib/freshchat/FreshChatProvider", () => ({
