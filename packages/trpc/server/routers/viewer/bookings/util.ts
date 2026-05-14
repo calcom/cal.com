@@ -1,13 +1,5 @@
 import { prisma } from "@calcom/prisma";
-import type {
-  Booking,
-  EventType,
-  BookingReference,
-  Attendee,
-  Credential,
-  DestinationCalendar,
-  User,
-} from "@calcom/prisma/client";
+import type { Booking, BookingReference, Attendee } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -24,7 +16,10 @@ export const bookingsProcedure = authedProcedure
     const bookingInclude = {
       attendees: true,
       eventType: {
-        include: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
           team: {
             select: {
               id: true,
@@ -34,12 +29,28 @@ export const bookingsProcedure = authedProcedure
           },
         },
       },
-      destinationCalendar: true,
+      destinationCalendar: {
+        select: {
+          id: true,
+          integration: true,
+          externalId: true,
+        },
+      },
       references: true,
       user: {
-        include: {
-          destinationCalendar: true,
-          credentials: true,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+          timeZone: true,
+          destinationCalendar: {
+            select: {
+              id: true,
+              integration: true,
+              externalId: true,
+            },
+          },
           profiles: {
             select: {
               organizationId: true,
@@ -105,19 +116,22 @@ export const bookingsProcedure = authedProcedure
 
 export type BookingsProcedureContext = {
   booking: Booking & {
-    eventType:
-      | (EventType & {
-          team?: { id: number; name: string; parentId?: number | null } | null;
-        })
-      | null;
-    destinationCalendar: DestinationCalendar | null;
-    user:
-      | (User & {
-          destinationCalendar: DestinationCalendar | null;
-          credentials: Credential[];
-          profiles: { organizationId: number }[];
-        })
-      | null;
+    eventType: {
+      id: number;
+      title: string;
+      slug: string;
+      team?: { id: number; name: string; parentId?: number | null } | null;
+    } | null;
+    destinationCalendar: { id: number; integration: string; externalId: string } | null;
+    user: {
+      id: number;
+      name: string | null;
+      email: string;
+      username: string | null;
+      timeZone: string | null;
+      destinationCalendar: { id: number; integration: string; externalId: string } | null;
+      profiles: { organizationId: number }[];
+    } | null;
     references: BookingReference[];
     attendees: Attendee[];
   };

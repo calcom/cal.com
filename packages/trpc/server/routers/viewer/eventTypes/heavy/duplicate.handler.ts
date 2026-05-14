@@ -30,19 +30,62 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       where: {
         id: originalEventTypeId,
       },
-      include: {
+      select: {
         customInputs: true,
-        schedule: true,
+        schedule: {
+          select: {
+            id: true,
+            name: true,
+            timeZone: true,
+            availability: true,
+            defaultWindowStart: true,
+            defaultWindowEnd: true,
+          },
+        },
         users: {
           select: {
             id: true,
           },
         },
-        hosts: true,
-        team: true,
-        webhooks: true,
-        hashedLink: true,
-        destinationCalendar: true,
+        hosts: {
+          select: {
+            id: true,
+            userId: true,
+            eventTypeId: true,
+            isFixed: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        webhooks: {
+          select: {
+            id: true,
+            userId: true,
+            teamId: true,
+            eventTypeId: true,
+            triggerEvent: true,
+            subscriberUrl: true,
+            active: true,
+          },
+        },
+        hashedLink: {
+          select: {
+            id: true,
+            link: true,
+          },
+        },
+        destinationCalendar: {
+          select: {
+            id: true,
+            integration: true,
+            externalId: true,
+          },
+        },
         calVideoSettings: {
           select: {
             disableRecordingForOrganizer: true,
@@ -55,6 +98,27 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             disableTranscriptionForOrganizer: true,
           },
         },
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        length: true,
+        hidden: true,
+        locations: true,
+        recurringEvent: true,
+        bookingLimits: true,
+        durationLimits: true,
+        eventTypeColor: true,
+        customReplyToEmail: true,
+        metadata: true,
+        userId: true,
+        teamId: true,
+        bookingFields: true,
+        rrSegmentQueryValue: true,
+        assignRRMembersUsingSegment: true,
+        secondaryEmailId: true,
+        instantMeetingScheduleId: true,
+        restrictionScheduleId: true,
       },
     });
 
