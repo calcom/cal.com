@@ -37,7 +37,18 @@ export const useCreateRecurringBooking = (
       }
     },
     onError: (err) => {
-      onError?.(err);
+      // Normalize error to ensure consistent structure for consumers
+      // Some errors may be plain Error objects without axios properties
+      const normalizedError = {
+        message: err.message || "An error occurred",
+        // Preserve axios properties if they exist
+        ...("config" in err && err.config ? { config: err.config } : {}),
+        ...("response" in err && err.response ? { response: err.response } : {}),
+        ...("request" in err && err.request ? { request: err.request } : {}),
+        // Include original error for debugging
+        originalError: err,
+      };
+      onError?.(normalizedError as ApiErrorResponse | Error);
     },
   });
   return createRecurringBooking;
