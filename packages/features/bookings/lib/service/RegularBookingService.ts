@@ -420,6 +420,28 @@ function buildBookingCreatedPayload({
   };
 }
 
+function getObjectMetadata(metadata: Prisma.JsonValue | null | undefined): Prisma.JsonObject {
+  if (typeof metadata === "object" && metadata !== null && !Array.isArray(metadata)) return metadata;
+  return {};
+}
+
+function getWebhookMetadata(metadata: Prisma.JsonObject): NonNullable<EventPayloadType["metadata"]> {
+  const webhookMetadata: NonNullable<EventPayloadType["metadata"]> = {};
+
+  for (const [key, value] of Object.entries(metadata)) {
+    if (
+      value === null ||
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      webhookMetadata[key] = value;
+    }
+  }
+
+  return webhookMetadata;
+}
+
 export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
@@ -1948,6 +1970,8 @@ async function handler(
       );
     } else {
       if (results.length) {
+        let googleCalResult: (typeof results)[number] | undefined;
+
         // Handle Google Meet results
         // We use the original booking location since the evt location changes to daily
         if (bookingLocation === MeetLocationType) {
@@ -1962,7 +1986,7 @@ async function handler(
           const googleCalIndex = updateManager.referencesToCreate.findIndex(
             (ref) => ref.type === "google_calendar"
           );
-          const googleCalResult = results[googleCalIndex];
+          googleCalResult = results[googleCalIndex];
 
           if (!googleCalResult) {
             tracingLogger.warn("Google Calendar not installed but using Google Meet as location");
@@ -2003,9 +2027,17 @@ async function handler(
             });
           }
         }
-        const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
-          ? results[0]?.updatedEvent[0]
-          : (results[0]?.updatedEvent ?? results[0]?.createdEvent);
+        const googleUpdatedEvent = Array.isArray(googleCalResult?.updatedEvent)
+          ? googleCalResult.updatedEvent[0]
+          : googleCalResult?.updatedEvent;
+        const firstUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
+          ? results[0].updatedEvent[0]
+          : results[0]?.updatedEvent;
+        const createdOrUpdatedEvent =
+          googleUpdatedEvent ??
+          googleCalResult?.createdEvent ??
+          firstUpdatedEvent ??
+          results[0]?.createdEvent;
         metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
         metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
         metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
@@ -2075,6 +2107,8 @@ async function handler(
       const additionalInformation: AdditionalInformation = {};
 
       if (results.length) {
+        let createdEventWithAdditionalInformation = results[0].createdEvent;
+
         // Handle Google Meet results
         // We use the original booking location since the evt location changes to daily
         if (bookingLocation === MeetLocationType) {
@@ -2090,6 +2124,8 @@ async function handler(
             (ref) => ref.type === "google_calendar"
           );
           const googleCalResult = results[googleCalIndex];
+          createdEventWithAdditionalInformation =
+            googleCalResult?.createdEvent ?? createdEventWithAdditionalInformation;
 
           if (!googleCalResult) {
             tracingLogger.warn("Google Calendar not installed but using Google Meet as location");
@@ -2127,9 +2163,9 @@ async function handler(
           }
         }
         // TODO: Handle created event metadata more elegantly
-        additionalInformation.hangoutLink = results[0].createdEvent?.hangoutLink;
-        additionalInformation.conferenceData = results[0].createdEvent?.conferenceData;
-        additionalInformation.entryPoints = results[0].createdEvent?.entryPoints;
+        additionalInformation.hangoutLink = createdEventWithAdditionalInformation?.hangoutLink;
+        additionalInformation.conferenceData = createdEventWithAdditionalInformation?.conferenceData;
+        additionalInformation.entryPoints = createdEventWithAdditionalInformation?.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           additionalInformation.hangoutLink ||
@@ -2206,11 +2242,17 @@ async function handler(
     videoCallUrl = booking.location;
   }
 
-  const metadata = videoCallUrl
-    ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-      }
-    : undefined;
+  const metadata: Prisma.JsonObject = videoCallUrl
+    ? { videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl }
+    : {};
+  const bookingMetadata = {
+    ...getObjectMetadata(booking.metadata),
+    ...getObjectMetadata(reqBody.metadata),
+    ...metadata,
+  };
+  const webhookMetadata = getWebhookMetadata(bookingMetadata);
+  const metadataVideoCallUrl =
+    typeof bookingMetadata.videoCallUrl === "string" ? bookingMetadata.videoCallUrl : undefined;
 
   const isBookingEmailSmsTaskerEnabled = false;
 
@@ -2229,7 +2271,7 @@ async function handler(
     tracingLogger,
   });
 
-  const webhookLocation = metadata?.videoCallUrl || evt.location;
+  const webhookLocation = metadataVideoCallUrl || evt.location;
 
   const webhookData: EventPayloadType = {
     ...evt,
@@ -2243,7 +2285,7 @@ async function handler(
     rescheduleEndTime: originalRescheduledBooking?.endTime
       ? dayjs(originalRescheduledBooking?.endTime).utc().format()
       : undefined,
-    metadata: { ...metadata, ...reqBody.metadata },
+    metadata: webhookMetadata,
     eventTypeId,
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
@@ -2331,11 +2373,12 @@ async function handler(
     // all around and instead the individual fields are sent as args.
     const bookingResponse = {
       ...booking,
+      metadata: bookingMetadata,
       user: {
         ...booking.user,
         email: null,
       },
-      videoCallUrl: metadata?.videoCallUrl,
+      videoCallUrl: metadataVideoCallUrl,
       // Ensure seatReferenceUid is properly typed as string | null
       seatReferenceUid: evt.attendeeSeatId,
     };
@@ -2449,7 +2492,7 @@ async function handler(
         },
         data: {
           location: evt.location,
-          metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
+          metadata: bookingMetadata,
           references: {
             createMany: {
               data: referencesToCreate,
@@ -2486,7 +2529,7 @@ async function handler(
   const evtWithMetadata = {
     ...evt,
     rescheduleReason,
-    metadata,
+    metadata: bookingMetadata,
     eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
     bookerUrl,
   };
@@ -2552,6 +2595,7 @@ async function handler(
   // all around and instead the individual fields are sent as args.
   const bookingResponse = {
     ...booking,
+    metadata: bookingMetadata,
     user: {
       ...booking.user,
       email: null,
@@ -2566,7 +2610,7 @@ async function handler(
     ...(isDryRun ? { troubleshooterData } : {}),
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
-    videoCallUrl: metadata?.videoCallUrl,
+    videoCallUrl: metadataVideoCallUrl,
     previousBooking: originalRescheduledBooking
       ? {
           uid: originalRescheduledBooking.uid,

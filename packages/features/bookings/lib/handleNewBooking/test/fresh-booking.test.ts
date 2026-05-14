@@ -59,8 +59,8 @@ import { testWithAndWithoutOrg } from "@calcom/testing/lib/bookingScenario/test"
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { describe, expect } from "vitest";
 import type Stripe from "stripe";
+import { describe, expect } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 const log = logger.getSubLogger({ prefix: ["[fresh-booking.test]"] });
@@ -824,7 +824,6 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             calendarId: "organizer@google-calendar.com",
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -1369,6 +1368,8 @@ describe("handleNewBooking", () => {
         `should use Google Meet when organizer's default conferencing app is Google Meet and destination calendar IS Google Calendar`,
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
+          const googleMeetUrl = "https://meet.google.com/test-meeting";
+          const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1433,7 +1434,7 @@ describe("handleNewBooking", () => {
               uid: "MOCK_ID",
               appSpecificData: {
                 googleCalendar: {
-                  hangoutLink: "https://meet.google.com/test-meeting",
+                  hangoutLink: googleMeetUrl,
                 },
               },
             },
@@ -1461,6 +1462,27 @@ describe("handleNewBooking", () => {
               location: BookingLocations.GoogleMeet,
             })
           );
+          expect(createdBooking.metadata).toEqual(
+            expect.objectContaining({
+              videoCallUrl: googleMeetUrl,
+            })
+          );
+          expect(createdBooking.videoCallUrl).toBe(googleMeetUrl);
+
+          await expectBookingToBeInDatabase({
+            uid: createdBooking.uid!,
+            metadata: expect.objectContaining({
+              videoCallUrl: googleMeetUrl,
+            }),
+          });
+
+          expectBookingCreatedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: BookingLocations.GoogleMeet,
+            subscriberUrl,
+            videoCallUrl: googleMeetUrl,
+          });
         },
         timeout
       );
@@ -2948,7 +2970,8 @@ describe("handleNewBooking", () => {
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
-          });          const organizer = getOrganizer({
+          });
+          const organizer = getOrganizer({
             name: "Organizer",
             email: "organizer@example.com",
             id: 101,
@@ -3086,7 +3109,8 @@ describe("handleNewBooking", () => {
             7. Booking should still stay in pending state
       `,
 
-        async ({ emails }) => {          const handleNewBooking = getNewBookingHandler();
+        async ({ emails }) => {
+          const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",

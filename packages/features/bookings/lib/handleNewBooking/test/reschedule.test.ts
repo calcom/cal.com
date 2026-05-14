@@ -448,7 +448,6 @@ describe("handleNewBooking", () => {
             },
           });
 
-
           expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
             calEvent: {
               location: "http://mock-dailyvideo.example.com",
@@ -818,7 +817,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-  
+
             expectBookingRequestedEmails({
               booker,
               organizer,
@@ -1038,7 +1037,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-  
+
             expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
               calEvent: {
                 location: "http://mock-dailyvideo.example.com",
@@ -1241,6 +1240,12 @@ describe("handleNewBooking", () => {
              */
             expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T04:00:00.000Z`);
             expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T04:15:00.000Z`);
+            expect(createdBooking.metadata).toEqual(
+              expect.objectContaining({
+                videoCallUrl: "https://UNUSED_URL",
+              })
+            );
+            expect(createdBooking.videoCallUrl).toBe("https://UNUSED_URL");
 
             await expectBookingInDBToBeRescheduledFromTo({
               from: {
@@ -1257,6 +1262,9 @@ describe("handleNewBooking", () => {
                   email: booker.email,
                   name: booker.name,
                 }),
+                metadata: expect.objectContaining({
+                  videoCallUrl: "https://UNUSED_URL",
+                }),
                 references: [
                   {
                     type: appStoreMetadata.googlecalendar.type,
@@ -1270,7 +1278,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-  
+
             expectSuccessfulCalendarEventUpdationInCalendar(calendarMock, {
               externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
               calEvent: {
@@ -1483,7 +1491,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-  
+
             expectBookingRequestedEmails({
               booker,
               organizer,
@@ -1716,7 +1724,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-  
+
             expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
               calEvent: {
                 location: "http://mock-dailyvideo.example.com",
