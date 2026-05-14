@@ -1,25 +1,24 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
-import type { Options, Props } from "react-select";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
-import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { Tooltip } from "@calcom/ui/components/tooltip";
-
 import type {
   PriorityDialogCustomClassNames,
   WeightDialogCustomClassNames,
 } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
+import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
+import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
+import type { Options, Props } from "react-select";
+import Creatable from "react-select/creatable";
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -31,6 +30,11 @@ export type CheckedSelectOption = {
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
+  /**
+   * When true, this entry was created by typing an email that doesn't belong to
+   * an existing team member. The value field holds the email address.
+   */
+  isInvite?: boolean;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -49,6 +53,13 @@ export type CheckedTeamSelectCustomClassNames = {
   priorityDialog?: PriorityDialogCustomClassNames;
   weightDialog?: WeightDialogCustomClassNames;
 };
+
+/** Returns true when the option value is an email address (invite entry, not a numeric userId). */
+const isInviteEntry = (option: CheckedSelectOption) => !!(option.isInvite || option.value.includes("@"));
+
+/** Validate that a string looks like an email before offering the "Create" option. */
+const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
@@ -84,8 +95,8 @@ export const CheckedTeamSelect = ({
 
   return (
     <>
-      <Select
-        {...props}
+      <Creatable
+        {...(props as object)}
         name={props.name}
         placeholder={props.placeholder || t("select")}
         isSearchable={true}
@@ -94,10 +105,26 @@ export const CheckedTeamSelect = ({
         onChange={handleSelectChange}
         isMulti
         className={customClassNames?.hostsSelect?.select}
-        innerClassNames={{
-          ...customClassNames?.hostsSelect?.innerClassNames,
-          control: "rounded-md",
-        }}
+        classNamePrefix="cal-select"
+        /** Only show the "Create" option when the typed value is a valid email. */
+        isValidNewOption={(inputValue) => isValidEmail(inputValue)}
+        /** Build a synthetic option that carries the email in `value` and flags isInvite. */
+        getNewOptionData={(inputValue, optionLabel) => ({
+          label: String(optionLabel),
+          value: inputValue,
+          avatar: "",
+          groupId: null,
+          isInvite: true,
+        })}
+        /** Render invite entries with an (Invite) badge in the dropdown. */
+        formatCreateLabel={(inputValue) => (
+          <span className="flex items-center gap-2">
+            <span>{inputValue}</span>
+            <Badge variant="blue" data-testid="invite-badge">
+              {t("invite")}
+            </Badge>
+          </span>
+        )}
       />
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
@@ -116,10 +143,12 @@ export const CheckedTeamSelect = ({
                 `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
                 customClassNames?.selectedHostList?.listItem?.container
               )}>
-              {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
-              {isPlatform && (
+              {!isPlatform && !isInviteEntry(option) && (
+                <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+              )}
+              {(isPlatform || isInviteEntry(option)) && (
                 <Icon
-                  name="user"
+                  name={isInviteEntry(option) ? "mail" : "user"}
                   className={classNames(
                     "mt-0.5 h-4 w-4",
                     customClassNames?.selectedHostList?.listItem?.avatar
@@ -133,8 +162,13 @@ export const CheckedTeamSelect = ({
                 )}>
                 {option.label}
               </p>
+              {isInviteEntry(option) && (
+                <Badge variant="blue" className="my-auto ml-2" data-testid="host-invite-badge">
+                  {t("invite")}
+                </Badge>
+              )}
               <div className="ml-auto flex items-center">
-                {option && !option.isFixed ? (
+                {option && !option.isFixed && !isInviteEntry(option) ? (
                   <>
                     <Tooltip content={t("change_priority")}>
                       <Button
@@ -176,7 +210,7 @@ export const CheckedTeamSelect = ({
                   name="x"
                   onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
                   className={classNames(
-                    "my-auto ml-2 h-4 w-4",
+                    "my-auto ml-2 h-4 w-4 cursor-pointer",
                     customClassNames?.selectedHostList?.listItem?.removeButton
                   )}
                 />

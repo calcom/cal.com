@@ -63,6 +63,8 @@ const hostLocationSchema = z.object({
 const hostSchema: z.ZodType<HostInput> = z.object({
   userId: z.number(),
   profileId: z.number().or(z.null()).optional(),
+  /** Signals a pending team invite. When set, userId must be -1. */
+  inviteEmail: z.string().email().optional(),
   isFixed: z.boolean().optional(),
   priority: z.number().min(0).max(4).optional().nullable(),
   weight: z.number().min(0).optional().nullable(),

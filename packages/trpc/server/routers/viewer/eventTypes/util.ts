@@ -14,9 +14,15 @@ import type { TUpdateInputSchema } from "./types";
 type PermissionString = string;
 class PermissionCheckService {
   constructor(_prisma?: unknown) {}
-  async checkPermission(..._args: unknown[]) { return true; }
-  async hasPermission(..._args: unknown[]) { return true; }
-  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> { return []; }
+  async checkPermission(..._args: unknown[]) {
+    return true;
+  }
+  async hasPermission(..._args: unknown[]) {
+    return true;
+  }
+  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> {
+    return [];
+  }
 }
 
 type EventType = Awaited<ReturnType<EventTypeRepository["findAllByUpId"]>>[number];
@@ -79,7 +85,14 @@ export const eventOwnerProcedure = authedProcedure
     const isAllowed = (() => {
       if (event.team) {
         const allTeamMembers = event.team.members.map((member) => member.userId);
-        return input.users.every((userId: number) => allTeamMembers.includes(userId));
+        // Invite-only entries (userId === -1 with inviteEmail) are not yet members —
+        // skip them here; the update handler processes them separately.
+        const hostsToCheck =
+          (input as { hosts?: Array<{ userId: number; inviteEmail?: string }> }).hosts?.filter(
+            (h) => !h.inviteEmail
+          ) ?? [];
+        const userIdsToCheck = hostsToCheck.length > 0 ? hostsToCheck.map((h) => h.userId) : input.users;
+        return userIdsToCheck.every((userId: number) => allTeamMembers.includes(userId));
       }
       return input.users.every((userId: number) => userId === ctx.user.id);
     })();

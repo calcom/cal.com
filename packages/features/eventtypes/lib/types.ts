@@ -49,6 +49,8 @@ export type HostLocation = {
 export type Host = {
   isFixed: boolean;
   userId: number;
+  /** Present when this entry is a pending invite rather than an existing team member. */
+  inviteEmail?: string;
   priority: number;
   weight: number;
   scheduleId?: number | null;
@@ -246,6 +248,8 @@ export type HostLocationInput = {
 export type HostInput = {
   userId: number;
   profileId?: number | null;
+  /** Present when this entry is a pending invite — userId will be -1. */
+  inviteEmail?: string;
   isFixed?: boolean;
   priority?: number | null;
   weight?: number | null;
