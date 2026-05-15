@@ -143,9 +143,9 @@ class DzyloCrmService implements CRM {
       description: this.getMeetingBody(event),
       location: getLocation(event),
       assignee_email: event.organizer.email, // Link the organizer email as meeting assignee user with same emailId
-      attendee_name: event.attendees[0].name,
-      attendee_email: event.attendees[0].email,
-      attendee_phone: event.attendees[0].phoneNumber,
+      attendee_name: event.attendees[0]?.name,
+      attendee_email: event.attendees[0]?.email,
+      attendee_phone: event.attendees[0]?.phoneNumber,
     };
 
     const response = await axios({
