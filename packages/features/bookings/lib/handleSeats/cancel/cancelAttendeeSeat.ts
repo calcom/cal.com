@@ -80,6 +80,7 @@ async function cancelAttendeeSeat(
     : [];
 
   if (attendee) {
+    const integrationsToUpdate: Promise<unknown>[] = [];
 
     for (const reference of bookingToDelete.references) {
       if (reference.credentialId || reference.delegationCredentialId) {
@@ -109,7 +110,7 @@ async function cancelAttendeeSeat(
             ...evt,
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
             calendarDescription: getRichDescription(evt),
-            seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot ?? null,
+            seatsPerTimeSlot: null,
           };
 
           if (reference.type.includes("_video") && reference.type !== "google_meet_video") {

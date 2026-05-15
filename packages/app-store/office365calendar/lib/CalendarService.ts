@@ -339,7 +339,7 @@ class Office365CalendarService implements Calendar {
 
     let response: Response;
 
-    if (event.seatsPerTimeSlot) {
+    if (typeof event.seatsPerTimeSlot === "number") {
       const { attendees, ...eventWithoutAttendees } = translatedEvent;
 
       const patch1Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
