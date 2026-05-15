@@ -2965,6 +2965,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/proton-calendar@workspace:packages/app-store/protoncalendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/proton-calendar@workspace:packages/app-store/protoncalendar"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/prisma": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/qr_code@workspace:packages/app-store/qr_code":
   version: 0.0.0-use.local
   resolution: "@calcom/qr_code@workspace:packages/app-store/qr_code"

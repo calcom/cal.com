@@ -1,0 +1,14 @@
+{
+  "name": "Proton Calendar",
+  "title": "Proton Calendar",
+  "slug": "proton-calendar",
+  "dirName": "protoncalendar",
+  "type": "proton_calendar",
+  "logo": "icon.svg",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Use Proton Calendar share links to include Proton events in Cal.com availability.",
+  "isTemplate": false
+}

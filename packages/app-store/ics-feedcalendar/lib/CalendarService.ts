@@ -40,9 +40,10 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-class ICSFeedCalendarService implements Calendar {
-  private urls: string[] = [];
+export class ICSFeedCalendarService implements Calendar {
+  protected urls: string[] = [];
   protected integrationName = "ics-feed_calendar";
+  protected readOnlyWarning = "ICS feed is read-only";
 
   constructor(credential: CredentialPayload) {
     const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
@@ -57,7 +58,7 @@ class ICSFeedCalendarService implements Calendar {
       id: "",
       password: "",
       url: "",
-      additionalInfo: { calWarnings: ["ICS feed is read-only"] },
+      additionalInfo: { calWarnings: [this.readOnlyWarning] },
     });
   }
 
@@ -78,12 +79,22 @@ class ICSFeedCalendarService implements Calendar {
       id: "",
       password: "",
       url: "",
-      additionalInfo: { calWarnings: ["ICS feed is read-only"] },
+      additionalInfo: { calWarnings: [this.readOnlyWarning] },
     });
   }
 
+  protected fetchCalendar(url: string): Promise<Response> {
+    return fetch(url);
+  }
+
+  protected shouldImportEvent(_vevent: ICAL.Component): boolean {
+    return true;
+  }
+
   fetchCalendars = async (): Promise<{ url: string; vcalendar: ICAL.Component }[]> => {
-    const reqPromises = await Promise.allSettled(this.urls.map((x) => fetch(x).then((y) => [x, y])));
+    const reqPromises = await Promise.allSettled(
+      this.urls.map((x) => this.fetchCalendar(x).then((y) => [x, y]))
+    );
     const reqs = reqPromises
       .filter((x) => x.status === "fulfilled")
       .map((x) => (x as PromiseFulfilledResult<[string, Response]>).value);
@@ -150,6 +161,7 @@ class ICSFeedCalendarService implements Calendar {
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
       vevents.forEach((vevent) => {
+        if (!this.shouldImportEvent(vevent)) return;
         // if event status is free or transparent, DON'T return (unlike usual getAvailability)
         //
         // commented out because a lot of public ICS feeds that describe stuff like
