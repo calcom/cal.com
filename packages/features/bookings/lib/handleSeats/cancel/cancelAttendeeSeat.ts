@@ -74,16 +74,12 @@ async function cancelAttendeeSeat(
   const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
   const bookingToDeleteUser = bookingToDelete.user ?? null;
   const delegationCredentials = bookingToDeleteUser
-    ? // We fetch delegation credentials with ServiceAccount key as CalendarService instance created later in the flow needs it
-    await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
-      user: { email: bookingToDeleteUser.email, id: bookingToDeleteUser.id },
-    })
+    ? await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
+        user: { email: bookingToDeleteUser.email, id: bookingToDeleteUser.id },
+      })
     : [];
 
   if (attendee) {
-    /* If there are references then we should update them as well */
-
-    const integrationsToUpdate = [];
 
     for (const reference of bookingToDelete.references) {
       if (reference.credentialId || reference.delegationCredentialId) {
@@ -111,7 +107,6 @@ async function cancelAttendeeSeat(
 
           const updatedEvt = {
             ...evt,
-            // Remove the cancelled attendee from the attendees list
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
             calendarDescription: getRichDescription(evt),
             seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot ?? null,

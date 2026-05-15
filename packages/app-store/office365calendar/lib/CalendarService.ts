@@ -340,33 +340,16 @@ class Office365CalendarService implements Calendar {
     let response: Response;
 
     if (event.seatsPerTimeSlot) {
-      // Destructure attendees out so we can send them separately in PATCH 2
       const { attendees, ...eventWithoutAttendees } = translatedEvent;
 
-      // PATCH 1: Send all event details WITHOUT the attendees field.
-      // This updates title, time, location etc. without triggering
-      // Exchange to notify all attendees.
-      // No retry here — if PATCH 1 fails the event is unchanged, safe to throw.
       const patch1Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
         method: "PATCH",
         body: JSON.stringify(eventWithoutAttendees),
       });
-      // Throw early if PATCH 1 fails — no point sending PATCH 2
       await handleErrorsJson(patch1Response);
 
-      // PATCH 2: Send ONLY the attendees field in isolation.
-      // Per Graph API docs, this makes Exchange notify only the
-      // attendees that changed (i.e. the removed attendee) —
-      // all remaining attendees receive no notification.
-      //
-      // PARTIAL UPDATE RISK: If PATCH 1 succeeded but PATCH 2 fails,
-      // the event details are updated but the attendee list is stale.
-      // To reduce this risk we retry PATCH 2 up to 3 times with
-      // exponential backoff before propagating a richer error that
-      // includes enough context for reconciliation (uid, endpoint,
-      // HTTP status/body, operation tag "PATCH_ATTENDEES").
       const MAX_RETRIES = 3;
-      const BACKOFF_MS = 500; // doubles each attempt: 500ms → 1000ms → 2000ms
+      const BACKOFF_MS = 500;
       let patch2Response: Response | undefined;
       let lastError: Error | undefined;
 
@@ -377,12 +360,7 @@ class Office365CalendarService implements Calendar {
             body: JSON.stringify({ attendees }),
           });
 
-          // Clone before passing to handleErrorsJson because Response body
-          // streams can only be read once — we preserve the original for
-          // error extraction in the catch block if needed
           await handleErrorsJson(patch2Response.clone());
-
-          // PATCH 2 succeeded — clear any previous error and exit retry loop
           lastError = undefined;
           break;
         } catch (err) {
@@ -400,9 +378,7 @@ class Office365CalendarService implements Calendar {
         }
       }
 
-      // All retries exhausted — build a richer error for reconciliation so
-      // downstream code can detect the partial-update state (PATCH 1 succeeded,
-      // PATCH 2 failed — event details updated but attendee list may be stale)
+      // Retry failure handling for PATCH 2
       if (lastError) {
         let httpStatus: number | undefined;
         let httpBody: unknown;
