@@ -114,27 +114,6 @@ async function cancelAttendeeSeat(
             // Remove the cancelled attendee from the attendees list
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
             calendarDescription: getRichDescription(evt),
-            // ─── SEATED EVENT FIX ─────────────────────────────────────────
-            // Explicitly pass seatsPerTimeSlot from the booking's event type
-            // so that calendar integrations can identify this update as a
-            // seat-level attendee removal rather than a full booking change.
-            //
-            // Without this, event.seatsPerTimeSlot would be undefined inside
-            // Office365CalendarService.updateEvent(), causing it to fall into
-            // the non-seated single-PATCH path — which makes Microsoft Graph
-            // API treat the update as an organizer-level meeting change and
-            // send cancellation notifications to ALL remaining attendees.
-            //
-            // With this set, Office365CalendarService.updateEvent() takes the
-            // seated path and splits into two PATCH calls:
-            //   PATCH 1 — event details only (no attendees) → silent update
-            //   PATCH 2 — attendees only → only the removed attendee is
-            //             notified, remaining attendees hear nothing
-            //
-            // The ?? null fallback ensures we pass null (not undefined) when
-            // the event type has no seats, keeping type compatibility with
-            // CalendarServiceEvent.seatsPerTimeSlot.
-            // ──────────────────────────────────────────────────────────────
             seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot ?? null,
           };
 

@@ -340,29 +340,6 @@ class Office365CalendarService implements Calendar {
     let response: Response;
 
     if (event.seatsPerTimeSlot) {
-      // ─── SEATED EVENT FIX ──────────────────────────────────────────────
-      //
-      // PROBLEM:
-      // When a single attendee cancels their seat, the previous code sent
-      // one PATCH request containing ALL event properties (subject, body,
-      // start, end, AND attendees) together. Microsoft Graph API treats any
-      // mixed-property PATCH as an organizer-level meeting change and sends
-      // cancellation/update notifications to ALL remaining attendees —
-      // even though only one person cancelled their seat.
-      //
-      // FIX:
-      // Microsoft Graph API rule:
-      //   "A PATCH containing ONLY the attendees field will send meeting
-      //    updates only to the attendees that changed."
-      //
-      // So we split into TWO separate PATCH calls:
-      //   PATCH 1 — event details only (no attendees) → silent update
-      //   PATCH 2 — attendees only → Graph API notifies only the
-      //             removed attendee, remaining attendees hear nothing
-      //
-      // Reference: https://learn.microsoft.com/en-us/graph/api/event-update
-      // ───────────────────────────────────────────────────────────────────
-
       // Destructure attendees out so we can send them separately in PATCH 2
       const { attendees, ...eventWithoutAttendees } = translatedEvent;
 
@@ -462,11 +439,6 @@ class Office365CalendarService implements Calendar {
       response = patch2Response!;
 
     } else {
-      // ─── NON-SEATED EVENT ──────────────────────────────────────────────
-      // Original behaviour unchanged — send everything in one PATCH.
-      // Non-seated events are regular 1:1 bookings where notifying all
-      // attendees of any change is correct and expected behaviour.
-      // ───────────────────────────────────────────────────────────────────
       response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
         method: "PATCH",
         body: JSON.stringify(translatedEvent),
