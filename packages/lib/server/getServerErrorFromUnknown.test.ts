@@ -1,10 +1,8 @@
-import { describe, expect, test } from "vitest";
-import { ZodError } from "zod";
-
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { Prisma } from "@calcom/prisma/client";
-
+import { describe, expect, test } from "vitest";
+import { ZodError } from "zod";
 import { HttpError } from "../http-error";
 import { TracedError } from "../tracing/error";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
@@ -190,6 +188,19 @@ describe("Prisma error handling", () => {
 
     expect(result.statusCode).toBe(404);
     expect(result.message).toBe("Record to delete does not exist.");
+    expect(result.cause).toBe(prismaError);
+  });
+
+  test("should handle Prisma P2002 error (unique constraint violation) as 409", () => {
+    const prismaError = new Error('Unique constraint failed on the fields: ("idempotencyKey")') as any;
+    prismaError.code = "P2002";
+    prismaError.clientVersion = "5.0.0";
+    Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
+
+    const result = getServerErrorFromUnknown(prismaError);
+
+    expect(result.statusCode).toBe(409);
+    expect(result.message).toBe('Unique constraint failed on the fields: ("idempotencyKey")');
     expect(result.cause).toBe(prismaError);
   });
 
