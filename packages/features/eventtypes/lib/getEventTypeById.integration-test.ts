@@ -67,8 +67,8 @@ describe("getRawEventType", () => {
           connect: [{ id: userId }],
         },
       },
-      include: {
-        users: true,
+      select: {
+        id: true,
       },
     });
     createdResources.eventTypes.push(eventType.id);
