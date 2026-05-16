@@ -64,7 +64,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { criticalLogger } from "@calcom/lib/logger.server";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
+import { getServerErrorFromUnknown, isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
@@ -1816,14 +1816,13 @@ async function handler(
       };
     }
   } catch (_err) {
+    // Check the original Prisma error before getServerErrorFromUnknown redacts it in production.
+    // Without this, the .code property is stripped and the P2002 branch below can never fire.
+    if (isPrismaError(_err) && _err.code === "P2002") {
+      throw new HttpError({ statusCode: 409, message: ErrorCode.BookingConflict });
+    }
     const err = getServerErrorFromUnknown(_err);
     tracingLogger.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
-    if (err.cause && typeof err.cause === "object" && "code" in err.cause && err.cause.code === "P2002") {
-      throw new HttpError({
-        statusCode: 409,
-        message: ErrorCode.BookingConflict,
-      });
-    }
     throw err;
   }
 
