@@ -5,6 +5,7 @@ on:
     paths:
       - "packages/i18n/locales/**"
       - "scripts/check-i18n-completeness.ts"
+      - "i18n.json"
       - ".github/workflows/i18n-check.yml"
 
 jobs:
@@ -14,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # needed to compare against base branch
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
