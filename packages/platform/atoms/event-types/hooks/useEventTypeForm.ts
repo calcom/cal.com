@@ -95,6 +95,7 @@ export const useEventTypeForm = ({
       minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
       disabledCancelling: eventType.disableCancelling ?? false,
       disabledRescheduling: eventType.disableRescheduling ?? false,
+      requiresCancellationReason: eventType.requiresCancellationReason ?? null,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
