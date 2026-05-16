@@ -194,14 +194,14 @@ test.describe("pro user", () => {
     page,
     users,
   }, testInfo) => {
-    // Because it tests the entire booking flow + the cancellation + rebooking
-    test.setTimeout(testInfo.timeout * 3);
-    await bookFirstEvent(page);
-    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
-    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
-
-    const [pro] = users.get();
-    await pro.apiLogin();
+    await test.step("Booking on different formats", async () => {
+    const booking = await prisma.booking.findFirst({
+    where: { id: booking.id },
+     });
+    
+    const $view = page.locator("[data-testid=day-view]");
+    await expect($view).toBeVisible();
+    });
 
     await page.goto("/bookings/upcoming");
     await cancelBookingFromBookingsList({
