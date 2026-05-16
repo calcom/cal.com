@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed to compare against base branch
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -25,3 +27,5 @@ jobs:
 
       - name: Run i18n completeness check
         run: yarn check-i18n
+        env:
+          GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref }}
