@@ -1,0 +1,27 @@
+name: i18n Translation Completeness Check
+
+on:
+  pull_request:
+    paths:
+      - "packages/i18n/locales/**"
+      - "scripts/check-i18n-completeness.ts"
+      - ".github/workflows/i18n-check.yml"
+
+jobs:
+  i18n-check:
+    name: Check Translation Completeness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run i18n completeness check
+        run: yarn check-i18n
