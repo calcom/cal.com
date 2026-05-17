@@ -75,4 +75,8 @@ export const DI_TOKENS = {
   ...TRANSLATION_DI_TOKENS,
   ...WEBHOOK_TOKENS,
   ...EVENT_TYPE_DI_TOKENS,
+  INSIGHTS_BOOKING_SERVICE: Symbol("InsightsBookingService"),
+  INSIGHTS_BOOKING_SERVICE_MODULE: Symbol("InsightsBookingServiceModule"),
+  INSIGHTS_ROUTING_SERVICE: Symbol("InsightsRoutingService"),
+  INSIGHTS_ROUTING_SERVICE_MODULE: Symbol("InsightsRoutingServiceModule"),
 };

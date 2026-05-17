@@ -19,6 +19,7 @@ import { feedbackRouter } from "./feedback/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { holidaysRouter } from "./holidays/_router";
 import { i18nRouter } from "./i18n/_router";
+import { insightsRouter } from "./insights/_router";
 import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { oooRouter } from "./ooo/_router";
@@ -55,4 +56,5 @@ export const viewerRouter = router({
   ooo: oooRouter,
   holidays: holidaysRouter,
   travelSchedules: travelSchedulesRouter,
+  insights: insightsRouter,
 });

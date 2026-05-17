@@ -36,4 +36,5 @@ export const ENDPOINTS = [
   "credits",
   "filterSegments",
   "phoneNumber",
+  "insights",
 ] as const;

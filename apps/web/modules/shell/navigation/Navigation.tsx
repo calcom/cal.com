@@ -57,6 +57,25 @@ const getNavigationItems = (): NavigationItemType[] => [
     ],
   },
   {
+    name: "insights",
+    href: "/insights",
+    icon: "chart-bar",
+    isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
+    moreOnMobile: true,
+    child: [
+      {
+        name: "bookings",
+        href: "/insights",
+        isCurrent: ({ pathname: path }) => path === "/insights",
+      },
+      {
+        name: "routing",
+        href: "/insights/routing",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
+      },
+    ],
+  },
+  {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
     icon: "ellipsis",
