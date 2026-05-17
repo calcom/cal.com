@@ -3697,6 +3697,8 @@
   "utm_content": "utm_content",
   "utm_campaign": "utm_campaign",
   "toggle_series": "Toggle {{series}}",
+  "insights_feature_request_subject": "Feature Request: More Analytics",
+  "insights_feature_request_body": "Hey Cal.com Team, I love the analytics page but I am looking for ...",
   "asc": "Asc",
   "desc": "Desc",
   "verify_email_change": "Verify email change",

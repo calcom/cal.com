@@ -79,7 +79,7 @@ const CustomTooltip = ({
     return null;
   }
 
-  const totalSubmissions = payload.find((p) => p.dataKey === "totalSubmissions")?.value || 0;
+  const totalSubmissions = payload[0].payload.totalSubmissions;
 
   return (
     <div className="bg-default text-inverted border-subtle rounded-lg border p-3 shadow-lg">
