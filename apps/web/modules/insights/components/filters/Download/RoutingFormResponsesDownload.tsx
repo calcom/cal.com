@@ -1,4 +1,3 @@
-import dayjs from "@calcom/dayjs";
 import type { SortingState } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -70,9 +69,8 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
       }
 
       showProgressToast(100);
-      const filename = `RoutingFormResponses-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
-        endDate
-      ).format("YYYY-MM-DD")}.csv`;
+      const toDateStr = (d: string) => new Date(d).toISOString().slice(0, 10);
+      const filename = `RoutingFormResponses-${toDateStr(startDate)}-${toDateStr(endDate)}.csv`;
       downloadAsCsv(allData as Record<string, unknown>[], filename);
     } catch (error) {
       showToast(t("error_downloading_data"), "error");

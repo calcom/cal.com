@@ -1,4 +1,3 @@
-import dayjs from "@calcom/dayjs";
 import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -67,9 +66,8 @@ const Download = () => {
       }
 
       showProgressToast(100);
-      const filename = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
-        "YYYY-MM-DD"
-      )}.csv`;
+      const toDateStr = (d: string) => new Date(d).toISOString().slice(0, 10);
+      const filename = `Insights-${toDateStr(startDate)}-${toDateStr(endDate)}.csv`;
       downloadAsCsv(allData as Record<string, unknown>[], filename);
     } catch {
       showToast(t("unexpected_error_try_again"), "error");
