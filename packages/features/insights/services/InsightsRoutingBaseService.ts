@@ -63,6 +63,20 @@ export type InsightsRoutingTableItem = {
   [key: string]: unknown;
 };
 
+export type InsightsRoutingPeriodStat = {
+  userId: number;
+  period_start: Date;
+  total: number;
+};
+
+export type InsightsRoutingPeriodUser = {
+  id: number;
+  name: string | null;
+  avatarUrl: string | null;
+  performance: "above_average" | "below_average" | "median" | "at_average" | null;
+  totalBookings: number;
+};
+
 // Routing forms have been removed from this fork.
 // This is a stub that returns empty data for all routing analytics methods.
 export class InsightsRoutingBaseService {
@@ -85,7 +99,11 @@ export class InsightsRoutingBaseService {
   }
 
   async getRoutedToPerPeriodData(_params: { period: string; limit?: number; searchQuery?: string }) {
-    return { users: { data: [], total: 0 }, periodStats: { data: [] }, total: 0 };
+    return {
+      users: { data: [] as InsightsRoutingPeriodUser[], total: 0 },
+      periodStats: { data: [] as InsightsRoutingPeriodStat[] },
+      total: 0,
+    };
   }
 
   async getRoutedToPerPeriodCsvData(_params: { period: string; searchQuery?: string }) {
