@@ -55,6 +55,11 @@ export type InsightsRoutingTableItem = {
   bookingStatus: BookingStatus | null;
   bookingStatusOrder: number | null;
   bookingCreatedAt: Date | null;
+  bookingAttendees: {
+    name: string;
+    email: string;
+    phoneNumber: string | null;
+  }[];
   [key: string]: unknown;
 };
 
