@@ -24,6 +24,7 @@ const initialData: AppFlags = {
   "hwm-seating": false,
   "signup-watchlist-review": false,
   "sink-shortener": false,
+  insights: false,
 };
 
 export function useFlags(): Partial<AppFlags> {
