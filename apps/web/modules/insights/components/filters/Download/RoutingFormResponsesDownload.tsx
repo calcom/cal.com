@@ -58,23 +58,22 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
       allData = [...firstBatch.data];
       const totalRecords = firstBatch.total;
 
-      // Continue fetching remaining batches
-      while (totalRecords > 0 && allData.length < totalRecords) {
-        offset += BATCH_SIZE;
+      offset = BATCH_SIZE;
+      while (allData.length < totalRecords) {
         const result = await fetchBatch(offset);
+        if (result.data.length === 0) break;
         allData = [...allData, ...result.data];
+        offset += BATCH_SIZE;
 
         const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
         showProgressToast(currentProgress);
       }
 
-      if (allData.length >= totalRecords) {
-        showProgressToast(100); // Set to 100% before actual download
-        const filename = `RoutingFormResponses-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
-          endDate
-        ).format("YYYY-MM-DD")}.csv`;
-        downloadAsCsv(allData as Record<string, unknown>[], filename);
-      }
+      showProgressToast(100);
+      const filename = `RoutingFormResponses-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
+        endDate
+      ).format("YYYY-MM-DD")}.csv`;
+      downloadAsCsv(allData as Record<string, unknown>[], filename);
     } catch (error) {
       showToast(t("error_downloading_data"), "error");
     } finally {

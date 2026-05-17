@@ -7,10 +7,14 @@ export function objectToCsv(data: Record<string, string>[]) {
     ...data.map((row) =>
       headers
         .map((header) => {
-          const value = row[header]?.toString() || "";
-          // Escape quotes and wrap in quotes if contains comma or newline
+          let value = row[header]?.toString() || "";
+          // Neutralize spreadsheet formula injection (=, +, -, @, tab, CR prefixes)
+          if (/^[=+\-@\t\r]/.test(value)) {
+            value = `'${value}`;
+          }
+          // Escape quotes and wrap in quotes if contains comma, newline, or quote
           return value.includes(",") || value.includes("\n") || value.includes('"')
-            ? `"${value.replace(/"/g, '""')}"` // escape double quotes
+            ? `"${value.replace(/"/g, '""')}"`
             : value;
         })
         .join(",")

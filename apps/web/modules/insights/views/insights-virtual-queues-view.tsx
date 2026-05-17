@@ -5,7 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label, Select } from "@calcom/ui/components/form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TestForm } from "../../../components/apps/routing-forms/TestForm";
 
 export default function InsightsVirtualQueuesPage() {
@@ -13,13 +13,13 @@ export default function InsightsVirtualQueuesPage() {
   const { data: routingForms, isLoading: isRoutingFormsLoading } =
     trpc.viewer.insights.getUserRelevantTeamRoutingForms.useQuery();
 
-  const [selectedForm, setSelectedForm] = useState<RoutingForm | undefined>(
-    routingForms && routingForms.length > 0 ? routingForms[0] : undefined
-  );
+  const [selectedForm, setSelectedForm] = useState<RoutingForm | undefined>(undefined);
 
-  if (routingForms && !selectedForm && routingForms.length > 0) {
-    setSelectedForm(routingForms[0]);
-  }
+  useEffect(() => {
+    if (routingForms && routingForms.length > 0 && !selectedForm) {
+      setSelectedForm(routingForms[0]);
+    }
+  }, [routingForms, selectedForm]);
 
   if (routingForms && routingForms.length === 0) {
     return (
@@ -35,7 +35,7 @@ export default function InsightsVirtualQueuesPage() {
     <>
       <Label>{t("routing_form")}</Label>
       <Select
-        placeholder="Select project"
+        placeholder={t("select_routing_form")}
         options={routingForms?.map((form) => ({ label: form.name, value: form.id })) ?? []}
         isLoading={isRoutingFormsLoading}
         className="w-60"

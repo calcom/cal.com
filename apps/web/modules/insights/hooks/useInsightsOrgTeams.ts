@@ -1,3 +1,5 @@
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { useSession } from "next-auth/react";
 import { useContext } from "react";
 import { InsightsOrgTeamsContext } from "../components/context/InsightsOrgTeamsProvider";
@@ -5,7 +7,7 @@ import { InsightsOrgTeamsContext } from "../components/context/InsightsOrgTeamsP
 export function useInsightsOrgTeams() {
   const context = useContext(InsightsOrgTeamsContext);
   if (!context) {
-    throw new Error("useInsightsOrgTeams must be used within a InsightsOrgTeamsProvider");
+    throw new ErrorWithCode(ErrorCode.BadRequest, "useInsightsOrgTeams must be used within a InsightsOrgTeamsProvider");
   }
   const session = useSession();
   const currentOrgId = session.data?.user.org?.id;

@@ -29,7 +29,7 @@ export const UserStatsTable = ({ data }: { data: UserStatsData }) => {
       {filteredData.length > 0 ? (
         filteredData.map((item) => (
           <ChartCardItem
-            key={item.userId || `user-${Math.random()}`}
+            key={item.userId ?? `user-${item.emailMd5}`}
             count={Number.isInteger(item.count) ? item.count : item.count.toFixed(1)}
             className="py-3">
             <div className="flex items-center">

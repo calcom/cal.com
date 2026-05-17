@@ -1,6 +1,7 @@
 "use client";
 
-import { calculateDeltaType, valueFormatter } from "@calcom/features/insights/lib";
+import { calculateDeltaType } from "@calcom/features/insights/lib/calculateDeltaType";
+import { valueFormatter } from "@calcom/features/insights/lib/valueFormatter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Icon } from "@calcom/ui/components/icon";
@@ -20,7 +21,7 @@ export const KPICard = ({
 }) => {
   const { t } = useLocale();
 
-  const deltaType = calculateDeltaType(previousMetricData.deltaPrevious - previousMetricData.count);
+  const deltaType = calculateDeltaType(previousMetricData.deltaPrevious);
   const deltaValue = Number(previousMetricData.deltaPrevious).toFixed(0);
 
   const getBadgeVariant = (type: string) => {
