@@ -3696,6 +3696,7 @@
   "utm_term": "utm_term",
   "utm_content": "utm_content",
   "utm_campaign": "utm_campaign",
+  "toggle_series": "Toggle {{series}}",
   "asc": "Asc",
   "desc": "Desc",
   "verify_email_change": "Verify email change",

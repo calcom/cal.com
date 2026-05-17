@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { PanelCard } from "@calcom/ui/components/card";
 import { Spinner } from "@calcom/ui/components/icon";
@@ -117,6 +118,7 @@ function Legend({
   enabledItems?: LegendItem[];
   onItemToggle?: (label: string) => void;
 }) {
+  const { t } = useLocale();
   const enabledSet = useMemo(() => new Set((enabledItems ?? []).map((i) => i.label)), [enabledItems]);
   const isClickable = Boolean(onItemToggle);
 
@@ -136,7 +138,7 @@ function Legend({
               )}
               style={{ backgroundColor: `${item.color}33` }}
               aria-pressed={isClickable ? isEnabled : undefined}
-              aria-label={`Toggle ${item.label}`}
+              aria-label={t("toggle_series", { series: item.label })}
               disabled={!isClickable}
               onClick={isClickable ? () => onItemToggle?.(item.label) : undefined}>
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
