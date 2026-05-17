@@ -48,6 +48,10 @@ export type InsightsRoutingTableItem = {
   formUserId: number;
   bookingUid: string | null;
   bookingId: number | null;
+  bookingUserId: number | null;
+  bookingUserName: string | null;
+  bookingUserEmail: string | null;
+  bookingUserAvatarUrl: string | null;
   bookingStatus: BookingStatus | null;
   bookingStatusOrder: number | null;
   bookingCreatedAt: Date | null;
@@ -76,7 +80,7 @@ export class InsightsRoutingBaseService {
   }
 
   async getRoutedToPerPeriodData(_params: { period: string; limit?: number; searchQuery?: string }) {
-    return { data: [], total: 0 };
+    return { users: { data: [], total: 0 }, periodStats: { data: [] }, total: 0 };
   }
 
   async getRoutedToPerPeriodCsvData(_params: { period: string; searchQuery?: string }) {

@@ -11,7 +11,7 @@ class RoutingEventsInsightsStub {
   }
 
   static async getRoutingFormPaginatedResponsesForDownload(_input: unknown) {
-    return { data: [], headers: [] };
+    return { data: [], total: 0 };
   }
 
   static async getRoutingFormFieldOptions(_input: unknown) {
