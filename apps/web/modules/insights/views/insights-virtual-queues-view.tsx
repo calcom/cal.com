@@ -35,7 +35,7 @@ export default function InsightsVirtualQueuesPage() {
     <>
       <Label>{t("routing_form")}</Label>
       <Select
-        placeholder={t("select_routing_form")}
+        placeholder={t("routing_form")}
         options={routingForms?.map((form) => ({ label: form.name, value: form.id })) ?? []}
         isLoading={isRoutingFormsLoading}
         className="w-60"

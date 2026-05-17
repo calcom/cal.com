@@ -38,9 +38,10 @@ function DownloadButton({ selectedPeriod, searchQuery }: DownloadButtonProps) {
   const utils = trpc.useContext();
 
   const handleDownload = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
     try {
+      setIsDownloading(true);
       posthog.capture("insights_routing_download_clicked", { teamId: routingParams.selectedTeamId });
       const result = await utils.viewer.insights.routedToPerPeriodCsv.fetch({
         ...routingParams,

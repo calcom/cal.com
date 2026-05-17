@@ -1,6 +1,6 @@
 "use client";
 
-import { valueFormatter } from "@calcom/features/insights/lib";
+import { valueFormatter } from "@calcom/features/insights/lib/valueFormatter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
