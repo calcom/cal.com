@@ -64,6 +64,10 @@ export const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next
     isOwnerAdminOfParentTeam = true;
   }
 
+  if (!membership && !isOwnerAdminOfParentTeam && effectiveTeamId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
   return next({
     ctx: {
       user: {

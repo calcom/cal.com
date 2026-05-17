@@ -13,7 +13,6 @@ const COLOR = {
 
 type CSATOverTimeData = RouterOutputs["viewer"]["insights"]["csatOverTime"][number];
 
-// Custom Tooltip component
 const CustomTooltip = ({
   active,
   payload,

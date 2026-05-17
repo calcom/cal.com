@@ -15,9 +15,9 @@ export const RecentFeedbackTableContent = ({ data }: { data: FeedbackData }) => 
   return (
     <div className="overflow-hidden rounded-md">
       {data && data.length > 0 ? (
-        data.map((item) => (
+        data.map((item, index) => (
           <div
-            key={item.userId}
+            key={`${item.userId}-${index}`}
             className="border-subtle flex items-center justify-between border-b px-4 py-3 last:border-b-0">
             <div className="flex items-center">
               <Avatar

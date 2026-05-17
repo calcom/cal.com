@@ -12,6 +12,7 @@ type PanelCardProps = React.ComponentProps<typeof PanelCard>;
 
 type LegendItem = {
   label: string;
+  displayLabel?: string;
   color: string; // hex format
 };
 
@@ -142,13 +143,13 @@ function Legend({
               disabled={!isClickable}
               onClick={isClickable ? () => onItemToggle?.(item.label) : undefined}>
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-              <Tooltip content={item.label}>
+              <Tooltip content={item.displayLabel ?? item.label}>
                 <span
                   className={classNames(
                     "text-default truncate py-0.5 text-sm font-medium leading-none",
                     size === "sm" ? "w-16" : ""
                   )}>
-                  {item.label}
+                  {item.displayLabel ?? item.label}
                 </span>
               </Tooltip>
             </button>

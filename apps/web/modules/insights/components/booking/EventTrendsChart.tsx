@@ -18,18 +18,8 @@ const COLOR = {
   NO_SHOW_GUEST: "#f97316",
 };
 
-export const legend = [
-  { label: "Created", color: COLOR.CREATED },
-  { label: "Completed", color: COLOR.COMPLETED },
-  { label: "Rescheduled", color: COLOR.RESCHEDULED },
-  { label: "Cancelled", color: COLOR.CANCELLED },
-  { label: "No-Show (Host)", color: COLOR.NO_SHOW_HOST },
-  { label: "No-Show (Guest)", color: COLOR.NO_SHOW_GUEST },
-];
-
 type EventTrendsData = RouterOutputs["viewer"]["insights"]["eventTrends"][number];
 
-// Custom Tooltip component
 const CustomTooltip = ({
   active,
   payload,
@@ -64,6 +54,16 @@ const CustomTooltip = ({
 export const EventTrendsChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
+
+  const legend = [
+    { label: "Created", displayLabel: t("event_trends_created"), color: COLOR.CREATED },
+    { label: "Completed", displayLabel: t("event_trends_completed"), color: COLOR.COMPLETED },
+    { label: "Rescheduled", displayLabel: t("event_trends_rescheduled"), color: COLOR.RESCHEDULED },
+    { label: "Cancelled", displayLabel: t("event_trends_cancelled"), color: COLOR.CANCELLED },
+    { label: "No-Show (Host)", displayLabel: t("event_trends_no_show_host"), color: COLOR.NO_SHOW_HOST },
+    { label: "No-Show (Guest)", displayLabel: t("event_trends_no_show_guest"), color: COLOR.NO_SHOW_GUEST },
+  ];
+
   const { enabledLegend, toggleSeries } = useToggleableLegend(legend);
 
   const {
@@ -106,7 +106,7 @@ export const EventTrendsChart = () => {
                   key={item.label}
                   type="linear"
                   dataKey={item.label}
-                  name={item.label}
+                  name={item.displayLabel ?? item.label}
                   stroke={item.color}
                   strokeWidth={2}
                   dot={{ r: 4 }}

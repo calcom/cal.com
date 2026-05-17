@@ -138,7 +138,7 @@ export const OrgTeamsFilter = () => {
             <FilterCheckboxField
               testId="org-teams-filter-item"
               key={team.id}
-              id={team.name || ""}
+              id={`team-${team.id}`}
               label={team.name || ""}
               checked={selectedTeamId === team.id && orgTeamsType === "team"}
               onChange={(e) => {

@@ -161,12 +161,10 @@ const LoadingKPICards = (props: {
   );
 };
 
-// StatContainer: wraps the grid
 function StatContainer({ children }: { children: React.ReactNode }) {
   return <div className="group grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">{children}</div>;
 }
 
-// StatItem: handles border logic
 function StatItem({ index, children }: { index: number; children: React.ReactNode }) {
   return (
     <div

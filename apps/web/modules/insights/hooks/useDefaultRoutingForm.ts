@@ -45,7 +45,7 @@ export function useDefaultRoutingForm({
       hasSetDefault.current = true;
       const newSearchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
       newSearchParams.set("routingFormId", mostPopularForm.id);
-      router.push(`${pathname}?${newSearchParams.toString()}`);
+      router.replace(`${pathname}?${newSearchParams.toString()}`);
       onRoutingFormChange(mostPopularForm.id);
     }
   }, [

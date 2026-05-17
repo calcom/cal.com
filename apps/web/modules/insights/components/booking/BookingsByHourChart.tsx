@@ -26,8 +26,8 @@ export const BookingsByHourChartContent = ({ data }: { data: BookingsByHourData[
     count: item.count,
   }));
 
-  const maxBookings = Math.max(...data.map((item) => item.count));
-  const isEmpty = maxBookings === 0;
+  const maxBookings = data.length === 0 ? 0 : Math.max(...data.map((item) => item.count));
+  const isEmpty = data.length === 0 || maxBookings === 0;
 
   if (isEmpty) {
     return (
@@ -57,7 +57,6 @@ export const BookingsByHourChartContent = ({ data }: { data: BookingsByHourData[
   );
 };
 
-// Custom Tooltip component
 const CustomTooltip = ({
   active,
   payload,
