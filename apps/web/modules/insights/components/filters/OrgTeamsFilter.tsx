@@ -40,9 +40,11 @@ export const OrgTeamsFilter = () => {
     setSelectedTeamId(params.teamId);
   };
 
+  const orgEntry = data?.find((team) => team.isOrg && team.id === currentOrgId);
+
   const getPopoverProps = () => {
     if (orgTeamsType === "org") {
-      return { text: t("all"), placeholder: undefined, imageUrl: data?.[0]?.logoUrl };
+      return { text: t("all"), placeholder: orgEntry?.name, imageUrl: orgEntry?.logoUrl };
     } else if (orgTeamsType === "yours") {
       return { text: t("yours"), placeholder: currentUserName, imageUrl: session.data?.user.avatarUrl };
     } else if (orgTeamsType === "team") {
@@ -68,12 +70,12 @@ export const OrgTeamsFilter = () => {
   };
 
   const { text, placeholder, imageUrl } = getPopoverProps();
-  const isOrgDataAvailable = !!data && data.length > 0 && !!data[0].isOrg && data[0].id === currentOrgId;
+  const isOrgDataAvailable = !!orgEntry;
 
   const PrefixComponent =
     orgTeamsType !== undefined && (imageUrl || placeholder) ? (
       <Avatar
-        alt={`${placeholder} logo`}
+        alt={t("org_avatar_alt", { name: placeholder ?? "" })}
         imageSrc={getPlaceholderAvatar(imageUrl, placeholder)}
         size="xs"
         className="mr-2"
@@ -116,7 +118,7 @@ export const OrgTeamsFilter = () => {
           testId="org-teams-filter-item"
           icon={
             <Avatar
-              alt={`${currentUserName} avatar`}
+              alt={t("user_avatar_alt", { name: currentUserName ?? "" })}
               imageSrc={getPlaceholderAvatar(session.data?.user.avatarUrl, currentUserName)}
               size="xsm"
             />

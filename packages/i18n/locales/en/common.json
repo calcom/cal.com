@@ -2689,6 +2689,8 @@
   "from_to_date_period": "From: {{startDate}} To: {{endDate}}",
   "redirect_url_warning": "Adding a redirect will disable the success page. Make sure to mention \"Booking Confirmed\" on your custom success page.",
   "event_trends": "Event trends",
+  "org_avatar_alt": "{{name}} logo",
+  "user_avatar_alt": "{{name}} avatar",
   "event_trends_created": "Created",
   "event_trends_completed": "Completed",
   "event_trends_rescheduled": "Rescheduled",
