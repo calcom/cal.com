@@ -11,9 +11,11 @@ interface RoutingFunnelData {
   acceptedBookings: number;
 }
 
+type LegendKey = "totalSubmissions" | "successfulRoutings" | "acceptedBookings";
+
 interface RoutingFunnelContentProps {
   data: RoutingFunnelData[];
-  enabledLegend?: Array<{ label: string; color: string }>;
+  enabledKeys?: LegendKey[];
 }
 
 const COLOR = {
@@ -22,15 +24,15 @@ const COLOR = {
   ACCEPTED: "#F7A1A1",
 };
 
-export const legend = [
-  { label: "Total Submissions", color: COLOR.TOTAL },
-  { label: "Successful Routings", color: COLOR.SUCCESFUL },
-  { label: "Accepted Bookings", color: COLOR.ACCEPTED },
+export const LEGEND_KEYS: { key: LegendKey; color: string; i18nKey: string }[] = [
+  { key: "totalSubmissions", color: COLOR.TOTAL, i18nKey: "routing_funnel_total_submissions" },
+  { key: "successfulRoutings", color: COLOR.SUCCESFUL, i18nKey: "routing_funnel_successful_routings" },
+  { key: "acceptedBookings", color: COLOR.ACCEPTED, i18nKey: "routing_funnel_accepted_bookings" },
 ];
 
-export function RoutingFunnelContent({ data, enabledLegend }: RoutingFunnelContentProps) {
+export function RoutingFunnelContent({ data, enabledKeys }: RoutingFunnelContentProps) {
   const { t } = useLocale();
-  const activeAreas = enabledLegend || legend;
+  const activeKeys = new Set(enabledKeys ?? LEGEND_KEYS.map((l) => l.key));
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -39,35 +41,18 @@ export function RoutingFunnelContent({ data, enabledLegend }: RoutingFunnelConte
         <XAxis dataKey="name" className="text-xs" axisLine={false} tickLine={false} />
         <YAxis allowDecimals={false} className="text-xs opacity-50" axisLine={false} tickLine={false} />
         <Tooltip content={<CustomTooltip />} />
-        {activeAreas.some((area) => area.label === "Total Submissions") && (
-          <Area
-            type="linear"
-            name={t("routing_funnel_total_submissions")}
-            dataKey="totalSubmissions"
-            stroke={COLOR.TOTAL}
-            fill={COLOR.TOTAL}
-            fillOpacity={1}
-          />
-        )}
-        {activeAreas.some((area) => area.label === "Successful Routings") && (
-          <Area
-            type="linear"
-            name={t("routing_funnel_successful_routings")}
-            dataKey="successfulRoutings"
-            stroke={COLOR.SUCCESFUL}
-            fill={COLOR.SUCCESFUL}
-            fillOpacity={1}
-          />
-        )}
-        {activeAreas.some((area) => area.label === "Accepted Bookings") && (
-          <Area
-            type="linear"
-            name={t("routing_funnel_accepted_bookings")}
-            dataKey="acceptedBookings"
-            stroke={COLOR.ACCEPTED}
-            fill={COLOR.ACCEPTED}
-            fillOpacity={1}
-          />
+        {LEGEND_KEYS.map(({ key, color, i18nKey }) =>
+          activeKeys.has(key) ? (
+            <Area
+              key={key}
+              type="linear"
+              name={t(i18nKey)}
+              dataKey={key}
+              stroke={color}
+              fill={color}
+              fillOpacity={1}
+            />
+          ) : null
         )}
       </AreaChart>
     </ResponsiveContainer>

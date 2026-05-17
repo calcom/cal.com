@@ -2,6 +2,16 @@
 
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
+const BAR_HEIGHTS = [
+  { top: 65, mid: 35, bot: 20 },
+  { top: 45, mid: 25, bot: 15 },
+  { top: 55, mid: 40, bot: 25 },
+  { top: 70, mid: 30, bot: 10 },
+  { top: 40, mid: 45, bot: 20 },
+  { top: 60, mid: 20, bot: 30 },
+  { top: 50, mid: 35, bot: 15 },
+];
+
 export function RoutingFunnelSkeleton() {
   return (
     <div className="relative h-[300px] w-full">
@@ -29,20 +39,19 @@ export function RoutingFunnelSkeleton() {
 
             {/* Stacked area chart skeleton */}
             <div className="absolute inset-0 bottom-0 top-0 ml-0 flex items-end justify-between px-4">
-              {Array.from({ length: 7 }).map((_, i) => (
+              {BAR_HEIGHTS.map((h, i) => (
                 <div key={i} className="flex w-8 flex-col items-center">
-                  {/* Stacked areas - simulating the three data series */}
                   <div
                     className="w-full rounded-t bg-[#8884d8] opacity-20"
-                    style={{ height: `${Math.random() * 40 + 30}%` }}
+                    style={{ height: `${h.top}%` }}
                   />
                   <div
                     className="w-full bg-[#83a6ed] opacity-20"
-                    style={{ height: `${Math.random() * 30 + 20}%` }}
+                    style={{ height: `${h.mid}%` }}
                   />
                   <div
                     className="w-full rounded-b bg-[#82ca9d] opacity-20"
-                    style={{ height: `${Math.random() * 20 + 10}%` }}
+                    style={{ height: `${h.bot}%` }}
                   />
 
                   {/* X-axis label */}

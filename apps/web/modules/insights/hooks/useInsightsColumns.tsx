@@ -1,4 +1,4 @@
-import dayjs from "@calcom/dayjs";
+import { format } from "date-fns";
 import { ColumnFilterType } from "@calcom/features/data-table";
 import type { HeaderRow, RoutingFormTableRow } from "@calcom/features/insights/lib/types";
 import {
@@ -275,7 +275,7 @@ export const useInsightsColumns = ({
       }),
       columnHelper.accessor("utm_medium", {
         id: "utm_medium",
-        header: "utm_medium",
+        header: t("utm_medium"),
         size: 100,
         enableColumnFilter: false,
         enableSorting: false,
@@ -289,7 +289,7 @@ export const useInsightsColumns = ({
       }),
       columnHelper.accessor("utm_term", {
         id: "utm_term",
-        header: "utm_term",
+        header: t("utm_term"),
         size: 100,
         enableColumnFilter: false,
         enableSorting: false,
@@ -303,7 +303,7 @@ export const useInsightsColumns = ({
       }),
       columnHelper.accessor("utm_content", {
         id: "utm_content",
-        header: "utm_content",
+        header: t("utm_content"),
         size: 100,
         enableColumnFilter: false,
         enableSorting: false,
@@ -317,7 +317,7 @@ export const useInsightsColumns = ({
       }),
       columnHelper.accessor("utm_campaign", {
         id: "utm_campaign",
-        header: "utm_campaign",
+        header: t("utm_campaign"),
         size: 100,
         enableColumnFilter: false,
         enableSorting: false,
@@ -337,12 +337,12 @@ export const useInsightsColumns = ({
         enableColumnFilter: false,
         cell: (info) => (
           <div className="whitespace-nowrap">
-            <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
+            <Badge variant="gray">{format(new Date(info.getValue()), "MMM d, yyyy HH:mm")}</Badge>
           </div>
         ),
       }),
     ];
-  }, [isHeadersSuccess, headers]);
+  }, [isHeadersSuccess, headers, t]);
 };
 
 function CopyButton({ label, value }: { label: string; value: string }) {

@@ -1186,19 +1186,23 @@ export class InsightsBookingBaseService {
 
   calculatePreviousPeriodDates() {
     const result = extractDateRangeFromColumnFilters(this.filters?.columnFilters);
-    const startDate = dayjs(result.startDate);
-    const endDate = dayjs(result.endDate);
+    const startDate = new Date(result.startDate);
+    const endDate = new Date(result.endDate);
 
-    const startTimeEndTimeDiff = endDate.diff(startDate, "day");
+    // +1 because diff is exclusive: Jan 1→Jan 3 = 2 days diff, but 3-day period
+    const periodLength =
+      Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-    const lastPeriodStartDate = startDate.subtract(startTimeEndTimeDiff, "day");
-    const lastPeriodEndDate = endDate.subtract(startTimeEndTimeDiff, "day");
+    const lastPeriodStartDate = new Date(startDate.getTime() - periodLength * 24 * 60 * 60 * 1000);
+    const lastPeriodEndDate = new Date(endDate.getTime() - periodLength * 24 * 60 * 60 * 1000);
+
+    const toYMD = (d: Date) => d.toISOString().slice(0, 10);
 
     return {
       startDate: lastPeriodStartDate.toISOString(),
       endDate: lastPeriodEndDate.toISOString(),
-      formattedStartDate: lastPeriodStartDate.format("YYYY-MM-DD"),
-      formattedEndDate: lastPeriodEndDate.format("YYYY-MM-DD"),
+      formattedStartDate: toYMD(lastPeriodStartDate),
+      formattedEndDate: toYMD(lastPeriodEndDate),
     };
   }
 

@@ -14,11 +14,12 @@ export class EventsInsights {
     return data.reduce(
       (aggregate: { [x: string]: number }, item) => {
         if (typeof item.timeStatus === "string" && item) {
-          aggregate[item.timeStatus] += item?._count?._all ?? 0;
-          aggregate["_all"] += item?._count?._all ?? 0;
+          const count = item?._count?._all ?? 0;
+          aggregate[item.timeStatus] = (aggregate[item.timeStatus] ?? 0) + count;
+          aggregate["_all"] += count;
 
           if (item.noShowHost) {
-            aggregate["noShowHost"] += item?._count?._all ?? 0;
+            aggregate["noShowHost"] += count;
           }
         }
         return aggregate;
