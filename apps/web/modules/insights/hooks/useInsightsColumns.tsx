@@ -10,7 +10,17 @@ import {
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
+// Inline enum — routing-forms package not available in this fork
+const RoutingFormFieldType = {
+  TEXT: "text",
+  EMAIL: "email",
+  PHONE: "phone",
+  TEXTAREA: "textarea",
+  NUMBER: "number",
+  SINGLE_SELECT: "select",
+  MULTI_SELECT: "multiselect",
+} as const;
+type RoutingFormFieldType = (typeof RoutingFormFieldType)[keyof typeof RoutingFormFieldType];
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { createColumnHelper } from "@tanstack/react-table";
