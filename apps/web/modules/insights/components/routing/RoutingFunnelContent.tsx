@@ -102,3 +102,5 @@ const CustomTooltip = ({
     </div>
   );
 };
+
+export const legend = LEGEND_KEYS;
