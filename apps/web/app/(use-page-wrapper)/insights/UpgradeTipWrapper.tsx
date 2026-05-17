@@ -42,7 +42,11 @@ export default function UpgradeTipWrapper({ children }: { children: React.ReactN
             <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
               {t("create_team")}
             </Button>
-            <Button color="minimal" href="https://go.cal.com/insights" target="_blank" rel="noopener noreferrer">
+            <Button
+              color="minimal"
+              href="https://go.cal.com/insights"
+              target="_blank"
+              rel="noopener noreferrer">
               {t("learn_more")}
             </Button>
           </ButtonGroup>

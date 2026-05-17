@@ -6,6 +6,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { useInsightsBookingParameters } from "@calcom/web/modules/insights/hooks/useInsightsBookingParameters";
 import { useToggleableLegend } from "@calcom/web/modules/insights/hooks/useToggleableLegend";
+import { useMemo } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartCard } from "../ChartCard";
 
@@ -55,14 +56,17 @@ export const EventTrendsChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const legend = [
-    { label: "Created", displayLabel: t("event_trends_created"), color: COLOR.CREATED },
-    { label: "Completed", displayLabel: t("event_trends_completed"), color: COLOR.COMPLETED },
-    { label: "Rescheduled", displayLabel: t("event_trends_rescheduled"), color: COLOR.RESCHEDULED },
-    { label: "Cancelled", displayLabel: t("event_trends_cancelled"), color: COLOR.CANCELLED },
-    { label: "No-Show (Host)", displayLabel: t("event_trends_no_show_host"), color: COLOR.NO_SHOW_HOST },
-    { label: "No-Show (Guest)", displayLabel: t("event_trends_no_show_guest"), color: COLOR.NO_SHOW_GUEST },
-  ];
+  const legend = useMemo(
+    () => [
+      { label: "Created", displayLabel: t("event_trends_created"), color: COLOR.CREATED },
+      { label: "Completed", displayLabel: t("event_trends_completed"), color: COLOR.COMPLETED },
+      { label: "Rescheduled", displayLabel: t("event_trends_rescheduled"), color: COLOR.RESCHEDULED },
+      { label: "Cancelled", displayLabel: t("event_trends_cancelled"), color: COLOR.CANCELLED },
+      { label: "No-Show (Host)", displayLabel: t("event_trends_no_show_host"), color: COLOR.NO_SHOW_HOST },
+      { label: "No-Show (Guest)", displayLabel: t("event_trends_no_show_guest"), color: COLOR.NO_SHOW_GUEST },
+    ],
+    [t]
+  );
 
   const { enabledLegend, toggleSeries } = useToggleableLegend(legend);
 
