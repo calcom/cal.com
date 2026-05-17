@@ -1,8 +1,8 @@
 "use client";
 
-import dayjs from "@calcom/dayjs";
 import type { RoutingFormTableRow } from "@calcom/features/insights/lib/types";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import {
@@ -12,6 +12,7 @@ import {
   HoverCardTrigger,
 } from "@calcom/ui/components/hover-card";
 import { Icon } from "@calcom/ui/components/icon";
+import { format } from "date-fns";
 import Link from "next/link";
 import { useId } from "react";
 import { BookingStatusBadge } from "./BookingStatusBadge";
@@ -19,6 +20,7 @@ import { BookingStatusBadge } from "./BookingStatusBadge";
 export function BookingAtCell({ row, rowId }: { row: RoutingFormTableRow; rowId: number }) {
   const cellId = useId();
   const { copyToClipboard } = useCopy();
+  const { t } = useLocale();
 
   if (!row.bookingUserId || !row.bookingCreatedAt) {
     return <div className="w-[250px]" />;
@@ -30,7 +32,7 @@ export function BookingAtCell({ row, rowId }: { row: RoutingFormTableRow; rowId:
         <div className="flex items-center gap-2" key={`${cellId}-booking-${rowId}`}>
           <Avatar size="xs" imageSrc={row.bookingUserAvatarUrl ?? ""} alt={row.bookingUserName ?? ""} />
           <Link href={`/booking/${row.bookingUid}`}>
-            <Badge variant="gray">{dayjs(row.bookingCreatedAt).format("MMM D, YYYY HH:mm")}</Badge>
+            <Badge variant="gray">{format(new Date(row.bookingCreatedAt), "MMM d, yyyy HH:mm")}</Badge>
           </Link>
         </div>
       </HoverCardTrigger>
@@ -44,6 +46,7 @@ export function BookingAtCell({ row, rowId }: { row: RoutingFormTableRow; rowId:
                 <p className="group/booking_status_email text-subtle flex items-center text-xs">
                   <span className="truncate">{row.bookingUserEmail}</span>
                   <button
+                    aria-label={t("copy")}
                     className="invisible ml-2 group-hover/booking_status_email:visible"
                     onClick={(e) => {
                       e.preventDefault();
@@ -56,7 +59,7 @@ export function BookingAtCell({ row, rowId }: { row: RoutingFormTableRow; rowId:
               </div>
             </div>
             <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
-              <span>Status:</span>
+              <span>{t("status")}:</span>
               <BookingStatusBadge bookingStatus={row.bookingStatus} />
             </div>
           </div>

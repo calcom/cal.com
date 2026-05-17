@@ -67,7 +67,7 @@ export const BookingKPICards = () => {
     },
   ];
 
-  if (isPending) {
+  if (isPending || isError || !data) {
     return (
       <LoadingKPICards
         eventCategories={eventCategories}
@@ -77,8 +77,6 @@ export const BookingKPICards = () => {
       />
     );
   }
-
-  if (!isSuccess || !data) return null;
 
   return (
     <div className="stack-y-4">

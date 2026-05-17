@@ -6,6 +6,7 @@ import { z } from "zod";
 
 const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
+  selectedTeamId: z.coerce.number().optional().nullable(),
   isAll: z.boolean().optional(),
 });
 
@@ -28,11 +29,14 @@ export const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
 
+  // Validate the effective team: selectedTeamId takes precedence over teamId
+  const effectiveTeamId = parse.data.selectedTeamId ?? parse.data.teamId;
+
   const membership = await ctx.prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,
       accepted: true,
-      ...(parse.data.teamId && { teamId: parse.data.teamId }),
+      ...(effectiveTeamId && { teamId: effectiveTeamId }),
     },
     select: { id: true },
   });
@@ -40,10 +44,10 @@ export const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next
   let isOwnerAdminOfParentTeam = false;
 
   if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
-    if (!membership && ctx.user.organizationId && parse.data.teamId) {
+    if (!membership && ctx.user.organizationId && effectiveTeamId) {
       const isChildTeamOfOrg = await ctx.prisma.team.findFirst({
         where: {
-          id: parse.data.teamId,
+          id: effectiveTeamId,
           parentId: ctx.user.organizationId,
         },
         select: { id: true },

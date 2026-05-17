@@ -155,12 +155,7 @@ export const insightsRouter = router({
         },
         completed: {
           count: currentStats.completed_bookings,
-          deltaPrevious: getPercentage(
-            currentStats.total_bookings - currentStats.cancelled_bookings - currentStats.rescheduled_bookings,
-            previousStats.total_bookings -
-              previousStats.cancelled_bookings -
-              previousStats.rescheduled_bookings
-          ),
+          deltaPrevious: getPercentage(currentStats.completed_bookings, previousStats.completed_bookings),
         },
         rescheduled: {
           count: currentStats.rescheduled_bookings,
@@ -392,7 +387,7 @@ export const insightsRouter = router({
       if (isAll && user.organizationId && user.organization.isOrgAdmin) {
         const usersInTeam = await ctx.insightsDb.membership.findMany({
           where: { team: { parentId: user.organizationId } },
-          include: { user: { select: userSelect } },
+          select: { user: { select: userSelect } },
           distinct: ["userId"],
         });
         return usersInTeam.map((m) => m.user);
@@ -402,7 +397,7 @@ export const insightsRouter = router({
 
       const membership = await ctx.insightsDb.membership.findFirst({
         where: { userId: user.id, teamId, accepted: true },
-        include: { user: { select: userSelect } },
+        select: { role: true, user: { select: userSelect } },
       });
       if (!membership) return [];
 
@@ -410,7 +405,7 @@ export const insightsRouter = router({
 
       const usersInTeam = await ctx.insightsDb.membership.findMany({
         where: { teamId, accepted: true },
-        include: { user: { select: userSelect } },
+        select: { user: { select: userSelect } },
         distinct: ["userId"],
       });
       return usersInTeam.map((m) => m.user);

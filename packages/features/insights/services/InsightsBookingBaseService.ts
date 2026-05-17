@@ -12,6 +12,8 @@ import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib
 import { TeamRepository } from "@calcom/features/insights/lib/repositories/TeamRepository";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -202,7 +204,7 @@ export class InsightsBookingBaseService {
     if (select) {
       const keys = Object.keys(select);
       if (keys.some((key) => !bookingDataKeys.has(key))) {
-        throw new Error("Invalid select keys provided");
+        throw new ErrorWithCode(ErrorCode.BadRequest, "Invalid select keys provided");
       }
 
       if (keys.length > 0) {
@@ -338,7 +340,7 @@ export class InsightsBookingBaseService {
       // if `createdAt` filter -> x <= "createdAt" AND "createdAt" <= y
       if (value.data.startDate) {
         if (isNaN(Date.parse(value.data.startDate))) {
-          throw new Error(`Invalid date format: ${value.data.startDate}`);
+          throw new ErrorWithCode(ErrorCode.BadRequest, `Invalid date format: ${value.data.startDate}`);
         }
         if (id === "startTime") {
           conditions.push(Prisma.sql`${value.data.startDate}::timestamp <= "startTime"`);
@@ -348,7 +350,7 @@ export class InsightsBookingBaseService {
       }
       if (value.data.endDate) {
         if (isNaN(Date.parse(value.data.endDate))) {
-          throw new Error(`Invalid date format: ${value.data.endDate}`);
+          throw new ErrorWithCode(ErrorCode.BadRequest, `Invalid date format: ${value.data.endDate}`);
         }
         if (id === "startTime") {
           conditions.push(Prisma.sql`"endTime" <= ${value.data.endDate}::timestamp`);

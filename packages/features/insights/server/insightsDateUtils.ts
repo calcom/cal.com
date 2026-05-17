@@ -49,7 +49,7 @@ export const getDateRanges = ({
   while (currentStartDate.isBefore(endDate)) {
     let currentEndDate = currentStartDate.endOf(timeView).tz(timeZone);
 
-    // Adjust week boundaries based on weekStart parameter
+    // Adjust week end based on weekStart: a week starting on day N ends 6 days later
     if (timeView === "week") {
       const weekStartNum =
         {
@@ -62,10 +62,10 @@ export const getDateRanges = ({
           Saturday: 6,
         }[weekStart] ?? 0;
 
-      currentEndDate = currentEndDate.add(weekStartNum, "day");
-      if (currentEndDate.subtract(7, "day").isAfter(currentStartDate)) {
-        currentEndDate = currentEndDate.subtract(7, "day");
-      }
+      // Day.js endOf("week") always ends on Saturday; shift to the correct end day
+      const currentDayNum = currentStartDate.day();
+      const daysUntilEnd = (weekStartNum + 6 - currentDayNum + 7) % 7;
+      currentEndDate = currentStartDate.add(daysUntilEnd, "day").endOf("day").tz(timeZone);
     }
 
     if (currentEndDate.isAfter(endDate)) {
