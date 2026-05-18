@@ -1,3 +1,4 @@
+import { MembershipRole } from "@calcom/prisma/enums";
 import { z } from "zod";
 
 const slugSchema = z
@@ -18,5 +19,29 @@ export const ZUpdateOrganizationInputSchema = z.object({
   bio: z.string().trim().max(500).optional().nullable(),
 });
 
+export const ZListMembersInputSchema = z.object({
+  search: z.string().optional(),
+  cursor: z.number().optional(),
+  limit: z.number().min(1).max(100).optional(),
+});
+
+export const ZInviteMemberInputSchema = z.object({
+  email: z.string().email(),
+  role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN]).optional(),
+});
+
+export const ZRemoveMemberInputSchema = z.object({
+  userId: z.number(),
+});
+
+export const ZUpdateMemberRoleInputSchema = z.object({
+  userId: z.number(),
+  role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN]),
+});
+
 export type TCreateOrganizationInputSchema = z.infer<typeof ZCreateOrganizationInputSchema>;
 export type TUpdateOrganizationInputSchema = z.infer<typeof ZUpdateOrganizationInputSchema>;
+export type TListMembersInputSchema = z.infer<typeof ZListMembersInputSchema>;
+export type TInviteMemberInputSchema = z.infer<typeof ZInviteMemberInputSchema>;
+export type TRemoveMemberInputSchema = z.infer<typeof ZRemoveMemberInputSchema>;
+export type TUpdateMemberRoleInputSchema = z.infer<typeof ZUpdateMemberRoleInputSchema>;

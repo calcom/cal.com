@@ -149,8 +149,7 @@ const getTabs = (
           ? [
               {
                 name: "members",
-                href: `${WEBAPP_URL}/settings/organizations/${orgBranding?.slug}/members`,
-                isExternalLink: true,
+                href: "/settings/organizations/members",
                 trackingMetadata: { section: "organization", page: "members" },
               },
             ]
