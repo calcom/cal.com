@@ -6,7 +6,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@calcom/ui/components/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Form, TextField, SelectField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useState } from "react";
@@ -71,7 +71,7 @@ export default function OrganizationMembersPage() {
     <SettingsHeader title={t("members")} description="Manage organization members." borderInShellHeader={true}>
       <div className="border-subtle border-x border-y-0 px-4 py-6 sm:px-6">
         <div className="mb-4 flex justify-end">
-          <Button onClick={() => setInviteOpen(true)}>Invite member</Button>
+          <Button data-testid="invite-member-btn" onClick={() => setInviteOpen(true)}>Invite member</Button>
         </div>
 
         {isLoading ? (
@@ -103,6 +103,7 @@ export default function OrganizationMembersPage() {
                 />
                 {m.role !== MembershipRole.OWNER && (
                   <Button
+                    data-testid={`remove-member-${m.user.id}`}
                     variant="destructive"
                     size="sm"
                     disabled={removeMutation.isPending}
@@ -118,9 +119,7 @@ export default function OrganizationMembersPage() {
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Invite member</DialogTitle>
-          </DialogHeader>
+          <DialogHeader title="Invite member" />
           <Form
             form={form}
             handleSubmit={(values) =>
@@ -129,6 +128,7 @@ export default function OrganizationMembersPage() {
             <div className="space-y-4 py-2">
               <TextField
                 {...form.register("email", { required: true })}
+                data-testid="invite-email-input"
                 label="Email address"
                 placeholder="member@example.com"
                 type="email"
@@ -146,7 +146,7 @@ export default function OrganizationMembersPage() {
               <Button variant="minimal" onClick={() => setInviteOpen(false)}>
                 {t("cancel")}
               </Button>
-              <Button type="submit" loading={inviteMutation.isPending}>
+              <Button data-testid="send-invite-btn" type="submit" loading={inviteMutation.isPending}>
                 Send invite
               </Button>
             </DialogFooter>

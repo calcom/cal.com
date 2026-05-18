@@ -49,7 +49,7 @@ export default function OrganizationInvitesPage() {
         ) : (
           <ul className="divide-subtle divide-y">
             {pendingInvites.map(({ team }) => (
-              <li key={team.id} className="flex items-center gap-3 py-4">
+              <li key={team.id} data-testid={`invite-item-${team.id}`} className="flex items-center gap-3 py-4">
                 <Avatar
                   alt={team.name}
                   imageSrc={team.logoUrl ?? undefined}
@@ -62,6 +62,7 @@ export default function OrganizationInvitesPage() {
                 </div>
                 <div className="flex shrink-0 gap-2">
                   <Button
+                    data-testid={`decline-invite-${team.id}`}
                     variant="minimal"
                     size="sm"
                     disabled={isBusy}
@@ -69,6 +70,7 @@ export default function OrganizationInvitesPage() {
                     {t("decline")}
                   </Button>
                   <Button
+                    data-testid={`accept-invite-${team.id}`}
                     size="sm"
                     disabled={isBusy}
                     loading={acceptMutation.isPending}

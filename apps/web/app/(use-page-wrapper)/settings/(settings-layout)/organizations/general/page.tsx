@@ -107,6 +107,7 @@ export default function OrganizationGeneralPage() {
         <div className="border-subtle space-y-6 border-x border-y-0 px-4 py-8 sm:px-6">
           <TextField
             {...form.register("name", { required: true })}
+            data-testid="org-name-input"
             label={t("organization_name")}
             placeholder={t("organization_name")}
             disabled={!canUpdate || isLoading}
@@ -114,6 +115,7 @@ export default function OrganizationGeneralPage() {
           />
 
           <TextField
+            data-testid="org-slug-input"
             {...form.register("slug", {
               required: true,
               onChange: (event) => {
@@ -142,7 +144,7 @@ export default function OrganizationGeneralPage() {
           )}
         </div>
         <SectionBottomActions align="end">
-          <Button type="submit" loading={isSaving} disabled={isSubmitDisabled}>
+          <Button data-testid="org-submit-btn" type="submit" loading={isSaving} disabled={isSubmitDisabled}>
             {organization ? t("save") : t("create_org")}
           </Button>
         </SectionBottomActions>

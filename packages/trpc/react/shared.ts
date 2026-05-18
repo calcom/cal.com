@@ -22,6 +22,7 @@ export const ENDPOINTS = [
   "i18n",
   "me",
   "ooo",
+  "organizations",
   "payments",
   "public",
   "timezones",

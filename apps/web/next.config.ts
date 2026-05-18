@@ -610,11 +610,6 @@ const nextConfig = (phase: string): NextConfig => {
           permanent: true,
         },
         {
-          source: "/settings/organizations/members",
-          destination: "/members",
-          permanent: true,
-        },
-        {
           source: "/settings/admin/apps",
           destination: "/settings/admin/apps/calendar",
           permanent: true,
