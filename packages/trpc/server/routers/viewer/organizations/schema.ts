@@ -39,9 +39,14 @@ export const ZUpdateMemberRoleInputSchema = z.object({
   role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN]),
 });
 
+export const ZAcceptDeclineInviteInputSchema = z.object({
+  teamId: z.number(),
+});
+
 export type TCreateOrganizationInputSchema = z.infer<typeof ZCreateOrganizationInputSchema>;
 export type TUpdateOrganizationInputSchema = z.infer<typeof ZUpdateOrganizationInputSchema>;
 export type TListMembersInputSchema = z.infer<typeof ZListMembersInputSchema>;
 export type TInviteMemberInputSchema = z.infer<typeof ZInviteMemberInputSchema>;
 export type TRemoveMemberInputSchema = z.infer<typeof ZRemoveMemberInputSchema>;
 export type TUpdateMemberRoleInputSchema = z.infer<typeof ZUpdateMemberRoleInputSchema>;
+export type TAcceptDeclineInviteInputSchema = z.infer<typeof ZAcceptDeclineInviteInputSchema>;

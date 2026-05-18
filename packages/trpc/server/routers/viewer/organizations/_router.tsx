@@ -1,6 +1,7 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import {
+  ZAcceptDeclineInviteInputSchema,
   ZCreateOrganizationInputSchema,
   ZInviteMemberInputSchema,
   ZListMembersInputSchema,
@@ -50,5 +51,23 @@ export const organizationsRouter = router({
     const { updateMemberRoleHandler } = await import("./updateMemberRole.handler");
 
     return updateMemberRoleHandler({ ctx, input });
+  }),
+
+  listPendingInvites: authedProcedure.query(async ({ ctx }) => {
+    const { listPendingInvitesHandler } = await import("./listPendingInvites.handler");
+
+    return listPendingInvitesHandler({ ctx });
+  }),
+
+  acceptInvite: authedProcedure.input(ZAcceptDeclineInviteInputSchema).mutation(async ({ ctx, input }) => {
+    const { acceptInviteHandler } = await import("./acceptInvite.handler");
+
+    return acceptInviteHandler({ ctx, input });
+  }),
+
+  declineInvite: authedProcedure.input(ZAcceptDeclineInviteInputSchema).mutation(async ({ ctx, input }) => {
+    const { declineInviteHandler } = await import("./declineInvite.handler");
+
+    return declineInviteHandler({ ctx, input });
   }),
 });

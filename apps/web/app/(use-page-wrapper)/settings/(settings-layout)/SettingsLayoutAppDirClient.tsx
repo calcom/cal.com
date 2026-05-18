@@ -145,6 +145,11 @@ const getTabs = (
           name: "guest_notifications",
           href: "/settings/organizations/guest-notifications",
         },
+        {
+          name: "invites",
+          href: "/settings/organizations/invites",
+          trackingMetadata: { section: "organization", page: "invites" },
+        },
         ...(orgBranding
           ? [
               {
@@ -266,7 +271,7 @@ interface SettingsPermissions {
   canUpdateOrganization?: boolean;
 }
 
-const availableOrganizationSettingsPages = new Set(["profile", "general"]);
+const availableOrganizationSettingsPages = new Set(["profile", "general", "invites", "members"]);
 
 const useTabs = ({
   isDelegationCredentialEnabled,
@@ -279,6 +284,8 @@ const useTabs = ({
 }) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
+  const { data: pendingInvites } = trpc.viewer.organizations.listPendingInvites.useQuery();
+  const pendingInviteCount = pendingInvites?.length ?? 0;
   const organization = user?.organization;
   const orgBranding =
     organization && !organization.isPlatform && organization.id > 0 && "name" in organization
@@ -351,9 +358,16 @@ const useTabs = ({
           }
         }
 
+        const childrenWithBadges = newArray.map((child) => {
+          if (child.name === "invites" && pendingInviteCount > 0) {
+            return { ...child, isBadged: true };
+          }
+          return child;
+        });
+
         return {
           ...tab,
-          children: newArray,
+          children: childrenWithBadges,
           name: orgBranding?.name || "organization",
           avatar: getPlaceholderAvatar(orgBranding?.logoUrl, orgBranding?.name),
         };
@@ -384,7 +398,7 @@ const useTabs = ({
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, user, isDelegationCredentialEnabled, isPbacEnabled, permissions]);
+  }, [isAdmin, orgBranding, user, isDelegationCredentialEnabled, isPbacEnabled, permissions, pendingInviteCount]);
 
   return processTabsMemod;
 };
