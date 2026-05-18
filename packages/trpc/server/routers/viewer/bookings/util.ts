@@ -1,11 +1,12 @@
 import { prisma } from "@calcom/prisma";
+import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import type {
   Booking,
   EventType,
   BookingReference,
   Attendee,
-  Credential,
   DestinationCalendar,
+  Prisma,
   User,
 } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -14,6 +15,10 @@ import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { commonBookingSchema } from "./types";
+
+type SafeCredential = Prisma.CredentialGetPayload<{
+  select: typeof safeCredentialSelect;
+}>;
 
 export const bookingsProcedure = authedProcedure
   .input(commonBookingSchema)
@@ -39,7 +44,9 @@ export const bookingsProcedure = authedProcedure
       user: {
         include: {
           destinationCalendar: true,
-          credentials: true,
+          credentials: {
+            select: safeCredentialSelect,
+          },
           profiles: {
             select: {
               organizationId: true,
@@ -114,7 +121,7 @@ export type BookingsProcedureContext = {
     user:
       | (User & {
           destinationCalendar: DestinationCalendar | null;
-          credentials: Credential[];
+          credentials: SafeCredential[];
           profiles: { organizationId: number }[];
         })
       | null;

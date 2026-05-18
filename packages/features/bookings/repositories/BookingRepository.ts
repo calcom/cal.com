@@ -3,7 +3,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Booking, Prisma } from "@calcom/prisma/client";
 import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
 import { bookingDetailsSelect, bookingMinimalSelect } from "@calcom/prisma/selects/booking";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { credentialForCalendarServiceSelect, safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import type {
   BookingUpdateData,
   BookingWhereInput,
@@ -1668,7 +1668,9 @@ export class BookingRepository implements IBookingRepository {
         user: {
           include: {
             destinationCalendar: true,
-            credentials: true,
+            credentials: {
+              select: safeCredentialSelect,
+            },
             profiles: {
               select: {
                 organizationId: true,
