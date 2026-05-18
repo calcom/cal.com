@@ -83,7 +83,7 @@ export const VerifyCodeDialog = ({
   useEffect(() => setValue(""), [isOpenDialog]);
 
   const digitClassName =
-    "h-12 w-12 text-center text-xl! text-emphasis caret-emphasis [-webkit-text-fill-color:currentColor]";
+    "h-12 w-12 text-center text-xl! text-emphasis caret-emphasis [-webkit-text-fill-color:var(--cal-text-emphasis)]";
 
   return (
     <Dialog
