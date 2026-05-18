@@ -87,7 +87,12 @@ export class InsightsRoutingBaseService {
   }) {}
 
   async getRoutingFormStats() {
-    return { data: [], total: 0 };
+    return {
+      data: [] as InsightsRoutingTableItem[],
+      total: 0,
+      totalWithoutBooking: 0,
+      totalWithBooking: 0,
+    };
   }
 
   async getTableData(_params: { sorting?: unknown; limit?: number; offset?: number }) {
