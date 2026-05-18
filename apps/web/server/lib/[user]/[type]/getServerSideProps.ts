@@ -52,18 +52,18 @@ async function processReschedule({
 
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
 
-  if (booking?.eventType?.disableRescheduling) {
+  // if no booking found, return 404 immediately.
+  if (booking === null) {
+    return { notFound: true } as const;
+  }
+
+  if (booking.eventType?.disableRescheduling) {
     return {
       redirect: {
         destination: `/booking/${rescheduleUid}`,
         permanent: false,
       },
     };
-  }
-
-  // if no booking found, return 404 immediately.
-  if (booking === null) {
-    return { notFound: true } as const;
   }
 
   // if no eventTypeId (dynamic) or it matches this eventData - return void (success).

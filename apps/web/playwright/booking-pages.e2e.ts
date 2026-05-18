@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { randomString } from "@calcom/lib/random";
@@ -187,6 +188,27 @@ test.describe("pro user", () => {
     const [pro] = users.get();
     const unexistingPageUrl = new URL(`${pro.username}/invalid-event-type`, WEBAPP_URL);
     const response = await page.goto(unexistingPageUrl.href);
+    expect(response?.status()).toBe(404);
+  });
+
+  /**
+   * Verifies that navigating to a booking page with an unknown `rescheduleUid`
+   * returns a 404 HTTP response instead of silently opening the normal booking
+   * flow. This guards against the regression introduced when `processReschedule`
+   * did not check whether the booking lookup returned `null`.
+   */
+  test("should return 404 when rescheduleUid does not correspond to a real booking", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const unknownUid = `missing-${uuidv4()}`;
+
+    const response = await page.goto(
+      `/${user.username}/${eventType.slug}?rescheduleUid=${unknownUid}&bookingUid=null`
+    );
+
     expect(response?.status()).toBe(404);
   });
 
