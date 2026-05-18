@@ -37,4 +37,5 @@ export const ENDPOINTS = [
   "credits",
   "filterSegments",
   "phoneNumber",
+  "teams",
 ] as const;
