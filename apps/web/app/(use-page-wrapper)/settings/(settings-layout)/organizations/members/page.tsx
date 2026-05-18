@@ -105,7 +105,7 @@ export default function OrganizationMembersPage() {
                 {m.role !== MembershipRole.OWNER && (
                   <Button
                     data-testid={`remove-member-${m.user.id}`}
-                    variant="destructive"
+                    color="destructive"
                     size="sm"
                     disabled={removeMutation.isPending}
                     onClick={() => removeMutation.mutate({ userId: m.user.id })}>
@@ -144,7 +144,7 @@ export default function OrganizationMembersPage() {
               />
             </div>
             <DialogFooter>
-              <Button variant="minimal" onClick={() => setInviteOpen(false)}>
+              <Button color="minimal" onClick={() => setInviteOpen(false)}>
                 {t("cancel")}
               </Button>
               <Button data-testid="send-invite-btn" type="submit" loading={inviteMutation.isPending}>

@@ -63,7 +63,7 @@ export default function OrganizationInvitesPage() {
                 <div className="flex shrink-0 gap-2">
                   <Button
                     data-testid={`decline-invite-${team.id}`}
-                    variant="minimal"
+                    color="minimal"
                     size="sm"
                     disabled={isBusy}
                     onClick={() => declineMutation.mutate({ teamId: team.id })}>
