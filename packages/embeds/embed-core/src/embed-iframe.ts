@@ -419,8 +419,10 @@ export const methods = {
   },
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
-    // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
-    // Embed background must still remain transparent
+    if (!isPrerendering()) {
+      makeBodyVisible();
+    }
+
     runAsap(function tryInformingLinkReady() {
       if (!isLinkReady({ embedStore })) {
         runAsap(tryInformingLinkReady);
@@ -433,7 +435,6 @@ export const methods = {
         return;
       }
 
-      makeBodyVisible();
       log("renderState is 'completed'");
       embedStore.renderState = "completed";
       if (isPrerendering()) {

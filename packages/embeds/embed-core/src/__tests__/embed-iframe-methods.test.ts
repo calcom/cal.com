@@ -107,5 +107,17 @@ describe("embed-iframe.methods", async () => {
             nextTick();
             expect(embedStore.renderState).toBe("completed");
         });
+
+        it("should make the body visible before linkReady completes for non-prerendered embeds", () => {
+            document.body.style.visibility = "hidden";
+            document.body.style.opacity = "0";
+            isLinkReadyMock?.mockReturnValue(false);
+
+            methods.parentKnowsIframeReady({});
+
+            expect(document.body.style.visibility).toBe("visible");
+            expect(document.body.style.opacity).toBe("1");
+            expect(embedStore.renderState).not.toBe("completed");
+        });
     });
 });

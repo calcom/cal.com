@@ -424,6 +424,19 @@ export class Cal {
     this.resetQueue();
   }
 
+  markEmbedUiReady() {
+    if (this.isPrerendering) {
+      return;
+    }
+
+    if (this.iframe) {
+      this.iframe.style.visibility = "";
+    }
+
+    this.modalBox?.setAttribute("state", "loaded");
+    this.inlineEl?.setAttribute("loading", "done");
+  }
+
   constructor(namespace: string, q: Queue) {
     this.__config = {
       // Use WEBAPP_URL till full page reload problem with website URL is solved
@@ -469,6 +482,7 @@ export class Cal {
         // Imp: Don't use visibility:visible as that would make the iframe show even if the host element(A parent of the iframe) has visibility:hidden set. Just reset the visibility to default
         this.iframe.style.visibility = "";
       }
+      this.markEmbedUiReady();
       this.doInIframe({ method: "parentKnowsIframeReady" } as const);
       this.iframeDoQueue.forEach((doInIframeArg) => {
         this.doInIframe(doInIframeArg);
@@ -491,19 +505,7 @@ export class Cal {
     this.actionManager.on("__scrollByDistance", getScrollByDistanceHandler(this));
 
     this.actionManager.on("linkReady", () => {
-      if (this.isPrerendering) {
-        // Ensure that we don't mark embed as loaded if it's prerendering otherwise prerendered embed could show-up without any user action
-        // linkReady event isn't received anyway by parent as it isn't whitelisted to be sent to parent but it is a safe guard
-        return;
-      }
-      if (this.iframe) {
-        this.iframe.style.visibility = "";
-      }
-
-      // Removes the loader
-      // TODO: We should be using consistent approach of "state" attribute for modalBox and inlineEl.
-      this.modalBox?.setAttribute("state", "loaded");
-      this.inlineEl?.setAttribute("loading", "done");
+      this.markEmbedUiReady();
     });
 
     this.actionManager.on("linkFailed", (e) => {

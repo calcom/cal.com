@@ -364,6 +364,21 @@ describe("Cal", () => {
       });
     });
 
+    it("should stop showing the outer loader as soon as the iframe handshake completes", () => {
+      calInstance.api.modal(baseModalArgs);
+
+      const modalBox = expectCalModalBoxToBeInDocument({
+        theme: "light",
+        layout: "modern",
+        pageType: null,
+        state: initialStateOfModal,
+      });
+
+      calInstance.actionManager.fire("__iframeReady", { isPrerendering: false });
+
+      expect(modalBox.getAttribute("state")).toBe("loaded");
+    });
+
     describe("Prerendering", () => {
       it("should create modal having iframe with correct attributes when in prerendering mode", () => {
         const modalArg = {

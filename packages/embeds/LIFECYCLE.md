@@ -53,8 +53,8 @@ The embed system carefully manages visibility to prevent visual glitches:
 
 1. **Initial Creation**: Both iframe and body start hidden while the page loads
 2. **After Communication Established**: iframe becomes visible once it's ready to communicate
-3. **After Content Ready**: Loader is removed and iframe is fully visible
-4. **After Parent Acknowledges**: Body content becomes visible, background stays transparent
+3. **After Parent Acknowledges**: Non-prerendered embeds reveal their in-iframe UI immediately, while keeping the final `linkReady` completion signal for full readiness
+4. **After Content Ready**: Final readiness events fire and any remaining outer loading affordances stay cleared
 
 ## Event Details
 
@@ -88,12 +88,12 @@ The embed system carefully manages visibility to prevent visual glitches:
    - Fired by: Iframe
    - Indicates: iframe content is fully ready for user interaction
    - Requirements: Content height is known, and for booker pages, slots are loaded (if skeleton loader is used)
-   - Actions: Parent removes loader and makes iframe visible
+   - Actions: Signals full readiness after the initial UI is already visible
 
 7. **parentKnowsIframeReady Event**
    - Fired by: Parent
    - Indicates: Parent acknowledges that iframe is ready
-   - Actions: Makes body content visible
+   - Actions: Makes body content visible for non-prerendered embeds
    - Note: During prerendering, this triggers linkPrerendered event instead
 
 8. **__connectInitiated Event**
