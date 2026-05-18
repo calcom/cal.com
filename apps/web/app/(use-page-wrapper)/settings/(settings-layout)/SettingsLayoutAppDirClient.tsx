@@ -287,12 +287,12 @@ const useTabs = ({
   const pendingInviteCount = pendingInvites?.length ?? 0;
   const organization = user?.organization;
   const orgBranding =
-    organization && !organization.isPlatform && organization.id > 0 && "name" in organization
+    organization && !organization.isPlatform && organization.id != null && organization.id > 0 && "name" in organization
       ? {
-          id: organization.id,
+          id: organization.id ?? undefined,
           slug: organization.slug ?? undefined,
           name: organization.name ?? undefined,
-          logoUrl: "logoUrl" in organization ? organization.logoUrl ?? null : null,
+          logoUrl: "logoUrl" in organization ? (organization.logoUrl as string | null) ?? null : null,
         }
       : null;
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;

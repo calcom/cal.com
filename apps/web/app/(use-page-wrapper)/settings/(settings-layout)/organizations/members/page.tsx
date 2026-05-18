@@ -12,9 +12,11 @@ import { showToast } from "@calcom/ui/components/toast";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+type InviteRole = typeof MembershipRole.MEMBER | typeof MembershipRole.ADMIN;
+
 type InviteFormValues = {
   email: string;
-  role: MembershipRole.MEMBER | MembershipRole.ADMIN;
+  role: InviteRole;
 };
 
 const getRoleOptions = (t: (key: string) => string) => [
