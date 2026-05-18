@@ -44,7 +44,7 @@ export default function OrganizationProfilePage() {
             </p>
 
             <div className="flex flex-wrap gap-2 pt-2">
-              <Button href="/teams">{t("members")}</Button>
+              <Button href="/settings/organizations/members">{t("members")}</Button>
               <Button href="/event-types" color="secondary">
                 {t("event_types_page_title")}
               </Button>

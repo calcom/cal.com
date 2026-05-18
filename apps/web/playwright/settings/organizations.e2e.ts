@@ -54,7 +54,7 @@ test.describe("Organization Settings", () => {
     await page.waitForLoadState("networkidle");
 
     await expect(page.getByTestId("invite-member-btn")).toBeVisible();
-    await expect(page.getByText(owner.name ?? owner.username ?? "")).toBeVisible();
+    await expect(page.locator("ul li").filter({ hasText: owner.name ?? owner.username ?? "" })).toBeVisible();
   });
 
   test("owner can invite existing member and member sees pending invite", async ({
@@ -135,6 +135,17 @@ test.describe("Organization Settings", () => {
       where: { userId_teamId: { userId: invitee.id, teamId: org.id } },
     });
     expect(membership?.accepted).toBe(true);
+
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: invitee.id },
+      select: { organizationId: true },
+    });
+    expect(updatedUser?.organizationId).toBe(org.id);
+
+    const profile = await prisma.profile.findFirst({
+      where: { userId: invitee.id, organizationId: org.id },
+    });
+    expect(profile).not.toBeNull();
   });
 
   test("invitee can decline an org invite", async ({ page, users, orgs }) => {

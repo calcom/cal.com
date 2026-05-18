@@ -33,9 +33,18 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberHandlerOpt
     throw new TRPCError({ code: "FORBIDDEN", message: "Cannot remove the organization owner." });
   }
 
-  await prisma.membership.delete({
-    where: { userId_teamId: { userId: input.userId, teamId: membership.team.id } },
-  });
+  await prisma.$transaction([
+    prisma.membership.delete({
+      where: { userId_teamId: { userId: input.userId, teamId: membership.team.id } },
+    }),
+    prisma.profile.deleteMany({
+      where: { userId: input.userId, organizationId: membership.team.id },
+    }),
+    prisma.user.updateMany({
+      where: { id: input.userId, organizationId: membership.team.id },
+      data: { organizationId: null },
+    }),
+  ]);
 
   return { success: true };
 };

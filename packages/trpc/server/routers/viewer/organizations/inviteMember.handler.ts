@@ -21,13 +21,20 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberHandlerOpt
 
   const invitee = await prisma.user.findUnique({
     where: { email: input.email.toLowerCase() },
-    select: { id: true, name: true, email: true, locale: true },
+    select: { id: true, name: true, email: true, locale: true, organizationId: true },
   });
 
   if (!invitee) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "No user found with that email. They must have a Cal.diy account first.",
+    });
+  }
+
+  if (invitee.organizationId) {
+    throw new TRPCError({
+      code: "CONFLICT",
+      message: "This user already belongs to an organization.",
     });
   }
 
