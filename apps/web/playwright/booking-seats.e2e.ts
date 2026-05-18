@@ -602,6 +602,13 @@ test.describe("Reschedule for booking with seats", () => {
     await expect(page).toHaveURL(/\/booking\/.*/);
   });
 
+
+  /**
+   * Verifies that navigating to a booking page with an unknown `rescheduleUid`
+   * returns a 404 HTTP response instead of silently opening the normal booking
+   * flow. This guards against the regression introduced when `processReschedule`
+   * did not check whether the booking lookup returned `null`.
+   */
   test("should return 404 when rescheduleUid does not correspond to a real booking", async ({
     page,
     users,

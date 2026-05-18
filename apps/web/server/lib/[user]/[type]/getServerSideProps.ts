@@ -28,6 +28,15 @@ type Props = {
   orgBannerUrl: null;
 };
 
+/**
+ * Processes a reschedule request for a booking page.
+ *
+ * Looks up the existing booking by `rescheduleUid`. Returns `{ notFound: true }`
+ * when the UID does not correspond to any existing booking, preventing unknown
+ * UIDs from silently falling through to the normal booking flow. Returns a
+ * redirect when the booking belongs to a different event type, and returns
+ * `void` (mutating `props`) on success so the caller can proceed with rendering.
+ */
 async function processReschedule({
   props,
   rescheduleUid,
@@ -91,6 +100,13 @@ async function processReschedule({
   };
 }
 
+/**
+ * Processes a seated-event booking lookup for a booking page.
+ *
+ * Fetches the existing booking by `bookingUid` and attaches it to `props` so
+ * the booker UI can display the correct seat-reservation context. When
+ * `bookingUid` is absent the function is a no-op.
+ */
 async function processSeatedEvent({
   props,
   bookingUid,
@@ -115,6 +131,13 @@ async function processSeatedEvent({
   }
 }
 
+/**
+ * Fetches server-side props for a dynamic group booking page (multiple usernames joined by "+").
+ *
+ * Validates that all users in the group exist and that the requested event type is found.
+ * Handles org-domain redirects, reschedule flows, and seated-event lookups before returning
+ * the serialized `Props` for the booker UI.
+ */
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession({ req: context.req });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
@@ -213,6 +236,14 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   };
 }
 
+/**
+ * Fetches server-side props for a single-user booking page.
+ *
+ * Resolves the user and event type from the URL params, applies org-domain
+ * redirects when necessary, and populates SEO/branding fields. Delegates
+ * reschedule and seated-event lookups to `processReschedule` and
+ * `processSeatedEvent` respectively before returning the serialized `Props`.
+ */
 async function getUserPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession({ req: context.req });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
@@ -313,8 +344,14 @@ const paramsSchema = z.object({
   user: z.string().transform((s) => getUsernameList(s)),
 });
 
-// Booker page fetches a tiny bit of data server side, to determine early
-// whether the page should show an away state or dynamic booking not allowed.
+/**
+ * Next.js `getServerSideProps` entry point for the `[user]/[type]` booking page.
+ *
+ * Delegates to `getDynamicGroupPageProps` for multi-user (dynamic group) URLs and
+ * to `getUserPageProps` for standard single-user URLs. Fetches a small amount of
+ * data server-side to determine early whether the page should show an away state
+ * or whether dynamic booking is disallowed.
+ */
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.length > 1;
