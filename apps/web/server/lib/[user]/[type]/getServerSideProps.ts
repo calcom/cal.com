@@ -52,9 +52,13 @@ async function processReschedule({
     };
   }
 
-  // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
+  // if no booking found, return 404 immediately.
+  if (booking === null) {
+    return { notFound: true } as const;
+  }
+
+  // if no eventTypeId (dynamic) or it matches this eventData - return void (success).
   if (
-    booking === null ||
     !booking.eventTypeId ||
     (booking?.eventTypeId === props.eventData?.id &&
       (booking.status !== BookingStatus.CANCELLED ||

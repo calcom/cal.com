@@ -602,5 +602,18 @@ test.describe("Reschedule for booking with seats", () => {
     await expect(page).toHaveURL(/\/booking\/.*/);
   });
 
-  // @TODO: force 404 when rescheduleUid is not found
+  test("should return 404 when rescheduleUid does not correspond to a real booking", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const unknownUid = `missing-${uuidv4()}`;
+
+    const response = await page.goto(
+      `/${user.username}/${eventType.slug}?rescheduleUid=${unknownUid}&bookingUid=null`
+    );
+
+    expect(response?.status()).toBe(404);
+  });
 });
