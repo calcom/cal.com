@@ -1,9 +1,17 @@
 // Routing forms have been removed from this fork.
 // These are stub implementations that return empty data.
 
+type RoutingFormForFilters = {
+  id: string;
+  name: string;
+  _count: {
+    responses: number;
+  };
+};
+
 class RoutingEventsInsightsStub {
   static async getRoutingFormsForFilters(_input: unknown) {
-    return [];
+    return [] as RoutingFormForFilters[];
   }
 
   static async getRoutingFormHeaders(_input: unknown) {
