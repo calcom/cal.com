@@ -11,7 +11,7 @@ interface RoutingFunnelData {
   acceptedBookings: number;
 }
 
-type LegendKey = "totalSubmissions" | "successfulRoutings" | "acceptedBookings";
+export type LegendKey = "totalSubmissions" | "successfulRoutings" | "acceptedBookings";
 
 interface RoutingFunnelContentProps {
   data: RoutingFunnelData[];
