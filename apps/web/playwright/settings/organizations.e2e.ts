@@ -1,8 +1,6 @@
-import { expect } from "@playwright/test";
-
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
 import { test } from "../lib/fixtures";
 
 test.describe.configure({ mode: "serial" });
