@@ -19,7 +19,7 @@ export default function OrganizationInvitesPage() {
     onSuccess: async () => {
       await utils.viewer.organizations.listPendingInvites.invalidate();
       await utils.viewer.me.get.invalidate();
-      showToast("You have joined the organization.", "success");
+      showToast(t("org_invite_joined"), "success");
       router.push("/settings/organizations/general");
     },
     onError: (err) => showToast(err.message, "error"),
@@ -28,7 +28,7 @@ export default function OrganizationInvitesPage() {
   const declineMutation = trpc.viewer.organizations.declineInvite.useMutation({
     onSuccess: async () => {
       await utils.viewer.organizations.listPendingInvites.invalidate();
-      showToast("Invite declined.", "success");
+      showToast(t("invite_declined"), "success");
     },
     onError: (err) => showToast(err.message, "error"),
   });
@@ -38,14 +38,14 @@ export default function OrganizationInvitesPage() {
 
   return (
     <SettingsHeader
-      title="Organization invites"
-      description="Pending invitations to join an organization."
+      title={t("org_invites")}
+      description={t("org_invites_description")}
       borderInShellHeader={true}>
       <div className="border-subtle border-x border-y-0 px-4 py-6 sm:px-6">
         {isLoading ? (
-          <p className="text-subtle text-sm">Loading...</p>
+          <p className="text-subtle text-sm">{t("loading")}</p>
         ) : pendingInvites.length === 0 ? (
-          <p className="text-subtle text-sm">No pending invites.</p>
+          <p className="text-subtle text-sm">{t("no_pending_invites")}</p>
         ) : (
           <ul className="divide-subtle divide-y">
             {pendingInvites.map(({ team }) => (

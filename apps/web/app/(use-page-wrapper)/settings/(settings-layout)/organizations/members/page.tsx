@@ -17,22 +17,23 @@ type InviteFormValues = {
   role: MembershipRole.MEMBER | MembershipRole.ADMIN;
 };
 
-const roleOptions = [
-  { label: "Member", value: MembershipRole.MEMBER },
-  { label: "Admin", value: MembershipRole.ADMIN },
+const getRoleOptions = (t: (key: string) => string) => [
+  { label: t("member"), value: MembershipRole.MEMBER },
+  { label: t("admin"), value: MembershipRole.ADMIN },
 ];
 
 export default function OrganizationMembersPage() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [inviteOpen, setInviteOpen] = useState(false);
+  const roleOptions = getRoleOptions(t);
 
   const { data, isLoading } = trpc.viewer.organizations.listMembers.useQuery({});
 
   const inviteMutation = trpc.viewer.organizations.inviteMember.useMutation({
     onSuccess: async () => {
       await utils.viewer.organizations.listMembers.invalidate();
-      showToast("Invite sent.", "success");
+      showToast(t("invite_sent"), "success");
       setInviteOpen(false);
       form.reset();
     },
@@ -44,7 +45,7 @@ export default function OrganizationMembersPage() {
   const removeMutation = trpc.viewer.organizations.removeMember.useMutation({
     onSuccess: async () => {
       await utils.viewer.organizations.listMembers.invalidate();
-      showToast("Member removed.", "success");
+      showToast(t("member_removed"), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -68,16 +69,16 @@ export default function OrganizationMembersPage() {
   const members = data?.memberships ?? [];
 
   return (
-    <SettingsHeader title={t("members")} description="Manage organization members." borderInShellHeader={true}>
+    <SettingsHeader title={t("members")} description={t("manage_org_members")} borderInShellHeader={true}>
       <div className="border-subtle border-x border-y-0 px-4 py-6 sm:px-6">
         <div className="mb-4 flex justify-end">
-          <Button data-testid="invite-member-btn" onClick={() => setInviteOpen(true)}>Invite member</Button>
+          <Button data-testid="invite-member-btn" onClick={() => setInviteOpen(true)}>{t("invite_member")}</Button>
         </div>
 
         {isLoading ? (
-          <p className="text-subtle text-sm">Loading...</p>
+          <p className="text-subtle text-sm">{t("loading")}</p>
         ) : members.length === 0 ? (
-          <p className="text-subtle text-sm">No members yet.</p>
+          <p className="text-subtle text-sm">{t("no_members_yet")}</p>
         ) : (
           <ul className="divide-subtle divide-y">
             {members.map((m) => (
@@ -108,7 +109,7 @@ export default function OrganizationMembersPage() {
                     size="sm"
                     disabled={removeMutation.isPending}
                     onClick={() => removeMutation.mutate({ userId: m.user.id })}>
-                    Remove
+                    {t("remove")}
                   </Button>
                 )}
               </li>
@@ -119,7 +120,7 @@ export default function OrganizationMembersPage() {
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
         <DialogContent>
-          <DialogHeader title="Invite member" />
+          <DialogHeader title={t("invite_member")} />
           <Form
             form={form}
             handleSubmit={(values) =>
@@ -129,12 +130,12 @@ export default function OrganizationMembersPage() {
               <TextField
                 {...form.register("email", { required: true })}
                 data-testid="invite-email-input"
-                label="Email address"
+                label={t("email_address")}
                 placeholder="member@example.com"
                 type="email"
               />
               <SelectField
-                label="Role"
+                label={t("role")}
                 options={roleOptions}
                 value={roleOptions.find((o) => o.value === form.watch("role"))}
                 onChange={(opt) => {
@@ -147,7 +148,7 @@ export default function OrganizationMembersPage() {
                 {t("cancel")}
               </Button>
               <Button data-testid="send-invite-btn" type="submit" loading={inviteMutation.isPending}>
-                Send invite
+                {t("send_invite")}
               </Button>
             </DialogFooter>
           </Form>

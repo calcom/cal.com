@@ -12,22 +12,17 @@ type DeclineInviteHandlerOptions = {
 };
 
 export const declineInviteHandler = async ({ ctx, input }: DeclineInviteHandlerOptions) => {
-  const membership = await prisma.membership.findUnique({
-    where: { userId_teamId: { userId: ctx.user.id, teamId: input.teamId } },
-    select: { accepted: true },
+  const { count } = await prisma.membership.deleteMany({
+    where: {
+      userId: ctx.user.id,
+      teamId: input.teamId,
+      accepted: false,
+    },
   });
 
-  if (!membership) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found." });
+  if (count === 0) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found or already accepted." });
   }
-
-  if (membership.accepted) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot decline an already accepted invite." });
-  }
-
-  await prisma.membership.delete({
-    where: { userId_teamId: { userId: ctx.user.id, teamId: input.teamId } },
-  });
 
   return { success: true };
 };

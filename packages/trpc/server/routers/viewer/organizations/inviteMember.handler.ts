@@ -38,26 +38,23 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberHandlerOpt
     });
   }
 
-  const existing = await prisma.membership.findUnique({
-    where: { userId_teamId: { userId: invitee.id, teamId: membership.team.id } },
-    select: { accepted: true },
-  });
-
-  if (existing) {
-    throw new TRPCError({
-      code: "CONFLICT",
-      message: existing.accepted ? "User is already a member." : "Invite already sent.",
+  try {
+    await prisma.membership.create({
+      data: {
+        userId: invitee.id,
+        teamId: membership.team.id,
+        role: input.role ?? MembershipRole.MEMBER,
+        accepted: false,
+      },
     });
+  } catch (err: unknown) {
+    const isPrismaUniqueViolation =
+      typeof err === "object" && err !== null && "code" in err && (err as { code: string }).code === "P2002";
+    if (isPrismaUniqueViolation) {
+      throw new TRPCError({ code: "CONFLICT", message: "Invite already sent or user is already a member." });
+    }
+    throw err;
   }
-
-  await prisma.membership.create({
-    data: {
-      userId: invitee.id,
-      teamId: membership.team.id,
-      role: input.role ?? MembershipRole.MEMBER,
-      accepted: false,
-    },
-  });
 
   const inviteeT = await getTranslation(invitee.locale ?? "en", "common");
 

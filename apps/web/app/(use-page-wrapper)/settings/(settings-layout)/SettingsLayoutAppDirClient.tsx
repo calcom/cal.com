@@ -256,7 +256,6 @@ const getTabs = (
 
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
-const organizationRequiredKeys = ["organization"];
 const organizationAdminKeys = [
   "privacy",
   "privacy_and_security",
@@ -392,7 +391,7 @@ const useTabs = ({
 
     // check if name is in adminRequiredKeys
     return processedTabs.filter((tab) => {
-      if (organizationRequiredKeys.includes(tab.name)) return true;
+      if (tab.href === "/settings/organizations") return true;
       if (tab.name === "other_teams" && !permissions?.canUpdateOrganization) return false;
 
       if (isAdmin) return true;

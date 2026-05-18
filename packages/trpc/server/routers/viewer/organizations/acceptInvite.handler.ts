@@ -30,11 +30,15 @@ export const acceptInviteHandler = async ({ ctx, input }: AcceptInviteHandlerOpt
     throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found." });
   }
 
+  if (!user) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+  }
+
   if (membership.accepted) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Invite already accepted." });
   }
 
-  if (user?.organizationId) {
+  if (user.organizationId) {
     throw new TRPCError({ code: "CONFLICT", message: "You already belong to an organization." });
   }
 

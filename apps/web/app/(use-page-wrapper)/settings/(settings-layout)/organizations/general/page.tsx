@@ -140,7 +140,7 @@ export default function OrganizationGeneralPage() {
           />
 
           {!canUpdate && (
-            <p className="text-sm text-subtle">Only organization owners and admins can update these settings.</p>
+            <p className="text-sm text-subtle">{t("org_admin_only_settings")}</p>
           )}
         </div>
         <SectionBottomActions align="end">

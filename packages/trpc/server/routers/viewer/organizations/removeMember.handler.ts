@@ -20,23 +20,26 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberHandlerOpt
     throw new TRPCError({ code: "BAD_REQUEST", message: "You cannot remove yourself." });
   }
 
-  const target = await prisma.membership.findUnique({
-    where: { userId_teamId: { userId: input.userId, teamId: membership.team.id } },
-    select: { role: true },
+  const { count } = await prisma.membership.deleteMany({
+    where: {
+      userId: input.userId,
+      teamId: membership.team.id,
+      role: { not: MembershipRole.OWNER },
+    },
   });
 
-  if (!target) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Member not found." });
-  }
-
-  if (target.role === MembershipRole.OWNER) {
+  if (count === 0) {
+    const exists = await prisma.membership.findUnique({
+      where: { userId_teamId: { userId: input.userId, teamId: membership.team.id } },
+      select: { role: true },
+    });
+    if (!exists) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Member not found." });
+    }
     throw new TRPCError({ code: "FORBIDDEN", message: "Cannot remove the organization owner." });
   }
 
   await prisma.$transaction([
-    prisma.membership.delete({
-      where: { userId_teamId: { userId: input.userId, teamId: membership.team.id } },
-    }),
     prisma.profile.deleteMany({
       where: { userId: input.userId, organizationId: membership.team.id },
     }),

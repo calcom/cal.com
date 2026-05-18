@@ -19,7 +19,7 @@ export default function OrganizationProfilePage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold text-default">Organization profile</h1>
+        <h1 className="text-2xl font-semibold text-default">{t("organization_profile")}</h1>
         <p className="text-sm text-subtle">{t("profile_org_description")}</p>
       </div>
 
@@ -52,8 +52,8 @@ export default function OrganizationProfilePage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-default">No organization found</h2>
-            <p className="text-sm text-subtle">This account is not currently attached to an organization.</p>
+            <h2 className="text-lg font-semibold text-default">{t("no_organization_found")}</h2>
+            <p className="text-sm text-subtle">{t("not_attached_to_org")}</p>
             <div className="pt-2">
               <Button href="/settings/my-account/profile" color="secondary">
                 {t("profile")}
