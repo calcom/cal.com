@@ -1,17 +1,14 @@
 import { prisma } from "@calcom/prisma";
 import type {
-  Booking,
-  EventType,
-  BookingReference,
   Attendee,
-  Credential,
+  Booking,
+  BookingReference,
   DestinationCalendar,
+  EventType,
   User,
 } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import authedProcedure from "../../../procedures/authedProcedure";
 import { commonBookingSchema } from "./types";
 
@@ -39,7 +36,6 @@ export const bookingsProcedure = authedProcedure
       user: {
         include: {
           destinationCalendar: true,
-          credentials: true,
           profiles: {
             select: {
               organizationId: true,
@@ -114,7 +110,6 @@ export type BookingsProcedureContext = {
     user:
       | (User & {
           destinationCalendar: DestinationCalendar | null;
-          credentials: Credential[];
           profiles: { organizationId: number }[];
         })
       | null;
