@@ -1,12 +1,17 @@
 "use client";
 
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
-import { createContext, useCallback, useContext, useState } from "react";
-import type { ColumnFilter } from "./lib/types";
+import { createContext, useCallback, useContext, useRef, useState } from "react";
+import type { ColumnFilter, FilterValue, SortingState } from "./lib/types";
 
 interface DataTableContextValue {
   timeZone: string;
   columnFilters: ColumnFilter[];
+  sorting: SortingState;
+  limit: number;
+  offset: number;
+  ctaContainerRef: React.RefObject<HTMLDivElement>;
+  updateFilter: (id: string, value: FilterValue) => void;
   removeFilter: (id: string) => void;
   setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFilter[]>>;
 }
@@ -28,6 +33,20 @@ interface DataTableProviderProps {
 
 export function DataTableProvider({ children, timeZone: tz }: DataTableProviderProps) {
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
+  const [sorting] = useState<SortingState>([]);
+  const ctaContainerRef = useRef<HTMLDivElement>(null);
+
+  const updateFilter = useCallback((id: string, value: FilterValue) => {
+    setColumnFilters((prev) => {
+      const nextFilter = { id, value };
+      const existingIndex = prev.findIndex((filter) => filter.id === id);
+      if (existingIndex === -1) return [...prev, nextFilter];
+
+      const next = [...prev];
+      next[existingIndex] = nextFilter;
+      return next;
+    });
+  }, []);
 
   const removeFilter = useCallback((id: string) => {
     setColumnFilters((prev) => prev.filter((f) => f.id !== id));
@@ -38,6 +57,11 @@ export function DataTableProvider({ children, timeZone: tz }: DataTableProviderP
       value={{
         timeZone: tz ?? CURRENT_TIMEZONE,
         columnFilters,
+        sorting,
+        limit: 100,
+        offset: 0,
+        ctaContainerRef,
+        updateFilter,
         removeFilter,
         setColumnFilters,
       }}>
