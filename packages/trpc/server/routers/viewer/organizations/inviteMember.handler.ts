@@ -63,7 +63,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberHandlerOpt
     from: ctx.user.name ?? ctx.user.email,
     to: invitee.email,
     teamName: membership.team.name,
-    joinLink: `${WEBAPP_URL}/settings/organizations/members`,
+    joinLink: `${WEBAPP_URL}/settings/organizations/invites`,
     isCalcomMember: true,
     isAutoJoin: false,
     isOrg: true,
