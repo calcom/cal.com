@@ -7,6 +7,7 @@ export const apiHandlers = {
   applecalendar: import("./applecalendar/api"),
   attio: import("./attio/api"),
   basecamp3: import("./basecamp3/api"),
+  bigbluebuttonvideo: import("./bigbluebuttonvideo/api"),
   btcpayserver: import("./btcpayserver/api"),
   caldavcalendar: import("./caldavcalendar/api"),
   campfire: import("./campfire/api"),
