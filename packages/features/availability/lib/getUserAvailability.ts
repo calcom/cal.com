@@ -6,6 +6,7 @@ import {
   getBusyTimesFromLimits,
   getBusyTimesFromTeamLimits,
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
+import { getWorldCupBusyTimes } from "@calcom/features/busyTimes/lib/getWorldCupBusyTimes";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
@@ -617,6 +618,8 @@ export class UserAvailabilityService {
       };
     }
 
+    const worldCupBusyTimes = getWorldCupBusyTimes(dateFrom.toDate(), dateTo.toDate());
+
     const detailedBusyTimesWithSource: EventBusyDetails[] = [
       ...busyTimes.map((a) => ({
         ...a,
@@ -627,6 +630,7 @@ export class UserAvailabilityService {
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
+      ...worldCupBusyTimes,
     ];
 
     const detailedBusyTimes: UserAvailabilityBusyDetails[] = withSource

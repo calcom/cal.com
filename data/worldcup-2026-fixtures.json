@@ -1,0 +1,42 @@
+{
+  "updatedAt": "2026-05-19T13:07:06Z",
+  "country": "BR",
+  "matches": [
+    {
+      "id": "400021456",
+      "date": "2026-06-13T22:00:00Z",
+      "localDate": "2026-06-13T18:00:00Z",
+      "stage": "First Stage",
+      "group": "Group C",
+      "home": "Brazil",
+      "away": "Morocco",
+      "venue": "New York/New Jersey Stadium",
+      "city": "New York",
+      "status": "live"
+    },
+    {
+      "id": "400021457",
+      "date": "2026-06-20T00:30:00Z",
+      "localDate": "2026-06-19T20:30:00Z",
+      "stage": "First Stage",
+      "group": "Group C",
+      "home": "Brazil",
+      "away": "Haiti",
+      "venue": "Philadelphia Stadium",
+      "city": "Philadelphia",
+      "status": "live"
+    },
+    {
+      "id": "400021455",
+      "date": "2026-06-24T22:00:00Z",
+      "localDate": "2026-06-24T18:00:00Z",
+      "stage": "First Stage",
+      "group": "Group C",
+      "home": "Scotland",
+      "away": "Brazil",
+      "venue": "Miami Stadium",
+      "city": "Miami",
+      "status": "live"
+    }
+  ]
+}
