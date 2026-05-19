@@ -1,0 +1,806 @@
+{
+  "tournament": "FIFA World Cup 2026",
+  "games": [
+    {
+      "id": "WC2026-001",
+      "date": "2026-06-11",
+      "time": "19:00",
+      "timezone": "UTC",
+      "team1": "México",
+      "team2": "África do Sul",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio da Cidade do México",
+      "city": "Cidade do México",
+      "group": "Grupo A"
+    },
+    {
+      "id": "WC2026-002",
+      "date": "2026-06-12",
+      "time": "02:00",
+      "timezone": "UTC",
+      "team1": "República da Coreia",
+      "team2": "Tchéquia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Guadalajara",
+      "city": "Guadalajara",
+      "group": "Grupo A"
+    },
+    {
+      "id": "WC2026-003",
+      "date": "2026-06-12",
+      "time": "19:00",
+      "timezone": "UTC",
+      "team1": "Canadá",
+      "team2": "Bósnia e Herzegovina",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Toronto ",
+      "city": "Toronto",
+      "group": "Grupo B"
+    },
+    {
+      "id": "WC2026-004",
+      "date": "2026-06-13",
+      "time": "01:00",
+      "timezone": "UTC",
+      "team1": "EUA",
+      "team2": "Paraguai",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Los Angeles",
+      "city": "Los Angeles",
+      "group": "Grupo D"
+    },
+    {
+      "id": "WC2026-005",
+      "date": "2026-06-13",
+      "time": "19:00",
+      "timezone": "UTC",
+      "team1": "Catar",
+      "team2": "Suíça",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio da Baía de São Francisco",
+      "city": "Área da baía de São Francisco",
+      "group": "Grupo B"
+    },
+    {
+      "id": "WC2026-006",
+      "date": "2026-06-13",
+      "time": "22:00",
+      "timezone": "UTC",
+      "team1": "Brasil",
+      "team2": "Marrocos",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Nova York/Nova Jersey",
+      "city": "Nova Iorque",
+      "group": "Grupo C"
+    },
+    {
+      "id": "WC2026-007",
+      "date": "2026-06-14",
+      "time": "01:00",
+      "timezone": "UTC",
+      "team1": "Haiti",
+      "team2": "Escócia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Boston",
+      "city": "Boston",
+      "group": "Grupo C"
+    },
+    {
+      "id": "WC2026-008",
+      "date": "2026-06-14",
+      "time": "04:00",
+      "timezone": "UTC",
+      "team1": "Austrália",
+      "team2": "Turquia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "BC Place de Vancouver",
+      "city": "Vancouver",
+      "group": "Grupo D"
+    },
+    {
+      "id": "WC2026-009",
+      "date": "2026-06-14",
+      "time": "17:00",
+      "timezone": "UTC",
+      "team1": "Alemanha",
+      "team2": "Curaçau",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Houston",
+      "city": "Houston",
+      "group": "Grupo E"
+    },
+    {
+      "id": "WC2026-010",
+      "date": "2026-06-14",
+      "time": "20:00",
+      "timezone": "UTC",
+      "team1": "Holanda",
+      "team2": "Japão",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Dallas",
+      "city": "Dallas",
+      "group": "Grupo F"
+    },
+    {
+      "id": "WC2026-011",
+      "date": "2026-06-14",
+      "time": "23:00",
+      "timezone": "UTC",
+      "team1": "Costa do Marfim",
+      "team2": "Equador",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Filadélfia",
+      "city": "Filadélfia",
+      "group": "Grupo E"
+    },
+    {
+      "id": "WC2026-012",
+      "date": "2026-06-15",
+      "time": "02:00",
+      "timezone": "UTC",
+      "team1": "Suécia",
+      "team2": "Tunísia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Monterrey",
+      "city": "Monterrey",
+      "group": "Grupo F"
+    },
+    {
+      "id": "WC2026-013",
+      "date": "2026-06-15",
+      "time": "16:00",
+      "timezone": "UTC",
+      "team1": "Espanha",
+      "team2": "Cabo Verde",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Atlanta",
+      "city": "Atlanta",
+      "group": "Grupo H"
+    },
+    {
+      "id": "WC2026-014",
+      "date": "2026-06-15",
+      "time": "19:00",
+      "timezone": "UTC",
+      "team1": "Bélgica",
+      "team2": "Egito",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Seattle",
+      "city": "Seattle",
+      "group": "Grupo G"
+    },
+    {
+      "id": "WC2026-015",
+      "date": "2026-06-15",
+      "time": "22:00",
+      "timezone": "UTC",
+      "team1": "Arábia Saudita",
+      "team2": "Uruguai",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Miami",
+      "city": "Miami",
+      "group": "Grupo H"
+    },
+    {
+      "id": "WC2026-016",
+      "date": "2026-06-16",
+      "time": "01:00",
+      "timezone": "UTC",
+      "team1": "RI do Irã",
+      "team2": "Nova Zelândia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Los Angeles",
+      "city": "Los Angeles",
+      "group": "Grupo G"
+    },
+    {
+      "id": "WC2026-017",
+      "date": "2026-06-16",
+      "time": "19:00",
+      "timezone": "UTC",
+      "team1": "França",
+      "team2": "Senegal",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Nova York/Nova Jersey",
+      "city": "Nova Iorque",
+      "group": "Grupo I"
+    },
+    {
+      "id": "WC2026-018",
+      "date": "2026-06-16",
+      "time": "22:00",
+      "timezone": "UTC",
+      "team1": "Iraque",
+      "team2": "Noruega",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Boston",
+      "city": "Boston",
+      "group": "Grupo I"
+    },
+    {
+      "id": "WC2026-019",
+      "date": "2026-06-17",
+      "time": "01:00",
+      "timezone": "UTC",
+      "team1": "Argentina",
+      "team2": "Argélia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Kansas City",
+      "city": "Kansas City",
+      "group": "Grupo J"
+    },
+    {
+      "id": "WC2026-020",
+      "date": "2026-06-17",
+      "time": "04:00",
+      "timezone": "UTC",
+      "team1": "Áustria",
+      "team2": "Jordânia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio da Baía de São Francisco",
+      "city": "Área da baía de São Francisco",
+      "group": "Grupo J"
+    },
+    {
+      "id": "WC2026-021",
+      "date": "2026-06-17",
+      "time": "17:00",
+      "timezone": "UTC",
+      "team1": "Portugal",
+      "team2": "RD do Congo",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Houston",
+      "city": "Houston",
+      "group": "Grupo K"
+    },
+    {
+      "id": "WC2026-022",
+      "date": "2026-06-17",
+      "time": "20:00",
+      "timezone": "UTC",
+      "team1": "Inglaterra",
+      "team2": "Croácia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Dallas",
+      "city": "Dallas",
+      "group": "Grupo L"
+    },
+    {
+      "id": "WC2026-023",
+      "date": "2026-06-17",
+      "time": "23:00",
+      "timezone": "UTC",
+      "team1": "Gana",
+      "team2": "Panamá",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Toronto ",
+      "city": "Toronto",
+      "group": "Grupo L"
+    },
+    {
+      "id": "WC2026-024",
+      "date": "2026-06-18",
+      "time": "02:00",
+      "timezone": "UTC",
+      "team1": "Uzbequistão",
+      "team2": "Colômbia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio da Cidade do México",
+      "city": "Cidade do México",
+      "group": "Grupo K"
+    },
+    {
+      "id": "WC2026-025",
+      "date": "2026-06-18",
+      "time": "16:00",
+      "timezone": "UTC",
+      "team1": "Tchéquia",
+      "team2": "África do Sul",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Atlanta",
+      "city": "Atlanta",
+      "group": "Grupo A"
+    },
+    {
+      "id": "WC2026-026",
+      "date": "2026-06-18",
+      "time": "19:00",
+      "timezone": "UTC",
+      "team1": "Suíça",
+      "team2": "Bósnia e Herzegovina",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Los Angeles",
+      "city": "Los Angeles",
+      "group": "Grupo B"
+    },
+    {
+      "id": "WC2026-027",
+      "date": "2026-06-18",
+      "time": "22:00",
+      "timezone": "UTC",
+      "team1": "Canadá",
+      "team2": "Catar",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "BC Place de Vancouver",
+      "city": "Vancouver",
+      "group": "Grupo B"
+    },
+    {
+      "id": "WC2026-028",
+      "date": "2026-06-19",
+      "time": "01:00",
+      "timezone": "UTC",
+      "team1": "México",
+      "team2": "República da Coreia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Guadalajara",
+      "city": "Guadalajara",
+      "group": "Grupo A"
+    },
+    {
+      "id": "WC2026-029",
+      "date": "2026-06-19",
+      "time": "19:00",
+      "timezone": "UTC",
+      "team1": "EUA",
+      "team2": "Austrália",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Seattle",
+      "city": "Seattle",
+      "group": "Grupo D"
+    },
+    {
+      "id": "WC2026-030",
+      "date": "2026-06-19",
+      "time": "22:00",
+      "timezone": "UTC",
+      "team1": "Escócia",
+      "team2": "Marrocos",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Boston",
+      "city": "Boston",
+      "group": "Grupo C"
+    },
+    {
+      "id": "WC2026-031",
+      "date": "2026-06-20",
+      "time": "00:30",
+      "timezone": "UTC",
+      "team1": "Brasil",
+      "team2": "Haiti",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Filadélfia",
+      "city": "Filadélfia",
+      "group": "Grupo C"
+    },
+    {
+      "id": "WC2026-032",
+      "date": "2026-06-20",
+      "time": "03:00",
+      "timezone": "UTC",
+      "team1": "Turquia",
+      "team2": "Paraguai",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio da Baía de São Francisco",
+      "city": "Área da baía de São Francisco",
+      "group": "Grupo D"
+    },
+    {
+      "id": "WC2026-033",
+      "date": "2026-06-20",
+      "time": "17:00",
+      "timezone": "UTC",
+      "team1": "Holanda",
+      "team2": "Suécia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Houston",
+      "city": "Houston",
+      "group": "Grupo F"
+    },
+    {
+      "id": "WC2026-034",
+      "date": "2026-06-20",
+      "time": "20:00",
+      "timezone": "UTC",
+      "team1": "Alemanha",
+      "team2": "Costa do Marfim",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Toronto ",
+      "city": "Toronto",
+      "group": "Grupo E"
+    },
+    {
+      "id": "WC2026-035",
+      "date": "2026-06-21",
+      "time": "00:00",
+      "timezone": "UTC",
+      "team1": "Equador",
+      "team2": "Curaçau",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Kansas City",
+      "city": "Kansas City",
+      "group": "Grupo E"
+    },
+    {
+      "id": "WC2026-036",
+      "date": "2026-06-21",
+      "time": "04:00",
+      "timezone": "UTC",
+      "team1": "Tunísia",
+      "team2": "Japão",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Monterrey",
+      "city": "Monterrey",
+      "group": "Grupo F"
+    },
+    {
+      "id": "WC2026-037",
+      "date": "2026-06-21",
+      "time": "16:00",
+      "timezone": "UTC",
+      "team1": "Espanha",
+      "team2": "Arábia Saudita",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Atlanta",
+      "city": "Atlanta",
+      "group": "Grupo H"
+    },
+    {
+      "id": "WC2026-038",
+      "date": "2026-06-21",
+      "time": "19:00",
+      "timezone": "UTC",
+      "team1": "Bélgica",
+      "team2": "RI do Irã",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Los Angeles",
+      "city": "Los Angeles",
+      "group": "Grupo G"
+    },
+    {
+      "id": "WC2026-039",
+      "date": "2026-06-21",
+      "time": "22:00",
+      "timezone": "UTC",
+      "team1": "Uruguai",
+      "team2": "Cabo Verde",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Miami",
+      "city": "Miami",
+      "group": "Grupo H"
+    },
+    {
+      "id": "WC2026-040",
+      "date": "2026-06-22",
+      "time": "01:00",
+      "timezone": "UTC",
+      "team1": "Nova Zelândia",
+      "team2": "Egito",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "BC Place de Vancouver",
+      "city": "Vancouver",
+      "group": "Grupo G"
+    },
+    {
+      "id": "WC2026-041",
+      "date": "2026-06-22",
+      "time": "17:00",
+      "timezone": "UTC",
+      "team1": "Argentina",
+      "team2": "Áustria",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Dallas",
+      "city": "Dallas",
+      "group": "Grupo J"
+    },
+    {
+      "id": "WC2026-042",
+      "date": "2026-06-22",
+      "time": "21:00",
+      "timezone": "UTC",
+      "team1": "França",
+      "team2": "Iraque",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Filadélfia",
+      "city": "Filadélfia",
+      "group": "Grupo I"
+    },
+    {
+      "id": "WC2026-043",
+      "date": "2026-06-23",
+      "time": "00:00",
+      "timezone": "UTC",
+      "team1": "Noruega",
+      "team2": "Senegal",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Nova York/Nova Jersey",
+      "city": "Nova Iorque",
+      "group": "Grupo I"
+    },
+    {
+      "id": "WC2026-044",
+      "date": "2026-06-23",
+      "time": "03:00",
+      "timezone": "UTC",
+      "team1": "Jordânia",
+      "team2": "Argélia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio da Baía de São Francisco",
+      "city": "Área da baía de São Francisco",
+      "group": "Grupo J"
+    },
+    {
+      "id": "WC2026-045",
+      "date": "2026-06-23",
+      "time": "17:00",
+      "timezone": "UTC",
+      "team1": "Portugal",
+      "team2": "Uzbequistão",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Houston",
+      "city": "Houston",
+      "group": "Grupo K"
+    },
+    {
+      "id": "WC2026-046",
+      "date": "2026-06-23",
+      "time": "20:00",
+      "timezone": "UTC",
+      "team1": "Inglaterra",
+      "team2": "Gana",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Boston",
+      "city": "Boston",
+      "group": "Grupo L"
+    },
+    {
+      "id": "WC2026-047",
+      "date": "2026-06-23",
+      "time": "23:00",
+      "timezone": "UTC",
+      "team1": "Panamá",
+      "team2": "Croácia",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Toronto ",
+      "city": "Toronto",
+      "group": "Grupo L"
+    },
+    {
+      "id": "WC2026-048",
+      "date": "2026-06-24",
+      "time": "02:00",
+      "timezone": "UTC",
+      "team1": "Colômbia",
+      "team2": "RD do Congo",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Guadalajara",
+      "city": "Guadalajara",
+      "group": "Grupo K"
+    },
+    {
+      "id": "WC2026-049",
+      "date": "2026-06-24",
+      "time": "19:00",
+      "timezone": "UTC",
+      "team1": "Bósnia e Herzegovina",
+      "team2": "Catar",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "Estádio de Seattle",
+      "city": "Seattle",
+      "group": "Grupo B"
+    },
+    {
+      "id": "WC2026-050",
+      "date": "2026-06-24",
+      "time": "19:00",
+      "timezone": "UTC",
+      "team1": "Suíça",
+      "team2": "Canadá",
+      "phase": "Fase de Grupos",
+      "score": {
+        "team1": null,
+        "team2": null
+      },
+      "venue": "BC Place de Vancouver",
+      "city": "Vancouver",
+      "group": "Grupo B"
+    }
+  ],
+  "updated_at": "2026-05-19T13:14:59Z"
+}
