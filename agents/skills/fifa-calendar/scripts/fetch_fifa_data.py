@@ -22,7 +22,7 @@ OUTPUT_DEFAULT = "fifa/calendario.json"
 FIFA_URLS = [
     "https://www.fifa.com/pt/tournaments/mens/worldcup/canadamexicousa2026/articles/copa-mundo-2026-tabela-jogos",
     "https://www.fifa.com/pt/tournaments/mens/worldcup/canadamexicousa2026/",
-    "https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=255711&language=pt",
+    "https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=285023&language=pt",
 ]
 
 HEADERS = {
