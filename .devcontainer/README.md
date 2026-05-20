@@ -3,13 +3,11 @@
 This directory defines the prebuilt development container used by Journal build
 for `cal.diy`.
 
-There are four moving pieces:
+There are three moving pieces:
 
 - `Dockerfile` builds the Linux base image used by Journal.
 - `devcontainer.json` defines the pinned image, workspace path, lifecycle
   commands, and exposed ports.
-- `update-ghcr-image` provides a local helper flow to publish `linux/amd64`
-  image tags to GHCR from an exact commit.
 - `.github/workflows/devcontainer-image-pr.yml` builds, smoke-tests, publishes,
   and digest-pins the devcontainer image in PRs that touch devcontainer config.
 
@@ -67,18 +65,28 @@ Configure this repository secret before running the workflow:
   `ghcr.io/endurancelabs/cal.diy-devcontainer` (typically PAT with `write:packages`,
   plus `read:packages`; include `repo` only if your org requires it).
 
-## Local Publish Helper
+## Local Testing
 
-To publish from local CLI (for example, to refresh `main` and `sha-*` tags):
+Local builds are for fast iteration only. Do not push local images to GHCR.
+Apple Silicon machines should build and test `linux/arm64` locally, then let the
+PR workflow build, test, push, and digest-pin the reviewed `linux/amd64` image.
 
 ```bash
-.devcontainer/update-ghcr-image main
+docker buildx build --pull --platform linux/arm64 --file .devcontainer/Dockerfile --tag cal-diy-devcontainer:test --load .
 ```
 
-Optional env overrides:
+Smoke-test the installed tools:
 
-- `IMAGE_REPO` (defaults to `ghcr.io/endurancelabs/cal.diy-devcontainer`)
-- `GHCR_USERNAME` and `GHCR_TOKEN` (for `docker login`)
+```bash
+docker run --rm cal-diy-devcontainer:test bash -lc 'node --version && yarn --version && psql --version && redis-server --version && command -v journal-start-calcom >/dev/null && command -v journal-prepare-calcom-db >/dev/null'
+```
 
-The script prints the immutable tag (`sha-<12 char commit>`), which you can use
-for Journal template updates or for troubleshooting.
+Smoke-test the local database:
+
+```bash
+docker run --rm cal-diy-devcontainer:test bash -lc 'sudo pg_ctlcluster 15 main start && psql postgresql://postgres:postgres@localhost:5432/calendso -c "select current_database();" && sudo pg_ctlcluster 15 main stop'
+```
+
+For a full devcontainer lifecycle test, temporarily point `image` at
+`cal-diy-devcontainer:test` and rebuild the devcontainer in your editor or
+devcontainer CLI. Do not commit a local-only image tag.
