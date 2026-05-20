@@ -1,6 +1,6 @@
 {
   "name": "cal-diy-journal",
-  "image": "ghcr.io/endurancelabs/cal.diy-devcontainer@sha256:eecaec066c84014f58466109bf354de86b420d85191601614187054f2ebec19b",
+  "image": "ghcr.io/endurancelabs/cal.diy-devcontainer@sha256:caa572d6d7b919c2f59a25cb898f3aa500358da51e72296e5dc04a31a7f17639",
   "workspaceMount": "source=cal-diy-workspace,target=/workspace/cal.diy,type=volume",
   "workspaceFolder": "/workspace/cal.diy",
   "remoteUser": "node",
@@ -23,7 +23,7 @@
   "onCreateCommand": "CI=true yarn install --immutable",
   "updateContentCommand": "CI=true yarn install --immutable",
   "postCreateCommand": "git config --global --add safe.directory /workspace/cal.diy",
-  "postStartCommand": "journal-start-calcom",
+  "postStartCommand": "if [ -n \"${JOURNAL_PUBLIC_API_URL:-}\" ]; then export NEXT_PUBLIC_WEBAPP_URL=\"$JOURNAL_PUBLIC_API_URL\" NEXTAUTH_URL=\"$JOURNAL_PUBLIC_API_URL/api/auth\"; fi; journal-start-calcom",
   "forwardPorts": [
     3000
   ],
