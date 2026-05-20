@@ -158,12 +158,14 @@ export const useInsightsColumns = ({
       }),
 
       ...((headers || []).map((fieldHeader) => {
-        const isText = [
-          RoutingFormFieldType.TEXT,
-          RoutingFormFieldType.EMAIL,
-          RoutingFormFieldType.PHONE,
-          RoutingFormFieldType.TEXTAREA,
-        ].includes(fieldHeader.type as RoutingFormFieldType);
+        const isText = (
+          [
+            RoutingFormFieldType.TEXT,
+            RoutingFormFieldType.EMAIL,
+            RoutingFormFieldType.PHONE,
+            RoutingFormFieldType.TEXTAREA,
+          ] as RoutingFormFieldType[]
+        ).includes(fieldHeader.type as RoutingFormFieldType);
 
         const isNumber = fieldHeader.type === RoutingFormFieldType.NUMBER;
 

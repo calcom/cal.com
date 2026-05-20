@@ -9,12 +9,19 @@ type RoutingFormForFilters = {
   };
 };
 
+type RoutingFormHeaderRow = {
+  id: string;
+  label: string;
+  type: string;
+  options: { id: string | null; label: string }[] | null;
+};
+
 class RoutingEventsInsightsStub {
   static async getRoutingFormsForFilters(_input: unknown) {
     return [] as RoutingFormForFilters[];
   }
 
-  static async getRoutingFormHeaders(_input: unknown) {
+  static async getRoutingFormHeaders(_input: unknown): Promise<RoutingFormHeaderRow[]> {
     return [];
   }
 

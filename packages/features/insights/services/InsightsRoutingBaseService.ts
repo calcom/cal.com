@@ -39,6 +39,13 @@ export type InsightsRoutingServiceFilterOptions = {
   columnFilters?: TypedColumnFilter<FilterType>[];
 };
 
+type RoutingFormResponseField = {
+  fieldId: string;
+  valueString: string | null;
+  valueStringArray: string[] | null;
+  valueNumber: number | null;
+};
+
 export type InsightsRoutingTableItem = {
   id: number;
   uuid: string | null;
@@ -55,11 +62,19 @@ export type InsightsRoutingTableItem = {
   bookingStatus: BookingStatus | null;
   bookingStatusOrder: number | null;
   bookingCreatedAt: Date | null;
+  bookingAssignmentReason: string | null;
   bookingAttendees: {
     name: string;
     email: string;
     phoneNumber: string | null;
   }[];
+  fields: RoutingFormResponseField[];
+  createdAt: Date | string;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  utm_campaign: string | null;
   [key: string]: unknown;
 };
 
