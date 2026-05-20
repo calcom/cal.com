@@ -1,0 +1,19 @@
+{
+  "name": "Proton Calendar",
+  "slug": "proton-calendar",
+  "type": "proton_calendar",
+  "dirName": "protoncalendar",
+  "logo": "icon.svg",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@proton.me",
+  "url": "https://proton.me/calendar",
+  "description": "Sync your Proton Calendar events — supports both ICS feed (read-only) and CalDAV (read-write) connections. Proton Calendar is an encrypted calendar service by Proton AG.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "appData": {
+    "location": "link",
+    "privacy": "private"
+  }
+}
