@@ -50,7 +50,9 @@ function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
         ],
       },
     ]),
-    getRowModel: vi.fn().mockReturnValue({ rows: data.map((item) => ({ original: item })) }),
+    getRowModel: vi
+      .fn()
+      .mockReturnValue({ rows: data.map((item) => ({ original: item })) }),
   } as unknown as Table<UserTableUser>;
 }
 
@@ -79,7 +81,9 @@ describe("generate Csv for Org Users Table", () => {
   };
 
   it("should throw if no headers", () => {
-    expect(() => generateCsvRawForMembersTable([], [], mockAttributeIds, orgDomain)).toThrow();
+    expect(() =>
+      generateCsvRawForMembersTable([], [], mockAttributeIds, orgDomain)
+    ).toThrow();
   });
 
   it("should generate correct CSV headers", () => {
@@ -91,7 +95,7 @@ describe("generate Csv for Org Users Table", () => {
       orgDomain
     );
     const headers = csv?.split("\n")[0];
-    expect(headers).toBe("Members,Link,Role,Teams,Attribute 1,Attribute 2");
+    expect(headers).toBe("email,link,role,teams,Attribute 1,Attribute 2");
   });
 
   it("should handle user with single attribute value", () => {
@@ -119,7 +123,7 @@ describe("generate Csv for Org Users Table", () => {
     );
 
     expect(csv).toMatchInlineSnapshot(`
-      "Members,Link,Role,Teams,Attribute 1,Attribute 2
+      "email,link,role,teams,Attribute 1,Attribute 2
       test@example.com,https://acme.cal.com/testuser,MEMBER,Team1,value1,"
     `);
   });
@@ -155,7 +159,7 @@ describe("generate Csv for Org Users Table", () => {
     );
 
     expect(csv).toMatchInlineSnapshot(`
-      "Members,Link,Role,Teams,Attribute 1,Attribute 2
+      "email,link,role,teams,Attribute 1,Attribute 2
       test@example.com,https://acme.cal.com/testuser,MEMBER,Team1,"value1,value2","
     `);
   });
@@ -181,7 +185,7 @@ describe("generate Csv for Org Users Table", () => {
     );
 
     expect(csv).toMatchInlineSnapshot(`
-      "Members,Link,Role,Teams,Attribute 1,Attribute 2
+      "email,link,role,teams,Attribute 1,Attribute 2
       test@example.com,https://acme.cal.com/testuser,MEMBER,"Team1,Team2",,"
     `);
   });
@@ -211,7 +215,7 @@ describe("generate Csv for Org Users Table", () => {
     );
 
     expect(csv).toMatchInlineSnapshot(`
-      "Members,Link,Role,Teams,Attribute 1,Attribute 2
+      "email,link,role,teams,Attribute 1,Attribute 2
       test@example.com,https://acme.cal.com/testuser,MEMBER,"Team,1","value,1","
     `);
   });
@@ -234,7 +238,7 @@ describe("generate Csv for Org Users Table", () => {
     );
 
     expect(csv).toMatchInlineSnapshot(`
-      "Members,Link,Role,Teams,Attribute 1,Attribute 2
+      "email,link,role,teams,Attribute 1,Attribute 2
       owner@example.com,https://acme.cal.com/owner,OWNER,,,
       admin@example.com,https://acme.cal.com/admin,ADMIN,,,
       member@example.com,https://acme.cal.com/member,MEMBER,,,"
@@ -259,7 +263,7 @@ describe("generate Csv for Org Users Table", () => {
     );
 
     expect(csv).toMatchInlineSnapshot(`
-      "Members,Link,Role,Teams,Attribute 1,Attribute 2
+      "email,link,role,teams,Attribute 1,Attribute 2
       test@example.com,https://acme.cal.com/testuser,MEMBER,,,"
     `);
   });
