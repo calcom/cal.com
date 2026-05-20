@@ -193,7 +193,6 @@ WORKDIR /workspace/cal.diy
 COPY . /workspace/cal.diy
 
 RUN git config --unset-all http.https://github.com/.extraheader || true \
-  && git remote set-url origin https://github.com/calcom/cal.diy.git || true \
   && yarn config set httpTimeout 1200000 \
   && CI=true yarn install --immutable \
   && yarn cache clean --all \
