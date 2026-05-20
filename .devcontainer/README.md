@@ -26,8 +26,9 @@ latest synced checkout.
 - `workspaceFolder` sets `/workspace/cal.diy` as the working directory.
 - `onCreateCommand` and `updateContentCommand` run `yarn install --immutable`
   so dependencies are refreshed after Journal syncs content.
-- `postStartCommand` runs `journal-start-calcom` to bootstrap local services and
-  start the web app.
+- `postStartCommand` passes Journal's preview URL into Cal's public web/auth
+  URL env vars, then runs `journal-start-calcom` to bootstrap local services
+  and start the web app.
 - `forwardPorts` and `portsAttributes` expose port `3000` as HTTP.
 
 ## `Dockerfile`
