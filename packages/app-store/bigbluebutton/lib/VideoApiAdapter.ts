@@ -1,0 +1,112 @@
+import { createHash, randomUUID } from "node:crypto";
+import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
+import type { PartialReference } from "@calcom/types/EventManager";
+import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { metadata } from "../_metadata";
+
+type BigBlueButtonKeys = {
+  bigBlueButtonServerUrl?: string;
+  bigBlueButtonSharedSecret?: string;
+};
+
+const normalizeApiUrl = (serverUrl: string) => {
+  const url = serverUrl.trim().replace(/\/+$/, "");
+  return url.endsWith("/bigbluebutton/api") ? url : `${url}/bigbluebutton/api`;
+};
+
+const checksum = (method: string, query: string, sharedSecret: string) =>
+  createHash("sha1").update(`${method}${query}${sharedSecret}`).digest("hex");
+
+const deriveMeetingPassword = (role: "attendee" | "moderator", meetingID: string, sharedSecret: string) =>
+  createHash("sha256").update(`${role}:${meetingID}:${sharedSecret}`).digest("hex").slice(0, 24);
+
+const buildApiUrl = (apiUrl: string, method: string, params: URLSearchParams, sharedSecret: string) => {
+  const query = params.toString();
+  const signedQuery = new URLSearchParams(params);
+  signedQuery.set("checksum", checksum(method, query, sharedSecret));
+  return `${apiUrl}/${method}?${signedQuery.toString()}`;
+};
+
+const assertSuccessResponse = async (response: Response) => {
+  const body = await response.text();
+
+  if (!response.ok || !body.includes("<returncode>SUCCESS</returncode>")) {
+    throw new Error(`BigBlueButton API request failed: ${body}`);
+  }
+};
+
+const getBigBlueButtonConfig = async () => {
+  const appKeys = (await getAppKeysFromSlug(metadata.slug)) as BigBlueButtonKeys;
+  const serverUrl = appKeys.bigBlueButtonServerUrl?.trim();
+  const sharedSecret = appKeys.bigBlueButtonSharedSecret?.trim();
+
+  if (!serverUrl || !sharedSecret) {
+    throw new Error("BigBlueButton server URL and shared secret are required");
+  }
+
+  return {
+    apiUrl: normalizeApiUrl(serverUrl),
+    sharedSecret,
+  };
+};
+
+const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
+  return {
+    getAvailability: (): Promise<EventBusyDate[]> => {
+      return Promise.resolve([]);
+    },
+    createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {
+      const { apiUrl, sharedSecret } = await getBigBlueButtonConfig();
+      const meetingID = eventData.uid || randomUUID();
+      const attendeePassword = deriveMeetingPassword("attendee", meetingID, sharedSecret);
+      const moderatorPassword = deriveMeetingPassword("moderator", meetingID, sharedSecret);
+
+      const createParams = new URLSearchParams({
+        name: eventData.title,
+        meetingID,
+        attendeePW: attendeePassword,
+        moderatorPW: moderatorPassword,
+        record: "false",
+      });
+
+      const createUrl = buildApiUrl(apiUrl, "create", createParams, sharedSecret);
+      await assertSuccessResponse(await fetch(createUrl));
+
+      const joinParams = new URLSearchParams({
+        fullName: "Guest",
+        meetingID,
+        password: attendeePassword,
+        redirect: "true",
+      });
+
+      return {
+        type: metadata.type,
+        id: meetingID,
+        password: moderatorPassword,
+        url: buildApiUrl(apiUrl, "join", joinParams, sharedSecret),
+      };
+    },
+    deleteMeeting: async (uid: string): Promise<void> => {
+      const { apiUrl, sharedSecret } = await getBigBlueButtonConfig();
+      const moderatorPassword = deriveMeetingPassword("moderator", uid, sharedSecret);
+
+      const endParams = new URLSearchParams({
+        meetingID: uid,
+        password: moderatorPassword,
+      });
+
+      await assertSuccessResponse(await fetch(buildApiUrl(apiUrl, "end", endParams, sharedSecret)));
+    },
+    updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
+      return Promise.resolve({
+        type: metadata.type,
+        id: bookingRef.meetingId as string,
+        password: bookingRef.meetingPassword as string,
+        url: bookingRef.meetingUrl as string,
+      });
+    },
+  };
+};
+
+export default BigBlueButtonVideoApiAdapter;
