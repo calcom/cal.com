@@ -1,9 +1,10 @@
+import process from "node:process";
+import i18nConfig from "@calcom/i18n/next-i18next.config";
 import { withBotId } from "botid/next/config";
 import { config as dotenvConfig } from "dotenv";
 import type { NextConfig } from "next";
 import type { RouteHas } from "next/dist/lib/load-custom-routes";
 import { withAxiom } from "next-axiom";
-import i18nConfig from "@calcom/i18n/next-i18next.config";
 import packageJson from "./package.json";
 import {
   nextJsOrgRewriteConfig,
@@ -101,26 +102,55 @@ function getHttpsUrl(url: string | undefined): string | undefined {
   return url;
 }
 
+const journalPreviewHostSuffixes: string[] = [".e2b.app", ".e2b.dev", ".preview.bl.run"];
+
+function parseHost(value: string): string {
+  try {
+    return new URL(value).hostname.toLowerCase();
+  } catch {
+    let normalized = value;
+    if (!normalized.includes("://")) {
+      normalized = `https://${normalized}`;
+    }
+
+    try {
+      return new URL(normalized).hostname.toLowerCase();
+    } catch {
+      return value.toLowerCase();
+    }
+  }
+}
+
+function isJournalPreviewHostname(host: string): boolean {
+  return journalPreviewHostSuffixes.some((suffix) => host.endsWith(suffix));
+}
+
 function isJournalPreviewHost(webappUrl: string | undefined): boolean {
   if (!webappUrl) return false;
 
-  const journalPreviewHostSuffixes = [".e2b.app", ".e2b.dev", ".preview.bl.run"];
+  return isJournalPreviewHostname(parseHost(webappUrl));
+}
 
-  const parseHost = (value: string): string => {
-    try {
-      return new URL(value).hostname.toLowerCase();
-    } catch {
-      const normalized = value.includes("://") ? value : `https://${value}`;
-      try {
-        return new URL(normalized).hostname.toLowerCase();
-      } catch {
-        return value.toLowerCase();
-      }
+function getJournalAllowedDevOrigins(): string[] {
+  const hosts = new Set<string>();
+
+  const addHost = (value: string | undefined): void => {
+    if (!value) return;
+
+    const host = parseHost(value);
+    if (!isJournalPreviewHostname(host)) return;
+
+    hosts.add(host);
+    if (/^\d+-/.test(host)) {
+      hosts.add(host.replace(/^\d+-/, "3000-"));
+      hosts.add(host.replace(/^\d+-/, "4000-"));
     }
   };
 
-  const host = parseHost(webappUrl);
-  return journalPreviewHostSuffixes.some((suffix) => host.endsWith(suffix));
+  addHost(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  addHost(process.env.JOURNAL_PUBLIC_API_URL);
+
+  return Array.from(hosts);
 }
 
 if (process.argv.includes("--experimental-https")) {
@@ -278,6 +308,7 @@ const nextConfig = (phase: string): NextConfig => {
     images: {
       unoptimized: true,
     },
+    allowedDevOrigins: getJournalAllowedDevOrigins(),
     turbopack: {},
     async rewrites() {
       const { orgSlug } = nextJsOrgRewriteConfig;
