@@ -18,6 +18,7 @@
     "CALENDSO_ENCRYPTION_KEY": "Lmqy57DlHKPvwwrtkwjL/8QtxJWxC/OV",
     "REDIS_URL": "redis://localhost:6379",
     "JOURNAL_SEED_DB": "0",
+    "JOURNAL_API_PORT": "3000",
     "PORT": "3000"
   },
   "onCreateCommand": "CI=true yarn install --immutable",

@@ -27,6 +27,8 @@ latest synced checkout.
 - `postStartCommand` passes Journal's preview URL into Cal's public web/auth
   URL env vars, then runs `journal-start-calcom` to bootstrap local services
   and start the web app.
+- `JOURNAL_API_PORT=3000` tells Journal's build preview proxy to route Cal's
+  `/api/*` requests to the Next.js server instead of a separate API process.
 - `forwardPorts` and `portsAttributes` expose port `3000` as HTTP.
 
 ## `Dockerfile`
