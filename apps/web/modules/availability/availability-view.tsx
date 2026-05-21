@@ -5,6 +5,7 @@ import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/compo
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { getI18nEditAttributes } from "@calcom/lib/i18nEditMode";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -21,7 +22,9 @@ type AvailabilityListProps = {
   availabilities: RouterOutputs["viewer"]["availability"]["list"];
 };
 export function AvailabilityList({ availabilities }: AvailabilityListProps) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
+  const locale = i18n.resolvedLanguage ?? i18n.language;
+  const i18nEdit = (key: string) => getI18nEditAttributes(key, locale);
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useUtils();
   const router = useRouter();
@@ -126,8 +129,10 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
         <div className="flex justify-center">
           <EmptyScreen
             Icon="clock"
-            headline={t("new_schedule_heading")}
-            description={t("new_schedule_description")}
+            headline={<span {...i18nEdit("new_schedule_heading")}>{t("new_schedule_heading")}</span>}
+            description={
+              <span {...i18nEdit("new_schedule_description")}>{t("new_schedule_description")}</span>
+            }
             className="w-full"
             buttonRaw={<NewScheduleButton />}
           />
@@ -155,8 +160,11 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
             </ul>
           </div>
           <div className="text-default mb-16 mt-4 block text-center text-sm">
-            {t("temporarily_out_of_office")}{" "}
-            <Link href="settings/my-account/out-of-office" className="underline">
+            <span {...i18nEdit("temporarily_out_of_office")}>{t("temporarily_out_of_office")}</span>{" "}
+            <Link
+              {...i18nEdit("add_a_redirect")}
+              href="settings/my-account/out-of-office"
+              className="underline">
               {t("add_a_redirect")}
             </Link>
           </div>

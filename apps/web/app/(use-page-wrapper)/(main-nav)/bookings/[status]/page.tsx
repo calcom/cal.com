@@ -1,5 +1,6 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getI18nEditAttributes } from "@calcom/lib/i18nEditMode";
 import { prisma } from "@calcom/prisma";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import type { PageProps } from "app/_types";
@@ -42,6 +43,9 @@ const Page = async ({ params }: PageProps) => {
   // No teams in cal.diy, so canReadOthersBookings is always false.
   const canReadOthersBookings = false;
 
+  const locale = session.user.locale ?? "en";
+  const i18nEdit = (key: string) => getI18nEditAttributes(key, locale);
+
   const [bookingAuditEnabled, bookingsV3Enabled] = await Promise.all([
     featuresRepository.checkIfUserHasFeature(userId, "booking-audit"),
     featuresRepository.checkIfUserHasFeature(userId, "bookings-v3"),
@@ -51,8 +55,8 @@ const Page = async ({ params }: PageProps) => {
     <ShellMainAppDir
       {...(!bookingsV3Enabled
         ? {
-            heading: t("bookings"),
-            subtitle: t("bookings_description"),
+            heading: <span {...i18nEdit("bookings")}>{t("bookings")}</span>,
+            subtitle: <span {...i18nEdit("bookings_description")}>{t("bookings_description")}</span>,
           }
         : {})}>
       <BookingsList

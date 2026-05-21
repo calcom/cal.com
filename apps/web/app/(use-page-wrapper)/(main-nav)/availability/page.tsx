@@ -1,9 +1,10 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getI18nEditAttributes } from "@calcom/lib/i18nEditMode";
 import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
-import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
+import type { ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
@@ -33,8 +34,7 @@ const getCachedAvailabilities = unstable_cache(
   { revalidate: 3600 } // Cache for 1 hour
 );
 
-const Page = async ({ searchParams: _searchParams }: PageProps) => {
-  const searchParams = await _searchParams;
+const Page = async () => {
   const t = await getTranslate();
   const _headers = await headers();
   const _cookies = await cookies();
@@ -42,6 +42,9 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }
+
+  const locale = session.user.locale ?? "en";
+  const i18nEdit = (key: string) => getI18nEditAttributes(key, locale);
 
   const cachedAvailabilities = await getCachedAvailabilities(_headers, _cookies);
 
@@ -54,8 +57,8 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
 
   return (
     <ShellMainAppDir
-      heading={t("availability")}
-      subtitle={t("configure_availability")}
+      heading={<span {...i18nEdit("availability")}>{t("availability")}</span>}
+      subtitle={<span {...i18nEdit("configure_availability")}>{t("configure_availability")}</span>}
       CTA={<AvailabilityCTA />}>
       <AvailabilityList availabilities={availabilities ?? { schedules: [] }} />
     </ShellMainAppDir>

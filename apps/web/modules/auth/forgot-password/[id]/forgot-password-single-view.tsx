@@ -1,34 +1,35 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useReducer, type CSSProperties } from "react";
-import type { UseFormReturn } from "react-hook-form";
-import { useForm } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getI18nEditAttributes } from "@calcom/lib/i18nEditMode";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-
+import { Form, PasswordField } from "@calcom/ui/components/form";
 import AuthContainer from "@components/ui/AuthContainer";
-
 import type { getServerSideProps } from "@server/lib/auth/forgot-password/[id]/getServerSideProps";
+import Link from "next/link";
+import { type CSSProperties, useEffect, useReducer } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 function Success() {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
+  const locale = i18n.resolvedLanguage ?? i18n.language;
+  const i18nEdit = (key: string) => getI18nEditAttributes(key, locale);
   return (
     <>
       <div className="stack-y-6">
         <div>
-          <h2 className="font-cal text-emphasis mt-6 text-center text-3xl font-extrabold">
+          <h2
+            {...i18nEdit("password_updated")}
+            className="font-cal text-emphasis mt-6 text-center text-3xl font-extrabold">
             {t("password_updated")}
           </h2>
         </div>
         <Button href="/auth/login" className="w-full justify-center">
-          {t("login")}
+          <span {...i18nEdit("login")}>{t("login")}</span>
         </Button>
       </div>
     </>
@@ -36,16 +37,27 @@ function Success() {
 }
 
 function Expired() {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
+  const locale = i18n.resolvedLanguage ?? i18n.language;
+  const i18nEdit = (key: string) => getI18nEditAttributes(key, locale);
   return (
     <>
       <div className="stack-y-6">
         <div>
-          <h2 className="font-cal text-emphasis mt-6 text-center text-3xl font-extrabold">{t("whoops")}</h2>
-          <h2 className="text-emphasis text-center text-3xl font-extrabold">{t("request_is_expired")}</h2>
+          <h2
+            {...i18nEdit("whoops")}
+            className="font-cal text-emphasis mt-6 text-center text-3xl font-extrabold">
+            {t("whoops")}
+          </h2>
+          <h2
+            {...i18nEdit("request_is_expired")}
+            className="text-emphasis text-center text-3xl font-extrabold">
+            {t("request_is_expired")}
+          </h2>
         </div>
-        <p>{t("request_is_expired_instructions")}</p>
+        <p {...i18nEdit("request_is_expired_instructions")}>{t("request_is_expired_instructions")}</p>
         <Link
+          {...i18nEdit("try_again")}
           href="/auth/forgot-password"
           className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
           {t("try_again")}
@@ -67,7 +79,9 @@ function PasswordResetForm({
   form: UseFormReturn<FormValues>;
   requestId: string;
 }) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
+  const locale = i18n.resolvedLanguage ?? i18n.language;
+  const i18nEdit = (key: string) => getI18nEditAttributes(key, locale);
   const [refreshToken, forceRefresh] = useReducer((x) => x + 1, 0);
   const {
     watch,
@@ -142,7 +156,7 @@ function PasswordResetForm({
               value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
             },
           })}
-          label={t("new_password")}
+          label={<span {...i18nEdit("new_password")}>{t("new_password")}</span>}
         />
       </div>
 
@@ -153,7 +167,7 @@ function PasswordResetForm({
           type="submit"
           disabled={loading || isEmpty}
           className="w-full justify-center">
-          {t("reset_password")}
+          <span {...i18nEdit("reset_password")}>{t("reset_password")}</span>
         </Button>
       </div>
     </Form>
@@ -161,7 +175,9 @@ function PasswordResetForm({
 }
 
 export default function Page({ requestId, isRequestExpired }: PageProps) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
+  const locale = i18n.resolvedLanguage ?? i18n.language;
+  const i18nEdit = (key: string) => getI18nEditAttributes(key, locale);
 
   const formMethods = useForm<FormValues>({
     defaultValues: {
@@ -176,14 +192,16 @@ export default function Page({ requestId, isRequestExpired }: PageProps) {
 
   if (isRequestExpired) {
     return (
-      <AuthContainer showLogo heading={t("reset_password")}>
+      <AuthContainer showLogo heading={<span {...i18nEdit("reset_password")}>{t("reset_password")}</span>}>
         <Expired />
       </AuthContainer>
     );
   }
 
   return (
-    <AuthContainer showLogo heading={!success ? t("reset_password") : undefined}>
+    <AuthContainer
+      showLogo
+      heading={!success ? <span {...i18nEdit("reset_password")}>{t("reset_password")}</span> : undefined}>
       {success ? <Success /> : <PasswordResetForm form={formMethods} requestId={requestId} />}
     </AuthContainer>
   );

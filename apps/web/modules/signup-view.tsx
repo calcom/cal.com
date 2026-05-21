@@ -1,5 +1,6 @@
 "use client";
 
+import process from "node:process";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import {
@@ -26,6 +27,7 @@ import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getI18nEditAttributes } from "@calcom/lib/i18nEditMode";
 import { INVALID_CLOUDFLARE_TOKEN_ERROR } from "@calcom/lib/server/checkCfTurnstileToken";
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
@@ -117,7 +119,9 @@ function UsernameField({
   orgSlug?: string;
   setUsernameTaken: (value: boolean) => void;
 }) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
+  const locale = i18n.resolvedLanguage ?? i18n.language;
+  const i18nEdit = (key: string) => getI18nEditAttributes(key, locale);
   const { register, formState } = useFormContext<FormValues>();
   const debouncedUsername = useDebounce(username, 600);
 
@@ -163,12 +167,12 @@ function UsernameField({
             {usernameTaken ? (
               <div className="flex items-center text-error">
                 <InfoIcon className="mr-1 inline-block h-4 w-4" />
-                <p>{t("already_in_use_error")}</p>
+                <p {...i18nEdit("already_in_use_error")}>{t("already_in_use_error")}</p>
               </div>
             ) : premium ? (
               <div data-testid="premium-username-warning" className="flex items-center">
                 <StarIcon className="mr-1 inline-block h-4 w-4" />
-                <p>
+                <p {...i18nEdit("premium_username")}>
                   {t("premium_username", {
                     price: getPremiumPlanPriceValue(),
                     interpolation: { escapeValue: false },
@@ -210,6 +214,8 @@ export default function Signup({
   const [turnstileKey, setTurnstileKey] = useState(0);
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
+  const locale = i18n.resolvedLanguage ?? i18n.language;
+  const i18nEdit = (key: string) => getI18nEditAttributes(key, locale);
   const router = useRouter();
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
@@ -236,6 +242,8 @@ export default function Signup({
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
   const displayBackButton = token ? false : displayEmailForm;
+  const signupHeadingKey = IS_CALCOM ? "create_your_calcom_account" : "create_your_account";
+  const signupDescriptionKey = IS_CALCOM ? "cal_signup_description" : "calcom_explained";
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
     const { cfToken, ...data } = _data;
@@ -390,12 +398,16 @@ export default function Signup({
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-subtle">
                   <ShieldCheckIcon className="h-6 w-6 text-default" />
                 </div>
-                <h1 className="font-cal text-[28px] leading-none">{t("account_under_review_title")}</h1>
-                <p className="font-medium text-base text-subtle leading-5">
+                <h1 {...i18nEdit("account_under_review_title")} className="font-cal text-[28px] leading-none">
+                  {t("account_under_review_title")}
+                </h1>
+                <p
+                  {...i18nEdit("account_under_review_description")}
+                  className="font-medium text-base text-subtle leading-5">
                   {t("account_under_review_description")}
                 </p>
                 <Button href="/auth/login" className="mt-4">
-                  {t("go_back_login")}
+                  <span {...i18nEdit("go_back_login")}>{t("go_back_login")}</span>
                 </Button>
               </div>
             ) : (
@@ -410,27 +422,25 @@ export default function Signup({
                       onClick={() => {
                         setDisplayEmailForm(false);
                       }}>
-                      {t("back")}
+                      <span {...i18nEdit("back")}>{t("back")}</span>
                     </Button>
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-cal text-[28px] leading-none">
-                    {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
+                  <h1 {...i18nEdit(signupHeadingKey)} className="font-cal text-[28px] leading-none">
+                    {t(signupHeadingKey)}
                   </h1>
-                  {IS_CALCOM ? (
-                    <p className="font-medium text-base text-subtle leading-5">
-                      {t("cal_signup_description")}
-                    </p>
-                  ) : (
-                    <p className="font-medium text-base text-subtle leading-5">
-                      {t("calcom_explained", {
-                        appName: APP_NAME,
-                      })}
-                    </p>
-                  )}
+                  <p
+                    {...i18nEdit(signupDescriptionKey)}
+                    className="font-medium text-base text-subtle leading-5">
+                    {IS_CALCOM
+                      ? t(signupDescriptionKey)
+                      : t(signupDescriptionKey, {
+                          appName: APP_NAME,
+                        })}
+                  </p>
                   {IS_CALCOM && (
-                    <div className="mt-12">
+                    <div {...i18nEdit("data_region")} className="mt-12">
                       <SelectField
                         label={t("data_region")}
                         value={{
@@ -501,7 +511,7 @@ export default function Signup({
                       {!isOrgInviteByLink ? (
                         <UsernameField
                           orgSlug={orgSlug}
-                          label={t("username")}
+                          label={<span {...i18nEdit("username")}>{t("username")}</span>}
                           username={watch("username") || ""}
                           premium={premiumUsername}
                           usernameTaken={usernameTaken}
@@ -511,15 +521,8 @@ export default function Signup({
                           setPremium={(value) => setPremiumUsername(value)}
                           addOnLeading={
                             orgSlug
-                              ? truncateDomain(
-                                  `${WEBAPP_URL.replace(
-                                    URL_PROTOCOL_REGEX,
-                                    ""
-                                  )}/`
-                                )
-                              : truncateDomain(
-                                  `${WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
-                                )
+                              ? truncateDomain(`${WEBAPP_URL.replace(URL_PROTOCOL_REGEX, "")}/`)
+                              : truncateDomain(`${WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`)
                           }
                         />
                       ) : null}
@@ -527,7 +530,7 @@ export default function Signup({
                       <TextField
                         id="signup-email"
                         {...register("email")}
-                        label={t("email")}
+                        label={<span {...i18nEdit("email")}>{t("email")}</span>}
                         placeholder="john@doe.com"
                         type="email"
                         autoComplete="email"
@@ -540,7 +543,7 @@ export default function Signup({
                         id="signup-password"
                         data-testid="signup-passwordfield"
                         autoComplete="new-password"
-                        label={t("password")}
+                        label={<span {...i18nEdit("password")}>{t("password")}</span>}
                         {...register("password")}
                         hintErrors={["caplow", "min", "num"]}
                       />
@@ -588,9 +591,11 @@ export default function Signup({
                           isSubmitting ||
                           usernameTaken
                         }>
-                        {premiumUsername && !usernameTaken
-                          ? `${t("get_started")} (${getPremiumPlanPriceValue()})`
-                          : t("get_started")}
+                        <span {...i18nEdit("get_started")}>
+                          {premiumUsername && !usernameTaken
+                            ? `${t("get_started")} (${getPremiumPlanPriceValue()})`
+                            : t("get_started")}
+                        </span>
                       </Button>
                     </Form>
                   </div>
@@ -644,7 +649,7 @@ export default function Signup({
 
                             router.push(url);
                           }}>
-                          {t("continue_with_google")}
+                          <span {...i18nEdit("continue_with_google")}>{t("continue_with_google")}</span>
                         </Button>
                       </div>
                     )}
@@ -695,7 +700,7 @@ export default function Signup({
 
                             router.push(url);
                           }}>
-                          {t("continue_with_microsoft")}
+                          <span {...i18nEdit("continue_with_microsoft")}>{t("continue_with_microsoft")}</span>
                         </Button>
                       </div>
                     )}
@@ -704,7 +709,9 @@ export default function Signup({
                       <div>
                         <div className="relative flex items-center">
                           <div className="grow border-subtle border-t" />
-                          <span className="mx-2 shrink font-normal text-sm text-subtle leading-none">
+                          <span
+                            {...i18nEdit("or")}
+                            className="mx-2 shrink font-normal text-sm text-subtle leading-none">
                             {t("or").toLocaleLowerCase()}
                           </span>
                           <div className="grow border-subtle border-t" />
@@ -727,7 +734,7 @@ export default function Signup({
                           setDisplayEmailForm(true);
                         }}
                         data-testid="continue-with-email-button">
-                        {t("continue_with_email")}
+                        <span {...i18nEdit("continue_with_email")}>{t("continue_with_email")}</span>
                       </Button>
                     </div>
                   </div>
@@ -737,12 +744,17 @@ export default function Signup({
                 <div className="mt-10 flex h-full flex-col justify-end pb-6 text-xs">
                   <div className="flex flex-col text-sm">
                     <div className="flex gap-1">
-                      <p className="text-subtle">{t("already_have_account")}</p>
-                      <Link href="/auth/login" className="text-emphasis hover:underline">
+                      <p {...i18nEdit("already_have_account")} className="text-subtle">
+                        {t("already_have_account")}
+                      </p>
+                      <Link
+                        {...i18nEdit("sign_in")}
+                        href="/auth/login"
+                        className="text-emphasis hover:underline">
                         {t("sign_in")}
                       </Link>
                     </div>
-                    <div className="text-subtle">
+                    <div {...i18nEdit("signing_up_terms")} className="text-subtle">
                       <ServerTrans
                         t={t}
                         i18nKey="signing_up_terms"
@@ -841,10 +853,12 @@ export default function Signup({
                 <div key={index} className="mb-8 flex max-w-52 flex-col leading-none sm:mb-0">
                   <div className="items-center text-emphasis">
                     <Icon name={feature.icon} className="mb-1 h-4 w-4" />
-                    <span className="font-medium text-sm">{t(feature.title)}</span>
+                    <span {...i18nEdit(feature.title)} className="font-medium text-sm">
+                      {t(feature.title)}
+                    </span>
                   </div>
                   <div className="text-sm text-subtle">
-                    <p>
+                    <p {...i18nEdit(feature.description)}>
                       {t(
                         feature.description,
                         feature.i18nOptions && {
