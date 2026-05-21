@@ -6,6 +6,7 @@ import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getI18nEditAttributes } from "@calcom/lib/i18nEditMode";
 import { Alert } from "@calcom/ui/components/alert";
 import { Icon } from "@calcom/ui/components/icon";
 import { LastUsed, useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
@@ -36,13 +37,9 @@ interface LoginValues {
   csrfToken: string;
 }
 
-const MicrosoftIcon = () => (
-  <img className="size-4" src="/microsoft-logo.svg" alt="" />
-);
+const MicrosoftIcon = () => <img className="size-4" src="/microsoft-logo.svg" alt="" />;
 
-const GoogleIcon = () => (
-  <img className="size-4" src="/google-icon-colored.svg" alt="" />
-);
+const GoogleIcon = () => <img className="size-4" src="/google-icon-colored.svg" alt="" />;
 
 function BackgroundGrid() {
   const rows = 9;
@@ -108,7 +105,9 @@ export default function Login({
   totpEmail,
 }: PageProps) {
   const searchParams = useCompatSearchParams();
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
+  const locale = i18n.resolvedLanguage ?? i18n.language;
+  const i18nEdit = (key: string) => getI18nEditAttributes(key, locale);
   const router = useRouter();
   const formSchema = z
     .object({
@@ -173,6 +172,8 @@ export default function Login({
   const showSocialLogin = isGoogleLoginEnabled || isOutlookLoginEnabled;
   const showSignupLink =
     process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && searchParams?.get("register") !== "false";
+  const loginSubtitleKey = twoFactorRequired ? "2fa_code" : "welcome_back_sign_in";
+  const submitLabelKey = twoFactorRequired ? "submit" : "continue";
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-default/80 px-4 py-10">
@@ -187,8 +188,11 @@ export default function Login({
           </div>
 
           {/* Heading */}
-          <p className="mb-8 text-center text-sm text-subtle" data-testid="login-subtitle">
-            {twoFactorRequired ? t("2fa_code") : t("welcome_back_sign_in")}
+          <p
+            {...i18nEdit(loginSubtitleKey)}
+            className="mb-8 text-center text-sm text-subtle"
+            data-testid="login-subtitle">
+            {t(loginSubtitleKey)}
           </p>
 
           <FormProvider {...methods}>
@@ -209,7 +213,7 @@ export default function Login({
                         });
                       }}>
                       <GoogleIcon />
-                      <span>{t("signin_with_google")}</span>
+                      <span {...i18nEdit("signin_with_google")}>{t("signin_with_google")}</span>
                       {lastUsed === "google" && <LastUsed />}
                     </Button>
                   )}
@@ -226,7 +230,7 @@ export default function Login({
                         });
                       }}>
                       <MicrosoftIcon />
-                      <span>{t("signin_with_microsoft")}</span>
+                      <span {...i18nEdit("signin_with_microsoft")}>{t("signin_with_microsoft")}</span>
                       {lastUsed === "microsoft" && <LastUsed />}
                     </Button>
                   )}
@@ -235,7 +239,9 @@ export default function Login({
                 {/* Divider */}
                 <div className="my-6 flex items-center gap-4">
                   <Separator className="flex-1" />
-                  <span className="text-sm text-zinc-400">{t("or").toLowerCase()}</span>
+                  <span {...i18nEdit("or")} className="text-sm text-zinc-400">
+                    {t("or").toLowerCase()}
+                  </span>
                   <Separator className="flex-1" />
                 </div>
               </>
@@ -248,7 +254,7 @@ export default function Login({
                 <div className="space-y-6">
                   {/* Email Field */}
                   <Field>
-                    <FieldLabel>{t("email")}</FieldLabel>
+                    <FieldLabel {...i18nEdit("email")}>{t("email")}</FieldLabel>
                     <Input
                       id="email"
                       type="email"
@@ -266,8 +272,11 @@ export default function Login({
                   {/* Password Field */}
                   <Field>
                     <div className="flex w-full items-center justify-between">
-                      <FieldLabel>{t("password")}</FieldLabel>
-                      <Link href="/auth/forgot-password" className="text-sm text-subtle hover:text-emphasis">
+                      <FieldLabel {...i18nEdit("password")}>{t("password")}</FieldLabel>
+                      <Link
+                        {...i18nEdit("forgot")}
+                        href="/auth/forgot-password"
+                        className="text-sm text-subtle hover:text-emphasis">
                         {t("forgot")}
                       </Link>
                     </div>
@@ -310,11 +319,12 @@ export default function Login({
 
               {/* Submit Button */}
               <Button
+                {...i18nEdit(submitLabelKey)}
                 type="submit"
                 variant="outline"
                 className="mt-8 w-full"
                 disabled={formState.isSubmitting}>
-                {twoFactorRequired ? t("submit") : t("continue")}
+                {t(submitLabelKey)}
               </Button>
             </form>
 
@@ -336,7 +346,7 @@ export default function Login({
                         setErrorMessage(null);
                       }}>
                       <Icon name="arrow-left" className="mr-2 size-4" />
-                      {t("go_back")}
+                      <span {...i18nEdit("go_back")}>{t("go_back")}</span>
                     </Button>
                     {!twoFactorLostAccess && (
                       <Button
@@ -347,7 +357,7 @@ export default function Login({
                           methods.setValue("totpCode", "");
                         }}>
                         <Icon name="lock" className="mr-2 size-4" />
-                        {t("lost_access")}
+                        <span {...i18nEdit("lost_access")}>{t("lost_access")}</span>
                       </Button>
                     )}
                   </>
@@ -357,7 +367,7 @@ export default function Login({
                     onClick={() => {
                       window.location.replace("/");
                     }}>
-                    {t("cancel")}
+                    <span {...i18nEdit("cancel")}>{t("cancel")}</span>
                   </Button>
                 )}
               </div>
@@ -370,6 +380,7 @@ export default function Login({
           <div className="mt-6 flex items-center justify-center gap-4 text-center">
             {showSignupLink && (
               <Link
+                {...i18nEdit("create_account")}
                 href={
                   callbackUrl
                     ? `${WEBSITE_URL}/signup?redirect=${encodeURIComponent(callbackUrl)}`
