@@ -169,7 +169,9 @@ export type FormValues = {
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
-  users: EventTypeSetup["users"];
+  users: (EventTypeSetup["users"][number] & {
+  locale: string | null;
+})[];
   assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   rrSegmentQueryValue: Record<string, unknown> | null;

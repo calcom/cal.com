@@ -45,7 +45,8 @@ const ServerPage = async ({ params, searchParams }: _PageProps) => {
 
 const eventLocale =
   props.eventType?.interfaceLanguage ||
-  ((props.eventType?.users?.[0] as any)?.locale ?? null);
+  props.eventType?.users?.[0]?.locale ||
+  null;
   if (eventLocale) {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);
