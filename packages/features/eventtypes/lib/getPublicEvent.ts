@@ -46,6 +46,7 @@ const userSelect = {
   avatarUrl: true,
   username: true,
   name: true,
+  locale: true,
   weekStart: true,
   brandColor: true,
   darkBrandColor: true,

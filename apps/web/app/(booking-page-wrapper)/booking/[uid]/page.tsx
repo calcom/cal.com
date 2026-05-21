@@ -43,7 +43,9 @@ const ServerPage = async ({ params, searchParams }: _PageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);
 
-  const eventLocale = props.eventType?.interfaceLanguage;
+const eventLocale =
+  props.eventType?.interfaceLanguage ||
+  ((props.eventType?.users?.[0] as any)?.locale ?? null);
   if (eventLocale) {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);
