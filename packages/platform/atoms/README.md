@@ -31,7 +31,7 @@ atoms versioning and publishing to [npm](https://www.npmjs.com/package/@calcom/a
 - Then, you have to write a description of the change and press enter. This will generate a log file in the `.changeset` directory e.g. `.changeset/hungry-donuts-cross.md`. 
 - Commit this log file to your development branch and push it.
 Notably, you do not have to change `"version"` in the atoms `package.json` file because changesets will do it in the next step.
-2. After the development branch is merged changesets will open a pull request titled `chore: version packages` containing next release changes. This pull request will contain the new log file, it being added to the atoms `CHANGELOG.md` file and changesets will update the atoms `package.json` file based whether or not is is major, minor or patch update. When we want to release atoms we simply have to merge this pull request and changesets will publish the new atoms version to npm. Notably,
+2. After the development branch is merged changesets will open a pull request titled `chore: version packages` containing next release changes. This pull request will contain the new log file, it being added to the atoms `CHANGELOG.md` file and changesets will update the atoms `package.json` file based on whether it is a major, minor or patch update. When we want to release atoms we simply have to merge this pull request and changesets will publish the new atoms version to npm. Notably,
 changesets will publish atoms to npm only if the `"version"` in the atoms `package.json` of changeset's PR is higher than in the npm.
 
 The following 2 articles teach how to write good change summaries for each PR when it deserves to end up in CHANGELOG.md
