@@ -124,11 +124,13 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   }, [locale]);
 
   const clientViewerI18n = useViewerI18n(locale);
+  const resolvedI18n = clientViewerI18n.data?.i18n;
 
   // Cache tRPC i18n results per locale so switching back is instant
-  if (clientViewerI18n.data?.i18n) {
-    i18nCache.set(locale, clientViewerI18n.data.i18n);
-  }
+  useEffect(() => {
+    if (!resolvedI18n) return;
+    i18nCache.set(locale, resolvedI18n);
+  }, [locale, resolvedI18n]);
 
   const i18n =
     clientViewerI18n.data?.i18n ?? props.pageProps.i18n ?? i18nCache.get(locale) ?? englishFallback;
