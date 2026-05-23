@@ -62,10 +62,10 @@ export function NewScheduleButton({
     <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
         <Button variant="fab" data-testid={name} StartIcon="plus" size="sm">
-          {t("new")}
+          {t("New meeting")}
         </Button>
       </DialogTrigger>
-      <DialogContent title={t("add_new_schedule")}>
+      <DialogContent title={t("this is the content of dialog")}>
         <Form
           form={form}
           handleSubmit={(values) => {

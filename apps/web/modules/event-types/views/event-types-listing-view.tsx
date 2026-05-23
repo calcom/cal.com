@@ -34,6 +34,14 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label, Switch, TextField } from "@calcom/ui/components/form";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+import {
+  TableNew,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import {
@@ -291,7 +299,7 @@ export const InfiniteEventTypeList = ({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { copyToClipboard } = useCopy();
-  const [parent] = useAutoAnimate<HTMLUListElement>();
+  const [parent] = useAutoAnimate<HTMLTableSectionElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
@@ -534,336 +542,254 @@ export const InfiniteEventTypeList = ({
   });
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-md border border-subtle bg-default">
-      <ul ref={parent} className="static! w-full divide-y divide-subtle" data-testid="event-types">
-        {pages.map((page, pageIdx) => {
-          return page?.eventTypes?.map((type, index) => {
-            const embedLink = `${group.profile.slug}/${type.slug}`;
-            const calLink = `${bookerUrl}/${embedLink}`;
+    <div className="overflow-hidden rounded-md border border-subtle bg-default">
+      <TableNew>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10" />
+            <TableHead>{t("event_type")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("duration")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("members")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("status")}</TableHead>
+            <TableHead className="text-right">{t("actions")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody ref={parent} data-testid="event-types">
+          {pages.map((page, pageIdx) => {
+            return page?.eventTypes?.map((type, index) => {
+              const embedLink = `${group.profile.slug}/${type.slug}`;
+              const calLink = `${bookerUrl}/${embedLink}`;
 
-            const activeHashedLinks = type.hashedLink ? filterActiveLinks(type.hashedLink, userTimezone) : [];
+              const activeHashedLinks = type.hashedLink
+                ? filterActiveLinks(type.hashedLink, userTimezone)
+                : [];
 
-            // Ensure index is within bounds for active links
-            const currentIndex = privateLinkCopyIndices[type.slug] ?? 0;
-            const safeIndex = activeHashedLinks.length > 0 ? currentIndex % activeHashedLinks.length : 0;
+              const currentIndex = privateLinkCopyIndices[type.slug] ?? 0;
+              const safeIndex =
+                activeHashedLinks.length > 0 ? currentIndex % activeHashedLinks.length : 0;
 
-            const isPrivateURLEnabled =
-              activeHashedLinks.length > 0 ? activeHashedLinks[safeIndex]?.link : "";
-            const placeholderHashedLink = `${bookerUrl}/d/${isPrivateURLEnabled}/${type.slug}`;
+              const isPrivateURLEnabled =
+                activeHashedLinks.length > 0 ? activeHashedLinks[safeIndex]?.link : "";
+              const placeholderHashedLink = `${bookerUrl}/d/${isPrivateURLEnabled}/${type.slug}`;
 
-            const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
-            const isChildrenManagedEventType =
-              type.metadata?.managedEventConfig !== undefined &&
-              type.schedulingType !== SchedulingType.MANAGED;
-            return (
-              <li key={type.id}>
-                <div className="flex w-full items-center justify-between transition hover:bg-cal-muted">
-                  <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
-                    {!(firstItem && firstItem.id === type.id) && (
-                      <ArrowButton
-                        onClick={() => moveEventType(LIMIT * pageIdx + index, -1)}
-                        arrowDirection="up"
-                      />
-                    )}
+              const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
+              const isChildrenManagedEventType =
+                type.metadata?.managedEventConfig !== undefined &&
+                type.schedulingType !== SchedulingType.MANAGED;
 
-                    {!(lastItem && lastItem.id === type.id) && (
-                      <ArrowButton
-                        onClick={() => moveEventType(LIMIT * pageIdx + index, 1)}
-                        arrowDirection="down"
-                      />
-                    )}
-                    <MemoizedItem type={type} group={group} readOnly={readOnly} />
-                    <div className="mt-4 hidden sm:mt-0 sm:flex">
-                      <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                        {!!type.teamId && !isManagedEventType && (
-                          <UserAvatarGroup
-                            className="relative right-3"
-                            size="sm"
-                            truncateAfter={4}
-                            hideTruncatedAvatarsCount={true}
-                            users={type?.users ?? []}
-                          />
-                        )}
-                        {isManagedEventType && type?.children && type.children?.length > 0 && (
-                          <UserAvatarGroup
-                            className="relative right-3"
-                            size="sm"
-                            truncateAfter={4}
-                            hideTruncatedAvatarsCount={true}
-                            users={type?.children.flatMap((ch) => ch.users) ?? []}
-                          />
-                        )}
-                        <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                          {!isManagedEventType && (
-                            <>
-                              {type.hidden && <span className="text-gray-400 text-sm">{t("hidden")}</span>}
-                              <Tooltip
-                                content={
-                                  type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")
-                                }>
-                                <div className="self-center rounded-md p-2">
-                                  <Switch
-                                    name="Hidden"
-                                    disabled={lockedByOrg}
-                                    checked={!type.hidden}
-                                    onCheckedChange={() => {
-                                      setHiddenMutation.mutate({
-                                        id: type.id,
-                                        hidden: !type.hidden,
-                                      });
-                                    }}
-                                  />
-                                </div>
-                              </Tooltip>
-                            </>
-                          )}
-
-                          <ButtonGroup combined>
-                            {!isManagedEventType && (
-                              <>
-                                <Tooltip content={t("preview")}>
-                                  <Button
-                                    data-testid="preview-link-button"
-                                    color="secondary"
-                                    target="_blank"
-                                    variant="icon"
-                                    href={calLink}
-                                    StartIcon="external-link"
-                                  />
-                                </Tooltip>
-
-                                <Tooltip content={t("copy_link")}>
-                                  <Button
-                                    color="secondary"
-                                    variant="icon"
-                                    StartIcon="link"
-                                    onClick={() => {
-                                      showToast(t("link_copied"), "success");
-                                      copyToClipboard(calLink);
-                                    }}
-                                  />
-                                </Tooltip>
-
-                                {isPrivateURLEnabled && (
-                                  <Tooltip content={t("copy_private_link_to_event")}>
-                                    <Button
-                                      color="secondary"
-                                      variant="icon"
-                                      StartIcon="venetian-mask"
-                                      onClick={() => {
-                                        showToast(t("private_link_copied"), "success");
-                                        copyToClipboard(placeholderHashedLink);
-                                        setPrivateLinkCopyIndices((prev) => {
-                                          const prevIndex = prev[type.slug] ?? 0;
-                                          const nextIndex = (prevIndex + 1) % activeHashedLinks.length;
-                                          return {
-                                            ...prev,
-                                            [type.slug]: nextIndex,
-                                          };
-                                        });
-                                      }}
-                                    />
-                                  </Tooltip>
-                                )}
-                              </>
-                            )}
-                            <Dropdown modal={false}>
-                              <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
-                                <Button
-                                  type="button"
-                                  variant="icon"
-                                  color="secondary"
-                                  StartIcon="ellipsis"
-                                  // Unusual practice to use radix state open but for some reason this dropdown and only this dropdown clears the border radius of this button.
-                                  className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
-                                />
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                {!readOnly && (
-                                  <DropdownMenuItem>
-                                    <DropdownItem
-                                      type="button"
-                                      data-testid={`event-type-edit-${type.id}`}
-                                      StartIcon="pencil"
-                                      onClick={() => router.push(`/event-types/${type.id}`)}>
-                                      {t("edit")}
-                                    </DropdownItem>
-                                  </DropdownMenuItem>
-                                )}
-                                {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                                {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
-                                  <DropdownMenuItem className="outline-none">
-                                    <DropdownItem
-                                      type="button"
-                                      data-testid={`event-type-duplicate-${type.id}`}
-                                      StartIcon="copy"
-                                      onClick={() => openDuplicateModal(type, group)}>
-                                      {t("duplicate")}
-                                    </DropdownItem>
-                                  </DropdownMenuItem>
-                                )}
-                                {!isManagedEventType && (
-                                  <DropdownMenuItem className="outline-none">
-                                    <EventTypeEmbedButton
-                                      namespace={type.slug}
-                                      as={DropdownItem}
-                                      type="button"
-                                      StartIcon="code"
-                                      className="w-full rounded-none"
-                                      embedUrl={encodeURIComponent(embedLink)}
-                                      eventId={type.id}>
-                                      {t("embed")}
-                                    </EventTypeEmbedButton>
-                                  </DropdownMenuItem>
-                                )}
-                                {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                                {!readOnly && !isChildrenManagedEventType && (
-                                  <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                      <DropdownItem
-                                        color="destructive"
-                                        onClick={() => {
-                                          setDeleteDialogOpen(true);
-                                          setDeleteDialogTypeId(type.id);
-                                          setDeleteDialogSchedulingType(type.schedulingType);
-                                        }}
-                                        StartIcon="trash"
-                                        className="w-full rounded-t-none">
-                                        {t("delete")}
-                                      </DropdownItem>
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
-                              </DropdownMenuContent>
-                            </Dropdown>
-                          </ButtonGroup>
-                        </div>
-                      </div>
+              return (
+                <TableRow key={type.id}>
+                  <TableCell className="w-10 pr-0">
+                    <div className="flex flex-col items-center gap-0.5">
+                      {!(firstItem && firstItem.id === type.id) && (
+                        <ArrowButton
+                          onClick={() => moveEventType(LIMIT * pageIdx + index, -1)}
+                          arrowDirection="up"
+                        />
+                      )}
+                      {!(lastItem && lastItem.id === type.id) && (
+                        <ArrowButton
+                          onClick={() => moveEventType(LIMIT * pageIdx + index, 1)}
+                          arrowDirection="down"
+                        />
+                      )}
                     </div>
-                  </div>
-                  <div className="mx-5 flex min-w-9 sm:hidden">
-                    <Dropdown>
-                      <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
-                        <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuContent>
-                          {!isManagedEventType && (
-                            <>
-                              <DropdownMenuItem className="outline-none">
-                                <DropdownItem
-                                  href={calLink}
-                                  target="_blank"
-                                  StartIcon="external-link"
-                                  className="w-full rounded-none">
-                                  {t("preview")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="outline-none">
-                                <DropdownItem
-                                  data-testid={`event-type-duplicate-${type.id}`}
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(calLink);
-                                    showToast(t("link_copied"), "success");
-                                  }}
-                                  StartIcon="clipboard"
-                                  className="w-full rounded-none text-left">
-                                  {t("copy_link")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                            </>
+                  </TableCell>
+
+                  <TableCell>
+                    <MemoizedItem type={type} group={group} readOnly={readOnly} />
+                  </TableCell>
+
+                  <TableCell className="hidden sm:table-cell">
+                    <span className="text-default text-sm">{type.length} {t("minutes")}</span>
+                  </TableCell>
+
+                  <TableCell className="hidden sm:table-cell">
+                    {!!type.teamId && !isManagedEventType && (
+                      <UserAvatarGroup
+                        size="sm"
+                        truncateAfter={4}
+                        hideTruncatedAvatarsCount={true}
+                        users={type?.users ?? []}
+                      />
+                    )}
+                    {isManagedEventType && type?.children && type.children?.length > 0 && (
+                      <UserAvatarGroup
+                        size="sm"
+                        truncateAfter={4}
+                        hideTruncatedAvatarsCount={true}
+                        users={type?.children.flatMap((ch) => ch.users) ?? []}
+                      />
+                    )}
+                  </TableCell>
+
+                  <TableCell className="hidden sm:table-cell">
+                    {!isManagedEventType && (
+                      <Tooltip
+                        content={
+                          type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")
+                        }>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            name="Hidden"
+                            disabled={lockedByOrg}
+                            checked={!type.hidden}
+                            onCheckedChange={() => {
+                              setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                            }}
+                          />
+                          {type.hidden && (
+                            <span className="text-subtle text-sm">{t("hidden")}</span>
                           )}
-                          {isNativeShare ? (
-                            <DropdownMenuItem className="outline-none">
-                              <DropdownItem
-                                data-testid={`event-type-duplicate-${type.id}`}
+                        </div>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end">
+                      <ButtonGroup combined>
+                        {!isManagedEventType && (
+                          <>
+                            <Tooltip content={t("preview")}>
+                              <Button
+                                data-testid="preview-link-button"
+                                color="secondary"
+                                target="_blank"
+                                variant="icon"
+                                href={calLink}
+                                StartIcon="external-link"
+                              />
+                            </Tooltip>
+                            <Tooltip content={t("copy_link")}>
+                              <Button
+                                color="secondary"
+                                variant="icon"
+                                StartIcon="link"
                                 onClick={() => {
-                                  navigator
-                                    .share({
-                                      title: t("share"),
-                                      text: t("share_event", {
-                                        appName: APP_NAME,
-                                      }),
-                                      url: calLink,
-                                    })
-                                    .then(() => showToast(t("link_shared"), "success"))
-                                    .catch(() => showToast(t("failed"), "error"));
-                                }}
-                                StartIcon="upload"
-                                className="w-full rounded-none">
-                                {t("share")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
-                          ) : null}
-                          {!readOnly && (
-                            <DropdownMenuItem className="outline-none">
-                              <DropdownItem
-                                onClick={() => router.push(`/event-types/${type.id}`)}
-                                StartIcon="pencil"
-                                className="w-full rounded-none">
-                                {t("edit")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
-                          )}
-                          {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
-                            <DropdownMenuItem className="outline-none">
-                              <DropdownItem
-                                onClick={() => openDuplicateModal(type, group)}
-                                StartIcon="copy"
-                                data-testid={`event-type-duplicate-${type.id}`}>
-                                {t("duplicate")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
-                          )}
-                          {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                          {!readOnly && !isChildrenManagedEventType && (
-                            <DropdownMenuItem className="outline-none">
-                              <DropdownItem
-                                color="destructive"
-                                onClick={() => {
-                                  setDeleteDialogOpen(true);
-                                  setDeleteDialogTypeId(type.id);
-                                  setDeleteDialogSchedulingType(type.schedulingType);
-                                }}
-                                StartIcon="trash"
-                                className="w-full rounded-t-none">
-                                {t("delete")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          {!isManagedEventType && (
-                            <div className="flex h-9 cursor-pointer flex-row items-center justify-between rounded-b-lg px-4 py-2 transition hover:bg-subtle">
-                              <Skeleton
-                                as={Label}
-                                htmlFor="hiddenSwitch"
-                                className="mt-2 inline cursor-pointer self-center pr-2">
-                                {type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
-                              </Skeleton>
-                              <Switch
-                                id="hiddenSwitch"
-                                name="Hidden"
-                                checked={!type.hidden}
-                                onCheckedChange={() => {
-                                  setHiddenMutation.mutate({
-                                    id: type.id,
-                                    hidden: !type.hidden,
-                                  });
+                                  showToast(t("link_copied"), "success");
+                                  copyToClipboard(calLink);
                                 }}
                               />
-                            </div>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenuPortal>
-                    </Dropdown>
-                  </div>
-                </div>
-              </li>
-            );
-          });
-        })}
-      </ul>
+                            </Tooltip>
+                            {isPrivateURLEnabled && (
+                              <Tooltip content={t("copy_private_link_to_event")}>
+                                <Button
+                                  color="secondary"
+                                  variant="icon"
+                                  StartIcon="venetian-mask"
+                                  onClick={() => {
+                                    showToast(t("private_link_copied"), "success");
+                                    copyToClipboard(placeholderHashedLink);
+                                    setPrivateLinkCopyIndices((prev) => {
+                                      const prevIndex = prev[type.slug] ?? 0;
+                                      const nextIndex = (prevIndex + 1) % activeHashedLinks.length;
+                                      return { ...prev, [type.slug]: nextIndex };
+                                    });
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                          </>
+                        )}
+                        <Dropdown modal={false}>
+                          <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
+                            <Button
+                              type="button"
+                              variant="icon"
+                              color="secondary"
+                              StartIcon="ellipsis"
+                              className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
+                            />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            {!readOnly && (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  data-testid={`event-type-edit-${type.id}`}
+                                  StartIcon="pencil"
+                                  onClick={() => router.push(`/event-types/${type.id}`)}>
+                                  {t("edit")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            )}
+                            {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
+                              <DropdownMenuItem className="outline-none">
+                                <DropdownItem
+                                  type="button"
+                                  data-testid={`event-type-duplicate-${type.id}`}
+                                  StartIcon="copy"
+                                  onClick={() => openDuplicateModal(type, group)}>
+                                  {t("duplicate")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            )}
+                            {!isManagedEventType && (
+                              <DropdownMenuItem className="outline-none">
+                                <EventTypeEmbedButton
+                                  namespace={type.slug}
+                                  as={DropdownItem}
+                                  type="button"
+                                  StartIcon="code"
+                                  className="w-full rounded-none"
+                                  embedUrl={encodeURIComponent(embedLink)}
+                                  eventId={type.id}>
+                                  {t("embed")}
+                                </EventTypeEmbedButton>
+                              </DropdownMenuItem>
+                            )}
+                            {!readOnly && !isChildrenManagedEventType && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    color="destructive"
+                                    onClick={() => {
+                                      setDeleteDialogOpen(true);
+                                      setDeleteDialogTypeId(type.id);
+                                      setDeleteDialogSchedulingType(type.schedulingType);
+                                    }}
+                                    StartIcon="trash"
+                                    className="w-full rounded-t-none">
+                                    {t("delete")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {isNativeShare && !isManagedEventType && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="outline-none">
+                                  <DropdownItem
+                                    onClick={() => {
+                                      navigator
+                                        .share({
+                                          title: t("share"),
+                                          text: t("share_event", { appName: APP_NAME }),
+                                          url: calLink,
+                                        })
+                                        .then(() => showToast(t("link_shared"), "success"))
+                                        .catch(() => showToast(t("failed"), "error"));
+                                    }}
+                                    StartIcon="upload"
+                                    className="w-full rounded-none">
+                                    {t("share")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </Dropdown>
+                      </ButtonGroup>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            });
+          })}
+        </TableBody>
+      </TableNew>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
