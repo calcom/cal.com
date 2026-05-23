@@ -1,5 +1,6 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
@@ -15,6 +16,9 @@ import {
 } from "./bbbApi";
 
 const BIGBLUEBUTTON_REQUEST_TIMEOUT_MS = 10_000;
+const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({
+  prefix: ["BigBlueButtonVideoApiAdapter"],
+});
 
 const fetchWithTimeout = async (url: string, init: RequestInit = {}): Promise<Response> => {
   const controller = new AbortController();
@@ -120,7 +124,16 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         sharedSecret,
       });
 
-      await fetchWithTimeout(endUrl, { method: "POST" });
+      try {
+        await fetchWithTimeout(endUrl, { method: "POST" });
+      } catch (error) {
+        const redactedEndUrl = endUrl.replace(/\?.*$/, "?[redacted]");
+        log.warn("Unable to end BigBlueButton meeting during best-effort cleanup", {
+          meetingId,
+          endUrl: redactedEndUrl,
+          error,
+        });
+      }
     },
     updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
       const { meetingId, meetingPassword, meetingUrl } = assertBookingReference(bookingRef);

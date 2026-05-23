@@ -6,7 +6,11 @@ type BigBlueButtonMethod = "create" | "join" | "end";
 
 const BBB_PATH = "/bigbluebutton";
 
-export const normalizeBigBlueButtonBaseUrl = (value: string): string => {
+export const normalizeBigBlueButtonBaseUrl = (value: string | null | undefined): string => {
+  if (typeof value !== "string") {
+    throw new ErrorWithCode(ErrorCode.BadRequest, "BigBlueButton host is required");
+  }
+
   const trimmed = value.trim().replace(/\/+$/, "");
   if (!trimmed) {
     throw new ErrorWithCode(ErrorCode.BadRequest, "BigBlueButton host is required");

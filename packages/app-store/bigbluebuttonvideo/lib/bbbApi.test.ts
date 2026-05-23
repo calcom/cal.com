@@ -12,6 +12,10 @@ describe("BigBlueButton API helpers", () => {
     );
   });
 
+  it("throws the expected error for a missing server URL", () => {
+    expect(() => normalizeBigBlueButtonBaseUrl(undefined)).toThrow("BigBlueButton host is required");
+  });
+
   it("sanitizes meeting IDs to BigBlueButton-safe characters", () => {
     expect(sanitizeMeetingId("Intro Call with Jane Doe / ACME")).toBe("Intro-Call-with-Jane-Doe-ACME");
   });
