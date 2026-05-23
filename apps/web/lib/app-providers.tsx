@@ -33,6 +33,27 @@ const I18nextAdapter = appWithTranslation<
   }
 >(({ children }) => <>{children}</>);
 
+// Preload English translations at module level so they're available instantly on first render.
+// This eliminates the skeleton loading period while the tRPC i18n query is in flight.
+// When the tRPC query resolves, its locale-specific data replaces these English fallback translations.
+const enCommon = require("@calcom/i18n/locales/en/common.json") as Record<string, string>;
+const englishFallback: SSRConfig = {
+  _nextI18Next: {
+    initialI18nStore: {
+      en: {
+        common: enCommon,
+      },
+    },
+    initialLocale: "en",
+    ns: ["common", "vital"],
+    userConfig: null,
+  },
+};
+
+// Cache previously-loaded tRPC i18n results per locale so switching back to a locale
+// that was already fetched shows translations instantly on subsequent navigations.
+const i18nCache = new Map<string, SSRConfig>();
+
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
@@ -103,7 +124,14 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   }, [locale]);
 
   const clientViewerI18n = useViewerI18n(locale);
-  const i18n = clientViewerI18n.data?.i18n ?? props.pageProps.i18n;
+
+  // Cache tRPC i18n results per locale so switching back is instant
+  if (clientViewerI18n.data?.i18n) {
+    i18nCache.set(locale, clientViewerI18n.data.i18n);
+  }
+
+  const i18n =
+    clientViewerI18n.data?.i18n ?? props.pageProps.i18n ?? i18nCache.get(locale) ?? englishFallback;
 
   const passedProps = {
     ...props,
