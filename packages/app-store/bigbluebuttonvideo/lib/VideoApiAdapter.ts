@@ -1,3 +1,5 @@
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
@@ -11,6 +13,24 @@ import {
   normalizeBigBlueButtonBaseUrl,
   sanitizeMeetingId,
 } from "./bbbApi";
+
+const BIGBLUEBUTTON_REQUEST_TIMEOUT_MS = 10_000;
+
+const fetchWithTimeout = async (url: string, init: RequestInit = {}): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), BIGBLUEBUTTON_REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "BigBlueButton request timed out");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
 
 const buildMeetingId = (meetingPattern: string, eventData: CalendarEvent): string =>
   sanitizeMeetingId(
@@ -28,7 +48,7 @@ const assertBookingReference = (
   bookingRef: PartialReference
 ): { meetingId: string; meetingPassword: string; meetingUrl: string } => {
   if (!bookingRef.meetingId || !bookingRef.meetingPassword || !bookingRef.meetingUrl) {
-    throw new Error("BigBlueButton booking reference is missing meeting data");
+    throw new ErrorWithCode(ErrorCode.BadRequest, "BigBlueButton booking reference is missing meeting data");
   }
 
   return {
@@ -50,7 +70,7 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       const hostUrl = normalizeBigBlueButtonBaseUrl(appKeys.bigBlueButtonHost as string);
       const sharedSecret = (appKeys.bigBlueButtonSharedSecret as string)?.trim();
       if (!sharedSecret) {
-        throw new Error("BigBlueButton shared secret is required");
+        throw new ErrorWithCode(ErrorCode.BadRequest, "BigBlueButton shared secret is required");
       }
 
       const meetingID = buildMeetingId(meetingPattern, eventData);
@@ -65,10 +85,10 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         sharedSecret,
       });
 
-      const response = await fetch(createUrl, { method: "POST" });
+      const response = await fetchWithTimeout(createUrl, { method: "POST" });
       const responseBody = await response.text();
       if (!response.ok || !/<returncode>\s*SUCCESS\s*<\/returncode>/i.test(responseBody)) {
-        throw new Error("Unable to create BigBlueButton meeting");
+        throw new ErrorWithCode(ErrorCode.InternalServerError, "Unable to create BigBlueButton meeting");
       }
 
       return {
@@ -86,13 +106,13 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
     },
     deleteMeeting: async (meetingId: string): Promise<void> => {
       const appKeys = await getAppKeysFromSlug(metadata.slug);
-      const hostUrl = normalizeBigBlueButtonBaseUrl(appKeys.bigBlueButtonHost as string);
       const sharedSecret = (appKeys.bigBlueButtonSharedSecret as string)?.trim();
       const moderatorPassword = (appKeys.bigBlueButtonModeratorPassword as string)?.trim();
       if (!sharedSecret || !moderatorPassword) {
         return Promise.resolve();
       }
 
+      const hostUrl = normalizeBigBlueButtonBaseUrl(appKeys.bigBlueButtonHost as string);
       const endUrl = getBigBlueButtonEndUrl({
         baseUrl: hostUrl,
         meetingId,
@@ -100,7 +120,7 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         sharedSecret,
       });
 
-      await fetch(endUrl, { method: "POST" });
+      await fetchWithTimeout(endUrl, { method: "POST" });
     },
     updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
       const { meetingId, meetingPassword, meetingUrl } = assertBookingReference(bookingRef);

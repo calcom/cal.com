@@ -35,6 +35,11 @@ const getTeamId = (teamId: NextApiRequest["query"][string]): number | null => {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }

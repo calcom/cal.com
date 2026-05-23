@@ -1,4 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 type BigBlueButtonMethod = "create" | "join" | "end";
 
@@ -7,7 +9,7 @@ const BBB_PATH = "/bigbluebutton";
 export const normalizeBigBlueButtonBaseUrl = (value: string): string => {
   const trimmed = value.trim().replace(/\/+$/, "");
   if (!trimmed) {
-    throw new Error("BigBlueButton host is required");
+    throw new ErrorWithCode(ErrorCode.BadRequest, "BigBlueButton host is required");
   }
 
   const url = new URL(trimmed);
