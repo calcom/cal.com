@@ -2034,6 +2034,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/app-store@workspace:packages/app-store"
   dependencies:
+    "@calcom/bigbluebuttonvideo": "workspace:*"
     "@calcom/dailyvideo": "workspace:*"
     "@calcom/dayjs": "workspace:*"
     "@calcom/features": "workspace:*"
@@ -2150,6 +2151,17 @@ __metadata:
   dependencies:
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/bigbluebuttonvideo@workspace:*, @calcom/bigbluebuttonvideo@workspace:packages/app-store/bigbluebuttonvideo":
+  version: 0.0.0-use.local
+  resolution: "@calcom/bigbluebuttonvideo@workspace:packages/app-store/bigbluebuttonvideo"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+    "@types/uuid": "npm:8.3.4"
+    uuid: "npm:8.3.2"
   languageName: unknown
   linkType: soft
 
