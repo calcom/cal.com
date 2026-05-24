@@ -116,18 +116,26 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         return Promise.resolve();
       }
 
-      const hostUrl = normalizeBigBlueButtonBaseUrl(appKeys.bigBlueButtonHost as string);
-      const endUrl = getBigBlueButtonEndUrl({
-        baseUrl: hostUrl,
-        meetingId,
-        moderatorPassword,
-        sharedSecret,
-      });
-
+      let redactedEndUrl = "[unavailable]";
       try {
-        await fetchWithTimeout(endUrl, { method: "POST" });
+        const hostUrl = normalizeBigBlueButtonBaseUrl(appKeys.bigBlueButtonHost as string);
+        const endUrl = getBigBlueButtonEndUrl({
+          baseUrl: hostUrl,
+          meetingId,
+          moderatorPassword,
+          sharedSecret,
+        });
+        redactedEndUrl = endUrl.replace(/\?.*$/, "?[redacted]");
+
+        const response = await fetchWithTimeout(endUrl, { method: "POST" });
+        const responseBody = await response.text();
+        if (!response.ok || !/<returncode>\s*SUCCESS\s*<\/returncode>/i.test(responseBody)) {
+          throw new ErrorWithCode(ErrorCode.InternalServerError, "Unable to end BigBlueButton meeting", {
+            status: response.status,
+            responseBody,
+          });
+        }
       } catch (error) {
-        const redactedEndUrl = endUrl.replace(/\?.*$/, "?[redacted]");
         log.warn("Unable to end BigBlueButton meeting during best-effort cleanup", {
           meetingId,
           endUrl: redactedEndUrl,
