@@ -1399,7 +1399,8 @@ window.addEventListener("message", (e) => {
   // Each Cal namespace has a configured calOrigin (the embedded app URL).
   // Messages must come from that origin to prevent cross-origin attacks.
   if (actionManager) {
-    const calInstance = globalCal.ns?.[parsedAction.ns]?.instance;
+    const calInstance =
+      parsedAction.ns === "" ? globalCal.instance : globalCal.ns?.[parsedAction.ns]?.instance;
     const expectedOrigin = calInstance?.__config?.calOrigin;
     if (expectedOrigin) {
       const expectedOriginUrl = new URL(expectedOrigin);

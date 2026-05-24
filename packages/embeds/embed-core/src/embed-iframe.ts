@@ -174,7 +174,9 @@ export const useEmbedUiConfig = () => {
   useEffect(() => {
     return () => {
       const foundAtIndex = embedStore.setUiConfig.findIndex((item) => item === setUiConfig);
-      embedStore.setUiConfig.splice(foundAtIndex, 1);
+      if (foundAtIndex !== -1) {
+        embedStore.setUiConfig.splice(foundAtIndex, 1);
+      }
     };
   });
   return uiConfig;
@@ -531,8 +533,20 @@ function main() {
 
   // FIX 3: Cache the expected parent origin for message validation.
   // window.location.ancestorOrigins[0] is the origin of the parent page embedding this iframe.
-  const expectedParentOrigin = typeof window !== "undefined" ? window.location?.ancestorOrigins?.[0] : null;
-
+  const getExpectedParentOrigin = (): string | null => {
+    if (typeof window !== "undefined" && window.location?.ancestorOrigins?.[0]) {
+      return window.location.ancestorOrigins[0];
+    }
+    if (typeof document !== "undefined" && document.referrer) {
+      try {
+        return new URL(document.referrer).origin;
+      } catch {
+        // Invalid referrer URL
+      }
+    }
+    return null;
+  };
+  const expectedParentOrigin = getExpectedParentOrigin();
   window.addEventListener("message", (e) => {
     const data: Message = e.data;
     if (!data) {
