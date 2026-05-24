@@ -222,36 +222,81 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       : "https://graph.microsoft.com/v1.0/me";
   }
 
-  // Since the meeting link is not tied to an event we only need the create and update functions
-  return {
+  const adapter: VideoApiAdapter = {
     getAvailability: () => {
       return Promise.resolve([]);
     },
-    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
+    deleteMeeting: async (uid: string): Promise<void> => {
       try {
         const response = await auth.requestRaw({
-          url: `${await getUserEndpoint()}/onlineMeetings`,
+          url: `${await getUserEndpoint()}/onlineMeetings/${uid}`,
           options: {
-            method: "POST",
-            body: JSON.stringify(translateEvent(event)),
+            method: "DELETE",
           },
         });
 
-        if (!response.ok) {
+        if (!response.ok && response.status !== 404) {
           throw new HttpError({
             statusCode: response.status,
             message: response.statusText,
           });
         }
 
-        const resultString = await response.text();
+        log.debug("Teams meeting deleted", { meetingId: uid });
+        return Promise.resolve();
+      } catch (error) {
+        log.error(`Error deleting MS Teams meeting ${uid}`, error);
+        if (error instanceof HttpError) {
+          throw error;
+        }
+        throw new HttpError({
+          statusCode: 500,
+          message: `Error deleting MS Teams meeting ${uid}`,
+        });
+      }
+    },
+    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
+      const meetingId = bookingRef.meetingId;
+
+      // If no meetingId is available, fall back to creating a new meeting
+      if (!meetingId) {
+        log.warn(`No meetingId found in bookingRef for booking ${event.uid}, falling back to createMeeting`);
+        return adapter.createMeeting(event);
+      }
+
+      try {
+        const patchResponse = await auth.requestRaw({
+          url: `${await getUserEndpoint()}/onlineMeetings/${meetingId}`,
+          options: {
+            method: "PATCH",
+            body: JSON.stringify(translateEvent(event)),
+          },
+        });
+
+        if (!patchResponse.ok) {
+          throw new HttpError({
+            statusCode: patchResponse.status,
+            message: patchResponse.statusText,
+          });
+        }
+
+        // PATCH returns 200 with the updated meeting object
+        const resultString = await patchResponse.text();
         const resultObject = JSON.parse(resultString);
+
+        log.debug("Teams meeting updated", { meetingId });
 
         return Promise.resolve({
           type: "office365_video",
-          id: resultObject.id,
+          id: resultObject.id ?? meetingId,
           password: "",
-          url: resultObject.joinWebUrl || resultObject.joinUrl,
+          url: (() => {
+            const joinUrl = resultObject.joinWebUrl;
+            if (!joinUrl) {
+              log.warn("Teams PATCH response missing joinWebUrl, falling back to existing meeting URL", { meetingId });
+            }
+            return joinUrl || bookingRef.meetingUrl || "";
+          })(),
         });
       } catch (error) {
         log.error(`Error updating MS Teams meeting for booking ${event.uid}`, error);
@@ -263,9 +308,6 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           message: `Error updating MS Teams meeting for booking ${event.uid}`,
         });
       }
-    },
-    deleteMeeting:() => {
-      return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       const url = `${await getUserEndpoint()}/onlineMeetings`;
@@ -289,7 +331,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
 
         const resultObject = JSON.parse(resultString);
 
-        if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
+        if (!resultObject.id || !resultObject.joinWebUrl) {
           throw new HttpError({
             statusCode: 500,
             message: `Error creating MS Teams meeting: ${resultObject.error?.message || "missing required fields in response"}`,
@@ -302,7 +344,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           type: "office365_video",
           id: resultObject.id,
           password: "",
-          url: resultObject.joinWebUrl || resultObject.joinUrl,
+          url: resultObject.joinWebUrl,
         });
       } catch (error) {
         log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
@@ -316,6 +358,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       }
     },
   };
+  return adapter;
 };
 
 export default TeamsVideoApiAdapter;

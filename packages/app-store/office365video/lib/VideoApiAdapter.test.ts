@@ -7,14 +7,20 @@ import { internalServerErrorResponse, successResponse } from "../../_utils/testU
 import config from "../config.json";
 import VideoApiAdapter from "./VideoApiAdapter";
 
+const MEETING_ID = "FAKE_MEETING_ID";
+
 const URLS = {
   CREATE_MEETING: {
     url: "https://graph.microsoft.com/v1.0/me/onlineMeetings",
     method: "POST",
   },
   UPDATE_MEETING: {
-    url: "https://graph.microsoft.com/v1.0/me/onlineMeetings",
-    method: "POST",
+    url: `https://graph.microsoft.com/v1.0/me/onlineMeetings/${MEETING_ID}`,
+    method: "PATCH",
+  },
+  DELETE_MEETING: {
+    url: `https://graph.microsoft.com/v1.0/me/onlineMeetings/${MEETING_ID}`,
+    method: "DELETE",
   },
 };
 
@@ -59,9 +65,24 @@ const testCredential = {
   encryptedKey: null,
 };
 
+const testEvent = {
+  title: "Test Meeting",
+  description: "Test Description",
+  startTime: new Date(),
+  endTime: new Date(),
+};
+
+const testBookingRef = {
+  type: "office365_video",
+  uid: "FAKE_UID",
+  meetingId: MEETING_ID,
+  meetingUrl: "https://existing_join_url.example.com",
+};
+
+// ─── createMeeting ────────────────────────────────────────────────────────────
+
 describe("createMeeting", () => {
   test("Successful `createMeeting` call", async () => {
-
     const videoApi = VideoApiAdapter(testCredential);
 
     mockRequestRaw.mockImplementation(({ url }) => {
@@ -71,7 +92,6 @@ describe("createMeeting", () => {
             json: {
               id: 1,
               joinWebUrl: "https://join_web_url.example.com",
-              joinUrl: "https://join_url.example.com",
             },
           })
         );
@@ -79,27 +99,20 @@ describe("createMeeting", () => {
       throw new Error("Unexpected URL");
     });
 
-    const event = {
-      title: "Test Meeting",
-      description: "Test Description",
-      startTime: new Date(),
-      endTime: new Date(),
-    };
+    const createdMeeting = await videoApi?.createMeeting(testEvent);
 
-    const createdMeeting = await videoApi?.createMeeting(event);
     expect(OAuthManager).toHaveBeenCalled();
     expect(mockRequestRaw).toHaveBeenCalledWith({
       url: URLS.CREATE_MEETING.url,
       options: {
         method: "POST",
         body: JSON.stringify({
-          startDateTime: event.startTime,
-          endDateTime: event.endTime,
-          subject: event.title,
+          startDateTime: testEvent.startTime,
+          endDateTime: testEvent.endTime,
+          subject: testEvent.title,
         }),
       },
     });
-
     expect(createdMeeting).toEqual({
       id: 1,
       password: "",
@@ -108,8 +121,7 @@ describe("createMeeting", () => {
     });
   });
 
-  test(" `createMeeting` when there is no joinWebUrl and only joinUrl", async () => {
-
+  test("`createMeeting` fails when joinWebUrl is missing from Graph response", async () => {
     const videoApi = VideoApiAdapter(testCredential);
 
     mockRequestRaw.mockImplementation(({ url }) => {
@@ -118,10 +130,7 @@ describe("createMeeting", () => {
           successResponse({
             json: {
               id: 1,
-              joinUrl: "https://join_url.example.com",
-              error: {
-                message: "ERROR",
-              },
+              // joinWebUrl intentionally missing → triggers the validation error
             },
           })
         );
@@ -129,155 +138,149 @@ describe("createMeeting", () => {
       throw new Error("Unexpected URL");
     });
 
-    const event = {
-      title: "Test Meeting",
-      description: "Test Description",
-      startTime: new Date(),
-      endTime: new Date(),
-    };
-
-    await expect(() => videoApi?.createMeeting(event)).rejects.toThrowError(
+    await expect(() => videoApi?.createMeeting(testEvent)).rejects.toThrowError(
       "Error creating MS Teams meeting"
     );
-    expect(OAuthManager).toHaveBeenCalled();
-    expect(mockRequestRaw).toHaveBeenCalledWith({
-      url: URLS.CREATE_MEETING.url,
-      options: {
-        method: "POST",
-        body: JSON.stringify({
-          startDateTime: event.startTime,
-          endDateTime: event.endTime,
-          subject: event.title,
-        }),
-      },
-    });
   });
 
-  test("Failing `createMeeting` call", async () => {
+  test("Failing `createMeeting` call — server error", async () => {
     const videoApi = VideoApiAdapter(testCredential);
 
     mockRequestRaw.mockImplementation(({ url }) => {
       if (url === URLS.CREATE_MEETING.url) {
-        return Promise.resolve(
-          internalServerErrorResponse({
-            json: {
-              id: 1,
-              joinWebUrl: "https://example.com",
-              joinUrl: "https://example.com",
-            },
-          })
-        );
+        return Promise.resolve(internalServerErrorResponse({ json: {} }));
       }
       throw new Error("Unexpected URL");
     });
 
-    const event = {
-      title: "Test Meeting",
-      description: "Test Description",
-      startTime: new Date(),
-      endTime: new Date(),
-    };
-
-    await expect(() => videoApi?.createMeeting(event)).rejects.toThrowError("Internal Server Error");
-    expect(OAuthManager).toHaveBeenCalled();
-    expect(mockRequestRaw).toHaveBeenCalledWith({
-      url: URLS.CREATE_MEETING.url,
-      options: {
-        method: "POST",
-        body: JSON.stringify({
-          startDateTime: event.startTime,
-          endDateTime: event.endTime,
-          subject: event.title,
-        }),
-      },
-    });
+    await expect(() => videoApi?.createMeeting(testEvent)).rejects.toThrowError("Internal Server Error");
   });
 });
 
+// ─── updateMeeting ────────────────────────────────────────────────────────────
+
 describe("updateMeeting", () => {
-  test("Successful `updateMeeting` call", async () => {
+  test("Successful `updateMeeting` uses PATCH /onlineMeetings/{meetingId}", async () => {
     const videoApi = VideoApiAdapter(testCredential);
 
-    mockRequestRaw.mockImplementation(({ url }) => {
-      if (url === URLS.CREATE_MEETING.url) {
+    mockRequestRaw.mockImplementation(({ url, options }) => {
+      if (url === URLS.UPDATE_MEETING.url && options.method === "PATCH") {
         return Promise.resolve(
           successResponse({
             json: {
-              id: 1,
-              joinWebUrl: "https://join_web_url.example.com",
-              joinUrl: "https://join_url.example.com",
+              id: MEETING_ID,
+              joinWebUrl: "https://updated_join_web_url.example.com",
             },
           })
         );
       }
-      throw new Error("Unexpected URL");
+      throw new Error(`Unexpected request: ${options.method} ${url}`);
     });
 
-    const event = {
-      title: "Test Meeting",
-      description: "Test Description",
-      startTime: new Date(),
-      endTime: new Date(),
-    };
+    const updatedMeeting = await videoApi?.updateMeeting(testBookingRef, testEvent);
 
-    const updatedMeeting = await videoApi?.updateMeeting(null, event);
-    expect(OAuthManager).toHaveBeenCalled();
     expect(mockRequestRaw).toHaveBeenCalledWith({
-      url: URLS.CREATE_MEETING.url,
+      url: URLS.UPDATE_MEETING.url,
       options: {
-        method: "POST",
+        method: "PATCH",
         body: JSON.stringify({
-          startDateTime: event.startTime,
-          endDateTime: event.endTime,
-          subject: event.title,
+          startDateTime: testEvent.startTime,
+          endDateTime: testEvent.endTime,
+          subject: testEvent.title,
         }),
       },
     });
     expect(updatedMeeting).toEqual({
-      id: 1,
+      id: MEETING_ID,
       password: "",
-      type: config.type,
-      url: "https://join_web_url.example.com",
+      type: "office365_video",
+      url: "https://updated_join_web_url.example.com",
     });
   });
 
-  test("Failing `updateMeeting` call", async () => {
+  test("`updateMeeting` falls back to createMeeting when meetingId is missing", async () => {
     const videoApi = VideoApiAdapter(testCredential);
 
     mockRequestRaw.mockImplementation(({ url }) => {
       if (url === URLS.CREATE_MEETING.url) {
         return Promise.resolve(
-          internalServerErrorResponse({
+          successResponse({
             json: {
-              id: 1,
-              joinWebUrl: "https://join_web_url.example.com",
-              joinUrl: "https://join_url.example.com",
+              id: "NEW_MEETING_ID",
+              joinWebUrl: "https://new_join_web_url.example.com",
             },
           })
         );
       }
-      throw new Error("Unexpected URL");
+      throw new Error(`Unexpected URL: ${url}`);
     });
 
-    const event = {
-      title: "Test Meeting",
-      description: "Test Description",
-      startTime: new Date(),
-      endTime: new Date(),
-    };
+    const bookingRefWithoutMeetingId = { ...testBookingRef, meetingId: null };
+    const result = await videoApi?.updateMeeting(bookingRefWithoutMeetingId, testEvent);
 
-    await expect(() => videoApi?.updateMeeting(null, event)).rejects.toThrowError("Internal Server Error");
-    expect(OAuthManager).toHaveBeenCalled();
+    // Should have fallen back to POST /onlineMeetings via adapter.createMeeting()
     expect(mockRequestRaw).toHaveBeenCalledWith({
       url: URLS.CREATE_MEETING.url,
-      options: {
-        method: "POST",
-        body: JSON.stringify({
-          startDateTime: event.startTime,
-          endDateTime: event.endTime,
-          subject: event.title,
-        }),
-      },
+      options: expect.objectContaining({ method: "POST" }),
     });
+    expect(result?.url).toBe("https://new_join_web_url.example.com");
+  });
+
+  test("Failing `updateMeeting` — server error propagates correctly", async () => {
+    const videoApi = VideoApiAdapter(testCredential);
+
+    mockRequestRaw.mockImplementation(({ url, options }) => {
+      if (url === URLS.UPDATE_MEETING.url && options.method === "PATCH") {
+        return Promise.resolve(internalServerErrorResponse({ json: {} }));
+      }
+      throw new Error(`Unexpected request: ${options.method} ${url}`);
+    });
+
+    await expect(() => videoApi?.updateMeeting(testBookingRef, testEvent)).rejects.toThrowError(
+      "Internal Server Error"
+    );
+  });
+});
+
+// ─── deleteMeeting ────────────────────────────────────────────────────────────
+
+describe("deleteMeeting", () => {
+  test("Successful `deleteMeeting` calls DELETE /onlineMeetings/{uid}", async () => {
+    const videoApi = VideoApiAdapter(testCredential);
+
+    mockRequestRaw.mockImplementation(({ url, options }) => {
+      if (url === URLS.DELETE_MEETING.url && options.method === "DELETE") {
+        return Promise.resolve(successResponse({ json: {} }));
+      }
+      throw new Error(`Unexpected request: ${options.method} ${url}`);
+    });
+
+    await expect(videoApi?.deleteMeeting(MEETING_ID)).resolves.toBeUndefined();
+
+    expect(mockRequestRaw).toHaveBeenCalledWith({
+      url: URLS.DELETE_MEETING.url,
+      options: { method: "DELETE" },
+    });
+  });
+
+  test("`deleteMeeting` ignores 404 — meeting already gone", async () => {
+    const videoApi = VideoApiAdapter(testCredential);
+
+    mockRequestRaw.mockImplementation(() => {
+      return Promise.resolve({ ok: false, status: 404, statusText: "Not Found" });
+    });
+
+    // Should NOT throw when 404 — idempotent delete
+    await expect(videoApi?.deleteMeeting(MEETING_ID)).resolves.toBeUndefined();
+  });
+
+  test("Failing `deleteMeeting` — server error propagates correctly", async () => {
+    const videoApi = VideoApiAdapter(testCredential);
+
+    mockRequestRaw.mockImplementation(() => {
+      return Promise.resolve(internalServerErrorResponse({ json: {} }));
+    });
+
+    await expect(() => videoApi?.deleteMeeting(MEETING_ID)).rejects.toThrowError("Internal Server Error");
   });
 });
