@@ -1,0 +1,1 @@
+BigBlueButton is an open-source virtual classroom and web conferencing platform designed for online learning. It provides real-time sharing of audio, video, slides, chat, and screen, making it ideal for online classes, meetings, and collaborative sessions.

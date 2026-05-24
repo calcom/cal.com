@@ -4768,5 +4768,11 @@
   "user_updated_successfully": "User updated successfully.",
   "error_updating_user": "There was an error updating this user.",
   "please_reschedule": "Please reschedule.",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "bbb_server_url": "BigBlueButton Server URL",
+  "bbb_shared_secret": "BigBlueButton Shared Secret",
+  "bbb_shared_secret_placeholder": "Enter your BBB shared secret",
+  "bbb_setup_title": "BigBlueButton Setup",
+  "bbb_setup_description": "Enter your BigBlueButton server details to connect",
+  "bbb_installed_successfully": "BigBlueButton installed successfully",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

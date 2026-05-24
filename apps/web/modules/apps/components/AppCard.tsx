@@ -8,6 +8,7 @@ import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
+import { appRequiresSetupForm } from "@calcom/web/components/apps/appsWithSetupForm";
 import type { UserAdminTeams } from "@calcom/features/users/repositories/UserRepository";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
@@ -69,6 +70,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     if (isRedirectApp(app.slug)) {
       // For redirect apps, open the external URL directly
       if (app.url) window.open(app.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    // 需要 setup form 的 app 直接触发安装，由后端 add handler 验证凭证并跳转到 setup 页面
+    if (appRequiresSetupForm(app.slug)) {
+      mutation.mutate({ type: app.type });
       return;
     }
     if (isConferencing(app.categories) && !app.concurrentMeetings) {

@@ -9,11 +9,13 @@ import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
-import { CAL_URL } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+
+import { setupFormRedirectFor } from "@calcom/web/components/apps/appsWithSetupForm";
 
 import { STEPS } from "../../../../modules/apps/installation/[[...step]]/constants";
 import type {
@@ -446,6 +448,11 @@ const getCredential = async (
   parsedAppSlug: string
 ): Promise<{ credentialId: number | null; redirect?: RedirectResult }> => {
   let credentialId = getCredentialId(parsedTeamIdParam, appInstalls, user.id);
+  // 无凭证且 app 需要 setup form 时，重定向到 setup 页面采集凭证
+  if (!credentialId && !appMetadata.isOAuth) {
+    const setupRedirect = setupFormRedirectFor(parsedAppSlug);
+    if (setupRedirect) return setupRedirect;
+  }
   if (
     !credentialId &&
     !user.teams.length &&
