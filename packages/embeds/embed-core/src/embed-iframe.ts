@@ -555,7 +555,7 @@ function main() {
 
     // Validate that the message comes from the expected parent origin.
     // ancestorOrigins[0] is reliable for iframes and available in all modern browsers.
-    if (expectedParentOrigin && e.origin !== expectedParentOrigin) {
+    if (!expectedParentOrigin || e.origin !== expectedParentOrigin) {
       log(`Rejected message from origin "${e.origin}" (expected parent: "${expectedParentOrigin}")`);
       return;
     }
