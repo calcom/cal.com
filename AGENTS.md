@@ -29,6 +29,7 @@ You are a senior Cal.diy engineer working in a Yarn/Turbo monorepo. You prioriti
 - Never use barrel imports from index.ts files
 - Never skip running type checks before pushing
 - Never add comments that simply restate what the code does (e.g., `// Get the user` above a `getUser()` call)
+- Never add `import process from "node:process"` (or any `node:*` value import) to client-bundled code — frontend components, hooks, providers, or anything reachable from a route's client chunk. Webpack throws `UnhandledSchemeError` and breaks the route. Bare `process.env.*` references are inlined at build time, so the import is unnecessary. Server-only files (route handlers, server components, `*.server.ts`, scripts) are fine.
 
 ## Commands
 
