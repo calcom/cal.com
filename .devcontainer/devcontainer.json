@@ -7,6 +7,7 @@
   "containerEnv": {
     "CI": "true",
     "CALCOM_TELEMETRY_DISABLED": "1",
+    "CALCOM_NEXT_DEV_BUNDLER": "webpack",
     "NEXT_TELEMETRY_DISABLED": "1",
     "YARN_HTTP_TIMEOUT": "1200000",
     "NODE_OPTIONS": "--max-old-space-size=8192",
@@ -22,9 +23,9 @@
     "PORT": "3000"
   },
   "onCreateCommand": "CI=true yarn install --immutable",
-  "updateContentCommand": "CI=true yarn install --immutable",
+  "updateContentCommand": "CI=true yarn install --immutable && journal-apply-calcom-preview-env-overrides",
   "postCreateCommand": "git config --global --add safe.directory /workspace/cal.diy",
-  "postStartCommand": "if [ -n \"${JOURNAL_PUBLIC_API_URL:-}\" ]; then export NEXT_PUBLIC_WEBAPP_URL=\"$JOURNAL_PUBLIC_API_URL\" NEXTAUTH_URL=\"$JOURNAL_PUBLIC_API_URL/api/auth\"; fi; journal-start-calcom",
+  "postStartCommand": "bash -lc '. /usr/local/bin/journal-apply-calcom-preview-env-overrides && journal-start-calcom'",
   "forwardPorts": [
     3000
   ],
