@@ -9,7 +9,6 @@ You are a senior Cal.diy engineer working in a Yarn/Turbo monorepo. You prioriti
 - Use early returns to reduce nesting: `if (!booking) return null;`
 - Use `ErrorWithCode` for errors in non-tRPC files (services, repositories, utilities); use `TRPCError` only in tRPC routers
 - Use conventional commits: `feat:`, `fix:`, `refactor:`
-- Create PRs in draft mode by default
 - Run `yarn type-check:ci --force` before concluding CI failures are unrelated to your changes
 - Import directly from source files, not barrel files (e.g., `@calcom/ui/components/button` not `@calcom/ui`)
 - Add translations to `packages/i18n/locales/en/common.json` for all UI strings
@@ -29,72 +28,30 @@ You are a senior Cal.diy engineer working in a Yarn/Turbo monorepo. You prioriti
 - Never put business logic in repositories - that belongs in Services
 - Never use barrel imports from index.ts files
 - Never skip running type checks before pushing
-- Never create large PRs (>500 lines or >10 files) - split them instead
 - Never add comments that simply restate what the code does (e.g., `// Get the user` above a `getUser()` call)
-
-## PR Size Guidelines
-
-Large PRs are difficult to review, prone to errors, and slow down the development process. Always aim for smaller, self-contained PRs that are easier to understand and review.
-
-### Size Limits
-
-- **Lines changed**: Keep PRs under 500 lines of code (additions + deletions)
-- **Files changed**: Keep PRs under 10 code files
-- **Single responsibility**: Each PR should do one thing well
-
-**Note**: These limits apply to code files only. Non-code files like documentation (README.md, CHANGELOG.md), lock files (yarn.lock, package-lock.json), and auto-generated files are excluded from the count.
-
-### How to Split Large Changes
-
-When a task requires extensive changes, break it into multiple PRs:
-
-1. **By layer**: Separate database/schema changes, backend logic, and frontend UI into different PRs
-2. **By feature component**: Split a feature into its constituent parts (e.g., API endpoint PR, then UI PR, then integration PR)
-3. **By refactor vs feature**: Do preparatory refactoring in a separate PR before adding new functionality
-4. **By dependency order**: Create PRs in the order they can be merged (base infrastructure first, then features that depend on it)
-
-### Examples of Good PR Splits
-
-**Instead of one large "Add booking notifications" PR:**
-- PR 1: Add notification preferences schema and migration
-- PR 2: Add notification service and API endpoints
-- PR 3: Add notification UI components
-- PR 4: Integrate notifications into booking flow
-
-**Instead of one large "Refactor calendar sync" PR:**
-- PR 1: Extract calendar sync logic into dedicated service
-- PR 2: Add new calendar provider abstraction
-- PR 3: Migrate existing providers to new abstraction
-- PR 4: Add new calendar provider support
-
-### Benefits of Smaller PRs
-
-- Faster review cycles and quicker feedback
-- Easier to identify and fix issues
-- Lower risk of merge conflicts
-- Simpler to revert if problems arise
-- Better git history and easier debugging
 
 ## Commands
 
 See [agents/commands.md](agents/commands.md) for full reference. Key commands:
 
 ```bash
-yarn type-check:ci --force  # Type check (always run before pushing)
-yarn biome check --write .  # Lint and format
-TZ=UTC yarn test            # Run unit tests
-yarn prisma generate        # Regenerate types after schema changes
+yarn workspace @calcom/<pkg> type-check        # Type check the workspace you changed
+yarn biome check --write --changed --since=origin/main  # Lint/format only changed files
+TZ=UTC yarn test                                # Run unit tests
+yarn prisma generate                            # Regenerate types after schema changes
 ```
+
+Use the full `yarn type-check:ci --force` only when debugging cross-package issues.
 
 
 ## Boundaries
 
 ### Always do
-- Run type check on changed files before committing
+- Type-check the affected workspace before committing (not the whole repo)
 - Run relevant tests before pushing
 - Use `select` in Prisma queries
 - Follow conventional commits for PR titles
-- Run Biome before pushing
+- Run Biome on changed files before pushing (`yarn biome check --write --changed --since=origin/main`)
 
 ### Ask first
 - Adding new dependencies
@@ -210,13 +167,11 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 ## PR Checklist
 
 - [ ] Title follows conventional commits: `feat(scope): description`
-- [ ] Type check passes: `yarn type-check:ci --force`
-- [ ] Lint passes: `yarn lint:fix`
+- [ ] Type check passes on the affected workspace(s)
+- [ ] Lint passes on changed files (`yarn biome check --write --changed --since=origin/main`)
 - [ ] Relevant tests pass
-- [ ] Diff is small and focused (<500 lines, <10 files)
 - [ ] No secrets or API keys committed
 - [ ] UI strings added to translation files
-- [ ] Created as draft PR
 
 ## When Stuck
 

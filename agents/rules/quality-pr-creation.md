@@ -7,21 +7,11 @@ tags: pull-request, code-review, workflow
 
 # PR Creation Best Practices
 
-## Draft Mode
-
-Create pull requests in draft mode by default, so that a human reviewer can mark it as ready for review only when it is.
-
 ## PR Title
 
 - Use conventional commits: `feat:`, `fix:`, `refactor:`
 - Be specific: `fix: handle timezone edge case in booking creation`
 - Not generic: `fix: booking bug`
-
-## Size Limits
-
-- **Large PRs** (>500 lines or >10 files) are not recommended
-- Split large changes by layer (database, backend, frontend)
-- Split by feature component (API, UI, integration)
 
 ## PR Requirements
 
@@ -31,6 +21,8 @@ Create pull requests in draft mode by default, so that a human reviewer can mark
 
 ## Before Pushing
 
-1. Run `yarn type-check:ci --force` to check types
-2. Run `yarn biome check --write .` to lint and format
-3. Run relevant tests locally
+Run checks scoped to what you changed — not the whole repo.
+
+1. Type-check the affected workspace(s) only, e.g. `yarn workspace @calcom/web type-check`. Avoid `yarn type-check:ci --force` unless you're debugging a cross-package issue.
+2. Lint/format only changed files: `yarn biome check --write --changed --since=origin/main`
+3. Run the relevant tests for the code you touched (not the full suite).
