@@ -1,4 +1,5 @@
-const path = require("node:path");
+// biome-ignore lint/style/useNodejsImportProtocol: Next webpack cannot bundle this config via app imports with node: specifiers.
+const path = require("path");
 const i18n = require("../../i18n.json");
 
 /** @type {import("next-i18next").UserConfig} */
