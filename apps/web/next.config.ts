@@ -291,6 +291,10 @@ const nextConfig = (phase: string): NextConfig => {
     experimental: {
       optimizePackageImports: ["@calcom/ui"],
     },
+    onDemandEntries: {
+      maxInactiveAge: 1000 * 60 * 60,
+      pagesBufferLength: 25,
+    },
     productionBrowserSourceMaps: true,
     transpilePackages: [
       "@calcom/app-store",

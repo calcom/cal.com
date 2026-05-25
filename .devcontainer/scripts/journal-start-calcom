@@ -82,42 +82,4 @@ case "$CALCOM_NEXT_DEV_BUNDLER" in
 esac
 
 next_dev_args+=(--hostname 0.0.0.0 --port "${PORT:-3000}")
-
-warmup_routes() {
-  local port="${PORT:-3000}"
-  local base="http://127.0.0.1:${port}"
-  local paths=(
-    "/"
-    "/event-types"
-    "/bookings/upcoming"
-    "/availability"
-    "/apps"
-    "/signup"
-    "/auth/forgot-password"
-    "/settings/my-account/profile"
-  )
-
-  for _ in $(seq 1 180); do
-    if curl -fsS -o /dev/null --max-time 5 "${base}/" 2>/dev/null; then
-      break
-    fi
-    sleep 1
-  done
-
-  for path in "${paths[@]}"; do
-    echo "[warmup] ${path}" >&2
-    curl -fsS -o /dev/null --max-time 120 "${base}${path}" 2>/dev/null || true
-  done
-  echo "[warmup] done" >&2
-}
-
-yarn workspace @calcom/web exec "${next_dev_args[@]}" &
-dev_pid=$!
-
-trap 'kill -TERM "$dev_pid" 2>/dev/null || true' INT TERM HUP
-
-if [[ "${CALCOM_DEV_WARMUP:-1}" == "1" ]]; then
-  warmup_routes &
-fi
-
-wait "$dev_pid"
+exec yarn workspace @calcom/web exec "${next_dev_args[@]}"
