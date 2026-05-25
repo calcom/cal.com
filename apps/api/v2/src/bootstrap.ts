@@ -40,20 +40,27 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
       defaultVersion: VERSION_2024_04_15,
     });
     app.use(helmet());
+    // FIXED
+    const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? process.env.NEXT_PUBLIC_WEBAPP_URL ?? "")
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean);
+
     app.enableCors({
-      origin: "*",
-      methods: ["GET", "PATCH", "DELETE", "HEAD", "POST", "PUT", "OPTIONS"],
-      allowedHeaders: [
-        X_CAL_CLIENT_ID,
-        X_CAL_SECRET_KEY,
-        X_CAL_PLATFORM_EMBED,
-        CAL_API_VERSION_HEADER,
-        "Accept",
-        "Authorization",
-        "Content-Type",
-        "Origin",
-      ],
-      maxAge: 86_400,
+      origin: (origin, callback) => {
+        // Allow server-to-server requests (no origin header) and tools like Swagger UI
+        if (!origin) {
+          return callback(null, true);
+        }
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        return callback(new Error(`Origin ${origin} not allowed by CORS policy`));
+      },
+      methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Cal-Secret-Key"],
+      credentials: true,
+      maxAge: 86400, // Cache preflight for 24 hours
     });
     app.useGlobalPipes(
       new ValidationPipe({

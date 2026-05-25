@@ -368,136 +368,181 @@ const nextConfig = (phase: string): NextConfig => {
         afterFiles,
       };
     },
-    async headers() {
-      const { orgSlug } = nextJsOrgRewriteConfig;
-      const CORP_CROSS_ORIGIN_HEADER = {
-        key: "Cross-Origin-Resource-Policy",
-        value: "cross-origin",
-      };
+  async headers() {
+  const { orgSlug } = nextJsOrgRewriteConfig;
+  const isDev = process.env.NODE_ENV === "development";
 
-      const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER = {
-        key: "Access-Control-Allow-Origin",
-        value: "*",
-      };
+  const CORP_CROSS_ORIGIN_HEADER = {
+    key: "Cross-Origin-Resource-Policy",
+    value: "cross-origin",
+  };
 
-      return [
+  const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER = {
+    key: "Access-Control-Allow-Origin",
+    value: "*",
+  };
+
+  const CSP_HEADER = {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https:",
+      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+      "connect-src 'self' https:" + (isDev ? " ws://localhost:*" : ""),
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "upgrade-insecure-requests",
+    ].join("; "),
+  };
+
+  // HSTS is skipped in dev to avoid breaking local HTTP.
+  // Self-hosters on HTTP-only can set NEXT_PUBLIC_DISABLE_HSTS=true.
+  const HSTS_HEADER =
+    !isDev && process.env.NEXT_PUBLIC_DISABLE_HSTS !== "true"
+      ? {
+          key: "Strict-Transport-Security",
+          value: "max-age=63072000; includeSubDomains; preload",
+        }
+      : null;
+
+  return [
+    {
+      source: "/auth/:path*",
+      headers: [
         {
-          source: "/auth/:path*",
-          headers: [
-            {
-              key: "X-Frame-Options",
-              value: "DENY",
-            },
-          ],
+          key: "X-Frame-Options",
+          value: "DENY",
         },
-        {
-          source: "/signup",
-          headers: [
-            {
-              key: "X-Frame-Options",
-              value: "DENY",
-            },
-          ],
-        },
-        {
-          source: "/:path*",
-          headers: [
-            {
-              key: "X-Content-Type-Options",
-              value: "nosniff",
-            },
-            {
-              key: "Referrer-Policy",
-              value: "strict-origin-when-cross-origin",
-            },
-          ],
-        },
-        {
-          source: "/embed/embed.js",
-          headers: [CORP_CROSS_ORIGIN_HEADER],
-        },
-        {
-          source: "/:path*/embed",
-          headers: [CORP_CROSS_ORIGIN_HEADER],
-        },
-        {
-          source: "/:path*",
-          has: [
-            {
-              type: "host" as const,
-              value: "cal.com",
-            },
-          ],
-          headers: [
-            {
-              key: "Referrer-Policy",
-              value: "no-referrer-when-downgrade",
-            },
-          ],
-        },
-        {
-          source: "/api/avatar/:path*",
-          headers: [CORP_CROSS_ORIGIN_HEADER],
-        },
-        {
-          source: "/avatar.svg",
-          headers: [CORP_CROSS_ORIGIN_HEADER],
-        },
-        {
-          source: "/icons/sprite.svg(\\?v=[0-9a-zA-Z\\-\\.]+)?",
-          headers: [
-            CORP_CROSS_ORIGIN_HEADER,
-            ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
-            {
-              key: "Cache-Control",
-              value: "public, max-age=31536000, immutable",
-            },
-          ],
-        },
-        ...(isOrganizationsEnabled
-          ? [
-              orgDomainMatcherConfig.root
-                ? {
-                    ...orgDomainMatcherConfig.root,
-                    headers: [
-                      {
-                        key: "X-Cal-Org-path",
-                        value: `/team/${orgSlug}`,
-                      },
-                    ],
-                  }
-                : null,
-              {
-                ...orgDomainMatcherConfig.user,
-                headers: [
-                  {
-                    key: "X-Cal-Org-path",
-                    value: `/org/${orgSlug}/:user`,
-                  },
-                ],
-              },
-              {
-                ...orgDomainMatcherConfig.userType,
-                headers: [
-                  {
-                    key: "X-Cal-Org-path",
-                    value: `/org/${orgSlug}/:user/:type`,
-                  },
-                ],
-              },
-              {
-                ...orgDomainMatcherConfig.userTypeEmbed,
-                headers: [
-                  {
-                    key: "X-Cal-Org-path",
-                    value: `/org/${orgSlug}/:user/:type/embed`,
-                  },
-                ],
-              },
-            ]
-          : []),
-      ].filter(isNotNull);
+      ],
     },
+    {
+      source: "/signup",
+      headers: [
+        {
+          key: "X-Frame-Options",
+          value: "DENY",
+        },
+      ],
+    },
+    {
+      source: "/:path*",
+      headers: [
+        {
+          key: "X-Content-Type-Options",
+          value: "nosniff",
+        },
+        {
+          key: "Referrer-Policy",
+          value: "strict-origin-when-cross-origin",
+        },
+        // Protect older browsers that don't support CSP
+        {
+          key: "X-XSS-Protection",
+          value: "1; mode=block",
+        },
+        // Restrict access to sensitive browser features
+        {
+          key: "Permissions-Policy",
+          value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+        },
+        // CSP: unsafe-inline/unsafe-eval retained to avoid regressions.
+        // Follow-up: migrate to nonce-based CSP using existing getCspNonce
+        // scaffolding in middleware.ts
+        CSP_HEADER,
+        // Only injected in production and when not explicitly disabled
+        ...(HSTS_HEADER ? [HSTS_HEADER] : []),
+      ],
+    },
+    {
+      source: "/embed/embed.js",
+      headers: [CORP_CROSS_ORIGIN_HEADER],
+    },
+    {
+      source: "/:path*/embed",
+      headers: [CORP_CROSS_ORIGIN_HEADER],
+    },
+    {
+      source: "/:path*",
+      has: [
+        {
+          type: "host" as const,
+          value: "cal.com",
+        },
+      ],
+      headers: [
+        {
+          key: "Referrer-Policy",
+          value: "no-referrer-when-downgrade",
+        },
+      ],
+    },
+    {
+      source: "/api/avatar/:path*",
+      headers: [CORP_CROSS_ORIGIN_HEADER],
+    },
+    {
+      source: "/avatar.svg",
+      headers: [CORP_CROSS_ORIGIN_HEADER],
+    },
+    {
+      source: "/icons/sprite.svg(\\?v=[0-9a-zA-Z\\-\\.]+)?",
+      headers: [
+        CORP_CROSS_ORIGIN_HEADER,
+        ACCESS_CONTROL_ALLOW_ORIGIN_HEADER,
+        {
+          key: "Cache-Control",
+          value: "public, max-age=31536000, immutable",
+        },
+      ],
+    },
+    ...(isOrganizationsEnabled
+      ? [
+          orgDomainMatcherConfig.root
+            ? {
+                ...orgDomainMatcherConfig.root,
+                headers: [
+                  {
+                    key: "X-Cal-Org-path",
+                    value: `/team/${orgSlug}`,
+                  },
+                ],
+              }
+            : null,
+          {
+            ...orgDomainMatcherConfig.user,
+            headers: [
+              {
+                key: "X-Cal-Org-path",
+                value: `/org/${orgSlug}/:user`,
+              },
+            ],
+          },
+          {
+            ...orgDomainMatcherConfig.userType,
+            headers: [
+              {
+                key: "X-Cal-Org-path",
+                value: `/org/${orgSlug}/:user/:type`,
+              },
+            ],
+          },
+          {
+            ...orgDomainMatcherConfig.userTypeEmbed,
+            headers: [
+              {
+                key: "X-Cal-Org-path",
+                value: `/org/${orgSlug}/:user/:type/embed`,
+              },
+            ],
+          },
+        ]
+      : []),
+  ].filter(isNotNull);
+},
     async redirects() {
       const redirects = [
         {
