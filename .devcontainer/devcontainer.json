@@ -1,6 +1,6 @@
 {
   "name": "cal-diy-journal",
-  "image": "ghcr.io/endurancelabs/cal.diy-devcontainer@sha256:caa572d6d7b919c2f59a25cb898f3aa500358da51e72296e5dc04a31a7f17639",
+  "image": "ghcr.io/endurancelabs/cal.diy-devcontainer@sha256:0624bffd3bfa112168047cab99d18a6109f58f130040b11770dab51962fe9d9e",
   "workspaceMount": "source=cal-diy-workspace,target=/workspace/cal.diy,type=volume",
   "workspaceFolder": "/workspace/cal.diy",
   "remoteUser": "node",
