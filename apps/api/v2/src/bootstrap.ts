@@ -58,7 +58,14 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
         return callback(new Error(`Origin ${origin} not allowed by CORS policy`));
       },
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "X-Cal-Secret-Key"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Cal-Secret-Key",
+        CAL_API_VERSION_HEADER,
+        X_CAL_CLIENT_ID,
+        X_CAL_PLATFORM_EMBED,
+      ],
       credentials: true,
       maxAge: 86400, // Cache preflight for 24 hours
     });

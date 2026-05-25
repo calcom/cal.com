@@ -383,21 +383,24 @@ const nextConfig = (phase: string): NextConfig => {
   };
 
   const CSP_HEADER = {
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https:",
-      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
-      "connect-src 'self' https:" + (isDev ? " ws://localhost:*" : ""),
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "upgrade-insecure-requests",
-    ].join("; "),
-  };
+  key: "Content-Security-Policy",
+  value: [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https:",
+    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+    "connect-src 'self' https:" + (isDev ? " ws://localhost:*" : ""),
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    // Only upgrade insecure requests in HTTPS environments (same condition as HSTS)
+    ...(!isDev && process.env.NEXT_PUBLIC_DISABLE_HSTS !== "true"
+      ? ["upgrade-insecure-requests"]
+      : []),
+  ].join("; "),
+};
 
   // HSTS is skipped in dev to avoid breaking local HTTP.
   // Self-hosters on HTTP-only can set NEXT_PUBLIC_DISABLE_HSTS=true.
