@@ -6,7 +6,6 @@ import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { cookies, headers } from "next/headers";
-import Script from "next/script";
 import type React from "react";
 
 import "../styles/globals.css";
@@ -120,14 +119,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
-        {process.env.NODE_ENV === "development" && (
-          <Script
-            src="//unpkg.com/react-grab/dist/index.global.js"
-            crossOrigin="anonymous"
-            strategy="beforeInteractive"
-            data-options='{"activationKey":"Meta+c"}'
-          />
-        )}
       </head>
       <body
         className="dark:bg-default bg-subtle antialiased"
