@@ -22,11 +22,14 @@ latest synced checkout.
 - `image` should be digest-pinned after the PR workflow runs.
 - `workspaceMount` mounts a named Docker volume at `/workspace/cal.diy`.
 - `workspaceFolder` sets `/workspace/cal.diy` as the working directory.
-- `onCreateCommand` and `updateContentCommand` run `yarn install --immutable`
-  so dependencies are refreshed after Journal syncs content.
-- `postStartCommand` passes Journal's preview URL into Cal's public web/auth
-  URL env vars, then runs `journal-start-calcom` to bootstrap local services
-  and start the web app.
+- `onCreateCommand` runs `yarn install --immutable`.
+- `updateContentCommand` runs `yarn install --immutable` and applies lightweight
+  Journal preview URL overrides.
+- `postStartCommand` applies Journal preview URL overrides, starts and verifies
+  local services, and starts the web app.
+- `CALCOM_NEXT_DEV_BUNDLER=webpack` keeps preview startup on Next's webpack dev
+  server. Set it to `turbopack` to retest Turbopack once the current font-loader
+  resolution issue is fixed upstream or in dependencies.
 - `JOURNAL_API_PORT=3000` tells Journal's build preview proxy to route Cal's
   `/api/*` requests to the Next.js server instead of a separate API process.
 - `forwardPorts` and `portsAttributes` expose port `3000` as HTTP.
@@ -35,10 +38,13 @@ latest synced checkout.
 
 The Dockerfile bakes in the runtime and warm setup:
 
-- Starts from `node:20-bookworm`.
-- Installs OS tooling plus local Postgres and Redis.
+- Starts from `ghcr.io/endurancelabs/journal-build-base`.
+- Inherits Journal browser preview tooling, Playwright headless shell wiring,
+  `agent-browser`, and common CLI/dev tooling from the base image.
+- Installs only Cal-specific local services: Postgres and Redis.
 - Installs and configures Yarn 4 through Corepack.
-- Creates `journal-start-calcom` and `journal-prepare-calcom-db` helper scripts.
+- Copies `journal-start-calcom`, `journal-prepare-calcom-db`, and preview env
+  override helper scripts into `/usr/local/bin`.
 - Copies the repo and runs a frozen Yarn install for warm dependency cache.
 - Runs database prep at image build time.
 - Sets workspace ownership to `node:node`.
@@ -50,8 +56,9 @@ The Dockerfile bakes in the runtime and warm setup:
 
 It performs:
 
-- Build and push `linux/amd64` image to `ghcr.io/endurancelabs/cal.diy-devcontainer`.
-- Smoke tests for core tooling and local Postgres startup.
+- Build and push `linux/amd64` image to
+  `ghcr.io/endurancelabs/cal.diy-devcontainer`.
+- Smoke tests for inherited Journal tooling, local Postgres, and local Redis.
 - Digest pin update in `.devcontainer/devcontainer.json`.
 - Commit back to the PR branch.
 - Validation that `.image` matches digest-pinned GHCR format.
@@ -83,10 +90,25 @@ Smoke-test the installed tools:
 docker run --rm cal-diy-devcontainer:test bash -lc 'node --version && yarn --version && psql --version && redis-server --version && command -v journal-start-calcom >/dev/null && command -v journal-prepare-calcom-db >/dev/null'
 ```
 
-Smoke-test the local database:
+Smoke-test inherited Journal browser tooling:
+
+```bash
+docker run --rm cal-diy-devcontainer:test bash -lc 'agent-browser --help >/dev/null && test -x "$AGENT_BROWSER_EXECUTABLE_PATH" && test -d "$PLAYWRIGHT_BROWSERS_PATH"'
+```
+
+Smoke-test local services:
 
 ```bash
 docker run --rm cal-diy-devcontainer:test bash -lc 'sudo pg_ctlcluster 15 main start && psql postgresql://postgres:postgres@localhost:5432/calendso -c "select current_database();" && sudo pg_ctlcluster 15 main stop'
+docker run --rm cal-diy-devcontainer:test bash -lc 'sudo service redis-server start >/dev/null && redis-cli ping'
+```
+
+Smoke-test Cal runtime:
+
+```bash
+docker run --rm --name cal-diy-smoke -p 4300:3000 -d cal-diy-devcontainer:test journal-start-calcom
+curl -f -I http://127.0.0.1:4300/
+docker stop cal-diy-smoke
 ```
 
 For a full devcontainer lifecycle test, temporarily point `image` at

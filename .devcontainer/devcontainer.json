@@ -1,12 +1,13 @@
 {
   "name": "cal-diy-journal",
-  "image": "ghcr.io/endurancelabs/cal.diy-devcontainer@sha256:caa572d6d7b919c2f59a25cb898f3aa500358da51e72296e5dc04a31a7f17639",
+  "image": "ghcr.io/endurancelabs/cal.diy-devcontainer@sha256:0624bffd3bfa112168047cab99d18a6109f58f130040b11770dab51962fe9d9e",
   "workspaceMount": "source=cal-diy-workspace,target=/workspace/cal.diy,type=volume",
   "workspaceFolder": "/workspace/cal.diy",
   "remoteUser": "node",
   "containerEnv": {
     "CI": "true",
     "CALCOM_TELEMETRY_DISABLED": "1",
+    "CALCOM_NEXT_DEV_BUNDLER": "webpack",
     "NEXT_TELEMETRY_DISABLED": "1",
     "YARN_HTTP_TIMEOUT": "1200000",
     "NODE_OPTIONS": "--max-old-space-size=8192",
@@ -22,9 +23,9 @@
     "PORT": "3000"
   },
   "onCreateCommand": "CI=true yarn install --immutable",
-  "updateContentCommand": "CI=true yarn install --immutable",
+  "updateContentCommand": "CI=true yarn install --immutable && journal-apply-calcom-preview-env-overrides",
   "postCreateCommand": "git config --global --add safe.directory /workspace/cal.diy",
-  "postStartCommand": "if [ -n \"${JOURNAL_PUBLIC_API_URL:-}\" ]; then export NEXT_PUBLIC_WEBAPP_URL=\"$JOURNAL_PUBLIC_API_URL\" NEXTAUTH_URL=\"$JOURNAL_PUBLIC_API_URL/api/auth\"; fi; journal-start-calcom",
+  "postStartCommand": "bash -lc '. /usr/local/bin/journal-apply-calcom-preview-env-overrides && journal-start-calcom'",
   "forwardPorts": [
     3000
   ],

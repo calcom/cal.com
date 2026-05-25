@@ -86,12 +86,40 @@ jobs:
         if: steps.detect_digest_pin.outputs.skip_digest_pin != 'true'
         run: |
           docker pull "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}"
-          docker run --rm "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}" bash -lc "set -euo pipefail; node --version; yarn --version; psql --version; redis-server --version; command -v journal-start-calcom >/dev/null; command -v journal-prepare-calcom-db >/dev/null"
+          docker run --rm "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}" bash -lc "set -euo pipefail; node --version; yarn --version; psql --version; redis-server --version; command -v journal-start-calcom >/dev/null; command -v journal-prepare-calcom-db >/dev/null; command -v journal-apply-calcom-preview-env-overrides >/dev/null; agent-browser --help >/dev/null; test -x \"\$AGENT_BROWSER_EXECUTABLE_PATH\"; test -d \"\$PLAYWRIGHT_BROWSERS_PATH\""
 
-      - name: Smoke test local database
+      - name: Smoke test local services
         if: steps.detect_digest_pin.outputs.skip_digest_pin != 'true'
         run: |
           docker run --rm "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}" bash -lc "set -euo pipefail; sudo pg_ctlcluster 15 main start; psql postgresql://postgres:postgres@localhost:5432/calendso -c 'select current_database();'; sudo pg_ctlcluster 15 main stop"
+          docker run --rm "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}" bash -lc "set -euo pipefail; sudo service redis-server start >/dev/null; redis-cli ping"
+
+      - name: Smoke test Cal runtime
+        if: steps.detect_digest_pin.outputs.skip_digest_pin != 'true'
+        run: |
+          set -euo pipefail
+          container_name="cal-diy-devcontainer-smoke"
+          docker rm -f "$container_name" >/dev/null 2>&1 || true
+          trap 'docker rm -f "$container_name" >/dev/null 2>&1 || true' EXIT
+
+          docker run --rm --name "$container_name" -p 127.0.0.1:3000:3000 -d "${IMAGE_REPO}:${{ steps.meta.outputs.tag }}" journal-start-calcom
+
+          for _ in {1..90}; do
+            if curl -fsSI http://127.0.0.1:3000/ >/tmp/cal-diy-smoke.headers; then
+              cat /tmp/cal-diy-smoke.headers
+              exit 0
+            fi
+
+            if ! docker ps --filter "name=$container_name" --filter "status=running" --format '{{.Names}}' | grep -qx "$container_name"; then
+              docker logs "$container_name" || true
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          docker logs --tail 200 "$container_name" || true
+          exit 1
 
   pin-digest:
     name: pin-digest
