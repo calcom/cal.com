@@ -95,7 +95,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   private handleWorkerFailure(failedWorker: Worker): void {
     // Remove the failed worker from both pools
     if (this.handledWorkers.has(failedWorker.threadId)) return;
-    this.handledWorkers.add(failedWorker.threadId)
+    this.handledWorkers.add(failedWorker.threadId);
     const workerIndex = this.workerPool.indexOf(failedWorker);
     if (workerIndex !== -1) {
        this.workerPool.splice(workerIndex, 1);
@@ -108,9 +108,11 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
         .terminate()
         .then(() => {
           this.logger.log(`Terminated failed worker ${failedWorker.threadId}`);
+          this.handledWorkers.delete(failedWorker.threadId);
         })
         .catch((err) => {
           this.logger.error(`Error terminating failed worker ${failedWorker.threadId}: ${err?.message}`);
+          this.handledWorkers.delete(failedWorker.threadId);
         });
     } catch (error) {
       let errorMessage = String(error);
