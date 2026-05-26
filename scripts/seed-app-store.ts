@@ -106,6 +106,7 @@ export default async function main() {
     });
   }
   await createApp("caldav-calendar", "caldavcalendar", ["calendar"], "caldav_calendar");
+  await createApp("proton-calendar", "protoncalendar", ["calendar"], "proton_calendar");
   try {
     const { client_secret, client_id, redirect_uris } = JSON.parse(
       process.env.GOOGLE_API_CREDENTIALS || ""

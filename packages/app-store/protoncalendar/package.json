@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/protoncalendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Proton Calendar is an end-to-end encrypted calendar from Proton. It supports CalDAV through Proton Bridge, allowing third-party clients to sync events while keeping all data encrypted on Proton's servers.",
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*",
+    "@calcom/ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "react-hook-form": "^7.0.0"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}
