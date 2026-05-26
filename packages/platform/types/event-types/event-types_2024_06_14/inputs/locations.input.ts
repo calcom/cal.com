@@ -57,6 +57,7 @@ export class InputLinkLocation_2024_06_14 {
 export const eventTypeSupportedIntegrations = [
   "cal-video",
   "google-meet",
+  "bigbluebutton-video",
   "zoom",
   "whereby-video",
   "whatsapp-video",

@@ -3,6 +3,7 @@ import { z } from "zod";
 const integrationsApiAvailable = {
   "cal-video": z.literal("integrations:daily"),
   "google-meet": z.literal("integrations:google:meet"),
+  "bigbluebutton-video": z.literal("integrations:bigbluebutton_video"),
   zoom: z.literal("integrations:zoom"),
   "office365-video": z.literal("integrations:office365_video"),
 };
@@ -47,6 +48,7 @@ const OrganizerIntegrationSchema = z.object({
   type: z.union([
     integrationsApiToInternalMappingSchema["cal-video"],
     integrationsApiToInternalMappingSchema["google-meet"],
+    integrationsApiToInternalMappingSchema["bigbluebutton-video"],
     integrationsApiToInternalMappingSchema["zoom"],
     integrationsApiToInternalMappingSchema["whereby-video"],
     integrationsApiToInternalMappingSchema["whatsapp-video"],

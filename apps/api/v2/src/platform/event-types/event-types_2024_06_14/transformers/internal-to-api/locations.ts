@@ -17,6 +17,7 @@ import type { InternalLocation } from "../internal/locations";
 const internalToApiIntegrationsMapping: Record<string, OutputIntegration_2024_06_14> = {
   "integrations:daily": "cal-video",
   "integrations:google:meet": "google-meet",
+  "integrations:bigbluebutton_video": "bigbluebutton-video",
   "integrations:zoom": "zoom",
   "integrations:whereby_video": "whereby-video",
   "integrations:whatsapp_video": "whatsapp-video",

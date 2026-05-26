@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="BigBlueButton">
+  <rect width="64" height="64" rx="14" fill="#1f6fff"/>
+  <circle cx="32" cy="32" r="21" fill="#fff"/>
+  <path fill="#1f6fff" d="M24 20h12c5 0 9 3 9 8 0 3-2 6-5 7 4 1 6 4 6 8 0 6-5 9-11 9H24V20Zm8 13h4c2 0 4-1 4-4s-2-4-4-4h-4v8Zm0 14h5c3 0 5-2 5-5s-2-5-5-5h-5v10Z"/>
+</svg>

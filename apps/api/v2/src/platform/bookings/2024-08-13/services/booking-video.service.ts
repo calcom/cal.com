@@ -93,6 +93,7 @@ export class BookingVideoService_2024_08_13 {
     const integrationToCredentialTypeMap = {
       zoom: "zoom_video",
       "whereby-video": "whereby_video",
+      "bigbluebutton-video": "bigbluebutton_video",
       "webex-video": "webex_video",
       tandem: "tandem_video",
       jitsi: "jitsi_video",

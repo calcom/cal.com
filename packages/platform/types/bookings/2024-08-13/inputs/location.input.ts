@@ -36,6 +36,7 @@ export class BookingInputLinkLocation_2024_08_13 {
 export const supportedIntegrations = [
   "cal-video",
   "google-meet",
+  "bigbluebutton-video",
   "zoom",
   "whereby-video",
   "whatsapp-video",

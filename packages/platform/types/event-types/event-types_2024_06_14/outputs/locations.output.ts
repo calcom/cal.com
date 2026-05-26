@@ -27,6 +27,7 @@ export class OutputAttendeeDefinedLocation_2024_06_14 extends InputAttendeeDefin
 const integrationsValues = [
   "cal-video",
   "google-meet",
+  "bigbluebutton-video",
   "zoom",
   "whereby-video",
   "whatsapp-video",
