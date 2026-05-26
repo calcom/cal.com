@@ -1,0 +1,17 @@
+{
+  "name": "Proton Calendar",
+  "title": "Proton Calendar",
+  "slug": "proton-calendar",
+  "dirName": "protoncalendar",
+  "type": "proton_calendar",
+  "logo": "icon.svg",
+  "variant": "calendar",
+  "categories": [
+    "calendar"
+  ],
+  "publisher": "Cal.com",
+  "email": "support@proton.me",
+  "description": "Sync your Proton Calendar via encrypted ICS feed — read-only availability checking with ghost-event filtering.",
+  "isTemplate": false,
+  "__createdUsingCli": true
+}
