@@ -26,6 +26,11 @@ interface WorkerResult {
   data?: TimeSlots;
   error?: Error;
 }
+interface PendingTask {
+  resolve: (value: TimeSlots) => void;
+  reject: (reason: Error) => void;
+  options: GetScheduleOptions;
+}
 
 @Injectable()
 export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
@@ -33,6 +38,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   private readonly workerPool: Worker[] = [];
   private readonly maxWorkers: number;
   private handledWorkers = new Set<number>();
+  private readonly activeTaskByWorker = new Map<number, PendingTask>();
   private readonly taskQueue: Array<{
     resolve: (value: TimeSlots) => void;
     reject: (reason: Error) => void;
@@ -96,6 +102,11 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
     // Remove the failed worker from both pools
     if (this.handledWorkers.has(failedWorker.threadId)) return;
     this.handledWorkers.add(failedWorker.threadId);
+    const activeTask = this.activeTaskByWorker.get(failedWorker.threadId);
+    if (activeTask) {
+      activeTask.reject(new Error(`Worker ${failedWorker.threadId} failed while processing a task.`));
+      this.activeTaskByWorker.delete(failedWorker.threadId);
+    }
     const workerIndex = this.workerPool.indexOf(failedWorker);
     if (workerIndex !== -1) {
        this.workerPool.splice(workerIndex, 1);
@@ -185,9 +196,11 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
       const serializableCtx = this.getSerializableContext(task.options.ctx);
 
       try {
-        // Use 'once' listeners for task-specific responses and errors.
-        // 'once' listeners automatically remove themselves after being invoked, preventing leaks.
+        // Record the active task so handleWorkerFailure can reject it if the
+        // worker dies before it sends a "message" response.
+        this.activeTaskByWorker.set(worker.threadId, task);
         const messageListener = (result: WorkerResult): void => {
+          this.activeTaskByWorker.delete(worker.threadId); // Task is done — clear the active-task tracking entry.
           this.availableWorkers.push(worker); // Return worker to the available pool
           if (result.success) {
             task.resolve(result.data as TimeSlots);
@@ -197,20 +210,18 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
           this.processNextTask(); // Attempt to process the next task
         };
 
-        const errorListener = (err: Error): void => {
-          this.availableWorkers.push(worker); // Ensure worker is returned
-          task.reject(new Error(`Worker thread error during task execution: ${err.message}`));
-          this.processNextTask(); // Attempt to process the next task
-        };
 
         worker.once("message", messageListener); // Use 'once' for task results
-        worker.once("error", errorListener); // Use 'once' for task-specific errors
+       
 
         worker.postMessage({
           input: task.options.input,
           ctx: serializableCtx,
         } as WorkerMessage);
       } catch (error) {
+        // postMessage itself failed (e.g. serialization error). The worker is
+        // still alive, so return it to the pool and reject only this task.
+        this.activeTaskByWorker.delete(worker.threadId);
         // If posting the message itself fails (e.g., serialization error)
         this.availableWorkers.push(worker); // Ensure worker is returned to pool
 
