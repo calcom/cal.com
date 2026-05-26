@@ -60,6 +60,8 @@ export class SelectedCalendarsService {
           throw new BadRequestException(MULTIPLE_SELECTED_CALENDARS_FOUND);
         }
       }
+      // ✅ FIX: Swallowed or unhandled errors are now properly rethrown
+      throw error;
     }
   }
 }

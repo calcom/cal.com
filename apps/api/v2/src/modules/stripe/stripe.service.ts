@@ -184,7 +184,7 @@ export class StripeService {
       cancel_url: `${this.webAppUrl}/settings/my-account/profile`,
       line_items: [
         {
-          /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
+          /** We only need to set the base price and we can upsell it directly on Stripe's checkout   */
           price: this.teamMonthlyPriceId,
           /**Initially it will be just the team owner */
           quantity: 1,
@@ -242,10 +242,17 @@ export class StripeService {
         limit: 1,
       });
 
-      customerId = customersResponse.data[0].id;
+      // ✅ FIX: Safe boundary check array setup
+      if (customersResponse.data && customersResponse.data.length > 0) {
+        customerId = customersResponse.data[0].id;
+      } else {
+        // If empty, populate a fresh customer profile outside error handlers
+        const customer = await stripe.customers.create({ email: user.email });
+        customerId = customer.id;
+      }
     } catch (error) {
-      const customer = await stripe.customers.create({ email: user.email });
-      customerId = customer.id;
+      // ✅ FIX: Genuine network drops, authorization blockages or rate limits now safely propagate
+      throw error;
     }
 
     await this.usersRepository.updateByEmail(user.email, {
