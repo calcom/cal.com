@@ -32,6 +32,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   private readonly logger = new Logger("SlotsWorkerService_2024_04_15");
   private readonly workerPool: Worker[] = [];
   private readonly maxWorkers: number;
+  private handledWorkers = new Set<number>();
   private readonly taskQueue: Array<{
     resolve: (value: TimeSlots) => void;
     reject: (reason: Error) => void;
@@ -93,8 +94,13 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
    */
   private handleWorkerFailure(failedWorker: Worker): void {
     // Remove the failed worker from both pools
-    this.logger.error(`Handling Worker ${failedWorker.threadId} failure`);
-    this.workerPool.splice(this.workerPool.indexOf(failedWorker), 1);
+    if (this.handledWorkers.has(failedWorker.threadId)) return;
+    this.handledWorkers.add(failedWorker.threadId)
+    const workerIndex = this.workerPool.indexOf(failedWorker);
+    if (workerIndex !== -1) {
+       this.workerPool.splice(workerIndex, 1);
+    }
+
     this.availableWorkers = this.availableWorkers.filter((w) => w !== failedWorker);
 
     try {
