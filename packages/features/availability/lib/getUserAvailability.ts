@@ -1,4 +1,5 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { getFifaGamesBusyTimes } from "@calcom/features/availability/lib/getFifaGamesBusyTimes";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -617,6 +618,8 @@ export class UserAvailabilityService {
       };
     }
 
+    const fifaGamesBusyTimes = getFifaGamesBusyTimes(getBusyTimesStart, getBusyTimesEnd);
+
     const detailedBusyTimesWithSource: EventBusyDetails[] = [
       ...busyTimes.map((a) => ({
         ...a,
@@ -627,6 +630,7 @@ export class UserAvailabilityService {
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
+      ...fifaGamesBusyTimes,
     ];
 
     const detailedBusyTimes: UserAvailabilityBusyDetails[] = withSource
