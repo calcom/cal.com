@@ -98,6 +98,7 @@ import event_type_app_card_config_json from "./templates/event-type-app-card/con
 import event_type_location_video_static_config_json from "./templates/event-type-location-video-static/config.json";
 import general_app_settings_config_json from "./templates/general-app-settings/config.json";
 import link_as_an_app_config_json from "./templates/link-as-an-app/config.json";
+import threema_config_json from "./threema/config.json";
 import twipla_config_json from "./twipla/config.json";
 import umami_config_json from "./umami/config.json";
 import vimcal_config_json from "./vimcal/config.json";
@@ -210,6 +211,7 @@ export const appStoreMetadata = {
   "event-type-location-video-static": event_type_location_video_static_config_json,
   "general-app-settings": general_app_settings_config_json,
   "link-as-an-app": link_as_an_app_config_json,
+  threema: threema_config_json,
   twipla: twipla_config_json,
   umami: umami_config_json,
   vimcal: vimcal_config_json,

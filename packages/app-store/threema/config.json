@@ -1,0 +1,24 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Threema",
+  "slug": "threema",
+  "type": "threema_video",
+  "logo": "icon.svg",
+  "url": "https://threema.ch/",
+  "variant": "messaging",
+  "categories": ["messaging", "conferencing"],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@cal.com",
+  "description": "Schedule a chat with your guests or have a Threema call.",
+  "__createdUsingCli": true,
+  "appData": {
+    "location": {
+      "type": "integrations:threema_video",
+      "label": "Threema",
+      "linkType": "static",
+      "organizerInputPlaceholder": "https://threema.id/ECHOECHO",
+      "urlRegExp": "^http(s)?:\\/\\/(www\\.)?threema.id\\/[a-zA-Z0-9*]+(\\?text=.*)?$"
+    }
+  },
+  "isOAuth": false
+}

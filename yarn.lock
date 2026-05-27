@@ -3128,6 +3128,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/threema@workspace:packages/app-store/threema":
+  version: 0.0.0-use.local
+  resolution: "@calcom/threema@workspace:packages/app-store/threema"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/trpc@workspace:*, @calcom/trpc@workspace:packages/trpc":
   version: 0.0.0-use.local
   resolution: "@calcom/trpc@workspace:packages/trpc"
