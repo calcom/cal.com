@@ -146,7 +146,7 @@ export async function getConnectedApps({
     filterOnCredentials: onlyInstalled,
     ...(appId ? { where: { slug: appId } } : {}),
   });
-  //TODO: Refactor this to pick up only needed fields and prevent more leaking
+
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
       const userCredentialIds = credentials.filter((c) => c.appId === app.slug && !c.teamId).map((c) => c.id);
@@ -204,7 +204,17 @@ export async function getConnectedApps({
       }
 
       return {
-        ...app,
+        slug: app.slug,
+        name: app.name,
+        logo: app.logo,
+        categories: app.categories,
+        variant: app.variant,
+        type: app.type,
+        description: app.description,
+        dirName: app.dirName,
+        isGlobal: app.isGlobal,
+        dependencies: app.dependencies,
+        extendsFeature: app.extendsFeature,
         ...(teams.length && {
           credentialOwner,
         }),
