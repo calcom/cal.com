@@ -15,9 +15,15 @@ type BigBlueButtonKeys = {
 const ATTENDEE_PASSWORD = "attendee";
 const MODERATOR_PASSWORD = "moderator";
 
+/**
+ * Reads and validates the configured BigBlueButton server URL and shared secret.
+ */
 const getBigBlueButtonKeys = async (): Promise<BigBlueButtonKeys> =>
   appKeysSchema.parse(await getAppKeysFromSlug(metadata.slug));
 
+/**
+ * Ensures a configured BigBlueButton host points at its API endpoint.
+ */
 const normalizeServerUrl = (serverUrl: string): URL => {
   const url = new URL(serverUrl);
 
@@ -28,9 +34,15 @@ const normalizeServerUrl = (serverUrl: string): URL => {
   return url;
 };
 
+/**
+ * Builds the SHA-1 checksum required by BigBlueButton API calls.
+ */
 const createChecksum = (callName: string, query: string, sharedSecret: string): string =>
   createHash("sha1").update(`${callName}${query}${sharedSecret}`).digest("hex");
 
+/**
+ * Creates a signed BigBlueButton API URL for the given call and parameters.
+ */
 const createApiUrl = ({
   callName,
   params,
@@ -52,6 +64,9 @@ const createApiUrl = ({
   return apiUrl.toString();
 };
 
+/**
+ * Calls BigBlueButton and treats non-success API responses as failures.
+ */
 const callBigBlueButtonApi = async (url: string): Promise<void> => {
   const response = await fetch(url);
   const body = await response.text();
@@ -61,10 +76,19 @@ const callBigBlueButtonApi = async (url: string): Promise<void> => {
   }
 };
 
+/**
+ * Reuses an existing booking reference when updating or creates a stable booking meeting id.
+ */
 const getMeetingId = (eventData: CalendarEvent, bookingRef?: PartialReference): string =>
   String(bookingRef?.meetingId || eventData.uid || randomUUID());
 
+/**
+ * Creates the Cal.com video adapter used to manage BigBlueButton meetings.
+ */
 const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
+  /**
+   * Creates or updates a BigBlueButton meeting and returns the attendee join link.
+   */
   const createOrUpdateMeeting = async (
     eventData: CalendarEvent,
     bookingRef?: PartialReference

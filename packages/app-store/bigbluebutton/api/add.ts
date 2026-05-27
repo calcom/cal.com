@@ -5,6 +5,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { metadata } from "../_metadata";
 
+/**
+ * Installs the BigBlueButton conferencing app for the current user or team.
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (!req.session?.user?.id) {
     res.status(401).json({ message: "You must be logged in to do this" });
