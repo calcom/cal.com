@@ -215,9 +215,9 @@ export async function getConnectedApps({
         isGlobal: app.isGlobal,
         dependencies: app.dependencies,
         extendsFeature: app.extendsFeature,
-        location: app.location,
+        locationOption: app.locationOption,
         key: app.key,
-        
+
         ...(teams.length && {
           credentialOwner,
         }),
