@@ -1,0 +1,141 @@
+import { createHash, randomUUID } from "node:crypto";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { PartialReference } from "@calcom/types/EventManager";
+import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { metadata } from "../_metadata";
+import { appKeysSchema } from "../zod";
+
+type BigBlueButtonKeys = {
+  bigBlueButtonServerUrl: string;
+  bigBlueButtonSharedSecret: string;
+};
+
+const ATTENDEE_PASSWORD = "attendee";
+const MODERATOR_PASSWORD = "moderator";
+
+const getBigBlueButtonKeys = async (): Promise<BigBlueButtonKeys> =>
+  appKeysSchema.parse(await getAppKeysFromSlug(metadata.slug));
+
+const normalizeServerUrl = (serverUrl: string): URL => {
+  const url = new URL(serverUrl);
+
+  if (!url.pathname.endsWith("/api/")) {
+    url.pathname = `${url.pathname.replace(/\/$/, "")}/api/`;
+  }
+
+  return url;
+};
+
+const createChecksum = (callName: string, query: string, sharedSecret: string): string =>
+  createHash("sha1").update(`${callName}${query}${sharedSecret}`).digest("hex");
+
+const createApiUrl = ({
+  callName,
+  params,
+  serverUrl,
+  sharedSecret,
+}: {
+  callName: string;
+  params: Record<string, string>;
+  serverUrl: string;
+  sharedSecret: string;
+}): string => {
+  const apiUrl = normalizeServerUrl(serverUrl);
+  const searchParams = new URLSearchParams(params);
+  const query = searchParams.toString();
+  searchParams.set("checksum", createChecksum(callName, query, sharedSecret));
+  apiUrl.pathname = `${apiUrl.pathname}${callName}`;
+  apiUrl.search = searchParams.toString();
+
+  return apiUrl.toString();
+};
+
+const callBigBlueButtonApi = async (url: string): Promise<void> => {
+  const response = await fetch(url);
+  const body = await response.text();
+
+  if (!response.ok || !body.includes("<returncode>SUCCESS</returncode>")) {
+    throw new Error("BigBlueButton API request failed");
+  }
+};
+
+const getMeetingId = (eventData: CalendarEvent, bookingRef?: PartialReference): string =>
+  String(bookingRef?.meetingId || eventData.uid || randomUUID());
+
+const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
+  const createOrUpdateMeeting = async (
+    eventData: CalendarEvent,
+    bookingRef?: PartialReference
+  ): Promise<VideoCallData> => {
+    const { bigBlueButtonServerUrl, bigBlueButtonSharedSecret } = await getBigBlueButtonKeys();
+    const meetingID = getMeetingId(eventData, bookingRef);
+
+    await callBigBlueButtonApi(
+      createApiUrl({
+        callName: "create",
+        serverUrl: bigBlueButtonServerUrl,
+        sharedSecret: bigBlueButtonSharedSecret,
+        params: {
+          name: eventData.title,
+          meetingID,
+          attendeePW: ATTENDEE_PASSWORD,
+          moderatorPW: MODERATOR_PASSWORD,
+          logoutURL: WEBAPP_URL,
+        },
+      })
+    );
+
+    return {
+      type: metadata.type,
+      id: meetingID,
+      password: ATTENDEE_PASSWORD,
+      url: createApiUrl({
+        callName: "join",
+        serverUrl: bigBlueButtonServerUrl,
+        sharedSecret: bigBlueButtonSharedSecret,
+        params: {
+          fullName: eventData.attendees[0]?.name || "Guest",
+          meetingID,
+          password: ATTENDEE_PASSWORD,
+          redirect: "true",
+        },
+      }),
+    };
+  };
+
+  return {
+    getAvailability: () => Promise.resolve([]),
+    createMeeting: createOrUpdateMeeting,
+    updateMeeting: (bookingRef: PartialReference, eventData: CalendarEvent): Promise<VideoCallData> =>
+      createOrUpdateMeeting(eventData, bookingRef),
+    deleteMeeting: async (meetingID: string): Promise<void> => {
+      const { bigBlueButtonServerUrl, bigBlueButtonSharedSecret } = await getBigBlueButtonKeys();
+
+      await callBigBlueButtonApi(
+        createApiUrl({
+          callName: "end",
+          serverUrl: bigBlueButtonServerUrl,
+          sharedSecret: bigBlueButtonSharedSecret,
+          params: {
+            meetingID,
+            password: MODERATOR_PASSWORD,
+          },
+        })
+      );
+    },
+  };
+};
+
+export const testHelpers: {
+  createApiUrl: typeof createApiUrl;
+  createChecksum: typeof createChecksum;
+  normalizeServerUrl: typeof normalizeServerUrl;
+} = {
+  createApiUrl,
+  createChecksum,
+  normalizeServerUrl,
+};
+
+export default BigBlueButtonVideoApiAdapter;
