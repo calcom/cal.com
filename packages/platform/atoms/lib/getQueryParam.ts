@@ -3,9 +3,9 @@ const getQueryParam = (paramName: string) => {
     const currentUrl = new URL(window.location.href);
     const searchParams = currentUrl.searchParams;
 
-    const paramater = searchParams.get(paramName);
+    const parameter = searchParams.get(paramName);
 
-    return paramater;
+    return parameter;
   }
 
   return undefined;
