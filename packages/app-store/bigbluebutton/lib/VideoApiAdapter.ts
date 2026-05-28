@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomUUID } from "node:crypto";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -12,8 +12,7 @@ type BigBlueButtonKeys = {
   bigBlueButtonSharedSecret: string;
 };
 
-const ATTENDEE_PASSWORD = "attendee";
-const MODERATOR_PASSWORD = "moderator";
+const BIGBLUEBUTTON_API_TIMEOUT_MS = 10_000;
 
 /**
  * Reads and validates the configured BigBlueButton server URL and shared secret.
@@ -26,9 +25,12 @@ const getBigBlueButtonKeys = async (): Promise<BigBlueButtonKeys> =>
  */
 const normalizeServerUrl = (serverUrl: string): URL => {
   const url = new URL(serverUrl);
+  const trimmedPathname = url.pathname.replace(/\/+$/, "");
 
-  if (!url.pathname.endsWith("/api/")) {
-    url.pathname = `${url.pathname.replace(/\/$/, "")}/api/`;
+  if (trimmedPathname.endsWith("/api")) {
+    url.pathname = `${trimmedPathname}/`;
+  } else {
+    url.pathname = `${trimmedPathname}/api/`;
   }
 
   return url;
@@ -39,6 +41,19 @@ const normalizeServerUrl = (serverUrl: string): URL => {
  */
 const createChecksum = (callName: string, query: string, sharedSecret: string): string =>
   createHash("sha1").update(`${callName}${query}${sharedSecret}`).digest("hex");
+
+/**
+ * Derives stable per-meeting BigBlueButton passwords without storing moderator secrets.
+ */
+const createMeetingPassword = ({
+  meetingID,
+  role,
+  sharedSecret,
+}: {
+  meetingID: string;
+  role: "attendee" | "moderator";
+  sharedSecret: string;
+}): string => createHmac("sha256", sharedSecret).update(`${meetingID}:${role}`).digest("hex").slice(0, 32);
 
 /**
  * Creates a signed BigBlueButton API URL for the given call and parameters.
@@ -68,8 +83,24 @@ const createApiUrl = ({
  * Calls BigBlueButton and treats non-success API responses as failures.
  */
 const callBigBlueButtonApi = async (url: string): Promise<void> => {
-  const response = await fetch(url);
-  const body = await response.text();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), BIGBLUEBUTTON_API_TIMEOUT_MS);
+
+  let response: Response;
+  let body: string;
+
+  try {
+    response = await fetch(url, { signal: controller.signal });
+    body = await response.text();
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("BigBlueButton API request timed out");
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok || !body.includes("<returncode>SUCCESS</returncode>")) {
     throw new Error("BigBlueButton API request failed");
@@ -95,6 +126,16 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
   ): Promise<VideoCallData> => {
     const { bigBlueButtonServerUrl, bigBlueButtonSharedSecret } = await getBigBlueButtonKeys();
     const meetingID = getMeetingId(eventData, bookingRef);
+    const attendeePassword = createMeetingPassword({
+      meetingID,
+      role: "attendee",
+      sharedSecret: bigBlueButtonSharedSecret,
+    });
+    const moderatorPassword = createMeetingPassword({
+      meetingID,
+      role: "moderator",
+      sharedSecret: bigBlueButtonSharedSecret,
+    });
 
     await callBigBlueButtonApi(
       createApiUrl({
@@ -104,8 +145,8 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         params: {
           name: eventData.title,
           meetingID,
-          attendeePW: ATTENDEE_PASSWORD,
-          moderatorPW: MODERATOR_PASSWORD,
+          attendeePW: attendeePassword,
+          moderatorPW: moderatorPassword,
           logoutURL: WEBAPP_URL,
         },
       })
@@ -114,7 +155,7 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
     return {
       type: metadata.type,
       id: meetingID,
-      password: ATTENDEE_PASSWORD,
+      password: attendeePassword,
       url: createApiUrl({
         callName: "join",
         serverUrl: bigBlueButtonServerUrl,
@@ -122,7 +163,7 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         params: {
           fullName: eventData.attendees[0]?.name || "Guest",
           meetingID,
-          password: ATTENDEE_PASSWORD,
+          password: attendeePassword,
           redirect: "true",
         },
       }),
@@ -136,6 +177,11 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       createOrUpdateMeeting(eventData, bookingRef),
     deleteMeeting: async (meetingID: string): Promise<void> => {
       const { bigBlueButtonServerUrl, bigBlueButtonSharedSecret } = await getBigBlueButtonKeys();
+      const moderatorPassword = createMeetingPassword({
+        meetingID,
+        role: "moderator",
+        sharedSecret: bigBlueButtonSharedSecret,
+      });
 
       await callBigBlueButtonApi(
         createApiUrl({
@@ -144,7 +190,7 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
           sharedSecret: bigBlueButtonSharedSecret,
           params: {
             meetingID,
-            password: MODERATOR_PASSWORD,
+            password: moderatorPassword,
           },
         })
       );
@@ -155,10 +201,12 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
 export const testHelpers: {
   createApiUrl: typeof createApiUrl;
   createChecksum: typeof createChecksum;
+  createMeetingPassword: typeof createMeetingPassword;
   normalizeServerUrl: typeof normalizeServerUrl;
 } = {
   createApiUrl,
   createChecksum,
+  createMeetingPassword,
   normalizeServerUrl,
 };
 

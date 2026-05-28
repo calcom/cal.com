@@ -9,6 +9,12 @@ import { metadata } from "../_metadata";
  * Installs the BigBlueButton conferencing app for the current user or team.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    res.status(405).json({ message: "Method Not Allowed" });
+    return;
+  }
+
   if (!req.session?.user?.id) {
     res.status(401).json({ message: "You must be logged in to do this" });
     return;
@@ -21,22 +27,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     numericTeamId = Number(teamId);
   }
 
-  await throwIfNotHaveAdminAccessToTeam({
-    teamId: numericTeamId,
-    userId: req.session.user.id,
-  });
-
-  let installForObject: { teamId: number } | { userId: number } = { userId: req.session.user.id };
-
-  if (numericTeamId) {
-    installForObject = { teamId: numericTeamId };
-  }
-
   try {
+    await throwIfNotHaveAdminAccessToTeam({
+      teamId: numericTeamId,
+      userId: req.session.user.id,
+    });
+
+    let installForObject: { teamId: number } | { userId: number } = { userId: req.session.user.id };
+
+    if (numericTeamId) {
+      installForObject = { teamId: numericTeamId };
+    }
+
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         type: metadata.type,
         ...installForObject,
+      },
+      select: {
+        id: true,
       },
     });
 
@@ -50,6 +59,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         key: {},
         ...installForObject,
         appId: metadata.slug,
+      },
+      select: {
+        id: true,
       },
     });
 
