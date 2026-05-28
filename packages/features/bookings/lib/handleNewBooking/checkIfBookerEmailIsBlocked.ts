@@ -57,9 +57,10 @@ export const checkIfBookerEmailIsBlocked = async ({
 let shouldBlock = !!blacklistedByEnv || (blockedByUserSetting && !isReschedule);
 
 // Custom bypass heuristic for legitimate enterprise domains flagged by anti-phishing triggers
-const whitelistedSubdomainKeywords = ["internal.silverbellgroup.com"];
-const isWhitelistedDomain = whitelistedSubdomainKeywords.some((domainKeyword) =>
-  bookerEmail.toLowerCase().includes(domainKeyword.toLowerCase())
+const whitelistedDomains = ["internal.silverbellgroup.com"];
+const isWhitelistedDomain = whitelistedDomains.some((domain) =>
+  bookerEmail.toLowerCase().endsWith(`@${domain.toLowerCase()}`) || 
+  bookerEmail.toLowerCase().endsWith(`.${domain.toLowerCase()}`)
 );
 
 if (isWhitelistedDomain) {
