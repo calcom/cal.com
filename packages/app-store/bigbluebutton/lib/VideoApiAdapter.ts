@@ -103,18 +103,14 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       );
       await assertSuccessResponse(await fetch(createUrl));
 
-      const joinParams = new URLSearchParams({
-        fullName: "Guest",
-        meetingID,
-        password: attendeePassword,
-        redirect: "true",
-      });
-
+      // Do not bake a signed join URL with a hardcoded fullName into the
+      // stored meeting reference. updateMeeting regenerates the join URL
+      // with the attendee's real display name at notification time.
       return {
         type: metadata.type,
         id: meetingID,
-        password: moderatorPassword,
-        url: buildApiUrl(apiUrl, "join", joinParams, sharedSecret),
+        password: attendeePassword,
+        url: apiUrl,
       };
     },
     deleteMeeting: async (uid: string): Promise<void> => {
@@ -134,21 +130,35 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         await fetch(buildApiUrl(apiUrl, "end", endParams, sharedSecret)),
       );
     },
-    updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
-      const { meetingId, meetingPassword, meetingUrl } = bookingRef;
+    updateMeeting: async (
+      bookingRef: PartialReference,
+      eventData: CalendarEvent,
+    ): Promise<VideoCallData> => {
+      const { apiUrl, sharedSecret } = await getBigBlueButtonConfig();
+      const meetingID = bookingRef.meetingId as string;
+      const attendeePassword = bookingRef.meetingPassword as string;
+      const attendeeName =
+        eventData.attendees?.[0]?.name || eventData.organizer.name;
 
-      if (!meetingId || !meetingPassword || !meetingUrl) {
+      if (!meetingID || !attendeePassword) {
         throw new Error(
           "BigBlueButton booking reference is missing meeting data",
         );
       }
 
-      return Promise.resolve({
-        type: metadata.type,
-        id: meetingId,
-        password: meetingPassword,
-        url: meetingUrl,
+      const joinParams = new URLSearchParams({
+        fullName: attendeeName,
+        meetingID,
+        password: attendeePassword,
+        redirect: "true",
       });
+
+      return {
+        type: metadata.type,
+        id: meetingID,
+        password: attendeePassword,
+        url: buildApiUrl(apiUrl, "join", joinParams, sharedSecret),
+      };
     },
   };
 };

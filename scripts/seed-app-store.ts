@@ -164,10 +164,12 @@ export default async function main() {
       client_secret: process.env.ZOOM_CLIENT_SECRET,
     });
   }
-  await createApp("bigbluebutton", "bigbluebutton", ["conferencing"], "bigbluebutton_video", {
-    bigBlueButtonServerUrl: process.env.BIGBLUEBUTTON_SERVER_URL,
-    bigBlueButtonSharedSecret: process.env.BIGBLUEBUTTON_SHARED_SECRET,
-  });
+  if (process.env.BIGBLUEBUTTON_SERVER_URL && process.env.BIGBLUEBUTTON_SHARED_SECRET) {
+    await createApp("bigbluebutton", "bigbluebutton", ["conferencing"], "bigbluebutton_video", {
+      bigBlueButtonServerUrl: process.env.BIGBLUEBUTTON_SERVER_URL,
+      bigBlueButtonSharedSecret: process.env.BIGBLUEBUTTON_SHARED_SECRET,
+    });
+  }
   await createApp("jitsi", "jitsivideo", ["conferencing"], "jitsi_video");
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
