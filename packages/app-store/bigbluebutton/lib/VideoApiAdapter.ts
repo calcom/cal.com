@@ -1,7 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type {
+  VideoApiAdapter,
+  VideoCallData,
+} from "@calcom/types/VideoApiAdapter";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { metadata } from "../_metadata";
 
@@ -18,10 +21,22 @@ const normalizeApiUrl = (serverUrl: string) => {
 const checksum = (method: string, query: string, sharedSecret: string) =>
   createHash("sha1").update(`${method}${query}${sharedSecret}`).digest("hex");
 
-const deriveMeetingPassword = (role: "attendee" | "moderator", meetingID: string, sharedSecret: string) =>
-  createHash("sha256").update(`${role}:${meetingID}:${sharedSecret}`).digest("hex").slice(0, 24);
+const deriveMeetingPassword = (
+  role: "attendee" | "moderator",
+  meetingID: string,
+  sharedSecret: string,
+) =>
+  createHash("sha256")
+    .update(`${role}:${meetingID}:${sharedSecret}`)
+    .digest("hex")
+    .slice(0, 24);
 
-const buildApiUrl = (apiUrl: string, method: string, params: URLSearchParams, sharedSecret: string) => {
+const buildApiUrl = (
+  apiUrl: string,
+  method: string,
+  params: URLSearchParams,
+  sharedSecret: string,
+) => {
   const query = params.toString();
   const signedQuery = new URLSearchParams(params);
   signedQuery.set("checksum", checksum(method, query, sharedSecret));
@@ -37,7 +52,9 @@ const assertSuccessResponse = async (response: Response) => {
 };
 
 const getBigBlueButtonConfig = async () => {
-  const appKeys = (await getAppKeysFromSlug(metadata.slug)) as BigBlueButtonKeys;
+  const appKeys = (await getAppKeysFromSlug(
+    metadata.slug,
+  )) as BigBlueButtonKeys;
   const serverUrl = appKeys.bigBlueButtonServerUrl?.trim();
   const sharedSecret = appKeys.bigBlueButtonSharedSecret?.trim();
 
@@ -59,8 +76,16 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
     createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {
       const { apiUrl, sharedSecret } = await getBigBlueButtonConfig();
       const meetingID = eventData.uid || randomUUID();
-      const attendeePassword = deriveMeetingPassword("attendee", meetingID, sharedSecret);
-      const moderatorPassword = deriveMeetingPassword("moderator", meetingID, sharedSecret);
+      const attendeePassword = deriveMeetingPassword(
+        "attendee",
+        meetingID,
+        sharedSecret,
+      );
+      const moderatorPassword = deriveMeetingPassword(
+        "moderator",
+        meetingID,
+        sharedSecret,
+      );
 
       const createParams = new URLSearchParams({
         name: eventData.title,
@@ -70,7 +95,12 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         record: "false",
       });
 
-      const createUrl = buildApiUrl(apiUrl, "create", createParams, sharedSecret);
+      const createUrl = buildApiUrl(
+        apiUrl,
+        "create",
+        createParams,
+        sharedSecret,
+      );
       await assertSuccessResponse(await fetch(createUrl));
 
       const joinParams = new URLSearchParams({
@@ -89,21 +119,35 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
     },
     deleteMeeting: async (uid: string): Promise<void> => {
       const { apiUrl, sharedSecret } = await getBigBlueButtonConfig();
-      const moderatorPassword = deriveMeetingPassword("moderator", uid, sharedSecret);
+      const moderatorPassword = deriveMeetingPassword(
+        "moderator",
+        uid,
+        sharedSecret,
+      );
 
       const endParams = new URLSearchParams({
         meetingID: uid,
         password: moderatorPassword,
       });
 
-      await assertSuccessResponse(await fetch(buildApiUrl(apiUrl, "end", endParams, sharedSecret)));
+      await assertSuccessResponse(
+        await fetch(buildApiUrl(apiUrl, "end", endParams, sharedSecret)),
+      );
     },
     updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
+      const { meetingId, meetingPassword, meetingUrl } = bookingRef;
+
+      if (!meetingId || !meetingPassword || !meetingUrl) {
+        throw new Error(
+          "BigBlueButton booking reference is missing meeting data",
+        );
+      }
+
       return Promise.resolve({
         type: metadata.type,
-        id: bookingRef.meetingId as string,
-        password: bookingRef.meetingPassword as string,
-        url: bookingRef.meetingUrl as string,
+        id: meetingId,
+        password: meetingPassword,
+        url: meetingUrl,
       });
     },
   };
