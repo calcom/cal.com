@@ -8,11 +8,11 @@ import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import type { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { getTranslation } from "@calcom/i18n/server";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -106,11 +106,12 @@ async function cancelAttendeeSeat(
             };
           }
 
+          const attendees = evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email);
           const updatedEvt = {
             ...evt,
-            attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
-            calendarDescription: getRichDescription(evt),
-            seatsPerTimeSlot: null,
+            attendees,
+            calendarDescription: getRichDescription({ ...evt, attendees }),
+            onlyUpdateCalendarAttendees: true,
           };
 
           if (reference.type.includes("_video") && reference.type !== "google_meet_video") {
@@ -137,8 +138,21 @@ async function cancelAttendeeSeat(
 
     const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
 
+    const emailEvt = {
+      ...evt,
+      attendees: [
+        {
+          name: attendee.name,
+          email: attendee.email,
+          timeZone: attendee.timeZone,
+          phoneNumber: attendee.phoneNumber,
+          language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+        },
+      ],
+    };
+
     await sendCancelledSeatEmailsAndSMS(
-      evt,
+      emailEvt,
       {
         ...attendee,
         language: { translate: tAttendees, locale: attendee.locale ?? "en" },
@@ -149,14 +163,17 @@ async function cancelAttendeeSeat(
 
   evt.attendees = attendee
     ? [
-      {
-        ...attendee,
-        language: {
-          translate: await getTranslation(attendee.locale ?? "en", "common"),
-          locale: attendee.locale ?? "en",
+        {
+          name: attendee.name,
+          email: attendee.email,
+          timeZone: attendee.timeZone,
+          phoneNumber: attendee.phoneNumber,
+          language: {
+            translate: await getTranslation(attendee.locale ?? "en", "common"),
+            locale: attendee.locale ?? "en",
+          },
         },
-      },
-    ]
+      ]
     : [];
 
   const payload: EventPayloadType = {

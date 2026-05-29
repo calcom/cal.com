@@ -855,7 +855,7 @@ export default class EventManager {
       console.error("Tried to update references but there wasn't any.");
       return;
     }
-    await this.updateAllCalendarEvents(event, booking);
+    await this.updateAllCalendarEvents({ ...event, onlyUpdateCalendarAttendees: true }, booking);
   }
 
   /**

@@ -319,122 +319,128 @@ class Office365CalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarServiceEvent): Promise<NewCalendarEventType> {
-  try {
-    let rescheduledEvent: Event | undefined;
+    try {
+      let rescheduledEvent: Event | undefined;
+      const onlyUpdateCalendarAttendees =
+        event.onlyUpdateCalendarAttendees && typeof event.seatsPerTimeSlot === "number";
 
-    // For MS Teams meetings, we must first GET the existing event to
-    // preserve the online meeting blob — otherwise it breaks the Teams link
-    if (event.location === MSTeamsLocationType) {
-      const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
-        method: "GET",
-      });
-      rescheduledEvent = await handleErrorsJson<Event>(response);
-    }
+      // For MS Teams meetings, we must first GET the existing event to
+      // preserve the online meeting blob — otherwise it breaks the Teams link
+      if (!onlyUpdateCalendarAttendees && event.location === MSTeamsLocationType) {
+        const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
+          method: "GET",
+        });
+        rescheduledEvent = await handleErrorsJson<Event>(response);
+      }
 
-    // Build the full translated event object
-    const translatedEvent = this.translateEvent(event, rescheduledEvent);
+      // Build the full translated event object
+      const translatedEvent = this.translateEvent(event, rescheduledEvent);
 
-    // Cache endpoint to avoid multiple async calls to getUserEndpoint()
-    const endpoint = await this.getUserEndpoint();
+      // Cache endpoint to avoid multiple async calls to getUserEndpoint()
+      const endpoint = await this.getUserEndpoint();
 
-    let response: Response;
+      let response: Response;
 
-    if (typeof event.seatsPerTimeSlot === "number") {
-      const { attendees, ...eventWithoutAttendees } = translatedEvent;
+      if (onlyUpdateCalendarAttendees) {
+        response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
+          method: "PATCH",
+          body: JSON.stringify({ attendees: translatedEvent.attendees }),
+        });
+      } else if (typeof event.seatsPerTimeSlot === "number") {
+        const { attendees, ...eventWithoutAttendees } = translatedEvent;
 
-      const patch1Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
-        method: "PATCH",
-        body: JSON.stringify(eventWithoutAttendees),
-      });
-      await handleErrorsJson(patch1Response);
+        const patch1Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
+          method: "PATCH",
+          body: JSON.stringify(eventWithoutAttendees),
+        });
+        await handleErrorsJson(patch1Response);
 
-      const MAX_RETRIES = 3;
-      const BACKOFF_MS = 500;
-      let patch2Response: Response | undefined;
-      let lastError: Error | undefined;
+        const MAX_RETRIES = 3;
+        const BACKOFF_MS = 500;
+        let patch2Response: Response | undefined;
+        let lastError: Error | undefined;
 
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-          patch2Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
-            method: "PATCH",
-            body: JSON.stringify({ attendees }),
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            patch2Response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
+              method: "PATCH",
+              body: JSON.stringify({ attendees }),
+            });
+
+            await handleErrorsJson(patch2Response.clone());
+            lastError = undefined;
+            break;
+          } catch (err) {
+            lastError = err instanceof Error ? err : new Error(String(err));
+
+            if (attempt < MAX_RETRIES) {
+              // Exponential backoff before next attempt
+              const backoff = BACKOFF_MS * 2 ** (attempt - 1);
+              this.log.warn(
+                `PATCH_ATTENDEES attempt ${attempt}/${MAX_RETRIES} failed for event uid=${uid}, retrying in ${backoff}ms`,
+                { err }
+              );
+              await new Promise((resolve) => setTimeout(resolve, backoff));
+            }
+          }
+        }
+
+        // Retry failure handling for PATCH 2
+        if (lastError) {
+          let httpStatus: number | undefined;
+          let httpBody: unknown;
+
+          if (patch2Response) {
+            httpStatus = patch2Response.status;
+            try {
+              httpBody = await patch2Response.json();
+            } catch {
+              httpBody = await patch2Response.text().catch(() => "unable to read response body");
+            }
+          }
+
+          this.log.error("PATCH_ATTENDEES final failure after all retries", {
+            operation: "PATCH_ATTENDEES",
+            uid,
+            endpoint,
+            httpStatus,
+            httpBody,
+            attempts: MAX_RETRIES,
           });
 
-          await handleErrorsJson(patch2Response.clone());
-          lastError = undefined;
-          break;
-        } catch (err) {
-          lastError = err instanceof Error ? err : new Error(String(err));
-
-          if (attempt < MAX_RETRIES) {
-            // Exponential backoff before next attempt
-            const backoff = BACKOFF_MS * Math.pow(2, attempt - 1);
-            this.log.warn(
-              `PATCH_ATTENDEES attempt ${attempt}/${MAX_RETRIES} failed for event uid=${uid}, retrying in ${backoff}ms`,
-              { err }
-            );
-            await new Promise((resolve) => setTimeout(resolve, backoff));
-          }
-        }
-      }
-
-      // Retry failure handling for PATCH 2
-      if (lastError) {
-        let httpStatus: number | undefined;
-        let httpBody: unknown;
-
-        if (patch2Response) {
-          httpStatus = patch2Response.status;
-          try {
-            httpBody = await patch2Response.json();
-          } catch {
-            httpBody = await patch2Response.text().catch(() => "unable to read response body");
-          }
+          throw new Error(
+            `PATCH_ATTENDEES failed for event uid=${uid} at endpoint=${endpoint} ` +
+              `after ${MAX_RETRIES} attempts. ` +
+              `HTTP status=${httpStatus ?? "unknown"}, ` +
+              `body=${JSON.stringify(httpBody ?? "unknown")}. ` +
+              `Event details were updated (PATCH 1 succeeded) but attendee list may be stale. ` +
+              `Original error: ${lastError.message}`
+          );
         }
 
-        this.log.error("PATCH_ATTENDEES final failure after all retries", {
-          operation: "PATCH_ATTENDEES",
-          uid,
-          endpoint,
-          httpStatus,
-          httpBody,
-          attempts: MAX_RETRIES,
+        // PATCH 2 succeeded — use its response for the return value below
+        response = patch2Response!;
+      } else {
+        response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
+          method: "PATCH",
+          body: JSON.stringify(translatedEvent),
         });
-
-        throw new Error(
-          `PATCH_ATTENDEES failed for event uid=${uid} at endpoint=${endpoint} ` +
-          `after ${MAX_RETRIES} attempts. ` +
-          `HTTP status=${httpStatus ?? "unknown"}, ` +
-          `body=${JSON.stringify(httpBody ?? "unknown")}. ` +
-          `Event details were updated (PATCH 1 succeeded) but attendee list may be stale. ` +
-          `Original error: ${lastError.message}`
-        );
       }
 
-      // PATCH 2 succeeded — use its response for the return value below
-      response = patch2Response!;
+      const responseJson = await handleErrorsJson<
+        NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
+      >(response);
 
-    } else {
-      response = await this.fetcher(`${endpoint}/calendar/events/${uid}`, {
-        method: "PATCH",
-        body: JSON.stringify(translatedEvent),
-      });
+      if (responseJson?.onlineMeeting?.joinUrl) {
+        responseJson.url = responseJson?.onlineMeeting?.joinUrl;
+      }
+
+      return { ...responseJson, iCalUID: responseJson.iCalUId };
+    } catch (error) {
+      this.log.error(error);
+      throw error;
     }
-
-    const responseJson = await handleErrorsJson<
-      NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
-    >(response);
-
-    if (responseJson?.onlineMeeting?.joinUrl) {
-      responseJson.url = responseJson?.onlineMeeting?.joinUrl;
-    }
-
-    return { ...responseJson, iCalUID: responseJson.iCalUId };
-  } catch (error) {
-    this.log.error(error);
-    throw error;
   }
-}
 
   async deleteEvent(uid: string): Promise<void> {
     try {
@@ -608,21 +614,21 @@ class Office365CalendarService implements Calendar {
         })),
         ...(event.team?.members
           ? event.team.members
-            .filter((member) => member.email !== this.credential.user?.email)
-            .map((member) => {
-              const destinationCalendar =
-                event.destinationCalendar &&
-                event.destinationCalendar.find(
-                  (cal) => cal.integration === this.integrationName && cal.userId === member.id
-                );
-              return {
-                emailAddress: {
-                  address: destinationCalendar?.externalId ?? member.email,
-                  name: member.name,
-                },
-                type: "required" as const,
-              };
-            })
+              .filter((member) => member.email !== this.credential.user?.email)
+              .map((member) => {
+                const destinationCalendar =
+                  event.destinationCalendar &&
+                  event.destinationCalendar.find(
+                    (cal) => cal.integration === this.integrationName && cal.userId === member.id
+                  );
+                return {
+                  emailAddress: {
+                    address: destinationCalendar?.externalId ?? member.email,
+                    name: member.name,
+                  },
+                  type: "required" as const,
+                };
+              })
           : []),
       ],
       location: event.location ? { displayName: getLocation(event) } : undefined,
