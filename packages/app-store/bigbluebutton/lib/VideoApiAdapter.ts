@@ -1,4 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type {
@@ -141,7 +143,8 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         eventData.attendees?.[0]?.name || eventData.organizer.name;
 
       if (!meetingID || !attendeePassword) {
-        throw new Error(
+        throw new ErrorWithCode(
+          ErrorCode.BadRequest,
           "BigBlueButton booking reference is missing meeting data",
         );
       }
