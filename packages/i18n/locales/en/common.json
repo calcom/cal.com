@@ -440,6 +440,8 @@
   "connect_caldav": "Connect to CalDav (Beta)",
   "connect_ics_feed": "Connect to an ICS Feed",
   "connect_proton_calendar": "Connect to Proton Calendar",
+  "proton_calendar": "Proton Calendar",
+  "proton_calendar_url_placeholder": "webcal://calendar.proton.me/api/calendar/v1/url/...",
   "connect": "Connect",
   "try_for_free": "Try it for free",
   "create_booking_link_with_calcom": "Create your own booking link with {{appName}}",

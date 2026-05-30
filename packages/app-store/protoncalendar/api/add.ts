@@ -68,7 +68,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data,
       });
     } catch (error) {
-      logger.error("Could not add Proton Calendar feeds", error);
+      logger.error("Could not add Proton Calendar feeds", {
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
       return res.status(500).json({ message: "Could not add Proton Calendar feeds" });
     }
 

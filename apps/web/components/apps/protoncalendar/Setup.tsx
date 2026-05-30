@@ -27,7 +27,7 @@ export default function ProtonCalendarSetup() {
             {/* eslint-disable @next/next/no-img-element */}
             <img
               src="/api/app-store/protoncalendar/icon.svg"
-              alt="Proton Calendar"
+              alt={t("proton_calendar")}
               className="h-12 w-12 max-w-2xl"
             />
           </div>
@@ -73,7 +73,7 @@ export default function ProtonCalendarSetup() {
                           const newVal = e.target.value as string;
                           setUrls((urls) => urls.map((x, ii) => (ii === i ? newVal : x)));
                         }}
-                        placeholder="webcal://calendar.proton.me/api/calendar/v1/url/..."
+                        placeholder={t("proton_calendar_url_placeholder")}
                       />
                       {i !== 0 ? (
                         <button
