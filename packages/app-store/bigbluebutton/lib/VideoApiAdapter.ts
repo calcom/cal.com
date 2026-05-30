@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
@@ -76,7 +78,7 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => ({
 
     if (!createResponse.ok || returnCode !== "SUCCESS") {
       const message = getXmlTag(createXml, "message") || "Unable to create BigBlueButton meeting";
-      throw new Error(message);
+      throw new ErrorWithCode(ErrorCode.InternalServerError, message);
     }
 
     const joinParams = new URLSearchParams({
@@ -101,10 +103,12 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => ({
   },
 
   deleteMeeting: async (uid: string): Promise<void> => {
-    const [meetingID, moderatorPW] = uid.split(":");
-    if (!meetingID || !moderatorPW) {
+    const separator = uid.lastIndexOf(":");
+    if (separator <= 0 || separator === uid.length - 1) {
       return;
     }
+    const meetingID = uid.slice(0, separator);
+    const moderatorPW = uid.slice(separator + 1);
 
     const { bigBlueButtonServerUrl, bigBlueButtonSharedSecret } = await getParsedAppKeysFromSlug(
       metadata.slug,
@@ -129,16 +133,16 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => ({
 
     if (!endResponse.ok || returnCode !== "SUCCESS") {
       const message = getXmlTag(endXml, "message") || "Unable to end BigBlueButton meeting";
-      throw new Error(message);
+      throw new ErrorWithCode(ErrorCode.InternalServerError, message);
     }
   },
 
   updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> =>
     Promise.resolve({
       type: metadata.type,
-      id: bookingRef.meetingId as string,
-      password: bookingRef.meetingPassword as string,
-      url: bookingRef.meetingUrl as string,
+      id: bookingRef.meetingId ?? "",
+      password: bookingRef.meetingPassword ?? "",
+      url: bookingRef.meetingUrl ?? "",
     }),
 });
 

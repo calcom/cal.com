@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
@@ -12,13 +14,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { teamId, returnTo } = req.query;
+  const parsedTeamId =
+    typeof teamId === "string" && Number.isInteger(Number(teamId)) && Number(teamId) > 0
+      ? Number(teamId)
+      : null;
+
+  if (teamId && parsedTeamId === null) {
+    return res.status(400).json({ message: "Invalid teamId" });
+  }
 
   await throwIfNotHaveAdminAccessToTeam({
-    teamId: teamId ? Number(teamId) : null,
+    teamId: parsedTeamId,
     userId: req.session.user.id,
   });
 
-  const installForObject = teamId ? { teamId: Number(teamId) } : { userId: req.session.user.id };
+  const installForObject = parsedTeamId ? { teamId: parsedTeamId } : { userId: req.session.user.id };
   const appType = "bigbluebutton_video";
 
   try {
@@ -30,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (alreadyInstalled) {
-      throw new Error("Already installed");
+      throw new ErrorWithCode(ErrorCode.BadRequest, "Already installed");
     }
 
     const installation = await prisma.credential.create({
@@ -43,7 +53,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!installation) {
-      throw new Error("Unable to create user credential for BigBlueButton");
+      throw new ErrorWithCode(
+        ErrorCode.InternalServerError,
+        "Unable to create user credential for BigBlueButton"
+      );
     }
   } catch (error: unknown) {
     const httpError = getServerErrorFromUnknown(error);
