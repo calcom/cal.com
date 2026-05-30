@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
@@ -75,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     if (alreadyInstalled) {
-      throw new Error("Already installed");
+      throw new ErrorWithCode("Already installed" as any, "Already installed");
     }
 
     // 加密凭证后存储
@@ -101,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!installation) {
-      throw new Error("Unable to create user credential for bigbluebuttonvideo");
+      throw new ErrorWithCode("Unable to create user credential for bigbluebuttonvideo" as any, "Unable to create user credential for bigbluebuttonvideo");
     }
   } catch (error: unknown) {
     const httpError = getServerErrorFromUnknown(error);

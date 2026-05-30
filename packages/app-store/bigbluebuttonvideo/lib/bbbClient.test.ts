@@ -36,8 +36,6 @@ describe("buildSignedUrl", () => {
 
   it("空查询字符串也能正确工作", () => {
     const url = buildSignedUrl("https://bbb.example.com/bigbluebutton", "getMeetings", "", "secret");
-    expect(url).toBe("https://bbb.example.com/bigbluebutton/api/getMeetings?checksum=");
-    // 使用更宽松的匹配 -- 验证包含正确的路径和校验和参数
     expect(url).toMatch(/\/api\/getMeetings\?checksum=[0-9a-f]{40}$/);
   });
 });

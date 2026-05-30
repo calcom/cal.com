@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -20,7 +21,7 @@ import { showToast } from "@calcom/ui/components/toast";
 /** 表单字段验证模式 */
 const formSchema = z.object({
   serverUrl: z.string().url(),
-  sharedSecret: z.string().min(1),
+  sharedSecret: z.string().trim().min(1),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -35,6 +36,7 @@ export default function BigBlueButtonSetup() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       serverUrl: "",
       sharedSecret: "",
@@ -80,7 +82,7 @@ export default function BigBlueButtonSetup() {
               <Input
                 {...field}
                 type="url"
-                placeholder="https://your-bbb-server.com/bigbluebutton"
+                placeholder={t("bbb_server_url_placeholder")}
                 required
               />
             </div>

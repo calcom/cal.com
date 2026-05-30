@@ -7,7 +7,7 @@ import { z } from "zod";
  */
 export const bbbCredentialKeySchema = z.object({
   serverUrl: z.string().url(),
-  sharedSecret: z.string().min(1),
+  sharedSecret: z.string().trim().min(1),
 });
 
 export const appKeysSchema = z.object({});

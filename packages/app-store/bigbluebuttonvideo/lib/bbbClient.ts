@@ -48,7 +48,8 @@ export function buildSignedUrl(
  * 如果 returncode 不是 SUCCESS，抛出 BbbApiError
  */
 export function parseBbbResponse(xmlResponse: string): Record<string, unknown> {
-  if (!XMLValidator.validate(xmlResponse)) {
+  const validationResult = XMLValidator.validate(xmlResponse);
+  if (validationResult !== true) {
     throw new BbbApiError("BBB returned a malformed XML response.", "malformed_xml_response");
   }
 
@@ -90,6 +91,14 @@ export async function callBbb(
   let response: Response;
   try {
     response = await fetch(url, { signal: controller.signal });
+  } catch (fetchError) {
+    if (fetchError instanceof DOMException && fetchError.name === "AbortError") {
+      throw new BbbApiError("BBB API request timed out after 10 seconds.", "bbb_timeout");
+    }
+    throw new BbbApiError(
+      `BBB API network error: ${fetchError instanceof Error ? fetchError.message : "Unknown network error"}`,
+      "bbb_network_error"
+    );
   } finally {
     clearTimeout(timeoutId);
   }

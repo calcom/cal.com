@@ -4769,6 +4769,7 @@
   "error_updating_user": "There was an error updating this user.",
   "please_reschedule": "Please reschedule.",
   "bbb_server_url": "BigBlueButton Server URL",
+  "bbb_server_url_placeholder": "https://your-bbb-server.com/bigbluebutton",
   "bbb_shared_secret": "BigBlueButton Shared Secret",
   "bbb_shared_secret_placeholder": "Enter your BBB shared secret",
   "bbb_setup_title": "BigBlueButton Setup",
