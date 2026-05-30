@@ -105,14 +105,21 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       );
       await assertSuccessResponse(await fetch(createUrl));
 
-      // Do not bake a signed join URL with a hardcoded fullName into the
-      // stored meeting reference. updateMeeting regenerates the join URL
-      // with the attendee's real display name at notification time.
+      // Store a join URL using the organizer name. updateMeeting regenerates
+      // the URL with each attendee's real display name at notification time.
+      const organizerName = eventData.organizer.name || "Attendee";
+      const joinParams = new URLSearchParams({
+        fullName: organizerName,
+        meetingID,
+        password: attendeePassword,
+        redirect: "true",
+      });
+
       return {
         type: metadata.type,
         id: meetingID,
         password: attendeePassword,
-        url: apiUrl,
+        url: buildApiUrl(apiUrl, "join", joinParams, sharedSecret),
       };
     },
     deleteMeeting: async (uid: string): Promise<void> => {
@@ -128,9 +135,23 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         password: moderatorPassword,
       });
 
-      await assertSuccessResponse(
-        await fetch(buildApiUrl(apiUrl, "end", endParams, sharedSecret)),
+      const endResponse = await fetch(
+        buildApiUrl(apiUrl, "end", endParams, sharedSecret),
       );
+      const endBody = await endResponse.text();
+      // BBB returns FAILED with messageKey=notFound for meetings that have
+      // already ended or never existed — treat this as a successful no-op.
+      const alreadyGone =
+        endBody.includes("notFound") ||
+        endBody.includes("endWhenNoModerator");
+      if (!alreadyGone) {
+        if (
+          !endResponse.ok ||
+          !endBody.includes("<returncode>SUCCESS</returncode>")
+        ) {
+          throw new Error(`BigBlueButton API request failed: ${endBody}`);
+        }
+      }
     },
     updateMeeting: async (
       bookingRef: PartialReference,
