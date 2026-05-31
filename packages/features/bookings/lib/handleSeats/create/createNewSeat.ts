@@ -217,32 +217,40 @@ const createNewSeat = async (
   const credentials = await refreshCredentials(allCredentials);
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = new EventManager({ ...organizerUser, credentials }, apps);
-  const attendeeSeatCalendarEvent = {
-    ...evt,
-    attendees: [attendeeWithSeat],
-  };
-  const attendeeSeatCalendarManager =
-    await eventManager.createCalendarEventForSeatedAttendee(attendeeSeatCalendarEvent);
-  const attendeeSeatOffice365References = attendeeSeatCalendarManager.referencesToCreate.filter(
-    (reference) => reference.type === OFFICE365_CALENDAR_TYPE && reference.uid
+  const hasOffice365CalendarReference = seatedBooking.references.some(
+    (reference) => reference.type === OFFICE365_CALENDAR_TYPE
   );
 
-  if (attendeeUniqueId && attendeeSeatOffice365References.length > 0) {
-    await prisma.bookingSeat.update({
-      where: {
-        referenceUid: attendeeUniqueId,
-      },
-      data: {
-        metadata: withSeatCalendarReferences({
-          metadata: newBookingSeat?.metadata,
-          integration: OFFICE365_CALENDAR_TYPE,
-          references: attendeeSeatOffice365References,
-        }),
-      },
-    });
+  if (hasOffice365CalendarReference) {
+    const attendeeSeatCalendarEvent = {
+      ...evt,
+      attendees: [attendeeWithSeat],
+    };
+    const attendeeSeatCalendarManager =
+      await eventManager.createCalendarEventForSeatedAttendee(attendeeSeatCalendarEvent);
+    const attendeeSeatOffice365References = attendeeSeatCalendarManager.referencesToCreate.filter(
+      (reference) => reference.type === OFFICE365_CALENDAR_TYPE && reference.uid
+    );
+
+    if (attendeeUniqueId && attendeeSeatOffice365References.length > 0) {
+      await prisma.bookingSeat.update({
+        where: {
+          referenceUid: attendeeUniqueId,
+        },
+        data: {
+          metadata: withSeatCalendarReferences({
+            metadata: newBookingSeat?.metadata,
+            integration: OFFICE365_CALENDAR_TYPE,
+            references: attendeeSeatOffice365References,
+          }),
+        },
+      });
+    }
   }
 
-  await eventManager.updateCalendarAttendees(evt, seatedBooking);
+  await eventManager.updateCalendarAttendees(evt, seatedBooking, {
+    excludedCalendarTypes: [OFFICE365_CALENDAR_TYPE],
+  });
 
   const foundBooking = await findBookingQuery(seatedBooking.id);
 

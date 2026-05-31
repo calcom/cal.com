@@ -848,14 +848,21 @@ export default class EventManager {
     }
   }
 
-  public async updateCalendarAttendees(event: CalendarEvent, booking: PartialBooking) {
+  public async updateCalendarAttendees(
+    event: CalendarEvent,
+    booking: PartialBooking,
+    options?: { excludedCalendarTypes?: string[] }
+  ) {
     if (booking.references.length === 0) {
       console.error("Tried to update references but there wasn't any.");
       return;
     }
-    await this.updateAllCalendarEvents({ ...event, onlyUpdateCalendarAttendees: true }, booking, undefined, {
-      excludedCalendarTypes: [OFFICE365_CALENDAR_TYPE],
-    });
+    await this.updateAllCalendarEvents(
+      { ...event, onlyUpdateCalendarAttendees: true },
+      booking,
+      undefined,
+      options
+    );
   }
 
   public async createCalendarEventForSeatedAttendee(event: CalendarEvent): Promise<CreateUpdateResult> {
@@ -863,6 +870,14 @@ export default class EventManager {
     const office365DestinationCalendars = eventForSeat.destinationCalendar?.filter(
       (destination) => destination.integration === OFFICE365_CALENDAR_TYPE
     );
+    const hasExplicitDestinationCalendar = !!eventForSeat.destinationCalendar?.length;
+
+    if (hasExplicitDestinationCalendar && !office365DestinationCalendars?.length) {
+      return {
+        results: [],
+        referencesToCreate: [],
+      };
+    }
 
     if (office365DestinationCalendars?.length) {
       eventForSeat.destinationCalendar = office365DestinationCalendars;
