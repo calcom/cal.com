@@ -164,6 +164,7 @@ export const appStoreMetadata = {
   insihts: insihts_config_json,
   intercom: intercom_config_json,
   jelly: jelly_config_json,
+  bigbluebutton: bigbluebutton__metadata_ts,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
   lindy: lindy_config_json,
