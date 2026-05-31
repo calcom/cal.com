@@ -1,16 +1,15 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
+import { env } from "node:process";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
 import { BuildCalendarService } from "../lib";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method === "POST") {
-    const { urls } = req.body;
+    const { urls, skipWriting = true } = req.body;
     // Get user
     const user = await prisma.user.findFirstOrThrow({
       where: {
@@ -24,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = {
       type: appConfig.type,
-      key: symmetricEncrypt(JSON.stringify({ urls }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
+      key: symmetricEncrypt(JSON.stringify({ urls, skipWriting }), env.CALENDSO_ENCRYPTION_KEY || ""),
       userId: user.id,
       teamId: null,
       appId: appConfig.slug,
