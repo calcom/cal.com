@@ -52,6 +52,7 @@ import ics_feedcalendar_config_json from "./ics-feedcalendar/config.json";
 import insihts_config_json from "./insihts/config.json";
 import intercom_config_json from "./intercom/config.json";
 import jelly_config_json from "./jelly/config.json";
+import { metadata as bigbluebutton__metadata_ts } from "./bigbluebutton/_metadata";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
 import lindy_config_json from "./lindy/config.json";
