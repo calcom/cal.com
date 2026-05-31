@@ -25,9 +25,16 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       shouldShowAttendees = true;
     }
 
-    if (!shouldShowAttendees && calEvent.seatsPerTimeSlot) {
-      this.calEvent = cloneDeep(calEvent);
-      this.calEvent.attendees = [attendee];
+    if (calEvent.seatsPerTimeSlot) {
+      let attendees = [attendee];
+      if (shouldShowAttendees) {
+        attendees = [
+          attendee,
+          ...calEvent.attendees.filter((eventAttendee) => eventAttendee.email !== attendee.email),
+        ];
+      }
+
+      this.calEvent = cloneDeep({ ...calEvent, attendees });
     } else {
       this.calEvent = calEvent;
     }

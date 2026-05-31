@@ -109,6 +109,10 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
+import {
+  OFFICE365_CALENDAR_TYPE,
+  withSeatCalendarReferences,
+} from "../handleSeats/lib/seatCalendarReferences";
 import type { IBookingService } from "../interfaces/IBookingService";
 import type { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
 import type { BookingRescheduledPayload } from "../onBookingEvents/types";
@@ -2457,6 +2461,24 @@ async function handler(
           },
         },
       });
+
+      const office365SeatReferences = referencesToCreate.filter(
+        (reference) => reference.type === OFFICE365_CALENDAR_TYPE && reference.uid
+      );
+      if (eventType.seatsPerTimeSlot && evt.attendeeSeatId && office365SeatReferences.length > 0) {
+        await deps.prismaClient.bookingSeat.update({
+          where: {
+            referenceUid: evt.attendeeSeatId,
+          },
+          data: {
+            metadata: withSeatCalendarReferences({
+              metadata: reqBody.metadata,
+              integration: OFFICE365_CALENDAR_TYPE,
+              references: office365SeatReferences,
+            }),
+          },
+        });
+      }
     }
   } catch (error) {
     tracingLogger.error("Error while creating booking references", JSON.stringify({ error }));

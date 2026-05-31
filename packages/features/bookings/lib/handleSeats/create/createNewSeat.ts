@@ -12,6 +12,7 @@ import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
+import { OFFICE365_CALENDAR_TYPE, withSeatCalendarReferences } from "../lib/seatCalendarReferences";
 import type { HandleSeatsResultBooking, NewSeatedBookingObject, SeatedBooking } from "../types";
 
 export type AddSeatInput = {
@@ -216,6 +217,31 @@ const createNewSeat = async (
   const credentials = await refreshCredentials(allCredentials);
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = new EventManager({ ...organizerUser, credentials }, apps);
+  const attendeeSeatCalendarEvent = {
+    ...evt,
+    attendees: [attendeeWithSeat],
+  };
+  const attendeeSeatCalendarManager =
+    await eventManager.createCalendarEventForSeatedAttendee(attendeeSeatCalendarEvent);
+  const attendeeSeatOffice365References = attendeeSeatCalendarManager.referencesToCreate.filter(
+    (reference) => reference.type === OFFICE365_CALENDAR_TYPE && reference.uid
+  );
+
+  if (attendeeUniqueId && attendeeSeatOffice365References.length > 0) {
+    await prisma.bookingSeat.update({
+      where: {
+        referenceUid: attendeeUniqueId,
+      },
+      data: {
+        metadata: withSeatCalendarReferences({
+          metadata: newBookingSeat?.metadata,
+          integration: OFFICE365_CALENDAR_TYPE,
+          references: attendeeSeatOffice365References,
+        }),
+      },
+    });
+  }
+
   await eventManager.updateCalendarAttendees(evt, seatedBooking);
 
   const foundBooking = await findBookingQuery(seatedBooking.id);

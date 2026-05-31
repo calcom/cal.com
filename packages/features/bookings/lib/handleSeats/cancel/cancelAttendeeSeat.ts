@@ -19,6 +19,7 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { BookingToDelete } from "../../handleCancelBooking";
+import { getSeatCalendarReferences, OFFICE365_CALENDAR_TYPE } from "../lib/seatCalendarReferences";
 
 async function cancelAttendeeSeat(
   data: {
@@ -81,8 +82,35 @@ async function cancelAttendeeSeat(
 
   if (attendee) {
     const integrationsToUpdate: Promise<unknown>[] = [];
+    const seatOffice365CalendarReferences = getSeatCalendarReferences(
+      seatReference.metadata,
+      OFFICE365_CALENDAR_TYPE
+    );
 
-    for (const reference of bookingToDelete.references) {
+    for (const reference of seatOffice365CalendarReferences) {
+      if (reference.credentialId || reference.delegationCredentialId) {
+        const credential = await getDelegationCredentialOrFindRegularCredential({
+          id: {
+            credentialId: reference.credentialId,
+            delegationCredentialId: reference.delegationCredentialId,
+          },
+          delegationCredentials,
+        });
+
+        if (credential) {
+          const calendar = await getCalendar(credential, "booking");
+          if (calendar) {
+            integrationsToUpdate.push(calendar.deleteEvent(reference.uid, evt, reference.externalCalendarId));
+          }
+        }
+      }
+    }
+
+    const sharedReferencesToUpdate = bookingToDelete.references.filter(
+      (reference) => reference.type !== OFFICE365_CALENDAR_TYPE
+    );
+
+    for (const reference of sharedReferencesToUpdate) {
       if (reference.credentialId || reference.delegationCredentialId) {
         const credential = await getDelegationCredentialOrFindRegularCredential({
           id: {
