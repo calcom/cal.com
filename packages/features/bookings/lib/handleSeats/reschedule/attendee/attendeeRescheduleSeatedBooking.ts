@@ -36,7 +36,7 @@ const attendeeRescheduleSeatedBooking = async (
   originalBookingEvt: CalendarEvent,
   eventManager: EventManager
 ) => {
-  const { tAttendees, bookingSeat, bookerEmail, evt, eventType } = rescheduleSeatedBookingObject;
+  const { tAttendees, bookingSeat, evt, eventType } = rescheduleSeatedBookingObject;
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
@@ -47,17 +47,10 @@ const attendeeRescheduleSeatedBooking = async (
   // Update the original calendar event by removing the attendee that is rescheduling
   if (originalBookingEvt && originalRescheduledBooking) {
     // Event would probably be deleted so we first check than instead of updating references
-    const filteredAttendees = originalRescheduledBooking?.attendees.filter(
-      /**
-       * Removes the rescheduling attendee from the original booking attendee list.
-       *
-       * @param attendee - Original booking attendee to inspect.
-       * @returns Whether the attendee should remain on the original booking.
-       */
-      (attendee) => {
-        return attendee.email !== bookerEmail;
-      }
-    );
+    const reschedulingAttendeeId = seatAttendee.id ?? bookingSeat?.attendeeId ?? bookingSeat?.attendee.id;
+    const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
+      return attendee.id !== reschedulingAttendeeId;
+    });
     const deletedReference = await lastAttendeeDeleteBooking(
       originalRescheduledBooking,
       filteredAttendees,
@@ -187,18 +180,6 @@ const attendeeRescheduleSeatedBooking = async (
     seatAttendee as Person,
     eventType.metadata
   );
-  const filteredAttendees = originalRescheduledBooking?.attendees.filter(
-    /**
-     * Removes the rescheduled attendee before checking whether the old booking is empty.
-     *
-     * @param attendee - Original booking attendee to inspect.
-     * @returns Whether the attendee should remain on the old booking.
-     */
-    (attendee) => {
-      return attendee.email !== bookerEmail;
-    }
-  );
-  await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
 
   const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
 

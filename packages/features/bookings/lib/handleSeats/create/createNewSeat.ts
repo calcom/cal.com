@@ -226,14 +226,9 @@ const createNewSeat = async (
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = new EventManager({ ...organizerUser, credentials }, apps);
   const hasOffice365CalendarReference = seatedBooking.references.some(
-    /**
-     * Checks whether the existing seated booking has an Office365 calendar event.
-     *
-     * @param reference - Booking-level integration reference.
-     * @returns Whether the reference belongs to Office365.
-     */
     (reference) => reference.type === OFFICE365_CALENDAR_TYPE
   );
+  const excludedCalendarTypes: string[] = [];
 
   if (hasOffice365CalendarReference) {
     const attendeeSeatCalendarEvent = {
@@ -243,12 +238,6 @@ const createNewSeat = async (
     const attendeeSeatCalendarManager =
       await eventManager.createCalendarEventForSeatedAttendee(attendeeSeatCalendarEvent);
     const attendeeSeatOffice365References = attendeeSeatCalendarManager.referencesToCreate.filter(
-      /**
-       * Keeps valid Office365 references created for the seated attendee.
-       *
-       * @param reference - Calendar reference created for the attendee seat.
-       * @returns Whether the reference should be stored on the booking seat.
-       */
       (reference) => reference.type === OFFICE365_CALENDAR_TYPE && reference.uid
     );
 
@@ -265,11 +254,12 @@ const createNewSeat = async (
           }),
         },
       });
+      excludedCalendarTypes.push(OFFICE365_CALENDAR_TYPE);
     }
   }
 
   await eventManager.updateCalendarAttendees(evt, seatedBooking, {
-    excludedCalendarTypes: [OFFICE365_CALENDAR_TYPE],
+    excludedCalendarTypes,
   });
 
   const foundBooking = await findBookingQuery(seatedBooking.id);

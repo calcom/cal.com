@@ -41,6 +41,9 @@ import { OFFICE365_CALENDAR_TYPE } from "./handleSeats/lib/seatCalendarReference
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 const CALDAV_CALENDAR_TYPE = "caldav_calendar";
+const isOffice365CalendarCredential = (
+  credential: Pick<CredentialForCalendarService, "type"> | null | undefined
+): boolean => credential?.type === OFFICE365_CALENDAR_TYPE;
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };
@@ -935,6 +938,10 @@ export default class EventManager {
 
     if (office365DestinationCalendars?.length) {
       for (const destination of office365DestinationCalendars) {
+        if (!destination.credentialId && !destination.delegationCredentialId) {
+          continue;
+        }
+
         let credential = getCredential({
           id: {
             credentialId: destination.credentialId,
@@ -943,13 +950,21 @@ export default class EventManager {
           allCredentials: this.calendarCredentials,
         });
 
+        if (credential && !isOffice365CalendarCredential(credential)) {
+          credential = undefined;
+        }
+
         if (!credential) {
           if (destination.credentialId) {
             const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
               id: destination.credentialId,
             });
 
-            if (credentialFromDB && credentialFromDB.appId) {
+            if (
+              credentialFromDB &&
+              credentialFromDB.appId &&
+              isOffice365CalendarCredential(credentialFromDB)
+            ) {
               credential = {
                 id: credentialFromDB.id,
                 type: credentialFromDB.type,
@@ -970,12 +985,12 @@ export default class EventManager {
               "DelegationCredential: DelegationCredential seems to be disabled, falling back to first non-delegationCredential"
             );
             credential = this.calendarCredentials.find(
-              (cred) => !cred.type.endsWith("other_calendar") && !cred.delegatedToId
+              (cred) => isOffice365CalendarCredential(cred) && !cred.delegatedToId
             );
           }
         }
 
-        if (credential) {
+        if (credential && isOffice365CalendarCredential(credential)) {
           await createOffice365CalendarEvent(credential, destination);
         }
       }
