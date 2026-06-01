@@ -935,13 +935,45 @@ export default class EventManager {
 
     if (office365DestinationCalendars?.length) {
       for (const destination of office365DestinationCalendars) {
-        const credential = getCredential({
+        let credential = getCredential({
           id: {
             credentialId: destination.credentialId,
             delegationCredentialId: destination.delegationCredentialId,
           },
           allCredentials: this.calendarCredentials,
         });
+
+        if (!credential) {
+          if (destination.credentialId) {
+            const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+              id: destination.credentialId,
+            });
+
+            if (credentialFromDB && credentialFromDB.appId) {
+              credential = {
+                id: credentialFromDB.id,
+                type: credentialFromDB.type,
+                key: credentialFromDB.key,
+                userId: credentialFromDB.userId,
+                teamId: credentialFromDB.teamId,
+                invalid: credentialFromDB.invalid,
+                appId: credentialFromDB.appId,
+                user: credentialFromDB.user,
+                encryptedKey: credentialFromDB.encryptedKey,
+                delegatedToId: credentialFromDB.delegatedToId,
+                delegatedTo: credentialFromDB.delegatedTo,
+                delegationCredentialId: credentialFromDB.delegationCredentialId,
+              };
+            }
+          } else if (destination.delegationCredentialId) {
+            log.warn(
+              "DelegationCredential: DelegationCredential seems to be disabled, falling back to first non-delegationCredential"
+            );
+            credential = this.calendarCredentials.find(
+              (cred) => !cred.type.endsWith("other_calendar") && !cred.delegatedToId
+            );
+          }
+        }
 
         if (credential) {
           await createOffice365CalendarEvent(credential, destination);

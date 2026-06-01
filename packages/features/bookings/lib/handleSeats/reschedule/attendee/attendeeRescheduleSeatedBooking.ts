@@ -4,10 +4,15 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { PartialReference } from "@calcom/types/EventManager";
 import { cloneDeep } from "lodash";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import lastAttendeeDeleteBooking from "../../lib/lastAttendeeDeleteBooking";
-import { OFFICE365_CALENDAR_TYPE } from "../../lib/seatCalendarReferences";
+import {
+  getSeatCalendarReferences,
+  OFFICE365_CALENDAR_TYPE,
+  withSeatCalendarReferences,
+} from "../../lib/seatCalendarReferences";
 import type { NewTimeSlotBooking, RescheduleSeatedBookingObject, SeatAttendee } from "../../types";
 
 const seatedCalendarAttendeeUpdateOptions = {
@@ -124,6 +129,46 @@ const attendeeRescheduleSeatedBooking = async (
   }
 
   const copyEvent = cloneDeep({ ...evt, iCalUID: newTimeSlotBooking.iCalUID });
+  const seatOffice365CalendarReferences = getSeatCalendarReferences(
+    bookingSeat?.metadata,
+    OFFICE365_CALENDAR_TYPE
+  );
+  const hasOffice365CalendarReference = newTimeSlotBooking.references.some(
+    (reference) => reference.type === OFFICE365_CALENDAR_TYPE
+  );
+
+  if (bookingSeat?.id && (hasOffice365CalendarReference || seatOffice365CalendarReferences.length > 0)) {
+    let attendeeSeatOffice365References: PartialReference[] = [];
+
+    if (hasOffice365CalendarReference) {
+      const attendeeSeatCalendarEvent = {
+        ...copyEvent,
+        attendees: [seatAttendee as Person],
+      };
+      const attendeeSeatCalendarManager =
+        await eventManager.createCalendarEventForSeatedAttendee(attendeeSeatCalendarEvent);
+      attendeeSeatOffice365References = attendeeSeatCalendarManager.referencesToCreate.filter(
+        (reference) => reference.type === OFFICE365_CALENDAR_TYPE && reference.uid
+      );
+    }
+
+    await prisma.bookingSeat.update({
+      where: {
+        id: bookingSeat.id,
+      },
+      data: {
+        metadata: withSeatCalendarReferences({
+          metadata: bookingSeat.metadata,
+          integration: OFFICE365_CALENDAR_TYPE,
+          references: attendeeSeatOffice365References,
+        }),
+      },
+    });
+
+    if (seatOffice365CalendarReferences.length > 0) {
+      await eventManager.cancelEvent(originalBookingEvt, seatOffice365CalendarReferences);
+    }
+  }
 
   await eventManager.updateCalendarAttendees(
     copyEvent,

@@ -18,8 +18,29 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { PartialReference } from "@calcom/types/EventManager";
 import type { BookingToDelete } from "../../handleCancelBooking";
 import { getSeatCalendarReferences, OFFICE365_CALENDAR_TYPE } from "../lib/seatCalendarReferences";
+
+/**
+ * Creates a stable key for comparing Office365 references across seat and booking storage.
+ *
+ * @param reference - Office365 calendar reference to compare.
+ * @returns Stable key for identifying the same Office365 event reference.
+ */
+const getOffice365ReferenceKey = (
+  reference: Pick<
+    PartialReference,
+    "type" | "uid" | "externalCalendarId" | "credentialId" | "delegationCredentialId"
+  >
+) =>
+  JSON.stringify([
+    reference.type,
+    reference.uid,
+    reference.externalCalendarId,
+    reference.credentialId,
+    reference.delegationCredentialId,
+  ]);
 
 /**
  * Cancels a single attendee seat and updates affected integrations.
@@ -94,8 +115,17 @@ async function cancelAttendeeSeat(
       seatReference.metadata,
       OFFICE365_CALENDAR_TYPE
     );
+    const bookingLevelOffice365References = bookingToDelete.references.filter(
+      (reference) => reference.type === OFFICE365_CALENDAR_TYPE
+    );
+    const office365ReferencesToProcess = seatOffice365CalendarReferences.length
+      ? seatOffice365CalendarReferences
+      : bookingLevelOffice365References;
+    const processedOffice365ReferenceKeys = new Set(
+      office365ReferencesToProcess.map(getOffice365ReferenceKey)
+    );
 
-    for (const reference of seatOffice365CalendarReferences) {
+    for (const reference of office365ReferencesToProcess) {
       if (reference.credentialId || reference.delegationCredentialId) {
         const credential = await getDelegationCredentialOrFindRegularCredential({
           id: {
@@ -114,15 +144,17 @@ async function cancelAttendeeSeat(
       }
     }
 
-    const sharedReferencesToUpdate = bookingToDelete.references.filter(
-      /**
-       * Keeps non-Office365 shared references for attendee-list updates.
-       *
-       * @param reference - Booking-level integration reference.
-       * @returns Whether the reference should receive the shared attendee update.
-       */
-      (reference) => reference.type !== OFFICE365_CALENDAR_TYPE
-    );
+    const sharedReferencesToUpdate = bookingToDelete.references.filter((reference) => {
+      if (reference.type !== OFFICE365_CALENDAR_TYPE) {
+        return true;
+      }
+
+      if (seatOffice365CalendarReferences.length > 0) {
+        return false;
+      }
+
+      return !processedOffice365ReferenceKeys.has(getOffice365ReferenceKey(reference));
+    });
 
     for (const reference of sharedReferencesToUpdate) {
       if (reference.credentialId || reference.delegationCredentialId) {
