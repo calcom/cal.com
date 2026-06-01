@@ -30,7 +30,7 @@ const userType = {
 } satisfies Prisma.UserSelect;
 
 export type UserType = Prisma.UserGetPayload<{ select: typeof userType }>;
-/** This will retrieve the customer ID from Stripe or create it if it doesn't exists yet. */
+/** This will retrieve the customer ID from Stripe or create it if it doesn't exist yet. */
 export async function getStripeCustomerId(user: UserType): Promise<string> {
   let customerId: string | null = null;
 
