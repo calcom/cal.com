@@ -14,6 +14,16 @@ const seatedCalendarAttendeeUpdateOptions = {
   excludedCalendarTypes: [OFFICE365_CALENDAR_TYPE],
 };
 
+/**
+ * Reschedules a single seated attendee into a new or existing time slot.
+ *
+ * @param rescheduleSeatedBookingObject - Booking context for the seated reschedule flow.
+ * @param seatAttendee - Attendee being moved between seated bookings.
+ * @param newTimeSlotBooking - Existing booking for the target time slot, if any.
+ * @param originalBookingEvt - Calendar event for the attendee's original booking.
+ * @param eventManager - Event manager used for calendar updates.
+ * @returns The rescheduled booking response, or null when a new booking should be created.
+ */
 const attendeeRescheduleSeatedBooking = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
   seatAttendee: SeatAttendee,
@@ -32,9 +42,17 @@ const attendeeRescheduleSeatedBooking = async (
   // Update the original calendar event by removing the attendee that is rescheduling
   if (originalBookingEvt && originalRescheduledBooking) {
     // Event would probably be deleted so we first check than instead of updating references
-    const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
-      return attendee.email !== bookerEmail;
-    });
+    const filteredAttendees = originalRescheduledBooking?.attendees.filter(
+      /**
+       * Removes the rescheduling attendee from the original booking attendee list.
+       *
+       * @param attendee - Original booking attendee to inspect.
+       * @returns Whether the attendee should remain on the original booking.
+       */
+      (attendee) => {
+        return attendee.email !== bookerEmail;
+      }
+    );
     const deletedReference = await lastAttendeeDeleteBooking(
       originalRescheduledBooking,
       filteredAttendees,
@@ -124,9 +142,17 @@ const attendeeRescheduleSeatedBooking = async (
     seatAttendee as Person,
     eventType.metadata
   );
-  const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
-    return attendee.email !== bookerEmail;
-  });
+  const filteredAttendees = originalRescheduledBooking?.attendees.filter(
+    /**
+     * Removes the rescheduled attendee before checking whether the old booking is empty.
+     *
+     * @param attendee - Original booking attendee to inspect.
+     * @returns Whether the attendee should remain on the old booking.
+     */
+    (attendee) => {
+      return attendee.email !== bookerEmail;
+    }
+  );
   await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
 
   const foundBooking = await findBookingQuery(newTimeSlotBooking.id);

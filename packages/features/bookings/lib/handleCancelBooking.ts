@@ -78,6 +78,13 @@ type Dependencies = {
   attendeeRepository: PrismaBookingAttendeeRepository;
 };
 
+/**
+ * Cancels a booking and cleans up notifications, integrations, and references.
+ *
+ * @param input - Cancellation request and platform context.
+ * @param dependencies - Optional repositories used by the cancellation flow.
+ * @returns Cancellation result for the requested booking.
+ */
 async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const prismaClient = prisma;
   const { userRepository, bookingRepository, bookingReferenceRepository, attendeeRepository } =
@@ -457,20 +464,34 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         bookingToDeleteEventTypeMetadata?.apps
       );
 
-      const seatOffice365CalendarReferences = bookingToDelete.seatsReferences.flatMap((seatReference) =>
-        getSeatCalendarReferences(seatReference.metadata, OFFICE365_CALENDAR_TYPE)
+      const seatOffice365CalendarReferences = bookingToDelete.seatsReferences.flatMap(
+        /**
+         * Reads Office365 calendar references stored on an individual booking seat.
+         *
+         * @param seatReference - Booking seat reference to inspect.
+         * @returns Office365 calendar references stored for the seat.
+         */
+        (seatReference) => getSeatCalendarReferences(seatReference.metadata, OFFICE365_CALENDAR_TYPE)
       );
       const referencesToCancelByKey = new Map(
-        [...bookingToDelete.references, ...seatOffice365CalendarReferences].map((reference) => [
-          JSON.stringify([
-            reference.type,
-            reference.uid,
-            reference.externalCalendarId,
-            reference.credentialId,
-            reference.delegationCredentialId,
-          ]),
-          reference,
-        ])
+        [...bookingToDelete.references, ...seatOffice365CalendarReferences].map(
+          /**
+           * Builds a dedupe key for booking-level and seat-level cancellation references.
+           *
+           * @param reference - Calendar or integration reference to dedupe.
+           * @returns Tuple containing the dedupe key and original reference.
+           */
+          (reference) => [
+            JSON.stringify([
+              reference.type,
+              reference.uid,
+              reference.externalCalendarId,
+              reference.credentialId,
+              reference.delegationCredentialId,
+            ]),
+            reference,
+          ]
+        )
       );
 
       await eventManager.cancelEvent(

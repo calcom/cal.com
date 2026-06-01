@@ -21,6 +21,14 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { BookingToDelete } from "../../handleCancelBooking";
 import { getSeatCalendarReferences, OFFICE365_CALENDAR_TYPE } from "../lib/seatCalendarReferences";
 
+/**
+ * Cancels a single attendee seat and updates affected integrations.
+ *
+ * @param data - Seat cancellation input and booking data.
+ * @param dataForWebhooks - Webhook and calendar event data for cancellation side effects.
+ * @param eventTypeMetadata - Event type metadata used for cancellation notifications.
+ * @returns A promise that resolves after the attendee seat cancellation is processed.
+ */
 async function cancelAttendeeSeat(
   data: {
     seatReferenceUid?: string;
@@ -107,6 +115,12 @@ async function cancelAttendeeSeat(
     }
 
     const sharedReferencesToUpdate = bookingToDelete.references.filter(
+      /**
+       * Keeps non-Office365 shared references for attendee-list updates.
+       *
+       * @param reference - Booking-level integration reference.
+       * @returns Whether the reference should receive the shared attendee update.
+       */
       (reference) => reference.type !== OFFICE365_CALENDAR_TYPE
     );
 
@@ -134,7 +148,15 @@ async function cancelAttendeeSeat(
             };
           }
 
-          const attendees = evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email);
+          const attendees = evt.attendees.filter(
+            /**
+             * Removes the canceled attendee from the shared event attendee list.
+             *
+             * @param evtAttendee - Calendar event attendee to inspect.
+             * @returns Whether the attendee should remain on the shared event.
+             */
+            (evtAttendee) => attendee.email !== evtAttendee.email
+          );
           const updatedEvt = {
             ...evt,
             attendees,

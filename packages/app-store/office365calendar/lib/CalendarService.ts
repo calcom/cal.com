@@ -318,6 +318,13 @@ class Office365CalendarService implements Calendar {
     }
   }
 
+  /**
+   * Updates an Office365 calendar event and handles seated attendee-only updates.
+   *
+   * @param uid - Office365 event identifier to update.
+   * @param event - Calendar event data to send to Microsoft Graph.
+   * @returns Updated Office365 event details.
+   */
   async updateEvent(uid: string, event: CalendarServiceEvent): Promise<NewCalendarEventType> {
     try {
       let rescheduledEvent: Event | undefined;
@@ -380,7 +387,15 @@ class Office365CalendarService implements Calendar {
                 `PATCH_ATTENDEES attempt ${attempt}/${MAX_RETRIES} failed for event uid=${uid}, retrying in ${backoff}ms`,
                 { err }
               );
-              await new Promise((resolve) => setTimeout(resolve, backoff));
+              await new Promise(
+                /**
+                 * Resolves the retry delay after the computed backoff.
+                 *
+                 * @param resolve - Promise resolver called when the delay completes.
+                 * @returns Timeout handle created for the retry delay.
+                 */
+                (resolve) => setTimeout(resolve, backoff)
+              );
             }
           }
         }
@@ -395,7 +410,14 @@ class Office365CalendarService implements Calendar {
             try {
               httpBody = await patch2Response.json();
             } catch {
-              httpBody = await patch2Response.text().catch(() => "unable to read response body");
+              httpBody = await patch2Response.text().catch(
+                /**
+                 * Provides a fallback body when the Graph response text cannot be read.
+                 *
+                 * @returns Fallback response body message.
+                 */
+                () => "unable to read response body"
+              );
             }
           }
 

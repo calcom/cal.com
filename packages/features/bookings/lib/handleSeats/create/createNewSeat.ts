@@ -114,6 +114,14 @@ export async function addSeatToBooking(input: AddSeatInput, prismaClient: Prisma
   });
 }
 
+/**
+ * Adds a new attendee seat to an existing seated booking.
+ *
+ * @param rescheduleSeatedBookingObject - Booking context for the seated booking flow.
+ * @param seatedBooking - Existing seated booking that receives the new seat.
+ * @param metadata - Optional metadata to persist on the new seat booking.
+ * @returns The updated booking response with the created seat reference.
+ */
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,
   seatedBooking: SeatedBooking,
@@ -218,6 +226,12 @@ const createNewSeat = async (
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = new EventManager({ ...organizerUser, credentials }, apps);
   const hasOffice365CalendarReference = seatedBooking.references.some(
+    /**
+     * Checks whether the existing seated booking has an Office365 calendar event.
+     *
+     * @param reference - Booking-level integration reference.
+     * @returns Whether the reference belongs to Office365.
+     */
     (reference) => reference.type === OFFICE365_CALENDAR_TYPE
   );
 
@@ -229,6 +243,12 @@ const createNewSeat = async (
     const attendeeSeatCalendarManager =
       await eventManager.createCalendarEventForSeatedAttendee(attendeeSeatCalendarEvent);
     const attendeeSeatOffice365References = attendeeSeatCalendarManager.referencesToCreate.filter(
+      /**
+       * Keeps valid Office365 references created for the seated attendee.
+       *
+       * @param reference - Calendar reference created for the attendee seat.
+       * @returns Whether the reference should be stored on the booking seat.
+       */
       (reference) => reference.type === OFFICE365_CALENDAR_TYPE && reference.uid
     );
 

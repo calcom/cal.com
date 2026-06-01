@@ -487,6 +487,15 @@ async function validateRescheduleRestrictions({
   }
 }
 
+/**
+ * Creates or reschedules a regular booking and records integration references.
+ *
+ * @param this - Regular booking service instance bound to the handler.
+ * @param input - Booking request data and platform context.
+ * @param deps - Service dependencies used by the booking flow.
+ * @param bookingDataSchemaGetter - Optional schema factory for booking data validation.
+ * @returns Booking response containing created references and seat metadata.
+ */
 async function handler(
   this: RegularBookingService,
   input: BookingHandlerInput,
@@ -2463,6 +2472,12 @@ async function handler(
       });
 
       const office365SeatReferences = referencesToCreate.filter(
+        /**
+         * Keeps valid Office365 references created for a seated booking seat.
+         *
+         * @param reference - Calendar reference created during booking.
+         * @returns Whether the reference should be stored on the booking seat.
+         */
         (reference) => reference.type === OFFICE365_CALENDAR_TYPE && reference.uid
       );
       if (eventType.seatsPerTimeSlot && evt.attendeeSeatId && office365SeatReferences.length > 0) {
