@@ -23,10 +23,8 @@ import type { BookingToDelete } from "../../handleCancelBooking";
 import { getSeatCalendarReferences, OFFICE365_CALENDAR_TYPE } from "../lib/seatCalendarReferences";
 
 /**
- * Creates a stable key for comparing Office365 references across seat and booking storage.
- *
- * @param reference - Office365 calendar reference to compare.
- * @returns Stable key for identifying the same Office365 event reference.
+ * Booking-level fallback can contain multiple Office365 refs, so compare every provider identity
+ * field before deciding which event was already handled.
  */
 const getOffice365ReferenceKey = (
   reference: Pick<
@@ -43,12 +41,8 @@ const getOffice365ReferenceKey = (
   ]);
 
 /**
- * Cancels a single attendee seat and updates affected integrations.
- *
- * @param data - Seat cancellation input and booking data.
- * @param dataForWebhooks - Webhook and calendar event data for cancellation side effects.
- * @param eventTypeMetadata - Event type metadata used for cancellation notifications.
- * @returns A promise that resolves after the attendee seat cancellation is processed.
+ * Seat cancellation must preserve the group booking while isolating provider cleanup to the
+ * attendee who is leaving.
  */
 async function cancelAttendeeSeat(
   data: {
@@ -115,6 +109,7 @@ async function cancelAttendeeSeat(
       seatReference.metadata,
       OFFICE365_CALENDAR_TYPE
     );
+    // Pre-fix seated bookings stored Office365 refs on the booking, so keep that fallback for cleanup.
     const bookingLevelOffice365References = bookingToDelete.references.filter(
       (reference) => reference.type === OFFICE365_CALENDAR_TYPE
     );
@@ -149,6 +144,7 @@ async function cancelAttendeeSeat(
         return true;
       }
 
+      // Per-seat Office365 events are deleted directly; shared updates would notify attendees who are staying.
       if (seatOffice365CalendarReferences.length > 0) {
         return false;
       }
@@ -180,15 +176,8 @@ async function cancelAttendeeSeat(
             };
           }
 
-          const attendees = evt.attendees.filter(
-            /**
-             * Removes the canceled attendee from the shared event attendee list.
-             *
-             * @param evtAttendee - Calendar event attendee to inspect.
-             * @returns Whether the attendee should remain on the shared event.
-             */
-            (evtAttendee) => attendee.email !== evtAttendee.email
-          );
+          // Shared non-Office365 integrations still update the attendee list, so keep the leaving seat out.
+          const attendees = evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email);
           const updatedEvt = {
             ...evt,
             attendees,

@@ -320,12 +320,8 @@ class Office365CalendarService implements Calendar {
   }
 
   /**
-   * Updates an Office365 calendar event and handles seated attendee-only updates.
-   *
-   * @param uid - Office365 event identifier to update.
-   * @param event - Calendar event data to send to Microsoft Graph.
-   * @param externalCalendarId - Optional Office365 calendar identifier containing the event.
-   * @returns Updated Office365 event details.
+   * Seated bookings split event-detail and attendee patches because Exchange can turn combined
+   * attendee-list mutations into organizer-level updates for everyone on the event.
    */
   async updateEvent(
     uid: string,
@@ -348,7 +344,6 @@ class Office365CalendarService implements Calendar {
         rescheduledEvent = await handleErrorsJson<Event>(response);
       }
 
-      // Build the full translated event object
       const translatedEvent = this.translateEvent(event, rescheduledEvent);
 
       let response: Response;
@@ -386,26 +381,17 @@ class Office365CalendarService implements Calendar {
             lastError = err instanceof Error ? err : new Error(String(err));
 
             if (attempt < MAX_RETRIES) {
-              // Exponential backoff before next attempt
+              // Exchange can lag after the first seated-booking patch, so retry attendee sync briefly.
               const backoff = BACKOFF_MS * 2 ** (attempt - 1);
               this.log.warn(
                 `PATCH_ATTENDEES attempt ${attempt}/${MAX_RETRIES} failed for event uid=${uid}, retrying in ${backoff}ms`,
                 { err }
               );
-              await new Promise(
-                /**
-                 * Resolves the retry delay after the computed backoff.
-                 *
-                 * @param resolve - Promise resolver called when the delay completes.
-                 * @returns Timeout handle created for the retry delay.
-                 */
-                (resolve) => setTimeout(resolve, backoff)
-              );
+              await new Promise((resolve) => setTimeout(resolve, backoff));
             }
           }
         }
 
-        // Retry failure handling for PATCH 2
         if (lastError) {
           let httpStatus: number | undefined;
           let httpBody: unknown;
@@ -415,14 +401,7 @@ class Office365CalendarService implements Calendar {
             try {
               httpBody = await patch2Response.json();
             } catch {
-              httpBody = await patch2Response.text().catch(
-                /**
-                 * Provides a fallback body when the Graph response text cannot be read.
-                 *
-                 * @returns Fallback response body message.
-                 */
-                () => "unable to read response body"
-              );
+              httpBody = await patch2Response.text().catch(() => "unable to read response body");
             }
           }
 
@@ -445,7 +424,6 @@ class Office365CalendarService implements Calendar {
           );
         }
 
-        // PATCH 2 succeeded — use its response for the return value below
         response = patch2Response!;
       } else {
         response = await this.fetcher(eventEndpoint, {
@@ -470,12 +448,8 @@ class Office365CalendarService implements Calendar {
   }
 
   /**
-   * Deletes an Office365 event from the same calendar that stored its reference.
-   *
-   * @param uid - Office365 event identifier to delete.
-   * @param _event - Calendar event associated with the deletion.
-   * @param externalCalendarId - Optional Office365 calendar identifier containing the event.
-   * @returns A promise that resolves when Microsoft Graph accepts the delete.
+   * Selected Outlook calendars require their own Graph delete path; the default-calendar path
+   * cannot remove events created outside the primary calendar.
    */
   async deleteEvent(uid: string, _event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
     try {
@@ -493,12 +467,7 @@ class Office365CalendarService implements Calendar {
   }
 
   /**
-   * Builds the Graph event URL for default or explicitly selected calendars.
-   *
-   * @param endpoint - Graph user endpoint for the credential.
-   * @param uid - Office365 event identifier.
-   * @param externalCalendarId - Optional selected calendar identifier.
-   * @returns Microsoft Graph event endpoint for the target calendar.
+   * Graph separates default-calendar events from explicitly selected calendar events at the URL level.
    */
   private getEventEndpoint(endpoint: string, uid: string, externalCalendarId?: string | null) {
     return externalCalendarId

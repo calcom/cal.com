@@ -15,12 +15,8 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   t: TFunction;
 
   /**
-   * Builds an attendee scheduled email with seated attendee visibility applied.
-   *
-   * @param calEvent - Calendar event used to render the scheduled email.
-   * @param attendee - Recipient attendee for the scheduled email.
-   * @param showAttendees - Optional override for displaying other seated attendees.
-   * @returns A configured attendee scheduled email instance.
+   * Seated booking confirmations render from the recipient's perspective so later attendees do
+   * not inherit the first attendee's name in Outlook-generated invite content.
    */
   constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
@@ -38,15 +34,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       if (shouldShowAttendees) {
         attendees = [
           attendee,
-          ...calEvent.attendees.filter(
-            /**
-             * Keeps the current attendee first by removing duplicate attendee entries.
-             *
-             * @param eventAttendee - Attendee from the original calendar event.
-             * @returns Whether the attendee should remain after the recipient.
-             */
-            (eventAttendee) => eventAttendee.email !== attendee.email
-          ),
+          ...calEvent.attendees.filter((eventAttendee) => eventAttendee.email !== attendee.email),
         ];
       }
 

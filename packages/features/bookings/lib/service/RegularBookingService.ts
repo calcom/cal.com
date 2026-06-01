@@ -488,13 +488,8 @@ async function validateRescheduleRestrictions({
 }
 
 /**
- * Creates or reschedules a regular booking and records integration references.
- *
- * @param this - Regular booking service instance bound to the handler.
- * @param input - Booking request data and platform context.
- * @param deps - Service dependencies used by the booking flow.
- * @param bookingDataSchemaGetter - Optional schema factory for booking data validation.
- * @returns Booking response containing created references and seat metadata.
+ * Calendar references are recorded here because cancellation and reschedule flows need provider
+ * event IDs after the booking transaction completes.
  */
 async function handler(
   this: RegularBookingService,
@@ -2454,13 +2449,8 @@ async function handler(
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
 
+  // Single-seat cancellation deletes by provider UID, so only concrete Office365 events belong in seat metadata.
   const office365SeatReferences = referencesToCreate.filter(
-    /**
-     * Keeps valid Office365 references created for a seated booking seat.
-     *
-     * @param reference - Calendar reference created during booking.
-     * @returns Whether the reference should be stored on the booking seat.
-     */
     (reference) => reference.type === OFFICE365_CALENDAR_TYPE && reference.uid
   );
   const shouldPersistOffice365SeatReferences =
@@ -2484,6 +2474,7 @@ async function handler(
       });
 
       if (shouldPersistOffice365SeatReferences && evt.attendeeSeatId) {
+        // Seat metadata must persist with booking references or Outlook cleanup loses the per-attendee event.
         await deps.prismaClient.$transaction([
           bookingUpdate,
           deps.prismaClient.bookingSeat.update({
