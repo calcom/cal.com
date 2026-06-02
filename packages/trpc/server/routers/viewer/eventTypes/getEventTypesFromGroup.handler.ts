@@ -176,7 +176,7 @@ export const getEventTypesFromGroup = async ({
       accepted: true,
       role: "MEMBER",
     },
-    include: {
+    select: {
       team: {
         select: {
           isPrivate: true,

@@ -38,9 +38,28 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             id: true,
           },
         },
-        hosts: true,
-        team: true,
-        webhooks: true,
+        hosts: {
+          select: {
+            userId: true,
+            isFixed: true,
+            priority: true,
+            weight: true,
+            eventTypeId: true,
+            scheduleId: true,
+            groupId: true,
+            memberId: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+          },
+        },
+        webhooks: {
+          select: {
+            id: true,
+          },
+        },
         hashedLink: true,
         destinationCalendar: true,
         calVideoSettings: {
