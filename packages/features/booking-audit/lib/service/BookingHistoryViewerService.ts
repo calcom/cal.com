@@ -1,4 +1,11 @@
-import type { BookingAuditViewerService, DisplayBookingAuditLog } from "./BookingAuditViewerService";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { DisplayBookingAuditLog } from "./BookingAuditViewerService";
+import type { BookingAuditViewerService } from "./BookingAuditViewerService";
+import { BookingActivitySupplementaryDataFetcher } from "./BookingActivitySupplementaryDataFetcher";
+import {
+  BookingActivityTimelineBuilder,
+  type DisplayBookingActivityLog,
+} from "./BookingActivityTimelineBuilder";
 
 type GetHistoryForBookingParams = {
   bookingUid: string;
@@ -8,40 +15,49 @@ type GetHistoryForBookingParams = {
   organizationId: number | null;
 };
 
-type BookingHistoryLog = DisplayBookingAuditLog;
-
 interface BookingHistoryViewerServiceDeps {
   bookingAuditViewerService: BookingAuditViewerService;
+  bookingRepository: BookingRepository;
 }
 
 export class BookingHistoryViewerService {
   private readonly bookingAuditViewerService: BookingAuditViewerService;
+  private readonly supplementaryDataFetcher: BookingActivitySupplementaryDataFetcher;
+  private readonly timelineBuilder: BookingActivityTimelineBuilder;
 
   constructor(private readonly deps: BookingHistoryViewerServiceDeps) {
     this.bookingAuditViewerService = deps.bookingAuditViewerService;
-  }
-
-  private sortLogsReverseChronologically(historyLogs: BookingHistoryLog[]): BookingHistoryLog[] {
-    return historyLogs.sort((a, b) => {
-      const timestampA = new Date(a.timestamp).getTime();
-      const timestampB = new Date(b.timestamp).getTime();
-      return timestampB - timestampA;
+    this.supplementaryDataFetcher = new BookingActivitySupplementaryDataFetcher({
+      bookingRepository: deps.bookingRepository,
     });
+    this.timelineBuilder = new BookingActivityTimelineBuilder();
   }
 
   async getHistoryForBooking(
     params: GetHistoryForBookingParams
-  ): Promise<{ bookingUid: string; auditLogs: BookingHistoryLog[] }> {
+  ): Promise<{ bookingUid: string; auditLogs: DisplayBookingActivityLog[] }> {
     const { bookingUid } = params;
 
     const { auditLogs: bookingAuditLogs } =
       await this.bookingAuditViewerService.getAuditLogsForBooking(params);
 
-    const sortedLogs = this.sortLogsReverseChronologically(bookingAuditLogs);
+    const hasCreatedAuditLog = bookingAuditLogs.some((log) => log.action === "CREATED");
+
+    const supplementaryData = await this.supplementaryDataFetcher.fetchForBooking({
+      bookingUid,
+      hasCreatedAuditLog,
+    });
+
+    const activityLogs = this.timelineBuilder.build({
+      auditLogs: bookingAuditLogs,
+      supplementaryData,
+    });
 
     return {
       bookingUid,
-      auditLogs: sortedLogs,
+      auditLogs: activityLogs,
     };
   }
 }
+
+export type { DisplayBookingActivityLog, DisplayBookingAuditLog };

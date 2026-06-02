@@ -49,6 +49,7 @@ import {
   createBookingSheetKeydownHandler,
 } from "../lib/bookingSheetKeyboardHandler";
 import { JoinMeetingButton } from "./JoinMeetingButton";
+import { BookingHistory } from "../../booking-audit/components/BookingHistory";
 
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
@@ -373,7 +374,7 @@ function BookingDetailsSheetInner({
               <SegmentedControl
                 data={[
                   { value: "info", label: t("info") },
-                  { value: "history", label: t("history") },
+                  { value: "history", label: t("booking_activity.timeline_title") },
                 ]}
                 value={activeSegment}
                 onChange={(value) => setActiveSegment(value)}
@@ -427,7 +428,9 @@ function BookingDetailsSheetInner({
               </>
             )}
 
-            {/* Booking history removed (enterprise) */}
+            {activeSegment === "history" && bookingAuditEnabled && (
+              <BookingHistory bookingUid={booking.uid} />
+            )}
           </div>
         </SheetBody>
 

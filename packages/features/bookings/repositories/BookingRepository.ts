@@ -354,6 +354,65 @@ export class BookingRepository implements IBookingRepository {
     return booking?.fromReschedule ?? null;
   }
 
+  async findActivitySupplementaryDataByUid({ bookingUid }: { bookingUid: string }) {
+    const booking = await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        id: true,
+        uid: true,
+        createdAt: true,
+        updatedAt: true,
+        creationSource: true,
+        status: true,
+        references: {
+          select: {
+            id: true,
+            type: true,
+            uid: true,
+            meetingUrl: true,
+            meetingId: true,
+            externalCalendarId: true,
+            deleted: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            uid: true,
+            appId: true,
+            amount: true,
+            fee: true,
+            currency: true,
+            success: true,
+            refunded: true,
+            externalId: true,
+            paymentOption: true,
+          },
+        },
+      },
+    });
+
+    if (!booking) {
+      return null;
+    }
+
+    const reminders = await this.prismaClient.reminderMail.findMany({
+      where: { referenceId: booking.id },
+      select: {
+        id: true,
+        reminderType: true,
+        elapsedMinutes: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return {
+      ...booking,
+      reminders,
+    };
+  }
+
   async getBookingAttendees(bookingId: number) {
     return await this.prismaClient.attendee.findMany({
       where: {

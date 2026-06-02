@@ -1,6 +1,8 @@
 "use client";
 
 import type { AuditActorType } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
+import type { BookingActivityCategory } from "@calcom/features/booking-audit/lib/types/activityTimeline";
+import { BOOKING_ACTIVITY_CATEGORIES } from "@calcom/features/booking-audit/lib/types/activityTimeline";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -46,6 +48,8 @@ type AuditLog = {
   type: string;
   timestamp: string;
   source: string;
+  category?: BookingActivityCategory;
+  eventKind?: "audit" | "reminder" | "integration" | "payment" | "synthetic";
   displayJson?: Record<string, unknown> | null;
   actionDisplayTitle: TranslationWithParams;
   displayFields?: DisplayField[] | null;
@@ -69,6 +73,8 @@ interface BookingLogsFiltersProps {
   actorFilter: string | null;
   onActorFilterChange: (value: string | null) => void;
   actorOptions: Array<{ label: string; value: string }>;
+  categoryFilter: BookingActivityCategory | null;
+  onCategoryFilterChange: (value: BookingActivityCategory | null) => void;
 }
 
 interface BookingLogsTimelineProps {
@@ -87,7 +93,36 @@ const ACTION_ICON_MAP: Record<string, IconName> = {
   ATTENDEE_REMOVED: "user-check",
   LOCATION_CHANGED: "map-pin",
   NO_SHOW_UPDATED: "ban",
+  REMINDER_SENT: "mail",
+  INTEGRATION_LINKED: "link",
+  INTEGRATION_REMOVED: "link-2",
+  PAYMENT_RECEIVED: "credit-card",
+  PAYMENT_FAILED: "credit-card",
 } as const;
+
+const CATEGORY_ICON_MAP: Record<BookingActivityCategory, IconName> = {
+  creation: "calendar",
+  update: "pencil",
+  attendee: "user-check",
+  reminder: "mail",
+  integration: "link",
+};
+
+const CATEGORY_LABEL_MAP: Record<BookingActivityCategory, string> = {
+  creation: "booking_activity.category_creation",
+  update: "booking_activity.category_update",
+  attendee: "booking_activity.category_attendee",
+  reminder: "booking_activity.category_reminder",
+  integration: "booking_activity.category_integration",
+};
+
+const EVENT_KIND_LABEL_MAP: Record<NonNullable<AuditLog["eventKind"]>, string> = {
+  audit: "booking_activity.event_kind_audit",
+  reminder: "booking_activity.event_kind_reminder",
+  integration: "booking_activity.event_kind_integration",
+  payment: "booking_activity.event_kind_payment",
+  synthetic: "booking_activity.event_kind_synthetic",
+};
 
 const ACTOR_ROLE_LABEL_MAP: Record<AuditActorType, string | null> = {
   GUEST: "guest",
@@ -103,8 +138,18 @@ function BookingLogsFilters({
   actorFilter,
   onActorFilterChange,
   actorOptions,
+  categoryFilter,
+  onCategoryFilterChange,
 }: BookingLogsFiltersProps) {
   const { t } = useLocale();
+
+  const categoryOptions = [
+    { label: t("booking_activity.filter_all_categories"), value: "" },
+    ...BOOKING_ACTIVITY_CATEGORIES.map((category) => ({
+      label: t(CATEGORY_LABEL_MAP[category]),
+      value: category,
+    })),
+  ];
 
   return (
     <div className="flex flex-wrap gap-2 items-start">
@@ -114,6 +159,25 @@ function BookingLogsFilters({
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           containerClassName=""
+        />
+      </div>
+
+      <div className="min-w-[140px]">
+        <Select
+          size="sm"
+          value={
+            categoryFilter
+              ? {
+                  label: `${t("booking_activity.filter_category_label")}: ${t(CATEGORY_LABEL_MAP[categoryFilter])}`,
+                  value: categoryFilter,
+                }
+              : { label: t("booking_activity.filter_all_categories"), value: "" }
+          }
+          onChange={(option) => {
+            if (!option) return;
+            onCategoryFilterChange((option.value as BookingActivityCategory) || null);
+          }}
+          options={categoryOptions}
         />
       </div>
 
@@ -261,7 +325,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
   if (logs.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted">{t("no_audit_logs_found")}</p>
+        <p className="text-muted">{t("no_activity_events_found")}</p>
       </div>
     );
   }
@@ -273,13 +337,17 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
         const isExpanded = expandedLogIds.has(log.id);
         const showJson = showJsonMap[log.id] || false;
         const actorRole = ACTOR_ROLE_LABEL_MAP[log.actor.type] ?? null;
+        const category = log.category;
+        const iconName = log.hasError
+          ? "triangle-alert"
+          : (ACTION_ICON_MAP[log.action] ?? (category ? CATEGORY_ICON_MAP[category] : "sparkles"));
         return (
           <div key={log.id} className="flex gap-1">
             <div className="flex flex-col items-center self-stretch">
               <div className="pt-2 shrink-0">
                 <div className="bg-subtle rounded-[3.556px] p-1 flex items-center justify-center w-4 h-4">
                   <Icon
-                    name={log.hasError ? "triangle-alert" : (ACTION_ICON_MAP[log.action] ?? "sparkles")}
+                    name={iconName}
                     className={`h-3 w-3 ${log.hasError ? "text-attention" : "text-subtle"}`}
                   />
                 </div>
@@ -294,7 +362,15 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                     <h3 className="text-sm font-medium leading-4 text-emphasis">
                       <ActionTitle actionDisplayTitle={log.actionDisplayTitle} />
                     </h3>
-                    <div className="flex items-center gap-1 mt-1 text-xs text-subtle">
+                    <div className="flex items-center gap-1 mt-1 text-xs text-subtle flex-wrap">
+                      {category && (
+                        <>
+                          <span className="rounded bg-subtle px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide">
+                            {t(CATEGORY_LABEL_MAP[category])}
+                          </span>
+                          <span>•</span>
+                        </>
+                      )}
                       {log.actor.displayAvatar && (
                         <Avatar
                           size="xs"
@@ -363,6 +439,14 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                         </span>
                         <span className="text-default">{log.source}</span>
                       </div>
+                      {log.eventKind && (
+                        <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                          <span className="font-medium text-emphasis w-[140px]">
+                            {t("booking_activity.event_kind")}
+                          </span>
+                          <span className="text-default">{t(EVENT_KIND_LABEL_MAP[log.eventKind])}</span>
+                        </div>
+                      )}
                       <div className="flex items-start gap-2 py-2 px-3 border-b border-subtle">
                         <span className="font-medium text-emphasis w-[140px]">{t("timestamp")}</span>
                         <span className="text-default">
@@ -396,7 +480,12 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
   );
 }
 
-function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorFilter: string | null) {
+function useBookingLogsFilters(
+  auditLogs: AuditLog[],
+  searchTerm: string,
+  actorFilter: string | null,
+  categoryFilter: BookingActivityCategory | null
+) {
   const { t } = useLocale();
 
   const filteredLogs = auditLogs.filter((log) => {
@@ -445,8 +534,9 @@ function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorF
       doesMatchActionDisplayTitle();
 
     const matchesActor = !actorFilter || log.actor.displayName === actorFilter;
+    const matchesCategory = !categoryFilter || log.category === categoryFilter;
 
-    return matchesSearch && matchesActor;
+    return matchesSearch && matchesActor && matchesCategory;
   });
 
   const uniqueActorNames = Array.from(
@@ -464,6 +554,7 @@ function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorF
 export function BookingHistory({ bookingUid }: BookingHistoryProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [actorFilter, setActorFilter] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<BookingActivityCategory | null>(null);
   const { t } = useLocale();
   const { data, isLoading, error } = trpc.viewer.bookings.getBookingHistory.useQuery({
     bookingUid,
@@ -471,7 +562,12 @@ export function BookingHistory({ bookingUid }: BookingHistoryProps) {
 
   const auditLogs = data?.auditLogs || [];
 
-  const { filteredLogs, actorOptions } = useBookingLogsFilters(auditLogs, searchTerm, actorFilter);
+  const { filteredLogs, actorOptions } = useBookingLogsFilters(
+    auditLogs,
+    searchTerm,
+    actorFilter,
+    categoryFilter
+  );
 
   if (error) {
     return (
@@ -503,6 +599,8 @@ export function BookingHistory({ bookingUid }: BookingHistoryProps) {
         actorFilter={actorFilter}
         onActorFilterChange={setActorFilter}
         actorOptions={actorOptions}
+        categoryFilter={categoryFilter}
+        onCategoryFilterChange={setCategoryFilter}
       />
 
       <BookingLogsTimeline logs={filteredLogs} />
