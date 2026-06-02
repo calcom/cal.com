@@ -2,233 +2,117 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-// Copa do Mundo FIFA 2026 - Jogos
-const COPA_2026_GAMES = [
-  // Fase de Grupos - Junho 2026
-  {
-    id: "g001",
-    date: "2026-06-11",
-    time: "20:00",
-    timezone: "America/New_York",
-    homeTeam: "México",
-    awayTeam: "TBD",
-    group: "A",
-    stage: "Fase de Grupos",
-    venue: "Estadio Azteca",
-    city: "Cidade do México",
-    country: "México",
-  },
-  {
-    id: "g002",
-    date: "2026-06-12",
-    time: "18:00",
-    timezone: "America/New_York",
-    homeTeam: "Estados Unidos",
-    awayTeam: "TBD",
-    group: "B",
-    stage: "Fase de Grupos",
-    venue: "SoFi Stadium",
-    city: "Los Angeles",
-    country: "EUA",
-  },
-  {
-    id: "g003",
-    date: "2026-06-13",
-    time: "15:00",
-    timezone: "America/Toronto",
-    homeTeam: "Canadá",
-    awayTeam: "TBD",
-    group: "C",
-    stage: "Fase de Grupos",
-    venue: "BMO Field",
-    city: "Toronto",
-    country: "Canadá",
-  },
-  {
-    id: "g004",
-    date: "2026-06-14",
-    time: "16:00",
-    timezone: "America/New_York",
-    homeTeam: "Brasil",
-    awayTeam: "TBD",
-    group: "D",
-    stage: "Fase de Grupos",
-    venue: "MetLife Stadium",
-    city: "Nova York",
-    country: "EUA",
-  },
-  {
-    id: "g005",
-    date: "2026-06-14",
-    time: "21:00",
-    timezone: "America/New_York",
-    homeTeam: "Argentina",
-    awayTeam: "TBD",
-    group: "E",
-    stage: "Fase de Grupos",
-    venue: "Hard Rock Stadium",
-    city: "Miami",
-    country: "EUA",
-  },
-  {
-    id: "g006",
-    date: "2026-06-15",
-    time: "18:00",
-    timezone: "America/New_York",
-    homeTeam: "Portugal",
-    awayTeam: "TBD",
-    group: "F",
-    stage: "Fase de Grupos",
-    venue: "Gillette Stadium",
-    city: "Boston",
-    country: "EUA",
-  },
-  {
-    id: "g007",
-    date: "2026-06-16",
-    time: "15:00",
-    timezone: "America/Chicago",
-    homeTeam: "França",
-    awayTeam: "TBD",
-    group: "G",
-    stage: "Fase de Grupos",
-    venue: "AT&T Stadium",
-    city: "Dallas",
-    country: "EUA",
-  },
-  {
-    id: "g008",
-    date: "2026-06-17",
-    time: "17:00",
-    timezone: "America/New_York",
-    homeTeam: "Alemanha",
-    awayTeam: "TBD",
-    group: "H",
-    stage: "Fase de Grupos",
-    venue: "Lincoln Financial Field",
-    city: "Filadélfia",
-    country: "EUA",
-  },
-  {
-    id: "g009",
-    date: "2026-06-18",
-    time: "20:00",
-    timezone: "America/Chicago",
-    homeTeam: "Espanha",
-    awayTeam: "TBD",
-    group: "I",
-    stage: "Fase de Grupos",
-    venue: "Arrowhead Stadium",
-    city: "Kansas City",
-    country: "EUA",
-  },
-  {
-    id: "g010",
-    date: "2026-06-19",
-    time: "16:00",
-    timezone: "America/Los_Angeles",
-    homeTeam: "Inglaterra",
-    awayTeam: "TBD",
-    group: "J",
-    stage: "Fase de Grupos",
-    venue: "Levi's Stadium",
-    city: "San Francisco",
-    country: "EUA",
-  },
-  {
-    id: "g011",
-    date: "2026-06-20",
-    time: "15:00",
-    timezone: "America/Chicago",
-    homeTeam: "Países Baixos",
-    awayTeam: "TBD",
-    group: "K",
-    stage: "Fase de Grupos",
-    venue: "Estadio BBVA",
-    city: "Monterrey",
-    country: "México",
-  },
-  {
-    id: "g012",
-    date: "2026-06-21",
-    time: "18:00",
-    timezone: "America/Vancouver",
-    homeTeam: "Uruguai",
-    awayTeam: "TBD",
-    group: "L",
-    stage: "Fase de Grupos",
-    venue: "BC Place",
-    city: "Vancouver",
-    country: "Canadá",
-  },
-  // Semifinais
-  {
-    id: "sf001",
-    date: "2026-07-14",
-    time: "20:00",
-    timezone: "America/New_York",
-    homeTeam: "TBD",
-    awayTeam: "TBD",
-    stage: "Semifinal",
-    venue: "MetLife Stadium",
-    city: "Nova York",
-    country: "EUA",
-  },
-  {
-    id: "sf002",
-    date: "2026-07-15",
-    time: "20:00",
-    timezone: "America/Los_Angeles",
-    homeTeam: "TBD",
-    awayTeam: "TBD",
-    stage: "Semifinal",
-    venue: "SoFi Stadium",
-    city: "Los Angeles",
-    country: "EUA",
-  },
-  // Final
-  {
-    id: "final",
-    date: "2026-07-19",
-    time: "18:00",
-    timezone: "America/New_York",
-    homeTeam: "TBD",
-    awayTeam: "TBD",
-    stage: "Final",
-    venue: "MetLife Stadium",
-    city: "Nova York",
-    country: "EUA",
-  },
-];
+const DATA_URL =
+  "https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json";
+
+// Cache simples em memória com TTL de 10 minutos
+let cache = null;
+let cacheAt = 0;
+const CACHE_TTL_MS = 10 * 60 * 1000;
+
+async function fetchGames() {
+  const now = Date.now();
+  if (cache && now - cacheAt < CACHE_TTL_MS) {
+    return cache;
+  }
+
+  const res = await fetch(DATA_URL);
+  if (!res.ok) {
+    throw new Error(`Falha ao buscar dados: ${res.status} ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  cache = data.matches ?? [];
+  cacheAt = now;
+  return cache;
+}
+
+function formatGame(g, index) {
+  const id = String(index + 1).padStart(3, "0");
+  const stage = g.group ?? g.round ?? "Fase Eliminatória";
+  const round = g.round ?? "";
+  const venue = g.ground ?? "TBD";
+
+  return {
+    id: `g${id}`,
+    date: g.date,
+    time: g.time ?? "TBD",
+    homeTeam: g.team1,
+    awayTeam: g.team2,
+    group: g.group ?? null,
+    round: round,
+    stage,
+    venue,
+    score: g.score ?? null,
+  };
+}
+
+function formatGameText(g) {
+  const lines = [
+    `🏆 ${g.stage}${g.round && g.round !== g.stage ? ` — ${g.round}` : ""}`,
+    `📅 ${g.date} às ${g.time}`,
+    `⚽ ${g.homeTeam} vs ${g.awayTeam}`,
+    g.score ? `📊 Placar: ${g.score}` : null,
+    `🏟️  ${g.venue}`,
+    `🆔 ID: ${g.id}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  return lines;
+}
 
 const server = new McpServer({
   name: "mcp-copa-2026",
-  version: "0.1.0",
+  version: "0.2.0",
 });
 
 server.tool(
   "list_copa_games",
-  "Lista os jogos da Copa do Mundo FIFA 2026. Pode filtrar por seleção, fase ou data.",
+  "Lista os jogos da Copa do Mundo FIFA 2026 com dados em tempo real. Filtre por seleção, fase/grupo ou data.",
   {
-    team: z.string().optional().describe("Nome da seleção para filtrar (ex: 'Brasil', 'Argentina')"),
-    stage: z.string().optional().describe("Fase do torneio (ex: 'Fase de Grupos', 'Semifinal', 'Final')"),
-    date: z.string().optional().describe("Data no formato YYYY-MM-DD para filtrar"),
+    team: z
+      .string()
+      .optional()
+      .describe("Nome da seleção (ex: 'Brazil', 'Argentina', 'Portugal')"),
+    stage: z
+      .string()
+      .optional()
+      .describe(
+        "Fase ou grupo (ex: 'Group A', 'Round of 32', 'Semi-final', 'Final')"
+      ),
+    date: z
+      .string()
+      .optional()
+      .describe("Data no formato YYYY-MM-DD"),
   },
   async ({ team, stage, date }) => {
-    let games = [...COPA_2026_GAMES];
+    let matches;
+    try {
+      matches = await fetchGames();
+    } catch (err) {
+      return {
+        content: [{ type: "text", text: `Erro ao buscar dados: ${err.message}` }],
+      };
+    }
+
+    let games = matches.map(formatGame);
 
     if (team) {
-      const teamLower = team.toLowerCase();
+      const t = team.toLowerCase();
       games = games.filter(
         (g) =>
-          g.homeTeam.toLowerCase().includes(teamLower) ||
-          g.awayTeam.toLowerCase().includes(teamLower)
+          g.homeTeam.toLowerCase().includes(t) ||
+          g.awayTeam.toLowerCase().includes(t)
       );
     }
 
     if (stage) {
-      const stageLower = stage.toLowerCase();
-      games = games.filter((g) => g.stage.toLowerCase().includes(stageLower));
+      const s = stage.toLowerCase();
+      games = games.filter(
+        (g) =>
+          g.stage.toLowerCase().includes(s) ||
+          g.round.toLowerCase().includes(s)
+      );
     }
 
     if (date) {
@@ -237,26 +121,18 @@ server.tool(
 
     if (games.length === 0) {
       return {
-        content: [{ type: "text", text: "Nenhum jogo encontrado com os filtros informados." }],
+        content: [
+          { type: "text", text: "Nenhum jogo encontrado com os filtros informados." },
+        ],
       };
     }
 
-    const formatted = games
-      .map(
-        (g) =>
-          `🏆 ${g.stage}${g.group ? ` - Grupo ${g.group}` : ""}
-📅 ${g.date} às ${g.time} (${g.timezone})
-⚽ ${g.homeTeam} vs ${g.awayTeam}
-🏟️  ${g.venue}, ${g.city}, ${g.country}
-🆔 ID: ${g.id}`
-      )
-      .join("\n\n---\n\n");
-
+    const body = games.map(formatGameText).join("\n\n---\n\n");
     return {
       content: [
         {
           type: "text",
-          text: `Copa do Mundo FIFA 2026 — ${games.length} jogo(s):\n\n${formatted}`,
+          text: `Copa do Mundo FIFA 2026 — ${games.length} jogo(s):\n\n${body}`,
         },
       ],
     };
@@ -265,12 +141,22 @@ server.tool(
 
 server.tool(
   "get_copa_game_details",
-  "Retorna detalhes completos de um jogo da Copa 2026 pelo ID.",
+  "Retorna detalhes de um jogo da Copa 2026 pelo ID (use list_copa_games para descobrir IDs).",
   {
-    gameId: z.string().describe("ID do jogo (ex: 'g001', 'final')"),
+    gameId: z.string().describe("ID do jogo (ex: 'g001', 'g104')"),
   },
   async ({ gameId }) => {
-    const game = COPA_2026_GAMES.find((g) => g.id === gameId);
+    let matches;
+    try {
+      matches = await fetchGames();
+    } catch (err) {
+      return {
+        content: [{ type: "text", text: `Erro ao buscar dados: ${err.message}` }],
+      };
+    }
+
+    const games = matches.map(formatGame);
+    const game = games.find((g) => g.id === gameId);
 
     if (!game) {
       return {
@@ -283,24 +169,12 @@ server.tool(
       };
     }
 
-    const details = [
-      `🏆 Copa do Mundo FIFA 2026`,
-      `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-      `⚽ ${game.homeTeam} vs ${game.awayTeam}`,
-      `📅 Data: ${game.date}`,
-      `🕐 Horário: ${game.time} (${game.timezone})`,
-      `🏟️  Estádio: ${game.venue}`,
-      `📍 Local: ${game.city}, ${game.country}`,
-      `🏅 Fase: ${game.stage}${game.group ? ` - Grupo ${game.group}` : ""}`,
-      `🆔 ID: ${game.id}`,
-    ].join("\n");
-
     return {
-      content: [{ type: "text", text: details }],
+      content: [{ type: "text", text: formatGameText(game) }],
     };
   }
 );
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error("MCP Copa 2026 server running on stdio");
+console.error("MCP Copa 2026 server v0.2.0 running (fonte: openfootball/worldcup.json)");
