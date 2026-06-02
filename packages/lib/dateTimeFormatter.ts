@@ -27,6 +27,24 @@ const localeSupport = new Map<string, boolean>();
 const formatterCache = new Map<string, Intl.DateTimeFormat>();
 const weekdayCache = new Map<string, string[]>();
 
+/**
+ * Persian (fa) uses the Jalali/Shamsi calendar, which the dayjs fallback path cannot
+ * render. `Intl` defaults `fa` to the Persian calendar, so we always route Persian
+ * locales through `Intl` to avoid silently emitting Gregorian dates.
+ */
+export function isPersianCalendarLocale(locale: string): boolean {
+  const normalized = locale.toLowerCase();
+  return /^fa(-|$)/.test(normalized) || normalized.includes("-ca-persian");
+}
+
+/** Makes the Persian calendar explicit so behavior is stable across ICU versions. */
+function resolveFormatterLocale(locale: string): string {
+  if (isPersianCalendarLocale(locale) && !locale.toLowerCase().includes("-ca-")) {
+    return `${locale}-u-ca-persian`;
+  }
+  return locale;
+}
+
 function isSupported(locale: string): boolean {
   let supported = localeSupport.get(locale);
   if (supported === undefined) {
@@ -34,6 +52,11 @@ function isSupported(locale: string): boolean {
     localeSupport.set(locale, supported);
   }
   return supported;
+}
+
+/** Persian locales are forced through Intl (Jalali-aware) instead of the Gregorian dayjs fallback. */
+function shouldUseIntl(locale: string): boolean {
+  return isPersianCalendarLocale(locale) || isSupported(locale);
 }
 
 function getFormatter(locale: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
@@ -87,22 +110,25 @@ function getDateForWeekday(day: number): Date {
 }
 
 export function formatDateTime(date: Date, options: DateTimeFormatOptions): string {
-  if (isSupported(options.locale)) {
-    return getFormatter(options.locale, buildIntlOptions(options)).format(date);
+  if (shouldUseIntl(options.locale)) {
+    return getFormatter(resolveFormatterLocale(options.locale), buildIntlOptions(options)).format(date);
   }
   return formatWithDayjs(date, options);
 }
 
 export function formatDateTimeRange(startDate: Date, endDate: Date, options: DateTimeFormatOptions): string {
-  if (isSupported(options.locale)) {
-    return getFormatter(options.locale, buildIntlOptions(options, false)).formatRange(startDate, endDate);
+  if (shouldUseIntl(options.locale)) {
+    return getFormatter(resolveFormatterLocale(options.locale), buildIntlOptions(options, false)).formatRange(
+      startDate,
+      endDate
+    );
   }
   return `${formatWithDayjs(startDate, options)} — ${formatWithDayjs(endDate, options)}`;
 }
 
 export function formatWeekday(locale: string, day: number, format: "short" | "long"): string {
-  if (isSupported(locale)) {
-    return getFormatter(locale, { weekday: format }).format(getDateForWeekday(day));
+  if (shouldUseIntl(locale)) {
+    return getFormatter(resolveFormatterLocale(locale), { weekday: format }).format(getDateForWeekday(day));
   }
   return dayjs().day(day).locale(locale).format(WEEKDAY_FORMATS[format]);
 }
@@ -116,8 +142,8 @@ export function getWeekdayNames(locale: string, weekStart = 0, format: "short" |
       weekdayCache.clear();
     }
 
-    if (isSupported(locale)) {
-      const formatter = getFormatter(locale, { weekday: format });
+    if (shouldUseIntl(locale)) {
+      const formatter = getFormatter(resolveFormatterLocale(locale), { weekday: format });
       names = Array.from({ length: 7 }, (_, i) => formatter.format(getDateForWeekday((i + weekStart) % 7)));
     } else {
       names = Array.from({ length: 7 }, (_, i) =>

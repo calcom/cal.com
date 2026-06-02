@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import "@calcom/dayjs/locales";
 
-import { formatDateTime, formatDateTimeRange, formatWeekday, getWeekdayNames } from "./dateTimeFormatter";
+import {
+  formatDateTime,
+  formatDateTimeRange,
+  formatWeekday,
+  getWeekdayNames,
+  isPersianCalendarLocale,
+} from "./dateTimeFormatter";
 
 describe("dateTimeFormatter", () => {
   describe("formatDateTime", () => {
@@ -275,6 +281,45 @@ describe("dateTimeFormatter", () => {
       expect(result).toHaveLength(7);
       // Validate at least one Icelandic weekday
       expect(result.some((day) => day.match(/dagur$/i))).toBe(true);
+    });
+  });
+
+  describe("Persian (Shamsi) calendar", () => {
+    // 2025-12-01 (Gregorian) corresponds to 10 Azar 1404 in the Jalali calendar.
+    const date = new Date("2025-12-01T10:30:00Z");
+
+    it("detects Persian locales", () => {
+      expect(isPersianCalendarLocale("fa")).toBe(true);
+      expect(isPersianCalendarLocale("fa-IR")).toBe(true);
+      expect(isPersianCalendarLocale("en-US-u-ca-persian")).toBe(true);
+      expect(isPersianCalendarLocale("en")).toBe(false);
+      expect(isPersianCalendarLocale("fawn")).toBe(false);
+    });
+
+    it("formats dates using the Jalali calendar, not Gregorian", () => {
+      const result = formatDateTime(date, { locale: "fa", timeZone: "UTC", dateStyle: "long" });
+
+      expect(result).toContain("آذر"); // Azar (Jalali month)
+      expect(result).toContain("۱۴۰۴"); // Jalali year 1404
+      expect(result).not.toContain("2025"); // never the Gregorian year
+    });
+
+    it("formats the Jalali month name for month-only output", () => {
+      const result = formatDateTime(date, { locale: "fa", timeZone: "UTC", month: "long" });
+
+      expect(result).toBe("آذر");
+    });
+
+    it("returns Persian weekday names", () => {
+      expect(formatWeekday("fa", 6, "long")).toBe("شنبه"); // Saturday
+    });
+
+    it("orders weekday names starting on Saturday", () => {
+      const result = getWeekdayNames("fa", 6, "long");
+
+      expect(result).toHaveLength(7);
+      expect(result[0]).toBe("شنبه"); // Saturday first
+      expect(result[6]).toBe("جمعه"); // Friday last
     });
   });
 

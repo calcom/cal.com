@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import "@calcom/dayjs/locales";
 
-import { nameOfDay, weekdayNames } from "./weekday";
+import { getWeekStartForLocale, nameOfDay, weekdayNames } from "./weekday";
 
 describe("Weekday tests", () => {
   describe("fn: weekdayNames", () => {
@@ -69,6 +69,20 @@ describe("Weekday tests", () => {
       expect(nameOfDay("is", 1, "long")).toMatch(/mánudagur/i); // Monday in Icelandic
       expect(nameOfDay("lt", 1, "long")).toMatch(/pirmadienis/i); // Monday in Lithuanian
       expect(nameOfDay("nb", 1, "long")).toMatch(/mandag/i); // Monday in Norwegian
+    });
+  });
+
+  describe("fn: getWeekStartForLocale", () => {
+    it("defaults to Saturday (6) for Persian locales", () => {
+      expect(getWeekStartForLocale("fa")).toBe(6);
+      expect(getWeekStartForLocale("fa-IR")).toBe(6);
+      expect(getWeekStartForLocale(["fa-IR", "fa"])).toBe(6);
+    });
+
+    it("defaults to Sunday (0) for non-Persian locales", () => {
+      expect(getWeekStartForLocale("en")).toBe(0);
+      expect(getWeekStartForLocale("ar")).toBe(0);
+      expect(getWeekStartForLocale(undefined)).toBe(0);
     });
   });
 });
