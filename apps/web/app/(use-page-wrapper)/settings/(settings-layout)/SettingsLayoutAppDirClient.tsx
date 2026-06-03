@@ -265,7 +265,6 @@ interface SettingsPermissions {
   canViewRoles?: boolean;
   canViewOrganizationBilling?: boolean;
   canUpdateOrganization?: boolean;
-  canViewAttributes?: boolean;
 }
 
 const useTabs = ({
@@ -295,14 +294,6 @@ const useTabs = ({
         const newArray = (tab?.children ?? []).filter(
           (child) => permissions?.canUpdateOrganization || !organizationAdminKeys.includes(child.name)
         );
-
-        if (permissions?.canViewAttributes) {
-          newArray.splice(4, 0, {
-            name: "attributes",
-            href: "/settings/organizations/attributes",
-            trackingMetadata: { section: "organization", page: "attributes" },
-          });
-        }
 
         // Add delegation-credential menu item only if feature flag is enabled
         if (isDelegationCredentialEnabled) {
