@@ -4375,7 +4375,7 @@
   "onboarding_pick_color_aria": "اختر اللون",
   "onboarding_org_invite_title": "دعوة زملائك",
   "onboarding_org_invite_subtitle_email": "أدخل عنوان البريد الإلكتروني لزملائك وحدد فريقهم لإضافتهم إلى مؤسستك.",
-  "onboarding_org_invite_subtitle_full": "قم بربط Google Workspace الخاص بك، أو الدعوة عبر البريد الإلكتروني، أو تحميل ملف CSV أو نسخ رابط الدعوة ومشاركته مع زملائك لإضافتهم إلى مؤسستك.",
+  "onboarding_org_invite_subtitle_full": "قم بربط Google Workspace الخاص بك، أو الدعوة عبر البريد الإلكتروني، أو رفع ملف CSV أو نسخ رابط الدعوة ومشاركته مع زملائك لإضافتهم إلى مؤسستك.",
   "onboarding_connect_google_workspace": "ربط Google Workspace",
   "onboarding_upload_csv": "رفع ملف CSV",
   "onboarding_copy_invite_link": "نسخ رابط الدعوة",
