@@ -7,6 +7,11 @@ import { z } from "zod";
 
 import { useHitPayDropIn } from "@calcom/app-store/hitpay/components/HitPayDropIn";
 
+export const getDomainFromCheckoutUrl = (urlString: string) => {
+  const { hostname } = new URL(urlString);
+  return hostname.replace(/^securecheckout\./, "").replace(/^checkout\./, "");
+};
+
 const PaymentHitpayDataSchema = z.object({
   id: z.string(),
   url: z.string(),
@@ -37,14 +42,6 @@ export const HitpayPaymentComponent = (props: IPaymentComponentProps) => {
 
   const parsedData = PaymentHitpayDataSchema.safeParse(data);
 
-  const getDomainFromCheckoutUrl = (urlString: string) => {
-      const { hostname } = new URL(urlString);
-
-      return hostname
-        .replace(/^securecheckout\./, "")
-        .replace(/^checkout\./, "");
-  };
-    
   useEffect(() => {
     if (parsedData.success) {
       if (window.self !== window.top && window.top) {
