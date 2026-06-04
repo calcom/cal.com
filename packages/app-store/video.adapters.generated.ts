@@ -9,6 +9,7 @@ export const VideoApiAdapterMap =
         dailyvideo: import("./dailyvideo/lib/VideoApiAdapter"),
         huddle01video: import("./huddle01video/lib/VideoApiAdapter"),
         jelly: import("./jelly/lib/VideoApiAdapter"),
+        bigbluebutton: import("./bigbluebutton/lib/VideoApiAdapter"),
         jitsivideo: import("./jitsivideo/lib/VideoApiAdapter"),
         lyra: import("./lyra/lib/VideoApiAdapter"),
         nextcloudtalk: import("./nextcloudtalk/lib/VideoApiAdapter"),
