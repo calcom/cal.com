@@ -14,11 +14,11 @@ jobs:
     name: Build API v2
     permissions:
       contents: read
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
       postgres:
-        image: postgres:13
+        image: postgres:18
         credentials:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}

@@ -1,5 +1,4 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
 import { WebhookVersion } from "./interface/IWebhookRepository";
 
 // this is exported as we can't use `WebhookTriggerEvents` in the frontend straight-off
@@ -55,7 +54,6 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.BOOKING_REQUESTED,
     WebhookTriggerEvents.BOOKING_REJECTED,
     WebhookTriggerEvents.RECORDING_READY,
-    WebhookTriggerEvents.INSTANT_MEETING,
     WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
     WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
     WebhookTriggerEvents.OOO_CREATED,
@@ -64,13 +62,8 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
     WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
   ] as const,
-  "routing-forms": [
-    WebhookTriggerEvents.FORM_SUBMITTED,
-    WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
-  ] as const,
 };
 
 export const WEBHOOK_TRIGGER_EVENTS = [
   ...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP.core,
-  ...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP["routing-forms"],
 ] as const;

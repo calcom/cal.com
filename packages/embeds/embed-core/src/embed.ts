@@ -236,7 +236,7 @@ export class Cal {
   /**
    * Commands for which the queue persists across iframe resets
    */
-  commandsPersistAcrossIframeResets: DoInIframeArg['method'][] = ["ui"];
+  commandsPersistAcrossIframeResets: DoInIframeArg["method"][] = ["ui"];
 
   isPrerendering?: boolean;
 
@@ -374,7 +374,7 @@ export class Cal {
 
     // Very Important: Reset iframe ready flag and clear queue, as iframe might load a fresh URL and we need to check correctly when it is ready.
     this.iframeReset();
-    
+
     if (iframe.src === urlInstance.toString()) {
       // Ensure reload occurs even if the url is same - Though browser normally does it, but would be better to ensure it
       // This param has no other purpose except to ensure forced reload.
@@ -414,7 +414,7 @@ export class Cal {
 
   resetQueue() {
     // Only keep UI related instructions in the queue, as we want to ensure that newly loaded iframe has the same UI configuration applied automatically
-    this.iframeDoQueue = this.iframeDoQueue.filter((doInIframeArg) => 
+    this.iframeDoQueue = this.iframeDoQueue.filter((doInIframeArg) =>
       this.commandsPersistAcrossIframeResets.includes(doInIframeArg.method)
     );
   }
@@ -1499,7 +1499,6 @@ class CalApi {
         },
       },
     });
-
 
     this.cal.doInIframe({ method: "ui", arg: uiConfig });
   }

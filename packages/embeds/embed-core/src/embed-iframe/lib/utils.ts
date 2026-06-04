@@ -66,6 +66,10 @@ export function keepParentInformedAboutDimensionChanges({ embedStore }: { embedS
   let isInitialDimensionPass = true;
   let isWindowLoadComplete = false;
   runAsap(function informAboutScroll() {
+    // Can't inform parent about dimensions if document doesn't exist
+    if (typeof document === "undefined") {
+      return;
+    }
     if (document.readyState !== "complete") {
       // Wait for window to load to correctly calculate the initial scroll height.
       runAsap(informAboutScroll);
@@ -151,36 +155,10 @@ export function keepParentInformedAboutDimensionChanges({ embedStore }: { embedS
 }
 
 /**
- * Moves the queuedFormResponse to the routingFormResponse record to mark it as an actual response now.
+ * Routing forms feature removed - this is now a no-op.
  */
-export const recordResponseIfQueued = async (params: Record<string, string | string[]>) => {
-  const url = new URL(document.URL);
-  let routingFormResponseId: number | null = null;
-  const queuedFormResponseIdParam = url.searchParams.get("cal.queuedFormResponseId");
-  const queuedFormResponseId = queuedFormResponseIdParam;
-  if (!queuedFormResponseId) {
-    return null;
-  }
-  // Corresponding dry run value for routingFormResponseId is 0
-  if (queuedFormResponseId === "00000000-0000-0000-0000-000000000000") {
-    return 0;
-  }
-  // form is formId and isn't acutal Form data
-  const { form: _1, ...actualFormData } = params;
-  const res = await fetch(`/api/routing-forms/queued-response`, {
-    method: "POST",
-    body: JSON.stringify({ queuedFormResponseId, params: actualFormData }),
-  });
-  if (!res.ok) {
-    return null;
-  }
-  const response = await res.json();
-  const formResponseId = response.data.formResponseId;
-  if (formResponseId) {
-    // Now we have the actual routingFormResponseId.
-    routingFormResponseId = formResponseId;
-  }
-  return routingFormResponseId;
+export const recordResponseIfQueued = async (_params: Record<string, string | string[]>) => {
+  return null;
 };
 
 /**

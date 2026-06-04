@@ -34,14 +34,12 @@ export default defineConfig({
         emails: resolve(__dirname, "./emails.ts"),
         "event-types": resolve(__dirname, "./event-types.ts"),
         "app-store": resolve(__dirname, "./app-store.ts"),
-        workflows: resolve(__dirname, "./workflows.ts"),
         slots: resolve(__dirname, "./slots.ts"),
         conferencing: resolve(__dirname, "./conferencing.ts"),
         repositories: resolve(__dirname, "./repositories.ts"),
         bookings: resolve(__dirname, "./bookings.ts"),
         organizations: resolve(__dirname, "./organizations.ts"),
         "private-links": resolve(__dirname, "./private-links.ts"),
-        pbac: resolve(__dirname, "./pbac.ts"),
         errors: resolve(__dirname, "./errors.ts"),
         calendars: resolve(__dirname, "./calendars.ts"),
         tasker: resolve(__dirname, "./tasker.ts"),
@@ -57,6 +55,7 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
+        "@calcom/i18n",
         "react",
         "fs",
         "path",
@@ -210,9 +209,6 @@ export default defineConfig({
   resolve: {
     conditions: ["node", "import", "require", "default"],
     alias: {
-      "@calcom/lib/server/i18n": path.resolve(__dirname, "./i18n.ts"),
-      "./server/i18n": path.resolve(__dirname, "./i18n.ts"),
-      "../server/i18n": path.resolve(__dirname, "./i18n.ts"),
       "@": path.resolve(__dirname, "./src"),
       "@calcom/lib": path.resolve(__dirname, "../../lib"),
       "@calcom/trpc": resolve("../../trpc"),

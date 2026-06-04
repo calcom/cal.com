@@ -1,5 +1,5 @@
 import { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
-import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
@@ -17,12 +17,11 @@ type ReportBookingOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TReportBookingInputSchema;
-  actionSource: ValidActionSource;
 };
 
 const log = logger.getSubLogger({ prefix: ["reportBookingHandler"] });
 
-export const reportBookingHandler = async ({ ctx, input, actionSource }: ReportBookingOptions) => {
+export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions) => {
   const { user } = ctx;
   const { bookingUid, reason, description } = input;
 
@@ -92,7 +91,7 @@ export const reportBookingHandler = async ({ ctx, input, actionSource }: ReportB
           ...(seatReferenceUid ? { seatReferenceUid } : {}),
         },
         userId: user.id,
-        actionSource,
+
       });
       didCancel = true;
     } catch (error) {

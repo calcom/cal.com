@@ -1,6 +1,6 @@
 # Slots and Availability API Reference
 
-Detailed documentation for checking availability and managing slots in the Cal.com API v2.
+Detailed documentation for checking availability and managing slots in the Cal.diy API v2.
 
 ## Endpoints Overview
 

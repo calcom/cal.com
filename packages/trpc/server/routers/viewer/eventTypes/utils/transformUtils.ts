@@ -1,11 +1,13 @@
-import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import type { TeamPermissions } from "./permissionUtils";
+
+const getBookerBaseUrlSync = (_orgSlug?: string | number | null): string =>
+  process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
+const getBookerBaseUrl = async (_orgSlug?: string | number | null): Promise<string> =>
+  process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
 
 export interface EventTypeGroup {
   teamId?: number | null;
@@ -121,9 +123,9 @@ export function createProfilesWithPermissions(
   teamPermissionsMap: Map<number, TeamPermissions>
 ): ProfileWithPermissions[] {
   return eventTypeGroups.map((group) => {
-    let canCreateEventTypes: boolean | undefined = undefined;
-    let canUpdateEventTypes: boolean | undefined = undefined;
-    let canDeleteEventTypes: boolean | undefined = undefined;
+    let canCreateEventTypes: boolean | undefined;
+    let canUpdateEventTypes: boolean | undefined;
+    let canDeleteEventTypes: boolean | undefined;
 
     if (group.teamId) {
       const permissions = teamPermissionsMap.get(group.teamId);

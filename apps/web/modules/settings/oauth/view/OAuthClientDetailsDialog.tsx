@@ -238,12 +238,16 @@ const OAuthClientDetailsDialog = ({
             ) : null}
 
             {status === "REJECTED" && client.rejectionReason ? (
-              <div
-                className="text-sm text-subtle"
-                data-testid="oauth-client-details-rejection-reason-display">
-                <span className="font-medium">{t("oauth_client_rejection_reason")}:</span>{" "}
-                {client.rejectionReason}
-              </div>
+              <Alert
+                severity="error"
+                title={t("oauth_client_rejection_reason")}
+                message={
+                  <div data-testid="oauth-client-details-rejection-reason-display">
+                    <p className="mb-2">"{client.rejectionReason}".</p>
+                    <p>{t("oauth_client_rejected_resubmit_info")}</p>
+                  </div>
+                }
+              />
             ) : null}
 
             <div>

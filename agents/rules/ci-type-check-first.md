@@ -9,7 +9,7 @@ tags: ci, typescript, type-check, workflow
 
 ## Priority Order
 
-When working on the Cal.com repository, prioritize fixing type issues before addressing failing tests.
+When working on the Cal.diy repository, prioritize fixing type issues before addressing failing tests.
 
 1. Run `yarn type-check:ci --force` first
 2. Fix all TypeScript errors

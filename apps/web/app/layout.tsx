@@ -1,5 +1,5 @@
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { loadTranslations } from "@calcom/lib/server/i18n";
+import { loadTranslations } from "@calcom/i18n/server";
 import { IconSprites } from "@calcom/ui/components/icon";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { dir } from "i18next";
@@ -116,7 +116,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
+            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")}, system-ui;
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
@@ -157,9 +157,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "/bookings/upcoming",
             "/teams",
             "/apps",
-            "/apps/routing-forms/forms",
-            "/workflows",
-            "/insights",
           ]}
         />
 

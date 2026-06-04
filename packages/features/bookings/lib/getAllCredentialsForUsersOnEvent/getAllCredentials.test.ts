@@ -1,13 +1,11 @@
 import {
-  createCredentials,
-  addTeamsToDb,
   addEventTypesToDb,
+  addTeamsToDb,
   addUsersToDb,
+  createCredentials,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
-import { describe, test, expect, vi } from "vitest";
-
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { describe, expect, test, vi } from "vitest";
 
 vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
@@ -18,7 +16,6 @@ vi.mock("@calcom/features/users/repositories/UserRepository", () => {
     }),
   };
 });
-
 describe("getAllCredentialsIncludeServiceAccountKey", () => {
   test("Get an individual's credentials", async () => {
     const mockEnrichUserWithItsProfile = vi.fn().mockReturnValue({

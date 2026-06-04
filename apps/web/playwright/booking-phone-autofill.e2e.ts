@@ -19,8 +19,8 @@ test.describe("Phone Location Auto-fill Feature", () => {
     // Verify custom phone fields start empty or country prefix (e.g., "+1")
     const v1 = await page.locator('[name="phone-1"]').inputValue();
     const v2 = await page.locator('[name="phone-2"]').inputValue();
-    expect(v1 === "" || /^\+\d{1,3}$/.test(v1)).toBeTruthy();
-    expect(v2 === "" || /^\+\d{1,3}$/.test(v2)).toBeTruthy();
+    expect(v1 === "" || /^\+\d{1,3}$/.test(v1)).toBe(true);
+    expect(v2 === "" || /^\+\d{1,3}$/.test(v2)).toBe(true);
 
     // Select phone location and enter phone number
     const phoneNumber = "+14155551234";

@@ -11,7 +11,7 @@ export const metadata = {
   category: "calendar",
   categories: ["calendar"],
   logo: "icon.svg",
-  publisher: "Cal.com",
+  publisher: "Cal.diy",
   slug: "caldav-calendar",
   url: "https://cal.com/",
   email: "help@cal.com",

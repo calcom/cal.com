@@ -82,7 +82,7 @@ const webexAuth = (credential: CredentialPayload) => {
 
     if (responseBody.error) {
       if (responseBody.error === "invalid_grant") {
-        return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+        return Promise.reject(new Error("Invalid grant for Cal.diy webex app"));
       }
     }
     // We check the if the new credentials matches the expected response structure
@@ -188,7 +188,7 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       if (response.error) {
         if (response.error === "invalid_grant") {
           await invalidateCredential(credential.id);
-          return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+          return Promise.reject(new Error("Invalid grant for Cal.diy webex app"));
         }
       }
 
@@ -214,7 +214,7 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         if (response.error) {
           if (response.error === "invalid_grant") {
             await invalidateCredential(credential.id);
-            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+            return Promise.reject(new Error("Invalid grant for Cal.diy webex app"));
           }
         }
         logger.debug("Webex meeting deleted", { meetingId: uid });
@@ -235,7 +235,7 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       if (response.error) {
         if (response.error === "invalid_grant") {
           await invalidateCredential(credential.id);
-          return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+          return Promise.reject(new Error("Invalid grant for Cal.diy webex app"));
         }
       }
 

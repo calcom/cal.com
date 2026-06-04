@@ -11,12 +11,11 @@ import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateSettingsCalendars } from "@calcom/web/app/cache/path/settings/my-account";
-import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
+import AppListCardWebWrapper from "@calcom/web/modules/apps/components/AppListCardWebWrapper";
 import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
 import { SelectedCalendarsSettingsWebWrapper } from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-
 import { QueryCell } from "@lib/QueryCell";
 import { Suspense, useEffect } from "react";
 import { DestinationCalendarSettingsWebWrapper } from "./DestinationCalendarSettingsWebWrapper";
@@ -45,7 +44,7 @@ function CalendarList(props: Props): JSX.Element {
       success={({ data }) => (
         <List>
           {data.items.map((item) => (
-            <AppListCard
+            <AppListCardWebWrapper
               title={item.name}
               key={item.name}
               logo={item.logo}

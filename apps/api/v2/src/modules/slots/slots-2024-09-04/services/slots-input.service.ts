@@ -1,23 +1,19 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
-import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
+import { dynamicEvent } from "@calcom/platform-libraries";
+import {
+  ById_2024_09_04_type,
+  ByTeamSlugAndEventTypeSlug_2024_09_04,
+  ByTeamSlugAndEventTypeSlug_2024_09_04_type,
+  ByUsernameAndEventTypeSlug_2024_09_04,
+  ByUsernameAndEventTypeSlug_2024_09_04_type,
+  GetSlotsInput_2024_09_04,
+  GetSlotsInputWithRouting_2024_09_04,
+} from "@calcom/platform-types";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { DateTime } from "luxon";
+import { EventTypesRepository_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/event-types.repository";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { DateTime } from "luxon";
-
-import { dynamicEvent } from "@calcom/platform-libraries";
-import {
-  ByUsernameAndEventTypeSlug_2024_09_04,
-  ByTeamSlugAndEventTypeSlug_2024_09_04,
-  GetSlotsInput_2024_09_04,
-  GetSlotsInputWithRouting_2024_09_04,
-  ById_2024_09_04_type,
-  ByUsernameAndEventTypeSlug_2024_09_04_type,
-  ByTeamSlugAndEventTypeSlug_2024_09_04_type,
-} from "@calcom/platform-types";
 
 export type InternalGetSlotsQuery = {
   isTeamEvent: boolean;
@@ -37,7 +33,6 @@ export type InternalGetSlotsQueryWithRouting = InternalGetSlotsQuery & {
   routedTeamMemberIds: number[] | null;
   skipContactOwner: boolean;
   teamMemberEmail: string | null;
-  routingFormResponseId: number | undefined;
 };
 
 @Injectable()
@@ -45,9 +40,6 @@ export class SlotsInputService_2024_09_04 {
   constructor(
     private readonly eventTypeRepository: EventTypesRepository_2024_06_14,
     private readonly usersRepository: UsersRepository,
-    private readonly organizationsUsersRepository: OrganizationsUsersRepository,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
-    private readonly organizationsRepository: OrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
@@ -87,8 +79,7 @@ export class SlotsInputService_2024_09_04 {
   async transformRoutingGetSlotsQuery(
     query: GetSlotsInputWithRouting_2024_09_04
   ): Promise<InternalGetSlotsQueryWithRouting> {
-    const { routedTeamMemberIds, skipContactOwner, teamMemberEmail, routingFormResponseId, ...baseQuery } =
-      query;
+    const { routedTeamMemberIds, skipContactOwner, teamMemberEmail, ...baseQuery } = query;
 
     const baseTransformation = await this.transformGetSlotsQuery(baseQuery);
 
@@ -97,7 +88,6 @@ export class SlotsInputService_2024_09_04 {
       routedTeamMemberIds: routedTeamMemberIds || null,
       skipContactOwner: skipContactOwner || false,
       teamMemberEmail: teamMemberEmail || null,
-      routingFormResponseId: routingFormResponseId ?? undefined,
     };
   }
 
@@ -126,36 +116,11 @@ export class SlotsInputService_2024_09_04 {
   }
 
   private async getEventTypeUser(input: ByUsernameAndEventTypeSlug_2024_09_04) {
-    if (!input.organizationSlug) {
-      return await this.usersRepository.findByUsername(input.username);
-    }
-
-    const organization = await this.organizationsRepository.findOrgBySlug(input.organizationSlug);
-    if (!organization) {
-      throw new NotFoundException(
-        `slots-input.service.ts: Organization with slug ${input.organizationSlug} not found`
-      );
-    }
-
-    return await this.organizationsUsersRepository.getOrganizationUserByUsername(
-      organization.id,
-      input.username
-    );
+    return await this.usersRepository.findByUsername(input.username);
   }
 
   private async getEventTypeTeam(input: ByTeamSlugAndEventTypeSlug_2024_09_04) {
-    if (!input.organizationSlug) {
-      return await this.teamsRepository.findTeamBySlug(input.teamSlug);
-    }
-
-    const organization = await this.organizationsRepository.findOrgBySlug(input.organizationSlug);
-    if (!organization) {
-      throw new NotFoundException(
-        `slots-input.service.ts: Organization with slug ${input.organizationSlug} not found`
-      );
-    }
-
-    return await this.organizationsTeamsRepository.findOrgTeamBySlug(organization.id, input.teamSlug);
+    return await this.teamsRepository.findTeamBySlug(input.teamSlug);
   }
 
   private adjustStartTime(startTime: string) {

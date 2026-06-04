@@ -13,7 +13,7 @@ import { dubAppKeysSchema } from "../lib/utils";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
 
-  const state = decodeOAuthState(req);
+  const state = decodeOAuthState(req, "dub");
 
   if (typeof code !== "string") {
     if (state?.onErrorReturnTo || state?.returnTo) {

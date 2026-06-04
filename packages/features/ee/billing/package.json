@@ -1,8 +1,0 @@
-{
-  "name": "@calcom/billing",
-  "description": "Internal billing system for Cal.com",
-  "authors": "zomars",
-  "version": "1.0.0",
-  "main": "./index.js",
-  "dependencies": {}
-}

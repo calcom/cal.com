@@ -9,6 +9,15 @@ vi.mock("@sentry/nextjs", () => ({
   },
 }));
 
+vi.mock("@calcom/app-store/delegationCredential", async () => {
+  const { getCredentialForSelectedCalendar } = await import("../__mocks__/delegationCredential");
+  return {
+    enrichHostsWithDelegationCredentials: vi.fn(),
+    getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+    getCredentialForSelectedCalendar,
+  };
+});
+
 import type { AdapterFactory } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
@@ -27,7 +36,6 @@ const mockSelectedCalendar: SelectedCalendar = {
   externalId: "test@example.com",
   eventTypeId: null,
   delegationCredentialId: null,
-  domainWideDelegationCredentialId: null,
   googleChannelId: null,
   googleChannelKind: null,
   googleChannelResourceId: null,

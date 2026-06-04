@@ -1,18 +1,17 @@
 import {
-  CalendarEventStatus,
-  CalendarEventResponseStatus,
-} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
-
-import {
   createGoogleCalendarEventFixture,
   googleEventWithConferenceData,
-  googleEventWithLocationOnly,
   googleEventWithHangoutLink,
+  googleEventWithLocationOnly,
 } from "./__fixtures__/google-calendar-event.fixture";
 import {
   GoogleCalendarEventOutputPipe,
   GoogleCalendarEventResponse,
 } from "./get-calendar-event-details-output-pipe";
+import {
+  CalendarEventResponseStatus,
+  CalendarEventStatus,
+} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
 
 describe("GoogleCalendarEventOutputPipe", () => {
   let pipe: GoogleCalendarEventOutputPipe;

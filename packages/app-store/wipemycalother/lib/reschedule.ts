@@ -6,7 +6,7 @@ import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { Booking, BookingReference, User } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -116,7 +116,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
       startTime: bookingToReschedule.startTime.toISOString(),
       endTime: bookingToReschedule.endTime.toISOString(),
       attendees: usersToPeopleType(
-        // username field doesn't exists on attendee but could be in the future
+        // username field doesn't exist on attendee but could be added in the future
         bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
         tAttendees
       ),

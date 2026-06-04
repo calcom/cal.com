@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import getIP from "@calcom/lib/getIP";
+import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   const requestorIp = getIP(req);

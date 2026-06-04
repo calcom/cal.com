@@ -89,6 +89,7 @@ const commons = {
   seatsShowAvailabilityCount: null,
   disableCancelling: false,
   disableRescheduling: false,
+  requiresCancellationReason: null,
   minimumRescheduleNotice: null,
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
@@ -115,7 +116,6 @@ const commons = {
   parentId: null,
   parent: null,
   owner: null,
-  workflows: [],
   users: [user],
   hosts: [],
   subsetOfHosts: [],
@@ -155,7 +155,6 @@ const commons = {
   updatedAt: null,
   rrHostSubsetEnabled: false,
   enablePerHostLocations: false,
-  redirectUrlOnNoRoutingFormResponse: null,
 };
 
 export const dynamicEvent = {

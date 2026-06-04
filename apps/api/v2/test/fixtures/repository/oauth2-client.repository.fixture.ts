@@ -21,6 +21,7 @@ export class OAuth2ClientRepositoryFixture {
     status?: OAuthClientStatus;
     logo?: string;
     isTrusted?: boolean;
+    userId?: number;
   }) {
     return this.prismaWriteClient.oAuthClient.create({
       data: {
@@ -32,7 +33,15 @@ export class OAuth2ClientRepositoryFixture {
         status: data.status || OAuthClientStatus.APPROVED,
         logo: data.logo,
         isTrusted: data.isTrusted || false,
+        ...(data.userId && { user: { connect: { id: data.userId } } }),
       },
+    });
+  }
+
+  async updateStatus(clientId: string, status: OAuthClientStatus) {
+    return this.prismaWriteClient.oAuthClient.update({
+      where: { clientId },
+      data: { status },
     });
   }
 

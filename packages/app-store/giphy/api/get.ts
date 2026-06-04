@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z, ZodError } from "zod";
 
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
+
 import { GiphyManager } from "../lib";
 
 const giphyUrlRegexp = new RegExp(
@@ -35,11 +37,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const gifImageUrl = await GiphyManager.getGiphyById(giphyId);
     return res.status(200).json({ image: gifImageUrl });
   } catch (error: unknown) {
-    console.error({ error });
-    if (error instanceof Error) {
-      return res.status(500).json({ message: error.message });
-    }
-    return res.status(500);
+    const httpError = getServerErrorFromUnknown(error);
+    return res.status(httpError.statusCode).json({ message: httpError.message });
   }
 }
 

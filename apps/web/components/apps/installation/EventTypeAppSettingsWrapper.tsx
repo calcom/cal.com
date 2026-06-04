@@ -1,11 +1,8 @@
-import { useEffect, type FC } from "react";
-
 import { EventTypeAppSettings } from "@calcom/app-store/_components/EventTypeAppSettingsInterface";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import useAppsData from "@calcom/web/modules/apps/hooks/useAppsData";
-
+import useAppsData from "@calcom/features/apps/hooks/useAppsData";
 import type { ConfigureStepCardProps } from "@components/apps/installation/ConfigureStepCard";
-
+import { type FC, useEffect } from "react";
 import type { TEventType } from "~/apps/installation/[[...step]]/step-view";
 
 type EventTypeAppSettingsWrapperProps = Pick<

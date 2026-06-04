@@ -4,7 +4,7 @@ Contact: [security@cal.com](mailto:security@cal.com)
 
 Based on [https://supabase.com/.well-known/security.txt](https://supabase.com/.well-known/security.txt)
 
-At Cal.com, we consider the security of our systems a top priority. But no
+At Cal.diy, we consider the security of our systems a top priority. But no
 matter how much effort we put into system security, there can still be
 vulnerabilities present.
 
@@ -23,7 +23,7 @@ better protect our clients and our systems.
 - Email spoofing
 - Missing DNSSEC, CAA, CSP headers
 - Lack of Secure or HTTP only flag on non-sensitive cookies
-- Deadlinks
+- Dead links
 
 ## Please do the following
 

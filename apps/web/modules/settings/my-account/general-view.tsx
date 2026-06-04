@@ -1,13 +1,7 @@
 "use client";
 
-import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
-import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -16,15 +10,16 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Form, Label, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
-
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
-import { Icon } from "@calcom/ui/components/icon";
+import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 export type FormValues = {
   locale: {
@@ -181,6 +176,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     options={localeOptions}
                     value={value}
                     onChange={onChange}
+                    data-testid="locale-select"
                   />
                 </>
               )}
@@ -291,8 +287,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                 </>
               )}
             />
-            <div className="text-gray text-subtle mt-2 flex items-center text-xs">
-              <Icon name="info" className="mr-2" />
+            <div className="text-gray text-subtle mt-2 flex items-start text-xs">
+              <Icon name="info" className="mr-2 mt-0.25" />
               {t("timeformat_profile_hint")}
             </div>
             <Controller
@@ -357,7 +353,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
         <SettingsToggle
           toggleSwitchAtTheEnd={true}
           title={t("monthly_digest_email")}
-          description={t("monthly_digest_email_for_teams")}
+          description={t("monthly_digest_email")}
           disabled={mutation.isPending}
           checked={isReceiveMonthlyDigestEmailChecked}
           onCheckedChange={(checked) => {

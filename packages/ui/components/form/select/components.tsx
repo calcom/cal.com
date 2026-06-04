@@ -3,7 +3,7 @@ import { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/ui/classNames";
 
-import { Badge, CreditsBadge, UpgradeTeamsBadge } from "../../badge";
+import { Badge, CreditsBadge } from "../../badge";
 import { CheckIcon } from "@coss/ui/icons";
 import type { SelectProps } from "./types";
 
@@ -30,16 +30,10 @@ export const InputComponent = <
 type ExtendedOption = {
   value: string | number;
   label: string;
-  needsTeamsUpgrade?: boolean;
   needsCredits?: boolean;
   isCalAi?: boolean;
   creditsTeamId?: number;
   isOrganization?: boolean;
-  upgradeTeamsBadgeProps?: {
-    hasPaidPlan?: boolean;
-    hasActiveTeamPlan?: boolean;
-    isTrial?: boolean;
-  };
 };
 
 export const OptionComponent = <
@@ -63,12 +57,7 @@ export const OptionComponent = <
           )}
           {props.label || <>&nbsp;</>}
         </span>
-        {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (
-          <UpgradeTeamsBadge
-            checkForActiveStatus={true}
-            {...(props.data as unknown as ExtendedOption).upgradeTeamsBadgeProps}
-          />
-        ) : (props.data as unknown as ExtendedOption).needsCredits ? (
+        {(props.data as unknown as ExtendedOption).needsCredits ? (
           <CreditsBadge
             teamId={(props.data as unknown as ExtendedOption).creditsTeamId}
             isOrganization={(props.data as unknown as ExtendedOption).isOrganization}

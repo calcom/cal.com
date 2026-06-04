@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import queue from "queue";
 import { z, ZodError } from "zod";
 
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -55,10 +56,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     await q.start();
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      return res.status(500).json({ message: error.message });
-    }
-    return res.status(500);
+    const httpError = getServerErrorFromUnknown(error);
+    return res.status(httpError.statusCode).json({ message: httpError.message });
   }
   return res.status(200).json({ success: true });
 };

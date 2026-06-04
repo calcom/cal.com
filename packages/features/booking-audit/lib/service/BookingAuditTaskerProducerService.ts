@@ -438,6 +438,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     organizationId: number | null;
     source: ActionSource;
     operationId?: string | null;
+    context?: BookingAuditContext;
     isBookingAuditEnabled: boolean;
   }): Promise<void> {
     await this.queueBulkTask({
@@ -455,6 +456,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     organizationId: number | null;
     source: ActionSource;
     operationId?: string | null;
+    context?: BookingAuditContext;
     isBookingAuditEnabled: boolean;
   }): Promise<void> {
     await this.queueBulkTask({

@@ -13,7 +13,7 @@ export async function checkRateLimitAndThrowError({
   const { success, reset } = response;
   if (!success) {
     const convertToSeconds = (ms: number) => Math.floor(ms / 1000);
-    const secondsToWait = convertToSeconds(reset - Date.now());
+    const secondsToWait = Math.max(0, convertToSeconds(reset - Date.now()));
     throw new HttpError({
       statusCode: 429,
       message: `Rate limit exceeded. Try again in ${secondsToWait} seconds.`,

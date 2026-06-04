@@ -16,24 +16,18 @@ export const filterQuerySchemaStrict: z.ZodType<TFilterQuerySchemaStrict> = z.ob
   schedulingTypes: z.nativeEnum(SchedulingType).array().optional(),
 });
 
-export type TEventTypeInputSchema =
-  | {
-      filters?: TFilterQuerySchemaStrict;
-      forRoutingForms?: boolean;
-    }
-  | null
-  | undefined;
+export type TEventTypeInputSchema = {
+  filters?: TFilterQuerySchemaStrict;
+} | null | undefined;
 
 export const ZEventTypeInputSchema: z.ZodType<TEventTypeInputSchema> = z
   .object({
     filters: filterQuerySchemaStrict.optional(),
-    forRoutingForms: z.boolean().optional(),
   })
   .nullish();
 
 export type TGetEventTypesFromGroupSchemaInput = {
   filters?: TFilterQuerySchemaStrict;
-  forRoutingForms?: boolean;
   cursor?: number | null;
   limit?: number;
   group: { teamId?: number | null; parentId?: number | null };
@@ -42,20 +36,14 @@ export type TGetEventTypesFromGroupSchemaInput = {
 
 export type TGetEventTypesFromGroupSchema = {
   filters?: TFilterQuerySchemaStrict;
-  forRoutingForms?: boolean;
   cursor?: number | null;
   limit: number;
   group: { teamId?: number | null; parentId?: number | null };
   searchQuery?: string;
 };
 
-export const ZGetEventTypesFromGroupSchema: z.ZodType<
-  TGetEventTypesFromGroupSchema,
-  z.ZodTypeDef,
-  TGetEventTypesFromGroupSchemaInput
-> = z.object({
+export const ZGetEventTypesFromGroupSchema: z.ZodType<TGetEventTypesFromGroupSchema, z.ZodTypeDef, TGetEventTypesFromGroupSchemaInput> = z.object({
   filters: filterQuerySchemaStrict.optional(),
-  forRoutingForms: z.boolean().optional(),
   cursor: z.number().nullish(),
   limit: z.number().default(10),
   group: z.object({ teamId: z.number().nullish(), parentId: z.number().nullish() }),

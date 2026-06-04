@@ -16,15 +16,16 @@ export class OAuth2HttpExceptionFilter implements ExceptionFilter<OAuth2HttpExce
     const requestId = request.headers["x-request-id"] ?? "unknown-request-id";
     response.setHeader("X-Request-Id", requestId.toString());
 
-    const userContext = extractUserContext(request);
+    const { userEmail: _userEmail, ...safeUserContext } = extractUserContext(request);
+    const { Authorization: _auth, ...safeHeaders } = filterReqHeaders(request.headers);
     this.logger.error(`OAuth2 Http Exception: ${exception.oAuthErrorData.error}`, {
       exception,
       body: "[REDACTED]",
-      headers: filterReqHeaders(request.headers),
+      headers: safeHeaders,
       url: request.url,
       method: request.method,
       requestId,
-      ...userContext,
+      ...safeUserContext,
     });
 
     response.status(exception.getStatus()).json(exception.oAuthErrorData);

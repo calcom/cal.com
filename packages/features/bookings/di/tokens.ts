@@ -3,8 +3,6 @@ export const BOOKING_DI_TOKENS = {
   REGULAR_BOOKING_SERVICE_MODULE: Symbol("RegularBookingServiceModule"),
   RECURRING_BOOKING_SERVICE: Symbol("RecurringBookingService"),
   RECURRING_BOOKING_SERVICE_MODULE: Symbol("RecurringBookingServiceModule"),
-  INSTANT_BOOKING_CREATE_SERVICE: Symbol("InstantBookingCreateService"),
-  INSTANT_BOOKING_CREATE_SERVICE_MODULE: Symbol("InstantBookingCreateServiceModule"),
   BOOKING_CANCEL_SERVICE: Symbol("BookingCancelService"),
   BOOKING_CANCEL_SERVICE_MODULE: Symbol("BookingCancelServiceModule"),
   BOOKING_REFERENCE_REPOSITORY: Symbol("BookingReferenceRepository"),
@@ -17,4 +15,8 @@ export const BOOKING_DI_TOKENS = {
   BOOKING_EVENT_HANDLER_SERVICE_MODULE: Symbol("BookingEventHandlerServiceModule"),
   ATTENDEE_REPOSITORY: Symbol("AttendeeRepository"),
   ATTENDEE_REPOSITORY_MODULE: Symbol("AttendeeRepositoryModule"),
+  BOOKING_ATTENDEES_SERVICE: Symbol("BookingAttendeesService"),
+  BOOKING_ATTENDEES_SERVICE_MODULE: Symbol("BookingAttendeesServiceModule"),
+  BOOKING_ATTENDEES_REMOVE_SERVICE: Symbol("BookingAttendeesRemoveService"),
+  BOOKING_ATTENDEES_REMOVE_SERVICE_MODULE: Symbol("BookingAttendeesRemoveServiceModule"),
 };

@@ -1,9 +1,4 @@
-import type { EmbedProps } from "app/WithEmbedSSR";
-import type { GetServerSideProps } from "next";
 import { encode } from "node:querystring";
-import type { z } from "zod";
-
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
 import { getBrandingForUser } from "@calcom/features/profile/lib/getBranding";
@@ -19,8 +14,10 @@ import type { EventType, User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import type { EmbedProps } from "app/WithEmbedSSR";
+import type { GetServerSideProps } from "next";
+import type { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
@@ -79,7 +76,8 @@ type UserPageProps = {
 } & EmbedProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const currentOrgDomain = null;
+  const isValidOrgDomain = false;
   const usernameList = getUsernameList(context.query.user as string);
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
   const dataFetchStart = Date.now();
@@ -147,7 +145,16 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     darkBrandColor: branding.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
-    organization: user.profile.organization,
+    organization: user.profile.organization
+      ? {
+          requestedSlug: null,
+          slug: user.profile.organization.slug,
+          id: user.profile.organization.id,
+          brandColor: user.profile.organization.brandColor,
+          darkBrandColor: user.profile.organization.darkBrandColor,
+          theme: user.profile.organization.theme,
+        }
+      : null,
   };
 
   const dataFetchEnd = Date.now();

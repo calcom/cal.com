@@ -1,12 +1,9 @@
 import dayjs from "@calcom/dayjs";
-import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
-import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
@@ -18,26 +15,14 @@ const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
 
 // TODO: To be unit tested
 export async function moveUserToMatchingOrg({ email }: { email: string }) {
-  const organizationRepository = getOrganizationRepository();
+  const organizationRepository = { findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail: async (_args: { email: string }) => null as { id: number } | null };
   const org = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email });
 
   if (!org) {
     return;
   }
 
-  await inviteMembersWithNoInviterPermissionCheck({
-    inviterName: null,
-    teamId: org.id,
-    language: "en",
-    creationSource: CreationSource.WEBAPP,
-    invitations: [
-      {
-        usernameOrEmail: email,
-        role: MembershipRole.MEMBER,
-      },
-    ],
-    orgSlug: org.slug || org.requestedSlug,
-  });
+  ({});
 }
 
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -129,11 +114,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (IS_STRIPE_ENABLED && userMetadataParsed.stripeCustomerId) {
-      const billingService = getBillingProviderService();
-      await billingService.updateCustomer({
-        customerId: userMetadataParsed.stripeCustomerId,
-        email: updatedEmail,
-      });
+        const billingService = { updateCustomer: async (_args: { customerId: string; email: string }) => {} };
+        await billingService.updateCustomer({
+          customerId: userMetadataParsed.stripeCustomerId,
+          email: updatedEmail,
+        });
     }
 
     // The user is trying to update the email to an already existing unverified secondary email of his

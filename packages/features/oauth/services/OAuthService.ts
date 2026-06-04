@@ -1,15 +1,14 @@
 import { randomBytes } from "node:crypto";
-import jwt from "jsonwebtoken";
-
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
-import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
+import process from "node:process";
+import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
+import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
-import { OAuthClientStatus } from "@calcom/prisma/enums";
 import type { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
+import { OAuthClientStatus } from "@calcom/prisma/enums";
+import jwt from "jsonwebtoken";
 
 export interface OAuth2Client {
   clientId: string;
@@ -50,18 +49,15 @@ interface DecodedRefreshToken {
 
 export class OAuthService {
   private readonly accessCodeRepository: AccessCodeRepository;
-  private readonly teamsRepository: TeamRepository;
   private readonly oAuthClientRepository: OAuthClientRepository;
 
   constructor(
-    private readonly deps: {
+    readonly deps: {
       oAuthClientRepository: OAuthClientRepository;
       accessCodeRepository: AccessCodeRepository;
-      teamsRepository: TeamRepository;
     }
   ) {
     this.accessCodeRepository = deps.accessCodeRepository;
-    this.teamsRepository = deps.teamsRepository;
     this.oAuthClientRepository = deps.oAuthClientRepository;
   }
 
@@ -82,7 +78,11 @@ export class OAuthService {
     };
   }
 
-  async getClientForAuthorization(clientId: string, redirectUri: string): Promise<OAuth2Client> {
+  async getClientForAuthorization(
+    clientId: string,
+    redirectUri: string,
+    userId?: number
+  ): Promise<OAuth2Client> {
     const client = await this.oAuthClientRepository.findByClientId(clientId);
 
     if (!client) {
@@ -91,7 +91,9 @@ export class OAuthService {
 
     this.validateRedirectUri(client.redirectUri, redirectUri);
 
-    this.ensureClientIsApproved(client);
+    // Allow PENDING clients if the logged-in user owns them (for developer testing).
+    // REJECTED clients are always blocked regardless of ownership.
+    this.ensureClientIsApprovedOrOwnedPending(client, userId);
 
     return {
       clientId: client.clientId,
@@ -109,7 +111,7 @@ export class OAuthService {
     redirectUri: string,
     scopes: AccessScope[],
     state?: string,
-    teamSlug?: string,
+    _teamSlug?: string,
     codeChallenge?: string,
     codeChallengeMethod?: string
   ): Promise<AuthorizeResult> {
@@ -119,7 +121,9 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", { reason: "client_not_found" });
     }
 
-    this.ensureClientIsApproved(client);
+    // Allow PENDING clients if the logged-in user owns them (for developer testing).
+    // REJECTED clients are always blocked regardless of ownership.
+    this.ensureClientIsApprovedOrOwnedPending(client, userId);
 
     // RFC 6749 4.1.2.1: Redirect URI mismatch on Auth step is 'invalid_request'
     this.validateRedirectUri(client.redirectUri, redirectUri);
@@ -141,25 +145,12 @@ export class OAuthService {
       }
     }
 
-    let teamId: number | undefined;
-    if (teamSlug) {
-      const team = await this.teamsRepository.findTeamBySlugWithAdminRole(teamSlug, userId);
-      if (!team) {
-        // Specific OAuth error for user denying or failing permission
-        throw new ErrorWithCode(ErrorCode.Unauthorized, "access_denied", {
-          reason: "team_not_found_or_no_access",
-        });
-      }
-      teamId = team.id;
-    }
-
     const authorizationCode = this.generateAuthorizationCodeString();
 
     await this.accessCodeRepository.create({
       code: authorizationCode,
       clientId,
-      userId: teamSlug ? undefined : userId,
-      teamId,
+      userId,
       scopes,
       codeChallenge,
       codeChallengeMethod,
@@ -179,6 +170,40 @@ export class OAuthService {
         reason: "client_not_approved",
       });
     }
+  }
+
+  /**
+   * Ensures the client is approved, with a special exception for PENDING clients
+   * owned by the requesting user (for developer testing).
+   * REJECTED clients are always blocked regardless of ownership.
+   */
+  private ensureClientIsApprovedOrOwnedPending(
+    client: { status: OAuthClientStatus; userId?: number | null },
+    userId?: number | null
+  ): void {
+    if (client.status === OAuthClientStatus.APPROVED) {
+      return;
+    }
+
+    if (client.status === OAuthClientStatus.REJECTED) {
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", {
+        reason: "client_rejected",
+      });
+    }
+
+    // PENDING: allow if owned by the requesting user
+    if (
+      client.status === OAuthClientStatus.PENDING &&
+      userId !== undefined &&
+      userId !== null &&
+      client.userId === userId
+    ) {
+      return;
+    }
+
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", {
+      reason: "client_not_approved",
+    });
   }
 
   private validateRedirectUri(registeredUri: string, providedUri: string): void {
@@ -283,6 +308,9 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "code_invalid_or_expired" });
     }
 
+    // Check approval status (allow owned PENDING clients for developer testing)
+    this.ensureClientIsApprovedOrOwnedPending(client, accessCode.userId);
+
     const pkceError = this.verifyPKCE(client, accessCode, codeVerifier);
     if (pkceError) {
       // RFC 7636 4.4.1: If verification fails, return 'invalid_grant'
@@ -318,8 +346,6 @@ export class OAuthService {
       });
     }
 
-    this.ensureClientIsApproved(client);
-
     const decodedToken = this.verifyRefreshToken(refreshToken);
 
     if (!decodedToken || decodedToken.token_type !== "Refresh Token") {
@@ -329,6 +355,9 @@ export class OAuthService {
     if (decodedToken.clientId !== clientId) {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "client_id_mismatch" });
     }
+
+    // Check approval status (allow owned PENDING clients for developer testing)
+    this.ensureClientIsApprovedOrOwnedPending(client, decodedToken.userId);
 
     const tokens = this.createTokens({
       clientId,
@@ -459,6 +488,7 @@ export class OAuthService {
 export type OAuthErrorReason =
   | "client_not_found"
   | "client_not_approved"
+  | "client_rejected"
   | "redirect_uri_mismatch"
   | "pkce_required"
   | "invalid_code_challenge_method"
@@ -476,6 +506,7 @@ export type OAuthErrorReason =
 export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   client_not_found: "OAuth client with ID not found",
   client_not_approved: "OAuth client is not approved",
+  client_rejected: "OAuth client has been rejected",
   redirect_uri_mismatch: "redirect_uri does not match OAuth client's redirect URI",
   pkce_required: "code_challenge required for public clients",
   invalid_code_challenge_method: "code_challenge_method must be S256",

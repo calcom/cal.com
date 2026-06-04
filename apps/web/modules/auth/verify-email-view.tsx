@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect } from "react";
@@ -28,7 +28,7 @@ const EMAIL_CLIENTS = [
   {
     name: "Yahoo",
     icon: "/email-clients/yahoo.svg",
-    href: "https://mail.yahoo.com/d/search?p=Cal.com",
+    href: "https://mail.yahoo.com/d/search?p=Cal.diy",
   },
   {
     name: "Proton",
@@ -83,16 +83,25 @@ function VerifyEmailPage() {
                     </Button>
                   ))}
                 </div>
-                <Button
-                  color="minimal"
-                  loading={mutation.isPending}
-                  onClick={() => {
-                    posthog.capture("verify_email_resend_clicked");
-                    showToast(t("send_email"), "success");
-                    mutation.mutate();
-                  }}>
-                  {t("resend_email")}
-                </Button>
+                <div className="flex flex-col items-center gap-2">
+                  <Button
+                    color="minimal"
+                    loading={mutation.isPending}
+                    onClick={() => {
+                      posthog.capture("verify_email_resend_clicked");
+                      showToast(t("send_email"), "success");
+                      mutation.mutate();
+                    }}>
+                    {t("resend_email")}
+                  </Button>
+                  <Button
+                    color="minimal"
+                    onClick={() => {
+                      signOut({ callbackUrl: "/signup" });
+                    }}>
+                    {t("use_different_email")}
+                  </Button>
+                </div>
               </>
             }
           />

@@ -37,6 +37,7 @@ export class OAuthClientRepository {
         clientSecret: true,
         clientType: true,
         status: true,
+        userId: true,
       },
     });
   }

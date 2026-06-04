@@ -1,21 +1,14 @@
-<!-- PROJECT LOGO -->
-<div align="center">
-  <a href="https://cal.com/enterprise">
-    <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
-  </a>
-</div>
-
 # Zapier Integration – Developer Guide
 
-**Note:** This is a redirect app. End users should connect Cal.com to Zapier directly via the Zapier Integrations page: https://zapier.com/apps/calcom/integrations
+**Note:** This is a redirect app. End users should connect Cal.diy to Zapier directly via the Zapier Integrations page: https://zapier.com/apps/calcom/integrations
 
-The Zapier app in Cal.com now functions as a redirect app that takes users directly to Zapier's integration page. No local setup or OAuth configuration is required.
+The Zapier app in Cal.diy now functions as a redirect app that takes users directly to Zapier's integration page. No local setup or OAuth configuration is required.
 
 ## How It Works
 
 1. **User clicks "Visit"** → Opens Zapier integrations page
 2. **User sets up automation** → Directly on Zapier's platform
-3. **No Cal.com credentials needed** → Users authenticate directly with Zapier
+3. **No Cal.diy credentials needed** → Users authenticate directly with Zapier
 
 ## For Developers
 

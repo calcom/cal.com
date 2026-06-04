@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -36,10 +37,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("Unable to create user credential for wipe-my-cal");
     }
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      return res.status(500).json({ message: error.message });
-    }
-    return res.status(500);
+    const httpError = getServerErrorFromUnknown(error);
+    return res.status(httpError.statusCode).json({ message: httpError.message });
   }
 
   return res.status(200).json({ url: getInstalledAppPath({ variant: "other", slug: "wipe-my-cal" }) });

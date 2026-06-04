@@ -7,7 +7,7 @@
   "url": "https://meetings.dialpad.com/",
   "variant": "conferencing",
   "categories": ["conferencing"],
-  "publisher": "Cal.com",
+  "publisher": "Cal.diy",
   "email": "help@cal.com",
   "appData": {
     "location": {
@@ -15,7 +15,7 @@
       "label": "{TITLE}",
       "linkType": "static",
       "organizerInputPlaceholder": "https://meetings.dialpad.com/adb2002",
-      "urlRegExp": "^https:\\/\\/meetings\\.dialpad\\.com\\/[a-zA-Z0-9]+$"
+      "urlRegExp": "^https:\\/\\/meetings\\.dialpad\\.com\\/[a-zA-Z0-9._-]+$"
     }
   },
   "description": "A new way to meet, with built-in Ai",

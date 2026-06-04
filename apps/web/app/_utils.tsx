@@ -7,7 +7,7 @@ import { constructAppImage, constructGenericImage, constructMeetingImage } from 
 import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG, CAL_URL } from "@calcom/lib/constants";
 import { getCalcomUrl } from "@calcom/lib/getCalcomUrl";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { truncateOnWord } from "@calcom/lib/text";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";

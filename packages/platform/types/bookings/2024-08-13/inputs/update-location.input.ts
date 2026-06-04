@@ -13,6 +13,7 @@ import {
   BookingInputAttendeePhoneLocation_2024_08_13,
   BookingInputLinkLocation_2024_08_13,
   BookingInputPhoneLocation_2024_08_13,
+  BookingInputIntegrationLocation_2024_08_13,
 } from "./location.input";
 
 export class UpdateInputAddressLocation_2024_08_13 extends BookingInputAddressLocation_2024_08_13 {
@@ -43,13 +44,16 @@ export class UpdateBookingInputPhoneLocation_2024_08_13 extends BookingInputPhon
   phone!: string;
 }
 
+export class UpdateBookingInputIntegrationLocation_2024_08_13 extends BookingInputIntegrationLocation_2024_08_13 {}
+
 export type UpdateBookingInputLocation_2024_08_13 =
   | UpdateInputAddressLocation_2024_08_13
   | UpdateBookingInputAttendeeAddressLocation_2024_08_13
   | UpdateBookingInputAttendeeDefinedLocation_2024_08_13
   | UpdateBookingInputAttendeePhoneLocation_2024_08_13
   | UpdateBookingInputLinkLocation_2024_08_13
-  | UpdateBookingInputPhoneLocation_2024_08_13;
+  | UpdateBookingInputPhoneLocation_2024_08_13
+  | UpdateBookingInputIntegrationLocation_2024_08_13;
 
 @ValidatorConstraint({ async: true })
 class UpdateBookingInputLocationValidator_2024_08_13 implements ValidatorConstraintInterface {
@@ -62,6 +66,7 @@ class UpdateBookingInputLocationValidator_2024_08_13 implements ValidatorConstra
     attendeePhone: UpdateBookingInputAttendeePhoneLocation_2024_08_13,
     link: UpdateBookingInputLinkLocation_2024_08_13,
     phone: UpdateBookingInputPhoneLocation_2024_08_13,
+    integration: UpdateBookingInputIntegrationLocation_2024_08_13,
   };
 
   async validate(location: { type: string }) {
@@ -73,7 +78,7 @@ class UpdateBookingInputLocationValidator_2024_08_13 implements ValidatorConstra
 
     const ClassType = this.classTypeMap[type];
     if (!ClassType) {
-      this.validationMessage = `UpdateBookingInputLocationValidator_2024_08_13 - Unsupported booking location type '${type}'. Valid types are address, link, phone, attendeePhone, attendeeAddress, and attendeeDefined.`;
+      this.validationMessage = `UpdateBookingInputLocationValidator_2024_08_13 - Unsupported booking location type '${type}'. Valid types are address, link, phone, attendeePhone, attendeeAddress, attendeeDefined, and integration.`;
       return false;
     }
 
@@ -115,7 +120,8 @@ export function ValidateUpdateBookingLocation_2024_08_13(validationOptions?: Val
   UpdateBookingInputAttendeeDefinedLocation_2024_08_13,
   UpdateBookingInputAttendeePhoneLocation_2024_08_13,
   UpdateBookingInputLinkLocation_2024_08_13,
-  UpdateBookingInputPhoneLocation_2024_08_13
+  UpdateBookingInputPhoneLocation_2024_08_13,
+  UpdateBookingInputIntegrationLocation_2024_08_13
 )
 export class UpdateBookingLocationInput_2024_08_13 {
   @IsOptional()
@@ -130,6 +136,7 @@ export class UpdateBookingLocationInput_2024_08_13 {
       { $ref: getSchemaPath(UpdateBookingInputAttendeePhoneLocation_2024_08_13) },
       { $ref: getSchemaPath(UpdateBookingInputLinkLocation_2024_08_13) },
       { $ref: getSchemaPath(UpdateBookingInputPhoneLocation_2024_08_13) },
+      { $ref: getSchemaPath(UpdateBookingInputIntegrationLocation_2024_08_13) },
     ],
   })
   location?: UpdateBookingInputLocation_2024_08_13;

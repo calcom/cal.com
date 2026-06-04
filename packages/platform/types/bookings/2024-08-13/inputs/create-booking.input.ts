@@ -345,7 +345,7 @@ export class CreateBookingInput_2024_08_13 {
     ],
   })
   @Type(() => Object)
-  // note(Lauris): string is for backwards compatability
+  // note(Lauris): string is for backwards compatibility
   location?: BookingInputLocation_2024_08_13 | string;
 
   @ApiProperty({
@@ -407,16 +407,6 @@ export class CreateBookingInput_2024_08_13 {
   @IsArray()
   @IsInt({ each: true })
   rrHostSubsetIds?: number[];
-}
-
-export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
-  @ApiProperty({
-    type: Boolean,
-    description: "Flag indicating if the booking is an instant booking. Only available for team events.",
-    example: true,
-  })
-  @IsBoolean()
-  instant!: boolean;
 }
 
 export class CreateRecurringBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {

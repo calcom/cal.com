@@ -1,4 +1,3 @@
-import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -24,9 +23,11 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           destinationCalendar: true,
           locale: true,
           isPlatformManaged: true,
+          hideBranding: true,
           profiles: {
             select: {
               organizationId: true,
+              organization: { select: { hideBranding: true } },
             },
           },
         },
@@ -63,6 +64,8 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: { select: { hideBranding: true } },
             },
           },
           parentId: true,
@@ -82,6 +85,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           length: true,
           seatsPerTimeSlot: true,
           disableCancelling: true,
+          requiresCancellationReason: true,
           bookingFields: true,
           seatsShowAttendees: true,
           metadata: true,
@@ -93,13 +97,6 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
               user: true,
             },
           },
-          workflows: {
-            select: {
-              workflow: {
-                select: workflowSelect,
-              },
-            },
-          },
         },
       },
       uid: true,
@@ -107,7 +104,6 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
       eventTypeId: true,
       destinationCalendar: true,
       smsReminderNumber: true,
-      workflowReminders: true,
       seatsReferences: true,
       responses: true,
       iCalUID: true,

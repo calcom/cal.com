@@ -1,4 +1,6 @@
-# Contributing to Cal.com
+# Contributing to Cal.diy
+
+> **Important:** Cal.diy is a community-driven, open-source fork of Cal.com. Contributions made here **do not** get merged into Cal.com's production service — Cal.com is now closed-source. This repo is maintained independently by the community under the MIT license.
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
@@ -6,7 +8,7 @@ Contributions are what make the open source community such an amazing place to l
 
 ### 👥 Prevent Work Duplication
 
-Before submitting a new issue or PR, check if it already exists in the [Issues](https://github.com/calcom/cal.com/issues) or [Pull Requests](https://github.com/calcom/cal.com/pulls).
+Before submitting a new issue or PR, check if it already exists in the [Issues](https://github.com/calcom/cal.diy/issues) or [Pull Requests](https://github.com/calcom/cal.diy/pulls).
 
 ### ✅ Work Only on Approved Issues
 
@@ -64,7 +66,7 @@ Write with the future in mind. If there are trade-offs, edge cases, or temporary
   <tr>
     <td>Minor improvements, non-core feature requests</td>
     <td>
-      <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:%22Low+priority%22">
+      <a href="https://github.com/calcom/cal.diy/issues?q=is:issue+is:open+sort:updated-desc+label:%22Low+priority%22">
         <img src="https://img.shields.io/badge/-Low%20Priority-green">
       </a>
     </td>
@@ -72,7 +74,7 @@ Write with the future in mind. If there are trade-offs, edge cases, or temporary
   <tr>
     <td>Confusing UX (but still functional)</td>
     <td>
-      <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:%22Medium+priority%22">
+      <a href="https://github.com/calcom/cal.diy/issues?q=is:issue+is:open+sort:updated-desc+label:%22Medium+priority%22">
         <img src="https://img.shields.io/badge/-Medium%20Priority-yellow">
       </a>
     </td>
@@ -80,7 +82,7 @@ Write with the future in mind. If there are trade-offs, edge cases, or temporary
   <tr>
     <td>Core Features (Booking page, availability, timezone calculation)</td>
     <td>
-      <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:%22High+priority%22">
+      <a href="https://github.com/calcom/cal.diy/issues?q=is:issue+is:open+sort:updated-desc+label:%22High+priority%22">
         <img src="https://img.shields.io/badge/-High%20Priority-orange">
       </a>
     </td>
@@ -88,7 +90,7 @@ Write with the future in mind. If there are trade-offs, edge cases, or temporary
   <tr>
     <td>Core Bugs (Login, Booking page, Emails not working)</td>
     <td>
-      <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:Urgent">
+      <a href="https://github.com/calcom/cal.diy/issues?q=is:issue+is:open+sort:updated-desc+label:Urgent">
         <img src="https://img.shields.io/badge/-Urgent-red">
       </a>
     </td>
@@ -148,7 +150,7 @@ export class HashedLinkService { ... }
 
 ## Developing
 
-[See README](https://github.com/calcom/cal.com#development)
+[See README](https://github.com/calcom/cal.diy#development)
 
 ## Building
 
@@ -166,7 +168,7 @@ More info on how to add new tests coming soon.
 
 ### Running Tests
 
-[See README](https://github.com/calcom/cal.com#e2e-testing)
+[See README](https://github.com/calcom/cal.diy#e2e-testing)
 
 #### Resolving Issues
 

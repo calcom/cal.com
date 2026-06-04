@@ -3,7 +3,7 @@ import { config as dotenvConfig } from "dotenv";
 import type { NextConfig } from "next";
 import type { RouteHas } from "next/dist/lib/load-custom-routes";
 import { withAxiom } from "next-axiom";
-import i18nConfig from "./next-i18next.config";
+import i18nConfig from "@calcom/i18n/next-i18next.config";
 import packageJson from "./package.json";
 import {
   nextJsOrgRewriteConfig,
@@ -249,11 +249,6 @@ const nextConfig = (phase: string): NextConfig => {
       "@coss/ui",
     ],
     modularizeImports: {
-      "@calcom/web/modules/insights/components": {
-        transform: "@calcom/web/modules/insights/components/{{member}}",
-        skipDefaultConversion: true,
-        preventFullImport: true,
-      },
       lodash: {
         transform: "lodash/{{member}}",
       },
@@ -272,14 +267,6 @@ const nextConfig = (phase: string): NextConfig => {
         {
           source: "/forms/:formQuery*",
           destination: "/apps/routing-forms/routing-link/:formQuery*",
-        },
-        {
-          source: "/routing",
-          destination: "/routing/forms",
-        },
-        {
-          source: "/routing/:path*",
-          destination: "/apps/routing-forms/:path*",
         },
         {
           source: "/routing-forms",
@@ -339,6 +326,10 @@ const nextConfig = (phase: string): NextConfig => {
       ].filter(isNotNull);
 
       const afterFiles = [
+        {
+          source: "/routing/:path*",
+          destination: "/apps/routing-forms/:path*",
+        },
         {
           source: "/org/:slug",
           destination: "/team/:slug",
@@ -616,11 +607,6 @@ const nextConfig = (phase: string): NextConfig => {
         {
           source: "/apps/installed",
           destination: "/apps/installed/calendar",
-          permanent: true,
-        },
-        {
-          source: "/settings/organizations/platform/:path*",
-          destination: "/settings/platform",
           permanent: true,
         },
         {

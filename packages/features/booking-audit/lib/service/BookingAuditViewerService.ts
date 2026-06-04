@@ -4,7 +4,7 @@ import type { CredentialRepository } from "@calcom/features/credentials/reposito
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import type { TranslationWithParams } from "../actions/IAuditActionService";
+import type { DisplayField, TranslationWithParams } from "../actions/IAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 import type { BookingAuditContext } from "../dto/types";
 import type { AuditActorType } from "../repository/IAuditActorRepository";
@@ -41,7 +41,7 @@ type EnrichedAuditLog = {
   operationId: string;
   displayJson?: Record<string, unknown> | null;
   actionDisplayTitle: TranslationWithParams;
-  displayFields?: Array<{ labelKey: string; valueKey?: string; value?: string; values?: string[] }> | null;
+  displayFields?: DisplayField[] | null;
   actor: {
     id: string;
     type: AuditActorType;

@@ -26,7 +26,7 @@ Focus on providing a clear summary of what the PR is doing and its core function
 
 - Does the code do what it claims to do?
 - Are there any obvious bugs or edge cases?
-- Does it follow Cal.com coding standards?
+- Does it follow Cal.diy coding standards?
 - Is the change appropriately scoped?
 
 ## What to Skip (Unless Asked)

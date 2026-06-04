@@ -8,10 +8,10 @@ env:
 jobs:
   check-prisma-migrations:
     name: Check migrations match schema
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:13
+        image: postgres:18
         credentials:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}

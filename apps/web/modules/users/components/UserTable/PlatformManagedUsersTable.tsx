@@ -1,20 +1,5 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { useMemo, useReducer, useState } from "react";
-
-import { DataTableProvider } from "~/data-table/DataTableProvider";
-import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
-import { useDataTable } from "~/data-table/hooks/useDataTable";
-import {
-  DataTableWrapper,
-  DataTableToolbar,
-  DataTableFilters,
-  DataTableSegment,
-  DataTableSelectionBar,
-} from "~/data-table/components";
-import { useSegments } from "~/data-table/hooks/useSegments";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -22,10 +7,23 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-
+import { keepPreviousData } from "@tanstack/react-query";
+import { type ColumnDef, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { useMemo, useReducer, useState } from "react";
+import {
+  DataTableFilters,
+  DataTableSegment,
+  DataTableSelectionBar,
+  DataTableToolbar,
+  DataTableWrapper,
+} from "~/data-table/components";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DeleteMemberModal } from "./DeleteMemberModal";
-import type { UserTableState, UserTableAction, PlatformManagedUserTableUser } from "./types";
+import type { PlatformManagedUserTableUser, UserTableAction, UserTableState } from "./types";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -80,19 +78,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
   const limit = pageSize;
   const offset = pageIndex * pageSize;
 
-  const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
-    {
-      limit,
-      offset,
-      searchTerm,
-      filters: columnFilters,
-      oAuthClientId,
-    },
-    {
-      placeholderData: keepPreviousData,
-      enabled: !!oAuthClientId,
-    }
-  );
+  const data = { rows: [] as PlatformManagedUserTableUser[], meta: { totalRowCount: 0 } };
+  const isPending = false;
 
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
 
@@ -186,7 +173,8 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
       },
       {
         id: "teams",
-        accessorFn: (data) => data.teams.map((team) => team.name),
+        accessorFn: (data) =>
+          data.teams.map((team: { id: number; name: string; slug: string | null }) => team.name),
         header: t("teams"),
         size: 140,
         cell: ({ row, table }) => {
@@ -210,7 +198,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
                 </Badge>
               )}
 
-              {teams.map((team) => (
+              {teams.map((team: { id: number; name: string; slug: string | null }) => (
                 <Badge
                   key={team.id}
                   variant="gray"

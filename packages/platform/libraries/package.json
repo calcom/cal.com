@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@calcom/features": "workspace:*",
+    "@calcom/i18n": "workspace:*",
     "@calcom/lib": "workspace:*"
   },
   "peerDependencies": {
@@ -30,16 +31,11 @@
     "@types/node": "20.17.23",
     "@vitejs/plugin-react": "5.1.2",
     "typescript": "5.9.3",
-    "vite": "6.4.1",
+    "vite": "6.4.2",
     "vite-plugin-dts": "4.5.4",
     "vite-plugin-environment": "1.1.3"
   },
   "exports": {
-    "./workflows": {
-      "import": "./dist/workflows.js",
-      "require": "./dist/workflows.cjs",
-      "types": "./dist/workflows.d.ts"
-    },
     "./app-store": {
       "import": "./dist/app-store.js",
       "require": "./dist/app-store.cjs",
@@ -95,11 +91,6 @@
       "require": "./dist/private-links.cjs",
       "types": "./dist/private-links.d.ts"
     },
-    "./pbac": {
-      "import": "./dist/pbac.js",
-      "require": "./dist/pbac.cjs",
-      "types": "./dist/pbac.d.ts"
-    },
     "./errors": {
       "import": "./dist/errors.js",
       "require": "./dist/errors.cjs",
@@ -133,9 +124,6 @@
       "schedules": [
         "dist/schedules.d.ts"
       ],
-      "workflows": [
-        "dist/workflows.d.ts"
-      ],
       "conferencing": [
         "dist/conferencing.d.ts"
       ],
@@ -150,9 +138,6 @@
       ],
       "private-links": [
         "dist/private-links.d.ts"
-      ],
-      "pbac": [
-        "dist/pbac.d.ts"
       ],
       "errors": [
         "dist/errors.d.ts"

@@ -1,5 +1,3 @@
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { createTeamPbacProcedure } from "../../../procedures/pbacProcedures";
@@ -13,8 +11,6 @@ import { ZGetInputSchema } from "./get.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 import { ZGetBookingDetailsInputSchema } from "./getBookingDetails.schema";
 import { ZGetBookingHistoryInputSchema } from "./getBookingHistory.schema";
-import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
-import { ZGetRoutingTraceInputSchema } from "./getRoutingTrace.schema";
 import { ZGetWrongAssignmentReportsInputSchema } from "./getWrongAssignmentReports.schema";
 import { ZHasWrongAssignmentReportInputSchema } from "./hasWrongAssignmentReport.schema";
 import { ZReportBookingInputSchema } from "./reportBooking.schema";
@@ -22,6 +18,7 @@ import { ZReportWrongAssignmentInputSchema } from "./reportWrongAssignment.schem
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { ZUpdateWrongAssignmentReportStatusInputSchema } from "./updateWrongAssignmentReportStatus.schema";
 import { bookingsProcedure } from "./util";
+
 export const bookingsRouter = router({
   get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
     const { getHandler } = await import("./get.handler");
@@ -67,11 +64,7 @@ export const bookingsRouter = router({
 
     return confirmHandler({
       ctx,
-      input: {
-        ...input,
-        actor: makeUserActor(ctx.user.uuid),
-        actionSource: "WEBAPP",
-      },
+      input,
     });
   }),
 
@@ -104,24 +97,12 @@ export const bookingsRouter = router({
     });
   }),
 
-  getInstantBookingLocation: publicProcedure
-    .input(ZInstantBookingInputSchema)
-    .query(async ({ input, ctx }) => {
-      const { getHandler } = await import("./getInstantBookingLocation.handler");
-
-      return getHandler({
-        ctx,
-        input,
-      });
-    }),
-
   reportBooking: authedProcedure.input(ZReportBookingInputSchema).mutation(async ({ input, ctx }) => {
     const { reportBookingHandler } = await import("./reportBooking.handler");
 
     return reportBookingHandler({
       ctx,
       input,
-      actionSource: "WEBAPP",
     });
   }),
   reportWrongAssignment: authedProcedure
@@ -148,14 +129,6 @@ export const bookingsRouter = router({
     const { getBookingHistoryHandler } = await import("./getBookingHistory.handler");
 
     return getBookingHistoryHandler({
-      ctx,
-      input,
-    });
-  }),
-  getRoutingTrace: authedProcedure.input(ZGetRoutingTraceInputSchema).query(async ({ input, ctx }) => {
-    const { getRoutingTraceHandler } = await import("./getRoutingTrace.handler");
-
-    return getRoutingTraceHandler({
       ctx,
       input,
     });

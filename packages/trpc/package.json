@@ -2,7 +2,7 @@
   "name": "@calcom/trpc",
   "sideEffects": false,
   "private": true,
-  "description": "Shared tRPC library for Cal.com",
+  "description": "Shared tRPC library for Cal.diy",
   "authors": "zomars",
   "version": "1.0.0",
   "main": "index.ts",
@@ -14,6 +14,7 @@
     "build:react": "yarn tsc --project tsconfig.react.json"
   },
   "dependencies": {
+    "@calcom/i18n": "workspace:*",
     "@formbricks/api": "3.0.0",
     "@trpc/client": "11.0.0-next-beta.222",
     "@trpc/next": "11.0.0-next-beta.222",

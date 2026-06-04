@@ -7,7 +7,9 @@ export function getReplyToHeader(
   additionalEmails?: string | string[],
   excludeOrganizerEmail?: boolean
 ) {
-  const replyToEmail = getReplyToEmail(calEvent, excludeOrganizerEmail ?? calEvent.hideOrganizerEmail);
+  if (calEvent.hideOrganizerEmail) return {};
+
+  const replyToEmail = getReplyToEmail(calEvent, excludeOrganizerEmail);
   const emailArray: string[] = [];
 
   if (additionalEmails) {
@@ -26,6 +28,6 @@ export function getReplyToHeader(
     return {};
   }
 
-  const replyTo = emailArray.length === 1 ? emailArray[0] : emailArray;
+  const replyTo = emailArray.join(", ");
   return { replyTo };
 }

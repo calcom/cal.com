@@ -1,3 +1,5 @@
+import type { Session } from "next-auth";
+
 import { handleMarkAttendeesAndHostNoShow } from "@calcom/features/handleMarkNoShow";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -7,6 +9,7 @@ type NoShowOptions = {
   input: TNoShowInputSchema;
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    session: Session;
   };
 };
 
@@ -18,8 +21,6 @@ export const markNoShow = async ({ ctx, input }: NoShowOptions) => {
     attendees,
     noShowHost,
     userId: ctx.user.id,
-    userUuid: ctx.user.uuid,
     locale: ctx.user.locale,
-    actionSource: "WEBAPP",
   });
 };

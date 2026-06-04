@@ -1,4 +1,4 @@
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type {
   EventTypeSetupProps,
@@ -17,6 +17,7 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
   DateRangePicker,
@@ -28,17 +29,15 @@ import {
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Badge } from "@calcom/ui/components/badge";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
+import Link from "next/link";
+import type React from "react";
 import type { Key } from "react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
-import Link from "next/link";
-
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
@@ -134,16 +133,16 @@ function RangeLimitRadioItem({
   return (
     <div
       className={classNames(
-        "text-default mb-2 flex flex-col items-start text-sm sm:flex-row sm:items-center",
+        "mb-2 flex flex-col items-start text-default text-sm sm:flex-row sm:items-center",
         customClassNames?.wrapper
       )}>
-      <div className="flex items-center w-full sm:w-auto">
+      <div className="flex w-full items-center sm:w-auto">
         {!isDisabled && (
           <RadioGroup.Item
             id={radioValue}
             value={radioValue}
-            className="flex items-center w-4 h-4 rounded-full border cursor-pointer bg-default border-default min-w-4 focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-            <RadioGroup.Indicator className="flex relative justify-center items-center w-4 h-4 after:bg-inverted after:block after:h-2 after:w-2 after:rounded-full" />
+            className="flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border border-default bg-default focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+            <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-inverted" />
           </RadioGroup.Item>
         )}
         <span>{t("within_date_range")}</span>
@@ -151,7 +150,7 @@ function RangeLimitRadioItem({
       <div>
         <div
           className={classNames(
-            "ml-0 mr-2 mt-2 w-full sm:ml-2 sm:mt-0 sm:w-auto",
+            "mt-2 mr-2 ml-0 w-full sm:mt-0 sm:ml-2 sm:w-auto",
             customClassNames?.datePickerWraper
           )}>
           <Controller
@@ -218,15 +217,15 @@ function RollingLimitRadioItem({
   return (
     <div
       className={classNames(
-        "text-default mb-2 flex flex-wrap items-baseline text-sm",
+        "mb-2 flex flex-wrap items-baseline text-default text-sm",
         customClassNames?.container
       )}>
       {!isDisabled && (
         <RadioGroup.Item
           id={radioValue}
           value={radioValue}
-          className="flex items-center w-4 h-4 rounded-full border cursor-pointer bg-default border-default min-w-4 focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-          <RadioGroup.Indicator className="flex relative justify-center items-center w-4 h-4 after:bg-inverted after:block after:h-2 after:w-2 after:rounded-full" />
+          className="flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border border-default bg-default focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+          <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-inverted" />
         </RadioGroup.Item>
       )}
 
@@ -236,7 +235,7 @@ function RollingLimitRadioItem({
             labelSrOnly
             type="number"
             className={classNames(
-              "border-default my-0 block w-16 text-sm [appearance:textfield]",
+              "my-0 block w-16 border-default text-sm [appearance:textfield]",
               customClassNames?.textField
             )}
             placeholder="30"
@@ -259,9 +258,9 @@ function RollingLimitRadioItem({
             )}
             innerClassNames={customClassNames?.periodTypeSelect?.innerClassNames}
           />
-          <span className="me-2 ms-2">&nbsp;{t("into_the_future")}</span>
+          <span className="ms-2 me-2">&nbsp;{t("into_the_future")}</span>
         </div>
-        <div className="flex flex-col py-2 -ml-6">
+        <div className="-ml-6 flex flex-col py-2">
           <div className="flex items-center">
             <CheckboxField
               checked={!!rollingExcludeUnavailableDays}
@@ -291,7 +290,7 @@ function RollingLimitRadioItem({
               })}>
               <Icon
                 name="info"
-                className="inline w-4 h-4 rounded-md text-default hover:text-attention hover:bg-attention ms-1"
+                className="ms-1 inline h-4 w-4 rounded-md text-default hover:bg-attention hover:text-attention"
               />
             </Tooltip>
           </div>
@@ -301,12 +300,13 @@ function RollingLimitRadioItem({
   );
 }
 
-const MinimumBookingNoticeInput = React.forwardRef<
-  HTMLInputElement,
-  Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref"> & {
-    customClassNames?: SelectClassNames & { input?: string };
-  }
->(function MinimumBookingNoticeInput({ customClassNames, ...passThroughProps }, ref) {
+const MinimumBookingNoticeInput = function MinimumBookingNoticeInput({
+  customClassNames,
+  ref,
+  ...passThroughProps
+}: Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref"> & {
+  customClassNames?: SelectClassNames & { input?: string };
+} & { ref?: React.Ref<HTMLInputElement> }) {
   const { t } = useLocale();
   const { setValue, getValues } = useFormContext<FormValues>();
   const durationTypeOptions: {
@@ -352,7 +352,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
   }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
   return (
-    <div className="flex justify-end items-end">
+    <div className="flex items-end justify-end">
       <div className="w-1/2 md:w-full">
         <InputField
           required
@@ -395,7 +395,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
       />
     </div>
   );
-});
+};
 
 export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabProps) => {
   const { t, i18n } = useLocale();
@@ -436,7 +436,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
     teamId?: number | null;
   }) => {
     const badge = (
-      <Badge variant="blue" className="text-xs cursor-pointer hover:opacity-80">
+      <Badge variant="blue" className="cursor-pointer text-xs hover:opacity-80">
         {t("team_limits_apply")}
       </Badge>
     );
@@ -455,11 +455,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
     return null;
   };
 
-  const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
+  const shouldLockIndicator = (_field: string): null => null;
+  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
 
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
@@ -469,7 +466,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const maxActiveBookingsPerBookerLocked = shouldLockDisableProps("maxActiveBookingsPerBooker");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
-  const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
+  const [_maxActiveBookingsPerBookerToggle, _setMaxActiveBookingsPerBookerToggle] = useState(
     (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
   );
 
@@ -483,10 +480,10 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
     <div>
       <div
         className={classNames(
-          "border-subtle stack-y-6 rounded-lg border p-6",
+          "stack-y-6 rounded-lg border border-subtle p-6",
           customClassNames?.bufferAndNoticeSection?.container
         )}>
-        <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
+        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
           <div
             className={classNames(
               "w-full",
@@ -580,7 +577,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             />
           </div>
         </div>
-        <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
+        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
           <div
             className={classNames(
               "w-full",
@@ -693,7 +690,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               descriptionClassName={customClassNames?.bookingFrequencyLimit?.description}>
               <div
                 className={classNames(
-                  "border-subtle rounded-b-lg border border-t-0 p-6",
+                  "rounded-b-lg border border-subtle border-t-0 p-6",
                   customClassNames?.bookingFrequencyLimit?.intervalLimitContainer
                 )}>
                 <IntervalLimitsManager
@@ -762,7 +759,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                   onChange({});
                 }
               }}>
-              <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
+              <div className="rounded-b-lg border border-subtle border-t-0 p-6">
                 <IntervalLimitsManager
                   propertyName="durationLimits"
                   defaultLimit={60}
@@ -815,7 +812,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                 }
                 return onChange(isEnabled ? PeriodType.ROLLING : PeriodType.UNLIMITED);
               }}>
-              <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
+              <div className="rounded-b-lg border border-subtle border-t-0 p-6">
                 <RadioGroup.Root
                   value={watchPeriodTypeUiValue}
                   onValueChange={(val) => {
@@ -880,7 +877,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               formMethods.setValue("offsetStart", 0, { shouldDirty: true });
             }
           }}>
-          <div className={classNames("p-6 rounded-b-lg border border-t-0 border-subtle")}>
+          <div className={classNames("rounded-b-lg border border-subtle border-t-0 p-6")}>
             <TextField
               required
               type="number"
@@ -893,7 +890,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               className={customClassNames?.offsetStartTimes?.offsetInput?.input}
               label={t("offset_start")}
               {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
-              addOnSuffix={<>{t("minutes")}</>}
+              addOnSuffix={t("minutes")}
               hint={t("offset_start_description", {
                 originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
                 adjustedTime: offsetAdjustedTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
