@@ -120,6 +120,7 @@ export default async function handler(body: Record<string, string>) {
             username: correctedUsername,
             emailVerified: new Date(Date.now()),
             identityProvider: IdentityProvider.CAL,
+            locale: language,
             password: {
               upsert: {
                 create: { hash: hashedPassword },
@@ -133,6 +134,7 @@ export default async function handler(body: Record<string, string>) {
             email: userEmail,
             emailVerified: new Date(Date.now()),
             identityProvider: IdentityProvider.CAL,
+            locale: language,
             password: { create: { hash: hashedPassword } },
             organizationId,
           },
@@ -178,6 +180,7 @@ export default async function handler(body: Record<string, string>) {
         data: {
           username: correctedUsername,
           email: userEmail,
+          locale: language,
           password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
         },

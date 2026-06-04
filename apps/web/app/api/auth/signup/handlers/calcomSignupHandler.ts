@@ -57,11 +57,13 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     email: _email,
     password,
     token,
+    language,
   } = signupSchema
     .pick({
       email: true,
       password: true,
       token: true,
+      language: true,
     })
     .parse(body);
 
@@ -218,6 +220,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
             username,
             emailVerified: new Date(Date.now()),
             identityProvider: IdentityProvider.CAL,
+            locale: language,
             password: {
               upsert: {
                 create: { hash: hashedPassword },
@@ -231,6 +234,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
             email,
             emailVerified: new Date(Date.now()),
             identityProvider: IdentityProvider.CAL,
+            locale: language,
             password: { create: { hash: hashedPassword } },
             organizationId,
           },
@@ -274,6 +278,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
           username,
           email,
           locked: shouldLockByDefault,
+          locale: language,
           password: { create: { hash: hashedPassword } },
           metadata: {
             stripeCustomerId: customer.stripeCustomerId,
