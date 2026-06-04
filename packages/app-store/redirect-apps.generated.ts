@@ -18,6 +18,7 @@ export const REDIRECT_APPS = [
   "framer",
   "granola",
   "greetmate-ai",
+  "ifttt",
   "lindy",
   "linear",
   "millis-ai",

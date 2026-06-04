@@ -1,0 +1,19 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "IFTTT",
+  "slug": "ifttt",
+  "type": "ifttt_automation",
+  "logo": "icon.svg",
+  "url": "https://ifttt.com/cal_com",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "IFTTT",
+  "email": "support@ifttt.com",
+  "description": "Automate, save time, and get more done with Cal.com and IFTTT. Easily connect Cal.com to 1000+ apps and devices to create time-saving workflows - no code required.",
+  "__createdUsingCli": true,
+  "isOAuth": false,
+  "externalLink": {
+    "url": "https://ifttt.com/cal_com",
+    "newTab": true
+  }
+}
