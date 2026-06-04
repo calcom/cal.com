@@ -1,13 +1,10 @@
 import type z from "zod";
 
-import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { TraceContext } from "@calcom/lib/tracing";
 import type { Prisma } from "@calcom/prisma/client";
 import type { BuiltCalendarEvent } from "@calcom/features/CalendarEventBuilder";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
-import type { BookingEventHandlerService } from "../../onBookingEvents/BookingEventHandlerService";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type { Booking } from "../handleNewBooking/createBooking";
 import type { NewBookingEventType } from "../handleNewBooking/getEventTypesFromDB";
 import type { OriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
@@ -59,15 +56,8 @@ export type NewSeatedBookingObject = {
   eventTrigger: WebhookTriggerEvents;
   responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
   rescheduledBy?: string;
-  workflows: Workflow[];
   isDryRun?: boolean;
-  organizationId?: number | null;
-  actionSource: ActionSource;
   traceContext: TraceContext;
-  impersonatedByUserUuid: string | null;
-  deps: {
-    bookingEventHandler: BookingEventHandlerService;
-  }
 };
 
 export type RescheduleSeatedBookingObject = NewSeatedBookingObject & { rescheduleUid: string };

@@ -6,10 +6,8 @@ import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Icon } from "@calcom/ui/components/icon";
-import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
 import { LastUsed, useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
@@ -107,9 +105,6 @@ export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
   isOutlookLoginEnabled,
-  isSAMLLoginEnabled,
-  samlTenantID,
-  samlProductID,
   totpEmail,
 }: PageProps) {
   const searchParams = useCompatSearchParams();
@@ -155,21 +150,6 @@ export default function Login({
 
   callbackUrl = safeCallbackUrl || "";
 
-  const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
-
-  useEffect(
-    function refactorMeWithoutEffect() {
-      if (error) {
-        setErrorMessage(error.message);
-      }
-    },
-    [error]
-  );
-
-  const displaySSOLogin = HOSTED_CAL_FEATURES
-    ? true
-    : isSAMLLoginEnabled && !isPending && data?.connectionExists;
-
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
     // telemetry.event(telemetryEventTypes.login, collectPageParameters());
@@ -203,7 +183,7 @@ export default function Login({
         <div className="w-full rounded-xl border border-subtle bg-default p-10 shadow-sm">
           {/* Logo */}
           <div className="mb-2 text-center">
-            <h1 className="font-cal text-xl font-bold text-emphasis">Cal.com</h1>
+            <h1 className="font-cal text-xl font-bold text-emphasis">Cal.diy</h1>
           </div>
 
           {/* Heading */}
@@ -398,19 +378,6 @@ export default function Login({
                 className="text-sm font-medium text-emphasis hover:underline">
                 {t("create_account")}
               </Link>
-            )}
-            {displaySSOLogin && (
-              <>
-                {showSignupLink && <span className="text-subtle">·</span>}
-                <SAMLLogin
-                  samlTenantID={samlTenantID}
-                  samlProductID={samlProductID}
-                  setErrorMessage={setErrorMessage}
-                  color="minimal"
-                  StartIcon={undefined}
-                  className="text-sm font-medium text-emphasis hover:underline p-0 h-auto"
-                />
-              </>
             )}
           </div>
         )}

@@ -122,23 +122,7 @@ async function getCalendarService(delegationUserCredential: DelegationUserCreden
     return null;
   }
 
-  if (
-    !credentialForCalendarService.delegatedTo ||
-    !credentialForCalendarService.delegatedTo.serviceAccountKey ||
-    !credentialForCalendarService.delegatedTo.serviceAccountKey.client_email
-  ) {
-    log.error(
-      `Invalid delegatedTo for delegationCredentialId: ${delegationUserCredential.delegationCredentialId}`,
-      safeStringify({
-        delegatedToSet: !!credentialForCalendarService.delegatedTo,
-        serviceAccountKeySet: !!credentialForCalendarService.delegatedTo?.serviceAccountKey,
-        clientEmailSet: !!credentialForCalendarService.delegatedTo?.serviceAccountKey?.client_email,
-      })
-    );
-    return null;
-  }
-
-  const googleCalendarService = createGoogleCalendarServiceWithGoogleType(
+  const googleCalendarService= createGoogleCalendarServiceWithGoogleType(
     credentialForCalendarService as CredentialForCalendarServiceWithEmail
   );
 

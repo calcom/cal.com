@@ -1,21 +1,18 @@
+import { recalculateDateRange } from "@calcom/features/data-table/lib/dateRange";
+import {
+  type SegmentIdentifier,
+  SYSTEM_SEGMENT_PREFIX,
+  type UseSegments,
+} from "@calcom/features/data-table/lib/types";
+import { isDateRangeFilterValue } from "@calcom/features/data-table/lib/utils";
 import { useMemo } from "react";
 
-import { trpc } from "@calcom/trpc/react";
-
-import { recalculateDateRange } from "@calcom/features/data-table/lib/dateRange";
-import { type UseSegments, SYSTEM_SEGMENT_PREFIX } from "@calcom/features/data-table/lib/types";
-import { isDateRangeFilterValue } from "@calcom/features/data-table/lib/utils";
-
 export const useSegments: UseSegments = ({ tableIdentifier, providedSegments, systemSegments }) => {
-  const { data: rawSegments, isSuccess } = trpc.viewer.filterSegments.list.useQuery(
-    {
-      tableIdentifier,
-    },
-    {
-      enabled: !providedSegments, // Only fetch if segments are not provided
-    }
-  );
-  const { mutate: setPreference } = trpc.viewer.filterSegments.setPreference.useMutation();
+  const rawSegments = providedSegments
+    ? { segments: providedSegments, preferredSegmentId: null as SegmentIdentifier | null }
+    : undefined;
+  const isSuccess = Boolean(providedSegments);
+  const setPreference = (_args: { tableIdentifier: string; segmentId: SegmentIdentifier | null }) => {};
 
   const preferredSegmentId = useMemo(() => rawSegments?.preferredSegmentId || null, [rawSegments]);
 

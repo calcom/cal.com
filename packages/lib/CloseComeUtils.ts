@@ -58,7 +58,7 @@ export async function getCustomActivityTypeInstanceData(
   customFields: CloseComFieldOptions,
   closeCom: CloseCom
 ): Promise<CloseComCustomActivityCreate> {
-  // Get Cal.com generic Lead
+  // Get Cal.diy generic Lead
   const leadFromCalComId = await getCloseComLeadId(closeCom);
   // Get Contacts ids
   const contactsIds = await getCloseComContactIds(event.attendees, closeCom, leadFromCalComId);
@@ -157,7 +157,7 @@ export async function getCloseComCustomActivityTypeFieldsIds(
   const customActivities = await closeCom.customActivity.type.get();
   const calComCustomActivity = customActivities.data.filter((act) => act.name === `${APP_NAME} Activity`);
   if (calComCustomActivity.length > 0) {
-    // Cal.com Custom Activity type exist
+    // Cal.diy Custom Activity type exist
     // Get Custom Activity Type fields ids
     const fields = await getCustomFieldsIds("activity", customFields, closeCom, calComCustomActivity[0].id);
     return {
@@ -165,7 +165,7 @@ export async function getCloseComCustomActivityTypeFieldsIds(
       fields,
     };
   } else {
-    // Cal.com Custom Activity type doesn't exist
+    // Cal.diy Custom Activity type doesn't exist
     // Create Custom Activity Type
     const { id: activityType } = await closeCom.customActivity.type.create({
       name: `${APP_NAME} Activity`,

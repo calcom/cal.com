@@ -1,36 +1,45 @@
-import { expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
-import type { createUsersFixture } from "./fixtures/users";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma";
-
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { JSDOM } from "jsdom";
+import type { Messages } from "mailhog";
 import type { createEmailsFixture } from "./fixtures/emails";
+import type { createUsersFixture } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 import { getEmailsReceivedByUser, submitAndWaitForResponse } from "./lib/testUtils";
-import { expectInvitationEmailToBeReceived } from "./team/expects";
+
+const expectInvitationEmailToBeReceived = async ({
+  emails,
+  userEmail,
+  subject,
+  returnLink,
+}: {
+  emails: ReturnType<typeof createEmailsFixture>;
+  userEmail: string;
+  subject?: string | null;
+  returnLink?: string;
+}) => {
+  if (!emails) return null;
+
+  const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail });
+  expect(receivedEmails?.total).toBe(1);
+
+  const [firstReceivedEmail] = (receivedEmails as Messages).items;
+  if (subject) {
+    expect(firstReceivedEmail.subject).toBe(subject);
+  }
+  if (!returnLink) return null;
+
+  const dom = new JSDOM(firstReceivedEmail.html);
+  const anchor = dom.window.document.querySelector(`a[href*="${returnLink}"]`);
+  return anchor?.getAttribute("href") ?? null;
+};
 
 test.describe.configure({ mode: "parallel" });
 
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
-});
-
-test.describe("Teams", () => {
-  test("Profile page is loaded for users in Organization", async ({ page, users }) => {
-    const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
-    const owner = await users.create(undefined, {
-      hasTeam: true,
-      isOrg: true,
-      hasSubteam: true,
-      teammates: teamMatesObj,
-    });
-    await owner.apiLogin();
-    await page.goto("/settings/my-account/profile");
-
-    // check if user avatar is loaded
-    await page.getByTestId("profile-upload-avatar").isVisible();
-  });
 });
 
 test.describe("Update Profile", () => {
@@ -187,12 +196,10 @@ test.describe("Update Profile", () => {
   });
 
   const testEmailVerificationLink = async ({
-    page,
     prisma,
     emails,
     secondaryEmail,
   }: {
-    page: Page;
     prisma: PrismaClient;
     emails: ReturnType<typeof createEmailsFixture>;
     secondaryEmail: string;
@@ -203,13 +210,12 @@ test.describe("Update Profile", () => {
           identifier: secondaryEmail,
         },
       });
-      const inviteLink = await expectInvitationEmailToBeReceived(
-        page,
+      const inviteLink = await expectInvitationEmailToBeReceived({
         emails,
-        secondaryEmail,
-        "Verify your email address",
-        "verify-email"
-      );
+        userEmail: secondaryEmail,
+        subject: "Verify your email address",
+        returnLink: "verify-email",
+      });
       expect(inviteLink).toEqual(`${WEBAPP_URL}/api/auth/verify-email?token=${verificationToken?.token}`);
     });
   };
@@ -253,13 +259,12 @@ test.describe("Update Profile", () => {
           identifier: secondaryEmail,
         },
       });
-      const inviteLink = await expectInvitationEmailToBeReceived(
-        page,
+      const inviteLink = await expectInvitationEmailToBeReceived({
         emails,
-        secondaryEmail,
-        "Verify your email address",
-        "verify-email"
-      );
+        userEmail: secondaryEmail,
+        subject: "Verify your email address",
+        returnLink: "verify-email",
+      });
       expect(inviteLink?.endsWith(`/api/auth/verify-email?token=${verificationToken?.token}`)).toEqual(true);
     });
 
@@ -402,7 +407,7 @@ test.describe("Update Profile", () => {
     await expect(page.locator("button[data-testid=resend-verify-email-button]")).toBeEnabled();
     await page.getByTestId("resend-verify-email-button").click();
 
-    await testEmailVerificationLink({ page, prisma, emails, secondaryEmail });
+    await testEmailVerificationLink({ prisma, emails, secondaryEmail });
 
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {

@@ -58,7 +58,6 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
 
   return (
     <WebhookForm
-      noRoutingFormTriggers={false}
       webhook={webhook}
       headerWrapper={(formMethods, children) => (
         <>

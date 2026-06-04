@@ -1,33 +1,26 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useRef, useState, useEffect } from "react";
-import { shallow } from "zustand/shallow";
-
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
 import { storeDecoyBooking } from "@calcom/features/bookings/lib/client/decoyBookingStore";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";
-import { createInstantBooking } from "@calcom/features/bookings/lib/create-instant-booking";
 import { createRecurringBooking } from "@calcom/features/bookings/lib/create-recurring-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import type { BookerEvent } from "@calcom/features/bookings/types";
+import type { BookerEvent, BookingResponse } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
-
-import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
-import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useRef } from "react";
+import { shallow } from "zustand/shallow";
 
 export interface IUseBookings {
   event: {
@@ -107,7 +100,6 @@ export const getDryRunRescheduleBookingSuccessfulEventPayload = getDryRunBooking
 export interface IUseBookingLoadingStates {
   creatingBooking: boolean;
   creatingRecurringBooking: boolean;
-  creatingInstantBooking: boolean;
 }
 
 export interface IUseBookingErrors {
@@ -116,63 +108,10 @@ export interface IUseBookingErrors {
 }
 export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
-const STORAGE_KEY = "instantBookingData";
-const COOLDOWN_STORAGE_KEY = "instantBookingCooldownByEvent";
-const COOLDOWN_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
-
-type InstantBookingCooldownMap = Record<string, number>;
-
-const readInstantCooldownMap = (): InstantBookingCooldownMap => {
-  try {
-    const raw = localStorage.getItem(COOLDOWN_STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as InstantBookingCooldownMap) : {};
-  } catch {
-    return {};
-  }
-};
-
-const writeInstantCooldownMap = (map: InstantBookingCooldownMap) => {
-  try {
-    localStorage.setItem(COOLDOWN_STORAGE_KEY, JSON.stringify(map));
-  } catch {
-    // don't do anything
-  }
-};
-
-const getInstantCooldownRemainingMs = (eventTypeId?: number | null): number => {
-  if (!eventTypeId) return 0;
-  const map = readInstantCooldownMap();
-  const lastTs = map[String(eventTypeId)];
-  if (!lastTs) return 0;
-  const remaining = lastTs + COOLDOWN_WINDOW_MS - Date.now();
-  return remaining > 0 ? remaining : 0;
-};
-
-const setInstantCooldownNow = (eventTypeId?: number | null) => {
-  if (!eventTypeId) return;
-  const map = readInstantCooldownMap();
-  map[String(eventTypeId)] = Date.now();
-  writeInstantCooldownMap(map);
-};
-
-const storeInLocalStorage = ({
-  eventTypeId,
-  expiryTime,
-  bookingUid,
-}: {
-  eventTypeId: number;
-  expiryTime: Date;
-  bookingUid: string;
-}) => {
-  const value = JSON.stringify({ eventTypeId, expiryTime, bookingUid });
-  localStorage.setItem(STORAGE_KEY, value);
-};
-
 export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookingDryRun }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStoreContext((state) => state.eventSlug);
   const eventTypeId = useBookerStoreContext((state) => state.eventId);
-  const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
 
   const [rescheduleUid, setRescheduleUid] = useBookerStoreContext(
     (state) => [state.rescheduleUid, state.setRescheduleUid],
@@ -188,69 +127,11 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
 
-  const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
-  const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
   const duration = useBookerStoreContext((state) => state.selectedDuration);
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
   const bookingUid = getQueryParam("bookingUid") ?? "";
-
-  useEffect(() => {
-    if (!isInstantMeeting) return;
-
-    const storedInfo = localStorage.getItem(STORAGE_KEY);
-
-    if (storedInfo) {
-      const parsedInfo = JSON.parse(storedInfo);
-
-      const parsedInstantBookingInfo =
-        parsedInfo.eventTypeId === eventTypeId &&
-        isInstantMeeting &&
-        new Date(parsedInfo.expiryTime) > new Date()
-          ? parsedInfo
-          : null;
-
-      if (parsedInstantBookingInfo) {
-        setExpiryTime(parsedInstantBookingInfo.expiryTime);
-        updateQueryParam("bookingUid", parsedInstantBookingInfo.bookingUid);
-      }
-    }
-  }, [eventTypeId, isInstantMeeting]);
-
-  const instantConnectCooldownMs = getInstantCooldownRemainingMs(eventTypeId);
-
-  const _instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
-    {
-      bookingUid: bookingUid,
-    },
-    {
-      enabled: !!bookingUid && isInstantMeeting,
-      refetchInterval: 2000,
-      refetchIntervalInBackground: true,
-    }
-  );
-  useEffect(
-    function refactorMeWithoutEffect() {
-      const data = _instantBooking.data;
-
-      if (!data || !data.booking || !isInstantMeeting) return;
-      try {
-        const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
-          data.booking?.metadata || {}
-        )?.videoCallUrl;
-
-        if (locationVideoCallUrl) {
-          setInstantVideoMeetingUrl(locationVideoCallUrl);
-        } else {
-          showToast(t("something_went_wrong_on_our_end"), "error");
-        }
-      } catch {
-        showToast(t("something_went_wrong_on_our_end"), "error");
-      }
-    },
-    [_instantBooking.data, isInstantMeeting]
-  );
 
   const createBookingMutation = useMutation({
     mutationFn: createBooking,
@@ -386,7 +267,18 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       bookingSuccessRedirect({
         successRedirectUrl: event?.data?.successRedirectUrl || "",
         query,
-        booking: booking,
+        booking: booking as unknown as Pick<
+          BookingResponse,
+          | "uid"
+          | "title"
+          | "description"
+          | "startTime"
+          | "endTime"
+          | "location"
+          | "attendees"
+          | "user"
+          | "responses"
+        >,
         forwardParamsSuccessRedirect:
           event?.data?.forwardParamsSuccessRedirect === undefined
             ? true
@@ -410,29 +302,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
           startTime: error.data?.startTime,
           attendees: error.data?.attendees,
         } as unknown as GetBookingType);
-      }
-    },
-  });
-
-  const createInstantBookingMutation = useMutation({
-    mutationFn: createInstantBooking,
-    onSuccess: (responseData) => {
-      if (eventTypeId) {
-        storeInLocalStorage({
-          eventTypeId,
-          expiryTime: responseData.expires,
-          bookingUid: responseData.bookingUid,
-        });
-        setInstantCooldownNow(eventTypeId);
-      }
-
-      updateQueryParam("bookingUid", responseData.bookingUid);
-      setExpiryTime(responseData.expires);
-    },
-    onError: (err) => {
-      console.error("Error creating instant booking", err);
-      if (bookerFormErrorRef?.current) {
-        bookerFormErrorRef.current.scrollIntoView({ behavior: "smooth" });
       }
     },
   });
@@ -515,7 +384,18 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       bookingSuccessRedirect({
         successRedirectUrl: event?.data?.successRedirectUrl || "",
         query,
-        booking,
+        booking: booking as unknown as Pick<
+          BookingResponse,
+          | "uid"
+          | "title"
+          | "description"
+          | "startTime"
+          | "endTime"
+          | "location"
+          | "attendees"
+          | "user"
+          | "responses"
+        >,
         forwardParamsSuccessRedirect:
           event?.data?.forwardParamsSuccessRedirect === undefined
             ? true
@@ -534,32 +414,14 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     bookingForm,
     hashedLink,
     metadata,
-    handleInstantBooking: (variables: Parameters<typeof createInstantBookingMutation.mutate>[0]) => {
-      const remaining = getInstantCooldownRemainingMs(eventTypeId);
-      if (remaining > 0) {
-        showToast(
-          t("please_try_again_later_or_book_another_slot", { remaining: Math.ceil(remaining / 60000) }),
-          "error"
-        );
-        return;
-      }
-      createInstantBookingMutation.mutate(variables);
-    },
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,
     isBookingDryRun,
   });
 
   const errors = {
-    hasDataErrors: Boolean(
-      createBookingMutation.isError ||
-        createRecurringBookingMutation.isError ||
-        createInstantBookingMutation.isError
-    ),
-    dataErrors:
-      createBookingMutation.error ||
-      createRecurringBookingMutation.error ||
-      createInstantBookingMutation.error,
+    hasDataErrors: Boolean(createBookingMutation.isError || createRecurringBookingMutation.isError),
+    dataErrors: createBookingMutation.error || createRecurringBookingMutation.error,
   };
 
   // A redirect is triggered on mutation success, so keep the loading state while it is happening.
@@ -567,17 +429,13 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     creatingBooking: createBookingMutation.isPending || createBookingMutation.isSuccess,
     creatingRecurringBooking:
       createRecurringBookingMutation.isPending || createRecurringBookingMutation.isSuccess,
-    creatingInstantBooking: createInstantBookingMutation.isPending,
   };
 
   return {
     handleBookEvent,
-    expiryTime: instantMeetingTokenExpiryTime,
     bookingForm,
     bookerFormErrorRef,
     errors,
     loadingStates,
-    instantVideoMeetingUrl,
-    instantConnectCooldownMs,
   };
 };

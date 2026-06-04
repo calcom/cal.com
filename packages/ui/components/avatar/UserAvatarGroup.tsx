@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
-
-import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
+import { useEffect, useState } from "react";
 import { AvatarGroup } from "./AvatarGroup";
 
 type UserAvatarProps = Omit<React.ComponentProps<typeof AvatarGroup>, "items"> & {
@@ -36,9 +34,7 @@ export function UserAvatarGroup(props: UserAvatarProps) {
     setItems(
       users.map((user) => {
         return {
-          href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
-            user.profile?.username
-          }?redirect=false`,
+          href: `${WEBAPP_URL}/${user.profile?.username}?redirect=false`,
           alt: user.name || "",
           title: user.name || "",
           image: getUserAvatarUrl(user),

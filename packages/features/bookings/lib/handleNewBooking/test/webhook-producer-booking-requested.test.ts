@@ -55,19 +55,12 @@ import {
   getMockBookingReference,
   getOrganizer,
   getScenarioData,
-  getStripeAppCredential,
   mockCalendarToHaveNoBusySlots,
-  mockPaymentApp,
   mockSuccessfulVideoMeetingCreation,
   TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import process from "node:process";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
-import type { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
-import { resetTestEmails } from "@calcom/lib/testEmails";
-import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import {
   expectBookingInDBToBeRescheduledFromTo,
@@ -77,43 +70,10 @@ import {
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import type Stripe from "stripe";
 import { beforeEach, describe, expect, vi } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
-export type CustomNextApiRequest = NextApiRequest & Request;
-export type CustomNextApiResponse = NextApiResponse & Response;
-
-const log = logger.getSubLogger({ prefix: ["[webhook-producer-booking-requested.test]"] });
 const timeout = process.env.CI ? 5000 : 20000;
-
-function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntentId: string }) {
-  return {
-    id: null,
-    data: {
-      object: {
-        id: paymentIntentId,
-      },
-    },
-  } as unknown as Stripe.Event;
-}
-
-async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
-  let webhookResponse = null;
-  try {
-    const traceContext = distributedTracing.createTrace("test_stripe_webhook");
-    await handleStripePaymentSuccess(
-      getMockedStripePaymentEvent({ paymentIntentId: externalId }),
-      traceContext
-    );
-  } catch (e) {
-    log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-    webhookResponse = e as HttpError;
-  }
-  return { webhookResponse };
-}
 
 describe("Webhook Producer – BOOKING_REQUESTED", () => {
   setupAndTeardown();
@@ -454,123 +414,7 @@ describe("Webhook Producer – BOOKING_REQUESTED", () => {
     );
   });
 
-  describe("Paid event with confirmation required", () => {
-    test(
-      "should call queueBookingRequestedWebhook after payment succeeds for paid event requiring confirmation",
-      async ({ emails }) => {
-        const handleNewBooking = getNewBookingHandler();
-        const booker = getBooker({
-          email: "booker@example.com",
-          name: "Booker",
-        });
-
-        const organizer = getOrganizer({
-          name: "Organizer",
-          email: "organizer@example.com",
-          id: 101,
-          schedules: [TestData.schedules.IstWorkHours],
-          credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
-          selectedCalendars: [TestData.selectedCalendars.google],
-        });
-
-        await createBookingScenario(
-          getScenarioData({
-            webhooks: [
-              {
-                userId: organizer.id,
-                eventTriggers: ["BOOKING_CREATED"],
-                subscriberUrl: "http://my-webhook.example.com",
-                active: true,
-                eventTypeId: 1,
-                appId: null,
-              },
-            ],
-            eventTypes: [
-              {
-                id: 1,
-                slotInterval: 30,
-                requiresConfirmation: true,
-                metadata: {
-                  apps: {
-                    stripe: {
-                      price: 100,
-                      enabled: true,
-                      currency: "inr",
-                    },
-                  },
-                },
-                length: 30,
-                users: [{ id: 101 }],
-              },
-            ],
-            organizer,
-            apps: [
-              TestData.apps["google-calendar"],
-              TestData.apps["daily-video"],
-              TestData.apps["stripe-payment"],
-            ],
-          })
-        );
-
-        mockSuccessfulVideoMeetingCreation({ metadataLookupKey: "dailyvideo" });
-        const { paymentUid, externalId } = mockPaymentApp({
-          metadataLookupKey: "stripe",
-          appStoreLookupKey: "stripepayment",
-        });
-        mockCalendarToHaveNoBusySlots("googlecalendar");
-
-        const mockBookingData = getMockRequestDataForBooking({
-          data: {
-            eventTypeId: 1,
-            responses: {
-              email: booker.email,
-              name: booker.name,
-              location: { optionValue: "", value: BookingLocations.CalVideo },
-            },
-          },
-        });
-
-        const createdBooking = await handleNewBooking({ bookingData: mockBookingData });
-
-        expect(createdBooking).toEqual(
-          expect.objectContaining({
-            location: BookingLocations.CalVideo,
-            paymentUid,
-          })
-        );
-
-        await expectBookingToBeInDatabase({
-          description: "",
-          uid: createdBooking.uid!,
-          eventTypeId: mockBookingData.eventTypeId,
-          status: BookingStatus.PENDING,
-        });
-
-        expectWebhookProducerNotCalled(mockWebhookProducer, "queueBookingRequestedWebhook");
-
-        resetTestEmails();
-        resetMockWebhookProducer(mockWebhookProducer);
-        const { webhookResponse } = await mockPaymentSuccessWebhookFromStripe({ externalId });
-
-        expect(webhookResponse?.statusCode).toBe(200);
-        await expectBookingToBeInDatabase({
-          description: "",
-          uid: createdBooking.uid!,
-          eventTypeId: mockBookingData.eventTypeId,
-          status: BookingStatus.PENDING,
-        });
-
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingRequestedWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        });
-
-        expectBookingRequestedEmails({ booker, organizer, emails });
-      },
-      timeout
-    );
-  });
+  // "Paid event with confirmation required" tests removed — handleStripePaymentSuccess was part of EE payments (removed)
 
   describe("Reschedule with confirmation required", () => {
     test(
@@ -943,7 +787,7 @@ describe("Webhook Producer – BOOKING_REQUESTED", () => {
         expectWebhookProducerCalled(mockWebhookProducer, "queueBookingRequestedWebhook", {
           bookingUid: createdBooking.uid,
           eventTypeId: 1,
-          teamId: 1,
+          userId: organizer.id,
         });
 
         expectWebhookProducerNotCalled(mockWebhookProducer, "queueBookingCreatedWebhook");

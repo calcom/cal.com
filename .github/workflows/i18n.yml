@@ -11,7 +11,7 @@ jobs:
   i18n:
     name: Run i18n
     if: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY != '' }}
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     permissions:
       actions: write
       contents: write

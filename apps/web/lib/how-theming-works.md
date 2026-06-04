@@ -1,7 +1,7 @@
 - We use next-themes
     - It provides useNextTheme hook which does the job of applying a theme for the app reliably. It persists the preference in localStorage and then ensures that the theme is reliably and instantly applied on next page load through its JS snippet.
     - It also provides the support for system theme that allows theme to change automatically when user changes their system theme preference.
-- Different Cal.com circumstances
+- Different Cal.diy circumstances
     - Standalone/Direct Booking Pages
         - Here user have the option to force a certain theme(light/dark) or choose system theme.
         - StorageKey: booking-theme${appearanceIdSuffix}

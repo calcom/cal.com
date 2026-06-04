@@ -565,7 +565,6 @@ export class EventTypeRepository implements IEventTypesRepository {
       isInstantEvent: true,
       instantMeetingExpiryTimeOffsetInSeconds: true,
       instantMeetingParameters: true,
-      aiPhoneCallConfig: true,
       offsetStart: true,
       hidden: true,
       locations: true,
@@ -600,6 +599,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       disableGuests: true,
       disableCancelling: true,
       disableRescheduling: true,
+      requiresCancellationReason: true,
       minimumRescheduleNotice: true,
       allowReschedulingCancelledBookings: true,
       minimumBookingNotice: true,
@@ -622,7 +622,6 @@ export class EventTypeRepository implements IEventTypesRepository {
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
-      redirectUrlOnNoRoutingFormResponse: true,
       forwardParamsSuccessRedirect: true,
       currency: true,
       bookingFields: true,
@@ -771,41 +770,6 @@ export class EventTypeRepository implements IEventTypesRepository {
           eventTriggers: true,
           secret: true,
           eventTypeId: true,
-        },
-      },
-      workflows: {
-        include: {
-          workflow: {
-            select: {
-              name: true,
-              id: true,
-              trigger: true,
-              time: true,
-              timeUnit: true,
-              userId: true,
-              teamId: true,
-              team: {
-                select: {
-                  id: true,
-                  slug: true,
-                  name: true,
-                  members: true,
-                },
-              },
-              activeOn: {
-                select: {
-                  eventType: {
-                    select: {
-                      id: true,
-                      title: true,
-                      parentId: true,
-                    },
-                  },
-                },
-              },
-              steps: true,
-            },
-          },
         },
       },
       secondaryEmailId: true,
@@ -881,7 +845,6 @@ export class EventTypeRepository implements IEventTypesRepository {
       isInstantEvent: true,
       instantMeetingExpiryTimeOffsetInSeconds: true,
       instantMeetingParameters: true,
-      aiPhoneCallConfig: true,
       offsetStart: true,
       hidden: true,
       locations: true,
@@ -916,6 +879,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       disableGuests: true,
       disableCancelling: true,
       disableRescheduling: true,
+      requiresCancellationReason: true,
       minimumRescheduleNotice: true,
       allowReschedulingCancelledBookings: true,
       minimumBookingNotice: true,
@@ -938,7 +902,6 @@ export class EventTypeRepository implements IEventTypesRepository {
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
-      redirectUrlOnNoRoutingFormResponse: true,
       forwardParamsSuccessRedirect: true,
       currency: true,
       bookingFields: true,
@@ -1087,41 +1050,6 @@ export class EventTypeRepository implements IEventTypesRepository {
           eventTriggers: true,
           secret: true,
           eventTypeId: true,
-        },
-      },
-      workflows: {
-        include: {
-          workflow: {
-            select: {
-              name: true,
-              id: true,
-              trigger: true,
-              time: true,
-              timeUnit: true,
-              userId: true,
-              teamId: true,
-              team: {
-                select: {
-                  id: true,
-                  slug: true,
-                  name: true,
-                  members: true,
-                },
-              },
-              activeOn: {
-                select: {
-                  eventType: {
-                    select: {
-                      id: true,
-                      title: true,
-                      parentId: true,
-                    },
-                  },
-                },
-              },
-              steps: true,
-            },
-          },
         },
       },
       secondaryEmailId: true,

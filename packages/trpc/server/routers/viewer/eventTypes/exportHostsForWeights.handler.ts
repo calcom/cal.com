@@ -24,8 +24,5 @@ export const exportHostsForWeightsHandler = async ({
   return service.exportHostsForWeights({
     eventTypeId: input.eventTypeId,
     assignAllTeamMembers: input.assignAllTeamMembers,
-    assignRRMembersUsingSegment: input.assignRRMembersUsingSegment,
-    attributesQueryValue: input.attributesQueryValue,
-    organizationId: ctx.user.organizationId,
   });
 };

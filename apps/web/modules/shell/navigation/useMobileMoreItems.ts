@@ -1,19 +1,15 @@
-import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
-import { useBottomNavItems } from "../useBottomNavItems";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-import type { NavigationItemType } from "./NavigationItem";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useSession } from "next-auth/react";
+import { useBottomNavItems } from "../useBottomNavItems";
+import type { NavigationItemType } from "./NavigationItem";
 
 export function useMobileMoreItems(): NavigationItemType[] {
   const { data: session } = useSession();
   const user = session?.user;
-  const isAdmin = user?.role === UserPermissionRole.ADMIN;
-  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername ?? user?.username}`;
+  const publicPageUrl = `${WEBAPP_URL}/${user?.orgAwareUsername ?? user?.username}`;
 
   const bottomNavItems = useBottomNavItems({
     publicPageUrl,
-    isAdmin,
-    user,
   });
 
   const filteredBottomNavItems = bottomNavItems.filter(

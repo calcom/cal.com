@@ -91,10 +91,9 @@ jobs:
           # Write to the specific paths
           echo "$CONTENT" > apps/web/trigger.version.ts
           echo "$CONTENT" > apps/api/v2/trigger.version.ts
-          echo "$CONTENT" > apps/api/v1/trigger.version.js
     
           # Force add to git since these are likely in .gitignore
-          git add -f apps/web/trigger.version.ts apps/api/v2/trigger.version.ts apps/api/v1/trigger.version.js
+          git add -f apps/web/trigger.version.ts apps/api/v2/trigger.version.ts
 
       # 4. Commit everything together
       - name: Commit changes

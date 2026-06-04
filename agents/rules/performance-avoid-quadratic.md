@@ -51,4 +51,4 @@ const available = availableSlots.filter(slot => {
 - **Hash maps/sets**: Use for O(1) lookups instead of `.find` or `.includes` on arrays
 - **Interval trees**: For scheduling, availability, and range queries
 
-Reference: [Cal.com Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)
+Reference: [Cal.diy Engineering Blog](https://cal.com/blog/engineering-in-2026-and-beyond)

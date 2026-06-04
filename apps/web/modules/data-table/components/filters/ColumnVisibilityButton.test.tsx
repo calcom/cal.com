@@ -1,8 +1,7 @@
+import { type Column, getCoreRowModel, type Table, useReactTable } from "@tanstack/react-table";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect, useMemo } from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
-import { useReactTable, getCoreRowModel, type Table, type Column } from "@tanstack/react-table";
-
 import { ColumnVisibilityButton } from "./ColumnVisibilityButton";
 
 let tableRef: Table<{ a: number; b: number; c: number }> | null = null;

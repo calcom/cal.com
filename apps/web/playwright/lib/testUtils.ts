@@ -1,17 +1,16 @@
-import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
-import { expect } from "@playwright/test";
 import { createHash } from "node:crypto";
 import EventEmitter from "node:events";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createServer } from "node:http";
-import type { Messages } from "mailhog";
-import { totp } from "otplib";
-import { v4 as uuid } from "uuid";
-
+import process from "node:process";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-
+import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type { Messages } from "mailhog";
+import { totp } from "otplib";
+import { v4 as uuid } from "uuid";
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { CreateUsersFixture } from "../fixtures/users";
 import type { Fixtures } from "./fixtures";
@@ -30,9 +29,18 @@ export const IS_STRIPE_ENABLED = !!(
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
   process.env.STRIPE_CLIENT_ID &&
   process.env.STRIPE_PRIVATE_KEY &&
+  process.env.STRIPE_WEBHOOK_SECRET &&
   process.env.PAYMENT_FEE_FIXED &&
   process.env.PAYMENT_FEE_PERCENTAGE
 );
+
+export const IS_GOOGLE_CALENDAR_ENABLED = !!(
+  process.env.GOOGLE_API_CREDENTIALS &&
+  process.env.E2E_TEST_CALCOM_GCAL_KEYS &&
+  process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
+);
+
+export const IS_SENDGRID_ENABLED = !!process.env.SENDGRID_API_KEY;
 
 export function createHttpServer(opts: { requestHandler?: RequestHandler } = {}) {
   const {
@@ -576,50 +584,6 @@ export async function confirmBooking(page: Page, url = "/api/book/event") {
   await submitAndWaitForResponse(page, url, {
     action: () => page.locator('[data-testid="confirm-book-button"]').click(),
   });
-}
-
-export async function bookTeamEvent({
-  page,
-  team,
-  event,
-  teamMatesObj,
-  opts,
-}: {
-  page: Page;
-  team: {
-    slug: string | null;
-    name: string | null;
-  };
-  event: { slug: string; title: string; schedulingType: SchedulingType | null };
-  teamMatesObj?: { name: string }[];
-  opts?: { attendeePhoneNumber?: string };
-}) {
-  // Note that even though the default way to access a team booking in an organization is to not use /team in the URL, but it isn't testable with playwright as the rewrite is taken care of by Next.js config which can't handle on the fly org slug's handling
-  // So, we are using /team in the URL to access the team booking
-  // There are separate tests to verify that the next.config.js rewrites are working
-  // Also there are additional checkly tests that verify absolute e2e flow. They are in __checks__/organization.spec.ts
-  await page.goto(`/team/${team.slug}/${event.slug}`);
-
-  await selectFirstAvailableTimeSlotNextMonth(page);
-  await bookTimeSlot(page, opts);
-  await expect(page.getByTestId("success-page")).toBeVisible();
-
-  // The title of the booking
-  if (event.schedulingType === SchedulingType.ROUND_ROBIN && teamMatesObj) {
-    const bookingTitle = await page.getByTestId("booking-title").textContent();
-
-    const isMatch = teamMatesObj?.some((teamMate) => {
-      const expectedTitle = `${event.title} between ${teamMate.name} and ${testName}`;
-      return expectedTitle.trim() === bookingTitle?.trim();
-    });
-
-    expect(isMatch).toBe(true);
-  } else {
-    const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
-    await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
-  }
-  // The booker should be in the attendee list
-  await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
 }
 
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {

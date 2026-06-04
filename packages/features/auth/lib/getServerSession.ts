@@ -1,5 +1,3 @@
-import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
@@ -9,6 +7,16 @@ import { LRUCache } from "lru-cache";
 import type { GetServerSidePropsContext, NextApiRequest } from "next";
 import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
+
+class LicenseKeySingleton {
+  static async getInstance(..._args: unknown[]) { return new LicenseKeySingleton(); }
+  async checkLicense() { return true; }
+  async validateLicenseKey() { return true; }
+}
+class DeploymentRepository {
+  constructor(_prisma?: unknown) {}
+  async findFirst(..._args: unknown[]) { return null; }
+}
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
 /**
@@ -140,8 +148,4 @@ export async function getServerSession(options: {
 
   log.debug("Returned session", safeStringify(session));
   return session;
-}
-
-export function clearSessionCache() {
-  CACHE.clear();
 }

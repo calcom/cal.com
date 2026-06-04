@@ -1,25 +1,21 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { useCallback, useState } from "react";
-import posthog from "posthog-js";
-
-import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { NewScheduleButton } from "@calcom/web/modules/schedules/components/NewScheduleButton";
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { NewScheduleButton } from "@calcom/web/modules/schedules/components/NewScheduleButton";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type AvailabilityListProps = {
   availabilities: RouterOutputs["viewer"]["availability"]["list"];
@@ -182,53 +178,9 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
   );
 }
 
-type AvailabilityCTAProps = {
-  canViewTeamAvailability: boolean;
-};
-export const AvailabilityCTA = ({ canViewTeamAvailability }: AvailabilityCTAProps) => {
-  const searchParams = useCompatSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const { t } = useLocale();
-
-  const toggleGroupOptions = [
-    { value: "mine", label: t("my_availability") },
-    ...(canViewTeamAvailability
-      ? [
-          {
-            value: "team",
-            label: t("team_availability"),
-            onClick: () => {
-              posthog.capture("team_availability_toggle_clicked");
-            },
-          },
-        ]
-      : []),
-  ];
-
-  // Get a new searchParams string by merging the current
-  // searchParams with a provided key/value pair
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams ?? undefined);
-      params.set(name, value);
-
-      return params.toString();
-    },
-    [searchParams]
-  );
-
+export const AvailabilityCTA = () => {
   return (
     <div className="flex items-center gap-2">
-      <ToggleGroup
-        className="hidden h-fit md:block"
-        defaultValue={searchParams?.get("type") ?? "mine"}
-        onValueChange={(value) => {
-          if (!value) return;
-          router.push(`${pathname}?${createQueryString("type", value)}`);
-        }}
-        options={toggleGroupOptions}
-      />
       <NewScheduleButton />
     </div>
   );

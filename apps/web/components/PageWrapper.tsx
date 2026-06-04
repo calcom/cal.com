@@ -16,7 +16,6 @@ import Head from "next/head";
 import Script from "next/script";
 
 import "@calcom/embed-core/src/embed-iframe";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getCalcomUrl } from "@calcom/lib/getCalcomUrl";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
@@ -90,7 +89,7 @@ function PageWrapper(props: AppProps) {
 
       <style jsx global>{`
         :root {
-          --font-sans: ${interFont.style.fontFamily};
+          --font-sans: ${interFont.style.fontFamily}, system-ui;
           --font-cal: ${calFont.style.fontFamily};
         }
       `}</style>
@@ -98,9 +97,9 @@ function PageWrapper(props: AppProps) {
 
       {getLayout(
         Component.requiresLicense ? (
-          <LicenseRequired>
+          <>
             <Component {...pageProps} err={err} />
-          </LicenseRequired>
+          </>
         ) : (
           <Component {...pageProps} err={err} />
         )
