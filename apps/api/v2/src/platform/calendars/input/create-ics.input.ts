@@ -15,27 +15,24 @@ export class IsICSUrlConstraint implements ValidatorConstraintInterface {
   validate(url: unknown) {
     if (typeof url !== "string") return false;
 
-    // Check if it's a valid URL and ends with .ics
+    // Check if it's a valid http/https URL — RFC 5545 imposes no .ics suffix requirement
     try {
       const urlObject = new URL(url);
-      return (
-        (urlObject.protocol === "http:" || urlObject.protocol === "https:") &&
-        urlObject.pathname.endsWith(".ics")
-      );
-    } catch (error) {
+      return urlObject.protocol === "http:" || urlObject.protocol === "https:";
+    } catch {
       return false;
     }
   }
 
   defaultMessage() {
-    return "The URL must be a valid ICS URL (ending with .ics)";
+    return "The URL must be a valid http or https URL";
   }
 }
 
 export class CreateIcsFeedInputDto {
   @ApiProperty({
-    example: ["https://cal.com/ics/feed.ics", "http://cal.com/ics/feed.ics"],
-    description: "An array of ICS URLs",
+    example: ["https://cal.com/ics/feed.ics", "https://calendar.example.com/feed?format=ics"],
+    description: "An array of ICS feed URLs (http or https)",
     type: "array",
     items: {
       type: "string",
