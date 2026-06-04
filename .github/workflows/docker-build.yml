@@ -31,7 +31,10 @@ jobs:
             NEXT_PUBLIC_WEBAPP_URL=https://agenda.difesamaltrattamenti.it
             NEXT_PUBLIC_API_V2_URL=https://agenda.difesamaltrattamenti.it/api/v2
             NEXT_PUBLIC_LICENSE_CONSENT=agree
+            NEXT_PUBLIC_WEBSITE_TERMS_URL=https://difesamaltrattamenti.it
+            NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL=https://difesamaltrattamenti.it
             CALCOM_TELEMETRY_DISABLED=1
+            ORGANIZATIONS_ENABLED=0
             NEXTAUTH_SECRET=build-placeholder
             CALENDSO_ENCRYPTION_KEY=build-placeholder
             DATABASE_URL=postgresql://placeholder:placeholder@localhost/placeholder
