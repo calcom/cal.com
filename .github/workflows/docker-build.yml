@@ -26,4 +26,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/cal-diy:latest
+          tags: ghcr.io/xxgraguxx/cal-diy:latest
