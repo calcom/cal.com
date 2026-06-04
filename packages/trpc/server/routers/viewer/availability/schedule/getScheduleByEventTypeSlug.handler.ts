@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 
+import logger from "@calcom/lib/logger"; // ADICIONADO ESTE IMPORT
 import type { TrpcSessionUser } from "../../../../types";
 import { getHandler } from "./get.handler";
 import type { TGetByEventSlugInputSchema } from "./getScheduleByEventTypeSlug.schema";
@@ -56,8 +57,10 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
         scheduleId: foundScheduleForSlug?.scheduleId,
       },
     });
-  } catch (e) {
-    console.log(e);
+    
+    } catch (e) {
+    // console.log(e);
+    logger.error("Failed to retrieve schedule by event type slug", e); // ✅ LOG ESTRUTURADO SEGURO
     return {
       id: -1,
       name: "No schedules found",
@@ -68,4 +71,16 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
       isDefault: true,
     };
   }
+  // } catch (e) {
+  //   console.log(e);
+  //   return {
+  //     id: -1,
+  //     name: "No schedules found",
+  //     availability: EMPTY_SCHEDULE,
+  //     dateOverrides: [],
+  //     timeZone: ctx.user.timeZone || "Europe/London",
+  //     workingHours: [],
+  //     isDefault: true,
+  //   };
+  // }
 };

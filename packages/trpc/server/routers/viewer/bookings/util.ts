@@ -39,7 +39,13 @@ export const bookingsProcedure = authedProcedure
       user: {
         include: {
           destinationCalendar: true,
-          credentials: true,
+          credentials: { // Muda de "true" para um objeto com "select"
+            select: {
+              id: true,
+              type: true,
+              appId: true,
+            },
+          },
           profiles: {
             select: {
               organizationId: true,
@@ -47,6 +53,17 @@ export const bookingsProcedure = authedProcedure
           },
         },
       },
+      // user: {
+      //   include: {
+      //     destinationCalendar: true,
+      //     credentials: true,
+      //     profiles: {
+      //       select: {
+      //         organizationId: true,
+      //       },
+      //     },
+      //   },
+      // },
     };
 
     const bookingByBeingAdmin = await prisma.booking.findFirst({
@@ -103,7 +120,7 @@ export const bookingsProcedure = authedProcedure
     return next({ ctx: { booking: bookingByBeingOrganizerOrCollectiveEventMember } });
   });
 
-export type BookingsProcedureContext = {
+  export type BookingsProcedureContext = {
   booking: Booking & {
     eventType:
       | (EventType & {
@@ -114,7 +131,7 @@ export type BookingsProcedureContext = {
     user:
       | (User & {
           destinationCalendar: DestinationCalendar | null;
-          credentials: Credential[];
+          credentials: Pick<Credential, "id" | "type" | "appId">[]; // ✅ Atualizado para bater com o select seguro
           profiles: { organizationId: number }[];
         })
       | null;
@@ -122,3 +139,23 @@ export type BookingsProcedureContext = {
     attendees: Attendee[];
   };
 };
+
+// export type BookingsProcedureContext = {
+//   booking: Booking & {
+//     eventType:
+//       | (EventType & {
+//           team?: { id: number; name: string; parentId?: number | null } | null;
+//         })
+//       | null;
+//     destinationCalendar: DestinationCalendar | null;
+//     user:
+//       | (User & {
+//           destinationCalendar: DestinationCalendar | null;
+//           credentials: Credential[];
+//           profiles: { organizationId: number }[];
+//         })
+//       | null;
+//     references: BookingReference[];
+//     attendees: Attendee[];
+//   };
+// };

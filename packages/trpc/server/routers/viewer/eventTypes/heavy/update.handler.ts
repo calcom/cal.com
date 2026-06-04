@@ -608,11 +608,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       break;
     }
   }
-  console.log("multiplePrivateLinks", multiplePrivateLinks);
+  // console.log("multiplePrivateLinks", multiplePrivateLinks); //VAZAMENTO ACONTECE AQUI
   // Handle multiple private links using the service
   const privateLinksRepo = HashedLinkRepository.create();
   const connectedLinks = await privateLinksRepo.findLinksByEventTypeId(input.id);
-  console.log("connectedLinks", connectedLinks);
+  // console.log("connectedLinks", connectedLinks); //VAZAMENTO TAMBÉM
   const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
 
   const privateLinksService = new HashedLinkService();
@@ -724,13 +724,20 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
+  const updatedValues = Object.entries(data).reduce<Record<string, unknown>>((acc, [key, value]) => {
     if (value !== undefined) {
-      // @ts-expect-error Element implicitly has any type
-      acc[key] = value;
+      acc[key] = value; // ✅ Tipado corretamente sem silenciar o compilador
     }
     return acc;
   }, {});
+
+  // const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
+  //   if (value !== undefined) {
+  //     // @ts-expect-error Element implicitly has any type
+  //     acc[key] = value;
+  //   }
+  //   return acc;
+  // }, {});
 
   // Determine calVideoSettings to pass to children:
   // - If calVideoSettings provided in input, sync to children
