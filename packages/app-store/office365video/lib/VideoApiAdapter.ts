@@ -228,11 +228,18 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       return Promise.resolve([]);
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
+      const meetingId = bookingRef?.meetingId;
+      if (!meetingId) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Meeting ID is required to update a Teams meeting",
+        });
+      }
       try {
         const response = await auth.requestRaw({
-          url: `${await getUserEndpoint()}/onlineMeetings`,
+          url: `${await getUserEndpoint()}/onlineMeetings/${meetingId}`,
           options: {
-            method: "POST",
+            method: "PATCH",
             body: JSON.stringify(translateEvent(event)),
           },
         });
@@ -244,12 +251,11 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           });
         }
 
-        const resultString = await response.text();
-        const resultObject = JSON.parse(resultString);
+        const resultObject = JSON.parse(await response.text());
 
         return Promise.resolve({
           type: "office365_video",
-          id: resultObject.id,
+          id: resultObject.id ?? meetingId,
           password: "",
           url: resultObject.joinWebUrl || resultObject.joinUrl,
         });
@@ -264,8 +270,29 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         });
       }
     },
-    deleteMeeting:() => {
-      return Promise.resolve([]);
+    deleteMeeting: async (uid: string) => {
+      try {
+        const response = await auth.requestRaw({
+          url: `${await getUserEndpoint()}/onlineMeetings/${uid}`,
+          options: { method: "DELETE" },
+        });
+        if (!response.ok && response.status !== 404) {
+          throw new HttpError({
+            statusCode: response.status,
+            message: response.statusText,
+          });
+        }
+        return Promise.resolve([]);
+      } catch (error) {
+        log.error(`Error deleting MS Teams meeting ${uid}`, error);
+        if (error instanceof HttpError) {
+          throw error;
+        }
+        throw new HttpError({
+          statusCode: 500,
+          message: `Error deleting MS Teams meeting ${uid}`,
+        });
+      }
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       const url = `${await getUserEndpoint()}/onlineMeetings`;
