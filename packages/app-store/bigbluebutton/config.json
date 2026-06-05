@@ -1,0 +1,18 @@
+{
+  "name": "BigBlueButton",
+  "slug": "bigbluebutton",
+  "type": "bigbluebutton_video",
+  "variant": "video",
+  "categories": ["video"],
+  "logo": "icon.svg",
+  "publisher": "BigBlueButton",
+  "email": "hello@bigbluebutton.org",
+  "description": "Add BigBlueButton video conferencing to your events.",
+  "appData": {
+    "location": {
+      "linkType": "dynamic",
+      "type": "integrations:bigbluebutton",
+      "label": "BigBlueButton"
+    }
+  }
+}
