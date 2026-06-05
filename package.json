@@ -228,5 +228,8 @@
   "syncpack": {
     "filter": "^(?!@calcom).*",
     "semverRange": ""
+  },
+  "dependencies": {
+    "@xmldom/xmldom": "0.8.13"
   }
 }

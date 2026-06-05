@@ -17888,6 +17888,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmldom/xmldom@npm:0.8.13":
+  version: 0.8.13
+  resolution: "@xmldom/xmldom@npm:0.8.13"
+  checksum: 10/f8f3d56fa91d5026885c0c5c00b07eae47647bda0d742ecbf8e51e06bb287ab30222977b20529ee15c364031606225ebca58907a8ecc76a3add6b3f10e6ddfc6
+  languageName: node
+  linkType: hard
+
 "@xmldom/xmldom@npm:0.9.9":
   version: 0.9.9
   resolution: "@xmldom/xmldom@npm:0.9.9"
@@ -19438,6 +19445,7 @@ __metadata:
     "@testing-library/react": "npm:16.0.1"
     "@vitest/coverage-v8": "npm:4.1.8"
     "@vitest/ui": "npm:4.1.8"
+    "@xmldom/xmldom": "npm:0.8.13"
     c8: "npm:7.13.0"
     checkly: "npm:latest"
     dotenv-checker: "npm:1.1.5"
