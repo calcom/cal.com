@@ -9,11 +9,22 @@ import { metadata } from "../_metadata";
 
 import { buildApiUrl } from "./bbb";
 
+/**
+ * BigBlueButton video conferencing adapter for Cal.diy.
+ * Implements the VideoApiAdapter interface to create, update, and delete
+ * BBB meetings via the BBB API with SHA-1 checksum authentication.
+ */
 const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
   return {
+    /** BBB does not expose availability via API; always returns empty. */
     getAvailability: () => {
       return Promise.resolve([]);
     },
+    /**
+     * Create a new BigBlueButton meeting for a Cal booking.
+     * Generates unique meeting ID and passwords, calls BBB create API,
+     * and returns a join URL for the organizer (moderator role).
+     */
     createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {
       const appKeys = await getAppKeysFromSlug(metadata.slug);
       const bbbUrl = appKeys.bbb_url as string;
@@ -61,6 +72,7 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         url: joinUrl,
       };
     },
+    /** End a running BBB meeting by calling the BBB end API with the meeting ID and password. */
     deleteMeeting: async (bookingRef: PartialReference): Promise<void> => {
       const appKeys = await getAppKeysFromSlug(metadata.slug);
       const bbbUrl = appKeys.bbb_url as string;
@@ -78,6 +90,7 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
 
       await fetch(endUrl);
     },
+    /** BBB meetings are immutable; returns existing meeting data without modification. */
     updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
       return Promise.resolve({
         type: metadata.type,

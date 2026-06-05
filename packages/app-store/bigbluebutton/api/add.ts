@@ -6,6 +6,11 @@ import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
+/**
+ * Next.js API handler for installing the BigBlueButton app.
+ * Validates admin access, checks for existing installation,
+ * and creates a new credential record for the user or team.
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });

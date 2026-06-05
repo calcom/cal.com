@@ -12,6 +12,10 @@ export function computeChecksum(callName: string, queryString: string, secret: s
   return createHash("sha1").update(data).digest("hex");
 }
 
+/**
+ * Encode an object of key-value pairs into a URL query string.
+ * Keys and values are URI-encoded; entries with empty or undefined values are omitted.
+ */
 export function buildQueryString(params: Record<string, string>): string {
   return Object.entries(params)
     .filter(([, v]) => v !== undefined && v !== "")
@@ -19,6 +23,11 @@ export function buildQueryString(params: Record<string, string>): string {
     .join("&");
 }
 
+/**
+ * Construct a fully authenticated BigBlueButton API URL.
+ * Builds the query string, computes the SHA-1 checksum, and returns
+ * the complete URL ready for a GET request to the BBB server.
+ */
 export function buildApiUrl(
   bbbUrl: string,
   callName: string,
