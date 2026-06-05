@@ -3,13 +3,13 @@ const BigBlueButtonApiAdapter = (credential) => ({
     type: "bigbluebutton_video",
     id: event.uid,
     password: "",
-    url: "https://demo.bigbluebutton.org/gl/" + event.uid,
+    url: `${credential?.key?.serverUrl ?? "https://demo.bigbluebutton.org/gl"}/${event.uid}`,
   }),
-  updateMeeting: async (event) => ({
+  updateMeeting: async (_bookingRef, event) => ({
     type: "bigbluebutton_video",
     id: event.uid,
     password: "",
-    url: "https://demo.bigbluebutton.org/gl/" + event.uid,
+    url: `${credential?.key?.serverUrl ?? "https://demo.bigbluebutton.org/gl"}/${event.uid}`,
   }),
   deleteMeeting: async () => Promise.resolve(),
 });
