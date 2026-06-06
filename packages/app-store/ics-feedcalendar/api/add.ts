@@ -9,7 +9,28 @@ import { BuildCalendarService } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method === "POST") {
-    const { urls, skipWriting = true } = req.body;
+    if (!req.body || typeof req.body !== "object") {
+      return res.status(400).json({ message: "Invalid request body" });
+    }
+
+    const { urls, skipWriting = true } = req.body as {
+      urls?: unknown;
+      skipWriting?: unknown;
+    };
+
+    if (!Array.isArray(urls) || !urls.every((url) => typeof url === "string")) {
+      return res.status(400).json({ message: "urls must be an array of strings" });
+    }
+
+    if (typeof skipWriting !== "boolean") {
+      return res.status(400).json({ message: "skipWriting must be a boolean" });
+    }
+
+    const encryptionKey = env.CALENDSO_ENCRYPTION_KEY;
+    if (!encryptionKey) {
+      return res.status(500).json({ message: "CALENDSO_ENCRYPTION_KEY is required" });
+    }
+
     // Get user
     const user = await prisma.user.findFirstOrThrow({
       where: {
@@ -23,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = {
       type: appConfig.type,
-      key: symmetricEncrypt(JSON.stringify({ urls, skipWriting }), env.CALENDSO_ENCRYPTION_KEY || ""),
+      key: symmetricEncrypt(JSON.stringify({ urls, skipWriting }), encryptionKey),
       userId: user.id,
       teamId: null,
       appId: appConfig.slug,

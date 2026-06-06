@@ -65,6 +65,7 @@ function createRes(): Pick<NextApiResponse, "status" | "json"> {
 describe("ics-feedcalendar add API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "test-calendso-encryption-key");
 
     mockPrisma.user.findFirstOrThrow.mockResolvedValue({
       id: 1,
@@ -132,5 +133,75 @@ describe("ics-feedcalendar add API", () => {
       urls: ["https://example.com/calendar.ics"],
       skipWriting: true,
     });
+  });
+
+  it("persists skipWriting when explicitly requested as false", async () => {
+    const { default: handler } = await import("../add");
+    const req = {
+      method: "POST",
+      session: {
+        user: {
+          id: 1,
+        },
+      },
+      body: {
+        urls: ["https://example.com/calendar.ics"],
+        skipWriting: false,
+      },
+    } as Partial<NextApiRequest> as NextApiRequest;
+    const res = createRes();
+
+    await handler(req, res);
+
+    const credentialCreateArg = mockPrisma.credential.create.mock.calls[0][0];
+    expect(JSON.parse(credentialCreateArg.data.key as string)).toEqual({
+      urls: ["https://example.com/calendar.ics"],
+      skipWriting: false,
+    });
+  });
+
+  it("rejects invalid urls payloads", async () => {
+    const { default: handler } = await import("../add");
+    const req = {
+      method: "POST",
+      session: {
+        user: {
+          id: 1,
+        },
+      },
+      body: {
+        urls: "https://example.com/calendar.ics",
+        skipWriting: true,
+      },
+    } as Partial<NextApiRequest> as NextApiRequest;
+    const res = createRes();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mockPrisma.credential.create).not.toHaveBeenCalled();
+  });
+
+  it("fails fast when the encryption key is missing", async () => {
+    vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "");
+    const { default: handler } = await import("../add");
+    const req = {
+      method: "POST",
+      session: {
+        user: {
+          id: 1,
+        },
+      },
+      body: {
+        urls: ["https://example.com/calendar.ics"],
+        skipWriting: true,
+      },
+    } as Partial<NextApiRequest> as NextApiRequest;
+    const res = createRes();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(mockPrisma.credential.create).not.toHaveBeenCalled();
   });
 });

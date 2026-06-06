@@ -10,6 +10,17 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 
 type IcsFeedSetupFormValues = Record<string, never>;
+type UrlEntry = {
+  id: string;
+  value: string;
+};
+
+function createUrlEntry(value: string = ""): UrlEntry {
+  return {
+    id: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
+    value,
+  };
+}
 
 function getUrlContainerClassName(index: number): string {
   let className = "w-full";
@@ -22,16 +33,16 @@ function getUrlContainerClassName(index: number): string {
 }
 
 function createUrlChangeHandler(
-  setUrls: Dispatch<SetStateAction<string[]>>,
-  index: number
+  setUrls: Dispatch<SetStateAction<UrlEntry[]>>,
+  id: string
 ): (event: ChangeEvent<HTMLInputElement>) => void {
   return function handleUrlChange(event: ChangeEvent<HTMLInputElement>): void {
     const newValue = event.target.value;
 
     setUrls((currentUrls) =>
-      currentUrls.map((currentUrl, currentIndex) => {
-        if (currentIndex === index) {
-          return newValue;
+      currentUrls.map((currentUrl) => {
+        if (currentUrl.id === id) {
+          return { ...currentUrl, value: newValue };
         }
 
         return currentUrl;
@@ -40,9 +51,9 @@ function createUrlChangeHandler(
   };
 }
 
-function createUrlRemovalHandler(setUrls: Dispatch<SetStateAction<string[]>>, index: number): () => void {
+function createUrlRemovalHandler(setUrls: Dispatch<SetStateAction<UrlEntry[]>>, id: string): () => void {
   return function handleUrlRemoval(): void {
-    setUrls((currentUrls) => currentUrls.filter((_, currentIndex) => currentIndex !== index));
+    setUrls((currentUrls) => currentUrls.filter((currentUrl) => currentUrl.id !== id));
   };
 }
 
@@ -53,7 +64,7 @@ export default function ICSFeedSetup(): JSX.Element {
     defaultValues: {},
   });
 
-  const [urls, setUrls] = useState<string[]>([""]);
+  const [urls, setUrls] = useState<UrlEntry[]>([createUrlEntry()]);
   const [skipWritingToCalendar, setSkipWritingToCalendar] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorActionUrl, setErrorActionUrl] = useState("");
@@ -63,7 +74,7 @@ export default function ICSFeedSetup(): JSX.Element {
   };
 
   const handleAddUrl = (): void => {
-    setUrls((currentUrls) => currentUrls.concat(""));
+    setUrls((currentUrls) => currentUrls.concat(createUrlEntry()));
   };
 
   const handleCancelClick = (): void => {
@@ -72,9 +83,13 @@ export default function ICSFeedSetup(): JSX.Element {
 
   const handleFormSubmit = async (_values: IcsFeedSetupFormValues): Promise<void> => {
     setErrorMessage("");
+    setErrorActionUrl("");
     const res = await fetch("/api/integrations/ics-feedcalendar/add", {
       method: "POST",
-      body: JSON.stringify({ urls, skipWriting: skipWritingToCalendar }),
+      body: JSON.stringify({
+        urls: urls.map(({ value }) => value),
+        skipWriting: skipWritingToCalendar,
+      }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -86,6 +101,7 @@ export default function ICSFeedSetup(): JSX.Element {
         setErrorActionUrl(json.actionUrl);
       }
     } else {
+      setErrorActionUrl("");
       router.push(json.url);
     }
   };
@@ -110,21 +126,22 @@ export default function ICSFeedSetup(): JSX.Element {
               <Form form={form} handleSubmit={handleFormSubmit}>
                 <fieldset className="stack-y-2" disabled={form.formState.isSubmitting}>
                   {urls.map((url, i) => (
-                    <div key={url} className="flex w-full items-center gap-2">
+                    <div key={url.id} className="flex w-full items-center gap-2">
                       <TextField
                         required
                         type="text"
                         label={t("calendar_url")}
-                        value={url}
+                        value={url.value}
                         containerClassName={getUrlContainerClassName(i)}
-                        onChange={createUrlChangeHandler(setUrls, i)}
+                        onChange={createUrlChangeHandler(setUrls, url.id)}
                         placeholder="https://example.com/calendar.ics"
                       />
                       {i !== 0 && (
                         <button
                           type="button"
+                          aria-label={`Remove URL ${i + 1}`}
                           className="mb-2 h-min text-sm"
-                          onClick={createUrlRemovalHandler(setUrls, i)}>
+                          onClick={createUrlRemovalHandler(setUrls, url.id)}>
                           <TrashIcon size={16} />
                         </button>
                       )}
