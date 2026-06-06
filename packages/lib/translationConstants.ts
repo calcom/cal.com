@@ -22,6 +22,7 @@ export const TRANSLATION_SUPPORTED_LOCALES = [
   "is", // Icelandic
   "lt", // Lithuanian
   "nb", // Norwegian Bokmål
+  "fa", // Persian
 ] as const;
 
 export type TranslationSupportedLocale = (typeof TRANSLATION_SUPPORTED_LOCALES)[number];

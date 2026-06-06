@@ -89,6 +89,7 @@ export const SUPPORTED_LOCALES = [
   "es-419",
   "eu",
   "et",
+  "fa",
   "fi",
   "fr",
   "he",

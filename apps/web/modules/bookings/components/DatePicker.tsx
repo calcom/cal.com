@@ -8,6 +8,7 @@ import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/co
 import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getWeekStartForLocale } from "@calcom/lib/weekday";
 import type { User } from "@calcom/prisma/client";
 import type { PeriodData } from "@calcom/types/Event";
 import { useSlotsViewOnSmallScreen } from "@calcom/embed-core/embed-iframe";
@@ -113,6 +114,13 @@ export const DatePicker = ({
   // Determine if this is a compact sidebar view based on layout
   const isCompact = layout !== "month_view" && layout !== "mobile";
 
+  // Fall back to the locale's default week start (e.g. Saturday for Persian) when the
+  // host hasn't explicitly chosen one. Display-only: does not affect slots or availability.
+  const hostWeekStart = event?.data?.subsetOfUsers?.[0]?.weekStart;
+  const weekStart = hostWeekStart
+    ? weekdayToWeekIndex(hostWeekStart)
+    : getWeekStartForLocale(i18n.language);
+
   const periodData: PeriodData = {
     ...{
       periodType: "UNLIMITED",
@@ -160,7 +168,7 @@ export const DatePicker = ({
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
-      weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
+      weekStart={weekStart}
       slots={slots}
       scrollToTimeSlots={scrollToTimeSlots}
       periodData={periodData}

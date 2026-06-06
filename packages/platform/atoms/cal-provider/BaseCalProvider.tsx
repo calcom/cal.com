@@ -8,6 +8,7 @@ import { IconSprites } from "@calcom/ui/components/icon";
 import deTranslations from "@calcom/i18n/locales/de/common.json";
 import enTranslations from "@calcom/i18n/locales/en/common.json";
 import esTranslations from "@calcom/i18n/locales/es/common.json";
+import faTranslations from "@calcom/i18n/locales/fa/common.json";
 import frTranslations from "@calcom/i18n/locales/fr/common.json";
 import itTranslations from "@calcom/i18n/locales/it/common.json";
 import nlTranslations from "@calcom/i18n/locales/nl/common.json";
@@ -29,6 +30,7 @@ import type {
   ptBrTranslationKeys,
   deTranslationKeys,
   esTranslationKeys,
+  faTranslationKeys,
   itTranslationKeys,
   nlTranslationKeys,
   i18nProps,
@@ -231,14 +233,16 @@ function getTranslation(key: string, language: CalProviderLanguagesType) {
   switch (language) {
     case "en":
       return enTranslations[key as enTranslationKeys];
+    case "es":
+      return esTranslations[key as esTranslationKeys];
+    case "fa":
+      return faTranslations[key as faTranslationKeys];
     case "fr":
       return frTranslations[key as frTranslationKeys];
     case "pt-BR":
       return ptBrTranslations[key as ptBrTranslationKeys];
     case "de":
       return deTranslations[key as deTranslationKeys];
-    case "es":
-      return esTranslations[key as esTranslationKeys];
     case "it":
       return itTranslations[key as itTranslationKeys];
     case "nl":

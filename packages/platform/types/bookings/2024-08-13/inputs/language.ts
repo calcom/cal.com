@@ -4,6 +4,7 @@ export enum BookingLanguage {
   "de" = "de",
   "es" = "es",
   "eu" = "eu",
+  "fa" = "fa",
   "he" = "he",
   "id" = "id",
   "ja" = "ja",

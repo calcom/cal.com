@@ -1,6 +1,7 @@
 import type deTranslations from "@calcom/i18n/locales/de/common.json";
 import type enTranslations from "@calcom/i18n/locales/en/common.json";
 import type esTranslations from "@calcom/i18n/locales/es/common.json";
+import type faTranslations from "@calcom/i18n/locales/fa/common.json";
 import type frTranslations from "@calcom/i18n/locales/fr/common.json";
 import type itTranslations from "@calcom/i18n/locales/it/common.json";
 import type nlTranslations from "@calcom/i18n/locales/nl/common.json";
@@ -10,6 +11,7 @@ export type enTranslationKeys = keyof typeof enTranslations;
 export type frTranslationKeys = keyof typeof frTranslations;
 export type deTranslationKeys = keyof typeof deTranslations;
 export type esTranslationKeys = keyof typeof esTranslations;
+export type faTranslationKeys = keyof typeof faTranslations;
 export type itTranslationKeys = keyof typeof itTranslations;
 export type ptBrTranslationKeys = keyof typeof ptBrTranslations;
 export type nlTranslationKeys = keyof typeof nlTranslations;
@@ -18,6 +20,7 @@ export type translationKeys =
   | frTranslationKeys
   | deTranslationKeys
   | esTranslationKeys
+  | faTranslationKeys
   | itTranslationKeys
   | ptBrTranslationKeys
   | nlTranslationKeys;
@@ -27,10 +30,11 @@ export const EN = "en";
 export const PT_BR = "pt-BR";
 export const DE = "de";
 export const ES = "es";
+export const FA = "fa";
 export const IT = "it";
 export const NL = "nl";
 
-const CAL_PROVIDER_LANGUAGES = [FR, EN, PT_BR, DE, ES, IT, NL] as const;
+const CAL_PROVIDER_LANGUAGES = [FR, EN, PT_BR, DE, ES, FA, IT, NL] as const;
 export type CalProviderLanguagesType = (typeof CAL_PROVIDER_LANGUAGES)[number];
 
 type i18nFrProps = {
@@ -58,6 +62,11 @@ type i18nEsProps = {
   language?: "es";
 };
 
+type i18nFaProps = {
+  labels?: Partial<Record<faTranslationKeys, string>>;
+  language?: "fa";
+};
+
 type i18nItProps = {
   labels?: Partial<Record<itTranslationKeys, string>>;
   language?: "it";
@@ -74,5 +83,6 @@ export type i18nProps =
   | i18nPtBrProps
   | i18nDeProps
   | i18nEsProps
+  | i18nFaProps
   | i18nItProps
   | i18nNlProps;
