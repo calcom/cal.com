@@ -2,6 +2,23 @@ import type { SortOrderType } from "@calcom/platform-types";
 import { Injectable } from "@nestjs/common";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { baseEventTypeSelect } from "@calcom/prisma/selects/event-types";
+import { baseUserSelect } from "@calcom/prisma/selects/user";
+
+const teamEventTypeSelect = {
+  ...baseEventTypeSelect,
+  users: { select: baseUserSelect },
+  hosts: {
+    select: {
+      isFixed: true,
+      userId: true,
+      user: { select: baseUserSelect },
+    },
+  },
+  schedule: {
+    select: { id: true, name: true, timeZone: true, availability: true },
+  },
+} satisfies Prisma.EventTypeSelect;
 
 @Injectable()
 export class TeamsEventTypesRepository {
@@ -79,7 +96,17 @@ export class TeamsEventTypesRepository {
           slug: eventTypeSlug,
         },
       },
-      include: { owner: true, team: true },
+      select: {
+        owner: { select: baseUserSelect },
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+          },
+        },
+      }
     });
   }
 
@@ -134,7 +161,16 @@ export class TeamsEventTypesRepository {
   async getEventTypeByIdWithChildren(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: { children: true },
+      select: {
+        children: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            teamId: true,
+          },
+        },
+      }
     });
   }
 
