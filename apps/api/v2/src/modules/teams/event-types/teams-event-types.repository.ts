@@ -4,6 +4,8 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { baseEventTypeSelect } from "@calcom/prisma/selects/event-types";
 import { baseUserSelect } from "@calcom/prisma/selects/user";
+import { Prisma } from "@prisma/client";
+
 
 const teamEventTypeSelect = {
   ...baseEventTypeSelect,
@@ -33,13 +35,7 @@ export class TeamsEventTypesRepository {
         id: eventTypeId,
         teamId,
       },
-      include: {
-        users: true,
-        schedule: true,
-        hosts: true,
-        destinationCalendar: true,
-        calVideoSettings: true,
-      },
+       select: teamEventTypeSelect,
     });
   }
 
@@ -51,29 +47,7 @@ export class TeamsEventTypesRepository {
           slug: eventTypeSlug,
         },
       },
-      include: {
-        users: true,
-        schedule: true,
-        hosts: hostsLimit
-          ? {
-              take: hostsLimit,
-            }
-          : true,
-        destinationCalendar: true,
-        calVideoSettings: true,
-        team: {
-          select: {
-            bannerUrl: true,
-            name: true,
-            logoUrl: true,
-            slug: true,
-            weekStart: true,
-            brandColor: true,
-            darkBrandColor: true,
-            theme: true,
-          },
-        },
-      },
+      select: teamEventTypeSelect,
     });
   }
 
@@ -116,45 +90,21 @@ export class TeamsEventTypesRepository {
         teamId,
       },
       ...(sortCreatedAt && { orderBy: { id: sortCreatedAt } }),
-      include: {
-        users: true,
-        schedule: true,
-        hosts: true,
-        destinationCalendar: true,
-        calVideoSettings: true,
-        team: {
-          select: {
-            bannerUrl: true,
-            name: true,
-            logoUrl: true,
-            slug: true,
-            weekStart: true,
-            brandColor: true,
-            darkBrandColor: true,
-            theme: true,
-          },
-        },
-      },
+      select: teamEventTypeSelect,
     });
   }
 
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: {
-        users: true,
-        schedule: true,
-        hosts: true,
-        destinationCalendar: true,
-        calVideoSettings: true,
-      },
+      select: teamEventTypeSelect,
     });
   }
 
   async getEventTypeChildren(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findMany({
       where: { parentId: eventTypeId },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      select: teamEventTypeSelect,
     });
   }
 
