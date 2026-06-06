@@ -14,4 +14,13 @@ export const metadata = {
   slug: "bigbluebutton",
   title: "BigBlueButton",
   isGlobal: false,
+  email: "support@bigbluebutton.org",
+  appData: {
+    location: {
+      linkType: "dynamic",
+      type: "integrations:bigbluebutton_video",
+      label: "BigBlueButton",
+    },
+  },
+  dirName: "bigbluebutton",
 } as AppMeta;
