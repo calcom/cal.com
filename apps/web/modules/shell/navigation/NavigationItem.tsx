@@ -203,26 +203,26 @@ export const NavigationItem: React.FC<{
         </Tooltip>
       ) : (
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
-          <Link
+          <div className={classNames("flex items-center rounded-md transition",
+            item.child
+              ? `[&:has([aria-current='page'])]:bg-transparent!`
+              : `[&:has([aria-current='page'])]:bg-emphasis`,
+            isChild
+              ? `[&:has([aria-current='page'])]:text-emphasis [&:has([aria-current='page'])]:bg-emphasis hidden h-8 lg:flex ${
+                  props.index === 0 ? "mt-0" : "mt-1"
+                }`
+              : "[&:has([aria-current='page'])]:text-emphasis mt-0.5",
+            isLocaleReady
+              ? "hover:bg-subtle hover:text-emphasis todesktop:[&:has([aria-current='page'])]:bg-emphasis todesktop:hover:bg-transparent"
+              : ""
+            )}>
+            <Link
             data-test-id={item.name}
             onClick={() => trackNavigationClick(item.name)}
             href={item.href}
             aria-label={t(item.name)}
             target={item.target}
-            className={classNames(
-              "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-              item.child
-                ? `aria-[aria-current='page']:bg-transparent!`
-                : `[&[aria-current='page']]:bg-emphasis`,
-              isChild
-                ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
-                    props.index === 0 ? "mt-0" : "mt-1  hover:mt-1 [&[aria-current='page']]:mt-1"
-                  }`
-                : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm md:justify-center lg:justify-start",
-              isLocaleReady
-                ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
-                : ""
-            )}
+            className="todesktop:py-[7px] text-default group flex flex-1 items-center px-2 py-1.5 text-sm font-medium md:justify-center lg:justify-start"
             aria-current={current ? "page" : undefined}>
             {item.icon && (
               <Icon
@@ -240,12 +240,17 @@ export const NavigationItem: React.FC<{
                 className="hidden w-full justify-between truncate text-ellipsis lg:flex"
                 data-testid={`${item.name}-test`}>
                 {t(item.name)}
-                {item.badge && item.badge}
               </span>
             ) : (
               <SkeletonText className="h-[20px] w-full" />
             )}
-          </Link>
+            </Link>
+            {item.badge && (
+              <span className="hidden lg:flex shrink-0 pr-2 leading-none">
+                {item.badge}
+              </span>
+            )}
+          </div>
         </Tooltip>
       )}
       {hasChildren && (
@@ -279,23 +284,25 @@ export const MobileNavigationItem: React.FC<{
 
   if (!shouldDisplayNavigationItem) return null;
   return (
-    <Link
-      key={item.name}
-      href={item.href}
-      target={item.target}
-      className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted bg-transparent! relative my-2 min-w-0 flex-1 overflow-hidden rounded-md p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
-      aria-current={current ? "page" : undefined}>
-      {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
-      {item.icon && (
-        <Icon
-          name={item.icon}
-          className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 shrink-0 text-center text-inherit"
-          aria-hidden="true"
-          aria-current={current ? "page" : undefined}
-        />
-      )}
-      {isLocaleReady ? <span className="block truncate">{t(item.name)}</span> : <SkeletonText />}
-    </Link>
+    <div className="relative flex flex-1" key={item.name}>
+      <Link
+        key={item.name}
+        href={item.href}
+        target={item.target}
+        className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted bg-transparent! relative my-2 min-w-0 flex-1 overflow-hidden rounded-md p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
+        aria-current={current ? "page" : undefined}>
+        {item.icon && (
+          <Icon
+            name={item.icon}
+            className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 shrink-0 text-center text-inherit"
+            aria-hidden="true"
+            aria-current={current ? "page" : undefined}
+          />
+        )}
+        {isLocaleReady ? <span className="block truncate">{t(item.name)}</span> : <SkeletonText />}
+      </Link>
+      {item.badge && <div className="absolute top-1 right-1">{item.badge}</div>}
+    </div>
   );
 };
 
