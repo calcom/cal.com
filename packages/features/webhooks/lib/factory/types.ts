@@ -63,16 +63,6 @@ export interface MeetingPayload {
   }[];
 }
 
-export interface InstantMeetingPayload {
-  title: string;
-  body: string;
-  icon?: string;
-  url?: string;
-  actions?: { action: string; title: string; type: string; image: string | null }[];
-  requireInteraction?: boolean;
-  type: string;
-}
-
 export interface NoShowWebhookPayload {
   bookingId: number;
   webhook: {
@@ -93,6 +83,5 @@ export interface WebhookPayload {
     | FormSubmittedPayload
     | RecordingPayload
     | MeetingPayload
-    | InstantMeetingPayload
     | NoShowWebhookPayload;
 }

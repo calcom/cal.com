@@ -4,7 +4,6 @@ import type {
   AfterGuestsNoShowDTO,
   AfterHostsNoShowDTO,
   BookingWebhookEventDTO,
-  InstantMeetingDTO,
   MeetingEndedDTO,
   MeetingStartedDTO,
   OOOCreatedDTO,
@@ -44,16 +43,11 @@ export interface IMeetingPayloadBuilder
   ): WebhookPayload;
 }
 
-export interface IInstantMeetingBuilder extends IPayloadBuilder<InstantMeetingDTO> {
-  build(dto: InstantMeetingDTO): WebhookPayload;
-}
-
 export interface PayloadBuilderSet {
   booking: IBookingPayloadBuilder;
   ooo: IOOOPayloadBuilder;
   recording: IRecordingPayloadBuilder;
   meeting: IMeetingPayloadBuilder;
-  instantMeeting: IInstantMeetingBuilder;
 }
 
 type BuilderCategory = keyof PayloadBuilderSet;
@@ -92,9 +86,6 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
   [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: "meeting",
   [WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "meeting",
 
-  // Instant meeting events
-  [WebhookTriggerEvents.INSTANT_MEETING]: "instantMeeting",
-
   // Delegation events (enterprise feature removed, mapped to booking as fallback)
   [WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR]: "booking",
 
@@ -127,8 +118,6 @@ export type MeetingTriggerEvents =
   | typeof WebhookTriggerEvents.MEETING_ENDED
   | typeof WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   | typeof WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW;
-
-export type InstantMeetingTriggerEvents = typeof WebhookTriggerEvents.INSTANT_MEETING;
 
 /**
  * Factory that routes to version-specific payload builders
@@ -192,7 +181,6 @@ export class PayloadBuilderFactory {
   getBuilder(version: WebhookVersion, triggerEvent: OOOTriggerEvents): IOOOPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: RecordingTriggerEvents): IRecordingPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: MeetingTriggerEvents): IMeetingPayloadBuilder;
-  getBuilder(version: WebhookVersion, triggerEvent: InstantMeetingTriggerEvents): IInstantMeetingBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: WebhookTriggerEvents): IPayloadBuilder<WebhookEventDTO>;
   getBuilder(version: WebhookVersion, triggerEvent: WebhookTriggerEvents): IPayloadBuilder<WebhookEventDTO> {
     const builderSet = this.getBuilderSet(version);
