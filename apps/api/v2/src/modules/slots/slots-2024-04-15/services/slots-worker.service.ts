@@ -176,36 +176,40 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
       // Prepare context for serialization
       const serializableCtx = this.getSerializableContext(task.options.ctx);
 
+      // Each listener removes its sibling to prevent double-firing with the
+      // persistent lifecycle on("error") registered in createNewWorker().
+      let messageListener: (result: WorkerResult) => void;
+      let errorListener: (err: Error) => void;
+
+      messageListener = (result: WorkerResult): void => {
+        worker.removeListener("error", errorListener);
+        this.availableWorkers.push(worker);
+        if (result.success) {
+          task.resolve(result.data as TimeSlots);
+        } else {
+          task.reject(result.error ?? new Error("An error occurred in the worker thread."));
+        }
+        this.processNextTask();
+      };
+
+      errorListener = (err: Error): void => {
+        worker.removeListener("message", messageListener);
+        // Do not push the worker back — handleWorkerFailure owns pool cleanup.
+        task.reject(new Error(`Worker thread error during task execution: ${err.message}`));
+      };
+
+      worker.once("message", messageListener);
+      worker.once("error", errorListener);
+
       try {
-        // Each listener removes its sibling to prevent double-firing with the
-        // persistent lifecycle on("error") registered in createNewWorker().
-        const messageListener = (result: WorkerResult): void => {
-          worker.removeListener("error", errorListener);
-          this.availableWorkers.push(worker);
-          if (result.success) {
-            task.resolve(result.data as TimeSlots);
-          } else {
-            task.reject(result.error ?? new Error("An error occurred in the worker thread."));
-          }
-          this.processNextTask();
-        };
-
-        const errorListener = (err: Error): void => {
-          worker.removeListener("message", messageListener);
-          // Do not push the worker back — handleWorkerFailure owns pool cleanup.
-          task.reject(new Error(`Worker thread error during task execution: ${err.message}`));
-        };
-
-        worker.once("message", messageListener);
-        worker.once("error", errorListener);
-
         worker.postMessage({
           input: task.options.input,
           ctx: serializableCtx,
         } as WorkerMessage);
       } catch (error) {
-        // If posting the message itself fails (e.g., serialization error)
-        this.availableWorkers.push(worker); // Ensure worker is returned to pool
+        worker.removeListener("message", messageListener);
+        worker.removeListener("error", errorListener);
+        this.availableWorkers.push(worker);
 
         let errorMessage = String(error);
         if (error instanceof Error) {
@@ -213,7 +217,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
         }
 
         task.reject(new Error(`Failed to dispatch task to worker: ${errorMessage}`));
-        this.processNextTask(); // Try to process next task if available
+        this.processNextTask();
       }
     }
   }
