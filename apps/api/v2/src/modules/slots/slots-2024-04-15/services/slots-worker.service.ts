@@ -178,8 +178,11 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
 
       try {
         // Use 'once' listeners for task-specific responses and errors.
-        // 'once' listeners automatically remove themselves after being invoked, preventing leaks.
+        // Each listener removes its sibling before doing any work to prevent
+        // double-firing: the persistent lifecycle on("error") and the task-specific
+        // once("error") would otherwise both execute on the same error event.
         const messageListener = (result: WorkerResult): void => {
+          worker.removeListener("error", errorListener);
           this.availableWorkers.push(worker); // Return worker to the available pool
           if (result.success) {
             task.resolve(result.data as TimeSlots);
@@ -190,13 +193,17 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
         };
 
         const errorListener = (err: Error): void => {
-          this.availableWorkers.push(worker); // Ensure worker is returned
+          worker.removeListener("message", messageListener);
+          // Do NOT push the worker back to availableWorkers here.
+          // The persistent lifecycle on("error") already calls handleWorkerFailure,
+          // which removes the failed worker and creates a replacement. Pushing here
+          // would re-introduce a terminated worker into the available pool.
           task.reject(new Error(`Worker thread error during task execution: ${err.message}`));
-          this.processNextTask(); // Attempt to process the next task
+          // processNextTask is called by handleWorkerFailure; no need to call it again here.
         };
 
-        worker.once("message", messageListener); // Use 'once' for task results
-        worker.once("error", errorListener); // Use 'once' for task-specific errors
+        worker.once("message", messageListener);
+        worker.once("error", errorListener);
 
         worker.postMessage({
           input: task.options.input,
