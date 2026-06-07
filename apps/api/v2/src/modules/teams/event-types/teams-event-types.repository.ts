@@ -1,7 +1,25 @@
 import type { SortOrderType } from "@calcom/platform-types";
+import type { Prisma } from "@calcom/prisma/client";
 import { Injectable } from "@nestjs/common";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+
+const teamEventTypeUserSelect = {
+  id: true,
+  name: true,
+  username: true,
+  avatarUrl: true,
+  brandColor: true,
+  darkBrandColor: true,
+  weekStart: true,
+  metadata: true,
+  isPlatformManaged: true,
+  organizationId: true,
+} satisfies Prisma.UserSelect;
+
+export type TeamEventTypeUser = Prisma.UserGetPayload<{
+  select: typeof teamEventTypeUserSelect;
+}>;
 
 @Injectable()
 export class TeamsEventTypesRepository {
@@ -17,7 +35,7 @@ export class TeamsEventTypesRepository {
         teamId,
       },
       include: {
-        users: true,
+        users: { select: teamEventTypeUserSelect },
         schedule: true,
         hosts: true,
         destinationCalendar: true,
@@ -35,7 +53,7 @@ export class TeamsEventTypesRepository {
         },
       },
       include: {
-        users: true,
+        users: { select: teamEventTypeUserSelect },
         schedule: true,
         hosts: hostsLimit
           ? {
@@ -90,7 +108,7 @@ export class TeamsEventTypesRepository {
       },
       ...(sortCreatedAt && { orderBy: { id: sortCreatedAt } }),
       include: {
-        users: true,
+        users: { select: teamEventTypeUserSelect },
         schedule: true,
         hosts: true,
         destinationCalendar: true,
@@ -115,7 +133,7 @@ export class TeamsEventTypesRepository {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       include: {
-        users: true,
+        users: { select: teamEventTypeUserSelect },
         schedule: true,
         hosts: true,
         destinationCalendar: true,
@@ -127,14 +145,29 @@ export class TeamsEventTypesRepository {
   async getEventTypeChildren(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findMany({
       where: { parentId: eventTypeId },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: { select: teamEventTypeUserSelect },
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+      },
     });
   }
 
   async getEventTypeByIdWithChildren(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: { children: true },
+      include: {
+        children: {
+          select: {
+            id: true,
+            userId: true,
+            slug: true,
+            title: true,
+            parentId: true,
+          },
+        },
+      },
     });
   }
 
