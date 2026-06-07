@@ -2,31 +2,44 @@
 
 Este documento registra a seleção inicial de métodos para a atividade PTOSS-2, considerando uma equipe com seis integrantes. Para cada função, foram mapeadas a funcionalidade, as técnicas de caixa-preta e caixa-branca aplicáveis, os principais casos de teste, os branches esperados e a justificativa da escolha.
 
-## 1. `getPrefetchMonthCount`
+O mapa-mestre da atividade (organização, regras de não-mistura de técnicas e divisão por direção de projeto) está em [[ptoss-2-plano-geral]]. O detalhamento da função do Joaquim está em [[ptoss-2-funcao-joaquim-isPasswordValid]].
 
-Arquivo: `packages/features/bookings/Booker/utils/getPrefetchMonthCount.ts`
+## 1. `extractHostTimezone`
 
-| Item | Descrição |
-| --- | --- |
-| Funcionalidade | Determina se o calendário deve buscar dois meses de disponibilidade ou não, considerando layout, estado do booker, meses exibidos e prefetch já ativo. |
-| Técnica caixa-preta usada | Particionamento de equivalência por layout (`COLUMN_VIEW`, `WEEK_VIEW`, `MONTH_VIEW`), por estado (`selecting_date`, `selecting_time`, `booking`), por relação entre meses (iguais, diferentes, inválidos) e por `prefetchNextMonth` (`true`/`false`). |
-| Técnica caixa-branca usada | Cobertura de branches e MC/DC na decisão composta `!isWeekView && isSelectingTime && !prefetchNextMonth`. |
-| Casos de teste | Meses iguais retornam `undefined`; meses diferentes em `COLUMN_VIEW` retornam `2`; `WEEK_VIEW` sempre retorna `undefined`; `MONTH_VIEW` com `selecting_time` e `prefetchNextMonth=false` retorna `2`; `MONTH_VIEW` com `selecting_time` e `prefetchNextMonth=true` retorna `undefined`; mês `NaN` ou infinito retorna `undefined`. |
-| Branches cobertos | `!isDifferentMonth`; `isColumnView`; decisão composta para month view; retorno final `undefined`. |
-| Justificativa | É uma função pequena, pura e com regras condicionais claras. Permite demonstrar bem a diferença entre testar comportamento esperado e garantir cobertura estrutural de uma condição composta. |
+Arquivo: `packages/lib/hashedLinksUtils.ts`
 
-## 2. `getAvailabilityFromSchedule`
-
-Arquivo: `packages/lib/availability.ts`
+> **Troca em relação à seleção inicial.** Substituiu `getPrefetchMonthCount`, que
+> já estava com **100% de cobertura** (sem implementação nova nem delta possível).
+> A `extractHostTimezone` tem **0% de cobertura** (sem teste dedicado) e decisões
+> de até três condições, ideais para MC/DC.
 
 | Item | Descrição |
 | --- | --- |
-| Funcionalidade | Converte uma agenda semanal em uma lista de disponibilidades agrupadas por horários iguais. |
-| Técnica caixa-preta usada | Particionamento de equivalência por tipo de agenda: vazia, dias com mesmo horário, dias com horários diferentes e múltiplos horários no mesmo dia. |
-| Técnica caixa-branca usada | Cobertura de branches no `findIndex`: quando um horário já existe na disponibilidade e quando ainda não existe. |
-| Casos de teste | Agenda vazia retorna `[]`; segunda a sexta com `09:00-17:00` retorna uma disponibilidade com `days: [1, 2, 3, 4, 5]`; dias com manhã/tarde separados geram grupos diferentes; mesmo horário em dias não consecutivos é agrupado no mesmo objeto. |
-| Branches cobertos | `findIndex !== -1`; `findIndex === -1`; `filteredTimes.forEach`; redução em dias sem horários. |
-| Justificativa | Boa função para mostrar caixa-preta baseada no comportamento esperado do domínio: agrupar disponibilidades por horário. A caixa-branca ajuda a perceber que é preciso testar tanto a criação de um novo grupo quanto o reaproveitamento de grupo existente. |
+| Direção de projeto | Caixa-branca-primeiro, complementando com caixa-preta. |
+| Funcionalidade | Extrai o fuso horário do host a partir dos dados do tipo de evento (pessoal, time com hosts, time com membros) ou cai no fallback `dayjs.tz.guess()`. |
+| Técnica caixa-branca usada | Cobertura de branches e MC/DC nas decisões compostas `userId && owner?.timeZone` (2 cond.), `hosts && hosts.length > 0 && hosts[0]?.user?.timeZone` (3 cond.) e a equivalente para `team.members` (3 cond.). |
+| Técnica caixa-preta usada | Particionamento de equivalência por tipo de evento: pessoal com owner, time com hosts, time com membros, e fallback sem dados de fuso. |
+| Casos de teste | Evento pessoal retorna o fuso do owner; time com host válido retorna o fuso do host; time sem host mas com membro retorna o fuso do membro; ausência de dados cai no fallback. |
+| Branches cobertos | Ramo `userId`; ramo `teamId`; ramo `hosts`; ramo `team.members`; retorno fallback. |
+| Justificativa | Função pura com decisões de múltiplas condições aninhadas, ideal para MC/DC. Nota: o fallback usa `dayjs.tz.guess()` (dependente do ambiente); no teste do fallback basta verificar que retorna uma string. |
+
+## 2. `isEqual`
+
+Arquivo: `packages/lib/isEqual.ts`
+
+> **Troca em relação à seleção inicial.** Substituiu `getAvailabilityFromSchedule`,
+> que já estava com **100% de cobertura** (statements e branches). A `isEqual` tem
+> **0% de cobertura** (sem teste dedicado) e classes de equivalência muito limpas.
+
+| Item | Descrição |
+| --- | --- |
+| Direção de projeto | Caixa-preta-primeiro, complementando com caixa-branca. |
+| Funcionalidade | Compara dois valores por igualdade profunda recursiva, tratando primitivos, `null`/`undefined`, arrays e objetos. |
+| Técnica caixa-preta usada | Particionamento de equivalência por tipo: primitivos iguais/diferentes; `null`/`undefined`; arrays (mesmo tamanho, tamanho diferente, elementos diferentes); objetos (mesmas chaves, chaves diferentes, valores diferentes); tipos mistos. |
+| Técnica caixa-branca usada | Cobertura de branches de cada `if` e das decisões de 2 condições `value == null || other == null` e `Array.isArray(value) && Array.isArray(other)`. |
+| Casos de teste | Mesma referência retorna `true`; um lado `null` retorna `false`; arrays de tamanhos diferentes retornam `false`; arrays iguais retornam `true`; objetos com chaves diferentes retornam `false`; objetos aninhados iguais retornam `true`; tipos diferentes retornam `false`. |
+| Branches cobertos | `value === other`; `value == null \|\| other == null`; ramo de arrays; ramo de objetos; comparação final de primitivos. |
+| Justificativa | Igualdade profunda tem partições de equivalência naturais e nítidas, ideal para começar pela caixa-preta. A recursão e os ramos de tipo dão um bom complemento estrutural. |
 
 ## 3. `parseTimeString`
 
@@ -41,31 +54,54 @@ Arquivo: `packages/features/schedules/components/ScheduleComponent.tsx`
 | Branches cobertos | `!input.trim()`; `timeFormat === 12`; `!parsed.isValid()`; validação `hours > 23`; validação `minutes > 59`; retorno com `Date`. |
 | Justificativa | Excelente para análise de valor limite, porque horários têm fronteiras naturais: `00:00`, `23:59`, `24:00`, minuto `59` e minuto `60`. |
 
-## 4. `computeEffectiveStateAcrossTeams`
+> **Nota da auditoria (mantida de propósito).** A função já está ~95% coberta. O
+> que resta sem cobertura é a guarda `if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null`
+> (linhas 416-417): é **código inalcançável**, porque o parsing estrito do dayjs
+> (linhas 409-411) já rejeita "24:00"/"16:60" antes. Esse achado de caixa-branca
+> é o ângulo principal desta função e alimenta a seção de complementaridade do
+> relatório.
 
-Arquivo: `packages/features/feature-opt-in/lib/computeEffectiveState.ts`
+## 4. `isPasswordValid`
+
+Arquivo: `packages/lib/auth/isPasswordValid.ts`
+
+Detalhamento completo em [[ptoss-2-funcao-joaquim-isPasswordValid]].
+
+> **Troca em relação à seleção inicial.** Esta função substituiu
+> `computeEffectiveStateAcrossTeams`, que já estava com **100% de cobertura**
+> (statements, branches, functions e lines) e não permitia delta de cobertura
+> antes/após nem implementação nova. A `isPasswordValid` tem **0% de cobertura
+> real** (é mockada no único teste que a referencia), decisão composta para
+> MC/DC e um defeito real que serve de alvo para o TDD.
 
 | Item | Descrição |
 | --- | --- |
-| Funcionalidade | Calcula se uma feature opt-in está efetivamente habilitada considerando estado global, organização, times, usuário e política permissiva ou strict. |
-| Técnica caixa-preta usada | Tabela de decisão com combinações de estados: global desligado, organização desligada, time habilitado/desabilitado, usuário habilitado/desabilitado e política `strict` ou `permissive`. |
-| Técnica caixa-branca usada | Cobertura de branches e MC/DC nas decisões compostas, como `userEnabled && !hasExplicitEnablementAboveUser` e `!userEnabled && !hasExplicitEnablementAboveUser`. |
-| Casos de teste | `globalEnabled=false` sempre desabilita; `orgState=disabled` desabilita; política `strict` com qualquer time desabilitado bloqueia; política `strict` com usuário habilitado mas sem org/time habilitado bloqueia; política permissiva com usuário habilitado habilita; política permissiva com todos os times desabilitados bloqueia; ausência de habilitação explícita retorna desabilitado. |
-| Branches cobertos | `!globalEnabled`; `orgDisabled`; `policy === "strict"`; `anyTeamDisabled`; `userEnabled && !hasExplicitEnablementAboveUser`; `userDisabled`; `!hasExplicitEnablementAboveUser`; `allTeamsDisabled`; retorno habilitado. |
-| Justificativa | É uma das melhores funções para a atividade porque permite uma tabela de decisão robusta e uma análise estrutural rica. Também mostra claramente a precedência entre regras. |
+| Direção de projeto | Caixa-branca-primeiro, complementando com caixa-preta. |
+| Funcionalidade | Valida se uma senha atende às regras de complexidade (maiúscula, minúscula, dígito e comprimento), em modo normal ou strict, com retorno booleano ou detalhado. |
+| Técnica caixa-branca usada | Cobertura de decisões/branches e MC/DC na decisão composta `length >= 7 && (!strict \|\| length > 14)`. |
+| Técnica caixa-preta usada | Particionamento de equivalência (maiúscula/minúscula/dígito presentes ou não) e análise de valor limite no comprimento. |
+| Casos de teste | 4 casos MC/DC (comprimentos 5, 8 e 20 com `strict` variando); senha sem maiúscula/minúscula/dígito; valores limite 6, 7, 14 e 15; modo `breakdown` com retorno em objeto. |
+| Branches cobertos | Decisão de `min`; decisão de `admin_min`; `num`, `low`, `cap`; ramo `breakdown` falso (retorno booleano) e verdadeiro (retorno objeto); ramo `strict` no objeto. |
+| Justificativa | Função pura, sem dependências, com decisão composta ideal para MC/DC e valor limite natural no comprimento. A divergência entre o comentário ("Eight characters") e o código (`>= 7`) também a torna o alvo perfeito do TDD. |
 
-## 5. `intersect`
+## 5. `findContainingIntervals`
 
-Arquivo: `packages/features/schedules/lib/date-ranges.ts`
+Arquivo: `packages/lib/intervalTree.ts` (classe `ContainmentSearchAlgorithm`)
+
+> **Troca em relação à seleção inicial.** Substituiu `intersect`, que já estava
+> com **100% de cobertura**. A `findContainingIntervals` tem **0% de cobertura**
+> (sem teste dedicado) e mantém o domínio de intervalos, com decisão de três
+> condições para MC/DC.
 
 | Item | Descrição |
 | --- | --- |
-| Funcionalidade | Calcula os intervalos de tempo comuns entre múltiplas listas de disponibilidade. |
-| Técnica caixa-preta usada | Particionamento por relação entre intervalos: listas vazias, sem interseção, interseção parcial, intervalo contido, múltiplos usuários e intervalos encostados. |
-| Técnica caixa-branca usada | Cobertura de branches no loop principal: sem ranges, saída antecipada, interseção encontrada, interseção não encontrada, avanço de `commonIndex` e avanço de `userIndex`. |
-| Casos de teste | `[]` retorna `[]`; `[[]]` retorna `[]`; uma lista única retorna ela mesma; dois intervalos sem sobreposição retornam `[]`; dois intervalos com sobreposição retornam apenas a parte comum; intervalo totalmente contido retorna o menor; intervalos que apenas encostam, com fim igual ao início, não geram interseção. |
-| Branches cobertos | `!ranges.length`; `commonAvailability.length === 0`; `intersectStartValue < intersectEndValue`; `commonRange.endValue <= userRange.endValue`; ramo `else` que avança `userIndex`. |
-| Justificativa | Boa função para análise de valor limite com datas e horários. A fronteira mais importante é quando dois intervalos encostam, pois o código exige `start < end`, não `start <= end`. |
+| Direção de projeto | Caixa-preta-primeiro, complementando com caixa-branca. |
+| Funcionalidade | Busca, numa árvore de intervalos, todos os nós cujo intervalo contém o intervalo alvo, ignorando o próprio índice. |
+| Técnica caixa-preta usada | Particionamento por relação de contenção: contido, não contido, mesmo índice (self), intervalo degenerado (`end < start`); e análise de valor limite nas bordas `start <= targetStart` e `end >= targetEnd` (iguais vs estritamente dentro). |
+| Técnica caixa-branca usada | Cobertura de branches da recursão e MC/DC na decisão de três condições `node.start <= targetStart && node.end >= targetEnd && node.index !== targetIndex` (linha 82). |
+| Casos de teste | Árvore vazia retorna `[]`; nó que contém o alvo é incluído; nó com mesmo índice do alvo é ignorado; nó degenerado desce para os filhos; bordas exatamente iguais contam como contenção; alvo fora de todos não retorna nenhum. |
+| Branches cobertos | `!node`; `node.end < node.start`; decisão composta de contenção; `node.left && node.left.maxEnd >= targetStart`; `node.right && node.start <= targetEnd`. |
+| Justificativa | Mantém o domínio de intervalos do integrante, tem valor limite natural nas comparações `<=`/`>=` e uma decisão de três condições perfeita para o complemento MC/DC. |
 
 ## 6. `subtract`
 
@@ -80,16 +116,23 @@ Arquivo: `packages/features/schedules/lib/date-ranges.ts`
 | Branches cobertos | `excludedRange.start >= sourceEnd`; `excludedRange.end <= currentStart`; `excludedRange.start > currentStart`; `excludedRange.end > currentStart`; `sourceEnd > currentStart`. |
 | Justificativa | Muito adequada para combinar caixa-preta e caixa-branca, porque a especificação funcional é intuitiva e os branches internos correspondem diretamente aos tipos de sobreposição entre intervalos. |
 
+> **Nota da auditoria (mantida de propósito).** A função já está ~98% coberta. O
+> ramo sem cobertura é o `false` da condição `if (excludedRange.end.valueOf() > currentStart.valueOf())`
+> (linha 441): é **inalcançável**, porque o guard da linha 435 (`continue` quando
+> `end <= currentStart`) já garante que `end > currentStart` nesse ponto. É uma
+> redundância defensiva, e esse achado de caixa-branca é o ângulo principal desta
+> função.
+
 ## Resumo da Distribuição
 
-| Integrante | Função sugerida | Força principal |
-| --- | --- | --- |
-| Rodrigo | `getPrefetchMonthCount` | MC/DC e regras condicionais |
-| Eduardo | `getAvailabilityFromSchedule` | Agrupamento funcional e branches simples |
-| Anderson | `parseTimeString` | Análise de valor limite |
-| Joaquim | `computeEffectiveStateAcrossTeams` | Tabela de decisão e MC/DC |
-| Bruno | `intersect` | Interseção de intervalos |
-| John | `subtract` | Subtração de intervalos e cobertura de branches |
+| Integrante | Função | Direção | Cobertura inicial | Força principal |
+| --- | --- | --- | --- | --- |
+| Rodrigo | `extractHostTimezone` | Caixa-branca → preta | 0% | MC/DC em decisões aninhadas |
+| Eduardo | `isEqual` | Caixa-preta → branca | 0% | Particionamento de equivalência |
+| Anderson | `parseTimeString` | Caixa-preta → branca | ~95% | Valor limite + achado de código morto |
+| Joaquim | `isPasswordValid` | Caixa-branca → preta | 0% | MC/DC e valor limite (alvo do TDD) |
+| Bruno | `findContainingIntervals` | Caixa-preta → branca | 0% | Intervalos, valor limite e MC/DC |
+| John | `subtract` | Caixa-preta → branca | ~98% | Branches + achado de guard redundante |
 
 ## Observação
 
