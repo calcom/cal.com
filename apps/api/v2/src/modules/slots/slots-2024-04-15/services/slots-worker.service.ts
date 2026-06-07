@@ -177,29 +177,23 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
       const serializableCtx = this.getSerializableContext(task.options.ctx);
 
       try {
-        // Use 'once' listeners for task-specific responses and errors.
-        // Each listener removes its sibling before doing any work to prevent
-        // double-firing: the persistent lifecycle on("error") and the task-specific
-        // once("error") would otherwise both execute on the same error event.
+        // Each listener removes its sibling to prevent double-firing with the
+        // persistent lifecycle on("error") registered in createNewWorker().
         const messageListener = (result: WorkerResult): void => {
           worker.removeListener("error", errorListener);
-          this.availableWorkers.push(worker); // Return worker to the available pool
+          this.availableWorkers.push(worker);
           if (result.success) {
             task.resolve(result.data as TimeSlots);
           } else {
             task.reject(result.error ?? new Error("An error occurred in the worker thread."));
           }
-          this.processNextTask(); // Attempt to process the next task
+          this.processNextTask();
         };
 
         const errorListener = (err: Error): void => {
           worker.removeListener("message", messageListener);
-          // Do NOT push the worker back to availableWorkers here.
-          // The persistent lifecycle on("error") already calls handleWorkerFailure,
-          // which removes the failed worker and creates a replacement. Pushing here
-          // would re-introduce a terminated worker into the available pool.
+          // Do not push the worker back — handleWorkerFailure owns pool cleanup.
           task.reject(new Error(`Worker thread error during task execution: ${err.message}`));
-          // processNextTask is called by handleWorkerFailure; no need to call it again here.
         };
 
         worker.once("message", messageListener);
