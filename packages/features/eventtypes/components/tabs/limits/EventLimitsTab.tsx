@@ -352,8 +352,8 @@ const MinimumBookingNoticeInput = function MinimumBookingNoticeInput({
   }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
   return (
-    <div className="flex items-end justify-end">
-      <div className="w-1/2 md:w-full">
+    <div className="flex flex-wrap items-end justify-end gap-2 sm:flex-nowrap">
+      <div className="w-full min-w-[80px] flex-1">
         <InputField
           required
           disabled={passThroughProps.disabled}
@@ -376,7 +376,7 @@ const MinimumBookingNoticeInput = function MinimumBookingNoticeInput({
         isSearchable={false}
         isDisabled={passThroughProps.disabled}
         className={classNames(
-          "mb-0 ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
+          "mb-0 w-full min-w-[120px] shrink-0 capitalize sm:w-auto md:min-w-[150px] md:max-w-[200px]",
           customClassNames?.select
         )}
         innerClassNames={customClassNames?.innerClassNames}
@@ -456,7 +456,11 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   };
 
   const shouldLockIndicator = (_field: string): null => null;
-  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
+  const shouldLockDisableProps = (_field: string) => ({
+    disabled: false,
+    LockedIcon: false as const,
+    isLocked: false,
+  });
 
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
@@ -483,7 +487,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           "stack-y-6 rounded-lg border border-subtle p-6",
           customClassNames?.bufferAndNoticeSection?.container
         )}>
-        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
+        <div className="flex flex-wrap items-stretch gap-4 lg:flex-row lg:space-x-4 lg:gap-0">
           <div
             className={classNames(
               "w-full",
@@ -577,7 +581,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             />
           </div>
         </div>
-        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
+        <div className="flex flex-wrap items-stretch gap-4 lg:flex-row lg:space-x-4 lg:gap-0">
           <div
             className={classNames(
               "w-full",
