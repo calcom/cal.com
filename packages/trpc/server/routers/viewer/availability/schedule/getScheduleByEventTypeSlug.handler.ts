@@ -1,6 +1,5 @@
+import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
-
-import logger from "@calcom/lib/logger"; // ADICIONADO ESTE IMPORT
 import type { TrpcSessionUser } from "../../../../types";
 import { getHandler } from "./get.handler";
 import type { TGetByEventSlugInputSchema } from "./getScheduleByEventTypeSlug.schema";
@@ -28,39 +27,25 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
     },
   });
 
-  try {
-    // This looks kinda weird that we throw straight in the catch - its so that we can return a default schedule if the user has not completed onboarding @shiraz will loveme for this
-    if (!foundScheduleForSlug?.scheduleId) {
-      const foundUserDefaultId = await ctx.prisma.user.findUnique({
-        where: {
-          id: ctx.user.id,
-        },
-        select: {
-          defaultScheduleId: true,
-        },
-      });
-
-      if (foundUserDefaultId?.defaultScheduleId) {
-        return await getHandler({
-          ctx,
-          input: {
-            scheduleId: foundUserDefaultId?.defaultScheduleId,
-          },
-        });
-      }
-
-      throw new Error("NOT_FOUND");
-    }
-    return await getHandler({
-      ctx,
-      input: {
-        scheduleId: foundScheduleForSlug?.scheduleId,
+  if (!foundScheduleForSlug?.scheduleId) {
+    const foundUserDefaultId = await ctx.prisma.user.findUnique({
+      where: {
+        id: ctx.user.id,
+      },
+      select: {
+        defaultScheduleId: true,
       },
     });
-    
-    } catch (e) {
-    // console.log(e);
-    logger.error("Failed to retrieve schedule by event type slug", e); // ✅ LOG ESTRUTURADO SEGURO
+
+    if (foundUserDefaultId?.defaultScheduleId) {
+      return await getHandler({
+        ctx,
+        input: {
+          scheduleId: foundUserDefaultId.defaultScheduleId,
+        },
+      });
+    }
+
     return {
       id: -1,
       name: "No schedules found",
@@ -71,16 +56,16 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
       isDefault: true,
     };
   }
-  // } catch (e) {
-  //   console.log(e);
-  //   return {
-  //     id: -1,
-  //     name: "No schedules found",
-  //     availability: EMPTY_SCHEDULE,
-  //     dateOverrides: [],
-  //     timeZone: ctx.user.timeZone || "Europe/London",
-  //     workingHours: [],
-  //     isDefault: true,
-  //   };
-  // }
+
+  try {
+    return await getHandler({
+      ctx,
+      input: {
+        scheduleId: foundScheduleForSlug.scheduleId,
+      },
+    });
+  } catch (e) {
+    logger.error("Failed to retrieve schedule by event type slug", e);
+    throw e;
+  }
 };

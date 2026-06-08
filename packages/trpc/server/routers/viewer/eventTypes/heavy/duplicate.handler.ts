@@ -1,11 +1,9 @@
+import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
-import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
 import type { TDuplicateInputSchema } from "./duplicate.schema";
@@ -39,26 +37,23 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
           },
         },
         hosts: {
-          select: { 
-            userId: true, 
-            isFixed: true, 
-            priority: true, 
-            weight: true, 
-            eventTypeId: true, 
-            scheduleId: true, 
-            groupId: true, 
-            memberId: true 
+          select: {
+            userId: true,
+            isFixed: true,
+            priority: true,
+            weight: true,
+            eventTypeId: true,
+            scheduleId: true,
+            groupId: true,
+            memberId: true,
           },
         },
-        team: { 
-          select: { id: true } 
+        team: {
+          select: { id: true },
         },
-        webhooks: { 
-          select: { id: true } 
+        webhooks: {
+          select: { id: true },
         },
-        // hosts: true,
-        // team: true,
-        // webhooks: true,
         hashedLink: true,
         destinationCalendar: true,
         calVideoSettings: {
@@ -233,14 +228,13 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      
       if (Array.isArray(error.meta?.target) && error.meta?.target.includes("slug")) {
         throw new TRPCError({
           code: "CONFLICT",
           message: "duplicate_event_slug_conflict",
         });
       }
-      
+
       throw new TRPCError({
         code: "CONFLICT",
         message: "Unique constraint violation while creating a duplicate event.",

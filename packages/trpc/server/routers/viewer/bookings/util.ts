@@ -1,17 +1,15 @@
 import { prisma } from "@calcom/prisma";
 import type {
-  Booking,
-  EventType,
-  BookingReference,
   Attendee,
+  Booking,
+  BookingReference,
   Credential,
   DestinationCalendar,
+  EventType,
   User,
 } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import authedProcedure from "../../../procedures/authedProcedure";
 import { commonBookingSchema } from "./types";
 
@@ -39,7 +37,8 @@ export const bookingsProcedure = authedProcedure
       user: {
         include: {
           destinationCalendar: true,
-          credentials: { // Muda de "true" para um objeto com "select"
+          credentials: {
+            // Muda de "true" para um objeto com "select"
             select: {
               id: true,
               type: true,
@@ -53,17 +52,6 @@ export const bookingsProcedure = authedProcedure
           },
         },
       },
-      // user: {
-      //   include: {
-      //     destinationCalendar: true,
-      //     credentials: true,
-      //     profiles: {
-      //       select: {
-      //         organizationId: true,
-      //       },
-      //     },
-      //   },
-      // },
     };
 
     const bookingByBeingAdmin = await prisma.booking.findFirst({
@@ -85,7 +73,7 @@ export const bookingsProcedure = authedProcedure
       include: bookingInclude,
     });
 
-    if (!!bookingByBeingAdmin) {
+    if (bookingByBeingAdmin) {
       return next({ ctx: { booking: bookingByBeingAdmin } });
     }
 
@@ -120,7 +108,7 @@ export const bookingsProcedure = authedProcedure
     return next({ ctx: { booking: bookingByBeingOrganizerOrCollectiveEventMember } });
   });
 
-  export type BookingsProcedureContext = {
+export type BookingsProcedureContext = {
   booking: Booking & {
     eventType:
       | (EventType & {
@@ -139,23 +127,3 @@ export const bookingsProcedure = authedProcedure
     attendees: Attendee[];
   };
 };
-
-// export type BookingsProcedureContext = {
-//   booking: Booking & {
-//     eventType:
-//       | (EventType & {
-//           team?: { id: number; name: string; parentId?: number | null } | null;
-//         })
-//       | null;
-//     destinationCalendar: DestinationCalendar | null;
-//     user:
-//       | (User & {
-//           destinationCalendar: DestinationCalendar | null;
-//           credentials: Credential[];
-//           profiles: { organizationId: number }[];
-//         })
-//       | null;
-//     references: BookingReference[];
-//     attendees: Attendee[];
-//   };
-// };
