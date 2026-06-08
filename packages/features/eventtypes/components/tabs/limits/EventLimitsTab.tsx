@@ -352,7 +352,7 @@ const MinimumBookingNoticeInput = function MinimumBookingNoticeInput({
   }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
   return (
-    <div className="flex flex-wrap items-end justify-end gap-2 sm:flex-nowrap">
+    <div className="flex flex-wrap items-end gap-2 sm:flex-nowrap">
       <div className="w-full min-w-[80px] flex-1">
         <InputField
           required
@@ -487,7 +487,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           "stack-y-6 rounded-lg border border-subtle p-6",
           customClassNames?.bufferAndNoticeSection?.container
         )}>
-        <div className="flex flex-wrap items-stretch gap-4 lg:flex-row lg:space-x-4 lg:gap-0">
+        <div className="flex flex-wrap items-stretch gap-4 lg:flex-row">
           <div
             className={classNames(
               "w-full",
