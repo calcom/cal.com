@@ -45,6 +45,7 @@ jest.mock("node:worker_threads", () => {
 import { Worker } from "node:worker_threads";
 import { SlotsWorkerService_2024_04_15 } from "./slots-worker.service";
 
+// jest.mock replaces Worker with MockWorker; cast needed to access mock statics _nextId/_instances.
 const MockWorkerCtor = Worker as unknown as {
   new (_path: string): MockWorkerInstance;
   _nextId: number;
@@ -64,7 +65,13 @@ function makeConfig(overrides: Record<string, unknown> = {}): ConfigService {
 }
 
 function internals(svc: SlotsWorkerService_2024_04_15): ServiceInternals {
-  return svc as unknown as ServiceInternals;
+  const internal = svc as unknown as Record<string, unknown>;
+  if (!Array.isArray(internal.workerPool) || !Array.isArray(internal.availableWorkers)) {
+    throw new Error(
+      "Expected SlotsWorkerService private fields workerPool and availableWorkers to exist"
+    );
+  }
+  return internal as unknown as ServiceInternals;
 }
 
 function workerPool(svc: SlotsWorkerService_2024_04_15): MockWorkerInstance[] {
