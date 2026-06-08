@@ -58,12 +58,14 @@ export class SelectedCalendarsService {
           throw new NotFoundException(NO_SELECTED_CALENDAR_FOUND);
         } else if (error.message === MULTIPLE_SELECTED_CALENDARS_FOUND) {
           throw new BadRequestException(MULTIPLE_SELECTED_CALENDARS_FOUND);
+        } else {
+          throw error;
         }
       }
+
+      
       throw new InternalServerErrorException(
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred while deleting the selected calendar"
+        "An unexpected error occurred while deleting the selected calendar"
       );
     }
   }
