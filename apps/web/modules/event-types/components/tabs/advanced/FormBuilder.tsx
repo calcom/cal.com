@@ -1,13 +1,11 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
-import type { SubmitHandler, UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
-import type { z } from "zod";
-import { ZodError } from "zod";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
+import type { fieldsSchema } from "@calcom/features/form-builder/schema";
+import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
+import { getConfig as getVariantsConfig } from "@calcom/features/form-builder/utils/variantsConfig";
 import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -17,26 +15,26 @@ import { excludeOrRequireEmailSchema } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { ToggleGroup } from "@calcom/ui/components/form";
 import {
-  Switch,
   CheckboxField,
-  SelectField,
   Form,
   Input,
   InputField,
   Label,
+  SelectField,
+  Switch,
+  ToggleGroup,
 } from "@calcom/ui/components/form";
-import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
-import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
-import type { fieldsSchema } from "@calcom/features/form-builder/schema";
-import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
-import { getConfig as getVariantsConfig } from "@calcom/features/form-builder/utils/variantsConfig";
+import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon } from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useEffect, useState } from "react";
+import type { SubmitHandler, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
+import type { z } from "zod";
+import { ZodError } from "zod";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -168,7 +166,7 @@ export const FormBuilder = function FormBuilder({
           {title}
           {LockedIcon}
         </div>
-        <div className="flex items-start justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-4 sm:flex-nowrap">
           <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
             {description}
           </p>
@@ -259,8 +257,6 @@ export const FormBuilder = function FormBuilder({
             const firstOptionInput =
               field.optionsInputs?.[options?.[0]?.value as keyof typeof field.optionsInputs];
             const doesFirstOptionHaveInput = !!firstOptionInput;
-            // If there is only one option and it doesn't have an input required, we don't show the Field for it.
-            // Because booker doesn't see this in UI, there is no point showing it in FormBuilder to configure it.
             if (field.hideWhenJustOneOption && numOptions <= 1 && !doesFirstOptionHaveInput) {
               return null;
             }
@@ -313,14 +309,14 @@ export const FormBuilder = function FormBuilder({
                     )}
                   </>
                 )}
-                <div>
-                  <div className="mr-4 flex flex-col lg:flex-row lg:items-center">
-                    <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
+                <div className="min-w-0 flex-1">
+                  {/* CORREÇÃO BUG 2: Alterado para flex-wrap e adicionado gap-2 para os badges não esmagarem */}
+                  <div className="mr-4 flex flex-wrap items-start gap-2 sm:items-center">
+                    <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2 break-words">
                       <FieldLabel field={field} />
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {field.hidden ? (
-                        // Hidden field can't be required, so we don't need to show the Optional badge
                         <Badge variant="grayWithoutHover">{t("hidden")}</Badge>
                       ) : (
                         <Badge variant="grayWithoutHover" data-testid={isRequired ? "required" : "optional"}>
@@ -328,7 +324,6 @@ export const FormBuilder = function FormBuilder({
                         </Badge>
                       )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
-                        // We don't know how to pluralize `sourceLabel` because it can be anything
                         <Badge key={key} variant="blue">
                           {sources.length} {sources.length === 1 ? sourceLabel : `${sourceLabel}s`}
                         </Badge>
@@ -340,7 +335,7 @@ export const FormBuilder = function FormBuilder({
                   </p>
                 </div>
                 {field.editable !== "user-readonly" && !disabled && (
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 ltr:ml-2 rtl:mr-2 shrink-0">
                     {!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled && (
                       <Switch
                         data-testid="toggle-field"
@@ -455,7 +450,7 @@ function Options({
   label = "Options",
   value,
 
-  onChange = () => { },
+  onChange = () => {},
   className = "",
   readOnly = false,
   showPrice = false,
@@ -1030,7 +1025,7 @@ function VariantFields({
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
           const fieldTypeConfigVariants =
             fieldTypeConfigVariantsConfig.variants[
-            variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
+              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
             ];
           const appUiFieldConfig =
             fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];
