@@ -200,19 +200,20 @@ const EventTypeScheduleDetails = memo(
     return (
       <div>
         <div className={classNames("stack-y-4 border-subtle border-x p-6", customClassNames?.tableContainer)}>
-          <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
+          {/* CORREÇÃO MOBILE TRECHO 1: Trocado 'table' por flex dinâmico para evitar o esmagamento lateral */}
+          <ol className={classNames("flex flex-col gap-4 text-sm w-full", customClassNames?.table)}>
             {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
               return (
                 <li
                   key={day}
                   className={classNames(
-                    "my-6 flex border-transparent last:mb-2",
+                    "flex flex-wrap items-center justify-between border-transparent gap-2 sm:flex-nowrap",
                     customClassNames?.tableRow
                   )}>
                   <span
                     className={classNames(
-                      "w-20 font-medium sm:w-32",
+                      "w-20 font-medium sm:w-32 shrink-0",
                       !isAvailable ? "text-subtle line-through" : "text-default",
                       customClassNames?.day
                     )}>
@@ -221,33 +222,40 @@ const EventTypeScheduleDetails = memo(
                   {isSchedulePending ? (
                     <SkeletonText className="block h-5 w-60" />
                   ) : isAvailable ? (
-                    <div className="stack-y-3 text-right">
+                    <div className="flex flex-col gap-2 text-left items-start w-full sm:w-auto sm:items-end sm:text-right">
                       {filterDays(index).map((dayRange, i) => (
                         <div
                           key={i}
                           className={classNames(
-                            "flex items-center text-default leading-4",
+                            "flex flex-wrap items-center justify-start gap-x-2 gap-y-1 bg-cal-muted/50 p-1.5 rounded-md text-default leading-4 sm:flex-nowrap sm:bg-transparent sm:p-0",
                             customClassNames?.dayAvailabilityContainer
                           )}>
                           <span
                             className={classNames(
-                              "w-16 sm:w-28 sm:text-left",
+                              "w-20 text-center sm:w-24 sm:text-left font-mono",
                               customClassNames?.dayAvailabilityFrom
                             )}>
                             {format(dayRange.startTime, timeFormat === 12)}
                           </span>
-                          <span className={classNames("ms-4", customClassNames?.dayAvailabilitySeperator)}>
+                          <span
+                            className={classNames(
+                              "text-subtle shrink-0",
+                              customClassNames?.dayAvailabilitySeperator
+                            )}>
                             -
                           </span>
-                          <div className={classNames("ml-6 sm:w-28", customClassNames?.dayAvailabilityTo)}>
+                          <div
+                            className={classNames(
+                              "w-20 text-center sm:w-24 font-mono",
+                              customClassNames?.dayAvailabilityTo
+                            )}>
                             {format(dayRange.endTime, timeFormat === 12)}
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <span
-                      className={classNames("ml-6 text-subtle sm:ml-0", customClassNames?.dayUnavailable)}>
+                    <span className={classNames("text-subtle font-normal", customClassNames?.dayUnavailable)}>
                       {t("unavailable")}
                     </span>
                   )}
@@ -326,19 +334,20 @@ const EventTypeRestrictionScheduleDetails = memo(
     return (
       <div>
         <div className={classNames("stack-y-4 border-subtle border-x p-6", customClassNames?.tableContainer)}>
-          <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
+          {/* CORREÇÃO MOBILE: Trocado 'table' por flex dinâmico para evitar o esmagamento lateral */}
+          <ol className={classNames("flex flex-col gap-4 text-sm w-full", customClassNames?.table)}>
             {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
               return (
                 <li
                   key={day}
                   className={classNames(
-                    "my-6 flex border-transparent last:mb-2",
+                    "flex flex-wrap items-center justify-between border-transparent gap-2 sm:flex-nowrap",
                     customClassNames?.tableRow
                   )}>
                   <span
                     className={classNames(
-                      "w-20 font-medium sm:w-32",
+                      "w-20 font-medium sm:w-32 shrink-0",
                       !isAvailable ? "text-subtle line-through" : "text-default",
                       customClassNames?.day
                     )}>
@@ -347,33 +356,40 @@ const EventTypeRestrictionScheduleDetails = memo(
                   {isSchedulePending ? (
                     <SkeletonText className="block h-5 w-60" />
                   ) : isAvailable ? (
-                    <div className="stack-y-3 text-right">
+                    <div className="flex flex-col gap-2 text-left items-start w-full sm:w-auto sm:items-end sm:text-right">
                       {filterDays(index).map((dayRange, i) => (
                         <div
                           key={i}
                           className={classNames(
-                            "flex items-center text-default leading-4",
+                            "flex flex-wrap items-center justify-start gap-x-2 gap-y-1 bg-cal-muted/50 p-1.5 rounded-md text-default leading-4 sm:flex-nowrap sm:bg-transparent sm:p-0",
                             customClassNames?.dayAvailabilityContainer
                           )}>
                           <span
                             className={classNames(
-                              "w-16 sm:w-28 sm:text-left",
+                              "w-20 text-center sm:w-24 sm:text-left font-mono",
                               customClassNames?.dayAvailabilityFrom
                             )}>
                             {format(dayRange.startTime, timeFormat === 12)}
                           </span>
-                          <span className={classNames("ms-4", customClassNames?.dayAvailabilitySeperator)}>
+                          <span
+                            className={classNames(
+                              "text-subtle shrink-0",
+                              customClassNames?.dayAvailabilitySeperator
+                            )}>
                             -
                           </span>
-                          <div className={classNames("ml-6 sm:w-28", customClassNames?.dayAvailabilityTo)}>
+                          <div
+                            className={classNames(
+                              "w-20 text-center sm:w-24 font-mono",
+                              customClassNames?.dayAvailabilityTo
+                            )}>
                             {format(dayRange.endTime, timeFormat === 12)}
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <span
-                      className={classNames("ml-6 text-subtle sm:ml-0", customClassNames?.dayUnavailable)}>
+                    <span className={classNames("text-subtle font-normal", customClassNames?.dayUnavailable)}>
                       {t("unavailable")}
                     </span>
                   )}
@@ -445,7 +461,11 @@ const EventTypeSchedule = ({
   const formMethods = useFormContext<FormValues>();
   const isManagedEventType = false;
   const isChildrenManagedEventType = false;
-  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
+  const shouldLockDisableProps = (_field: string) => ({
+    disabled: false,
+    LockedIcon: false as const,
+    isLocked: false,
+  });
   const shouldLockIndicator = (_field: string) => false;
   const { watch, setValue } = formMethods;
 
