@@ -310,7 +310,7 @@ export const FormBuilder = function FormBuilder({
                   </>
                 )}
                 <div className="min-w-0 flex-1">
-                  {/* CORREÇÃO BUG 2: Alterado para flex-wrap e adicionado gap-2 para os badges não esmagarem */}
+                  {/* Prevent utility badges from overlapping on narrow mobile screens */}
                   <div className="mr-4 flex flex-wrap items-start gap-2 sm:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2 break-words">
                       <FieldLabel field={field} />

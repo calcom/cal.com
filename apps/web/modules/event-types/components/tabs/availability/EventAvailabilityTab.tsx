@@ -200,7 +200,7 @@ const EventTypeScheduleDetails = memo(
     return (
       <div>
         <div className={classNames("stack-y-4 border-subtle border-x p-6", customClassNames?.tableContainer)}>
-          {/* CORREÇÃO MOBILE TRECHO 1: Trocado 'table' por flex dinâmico para evitar o esmagamento lateral */}
+          {/* Use dynamic flex grid layout to avoid strict table row clipping on mobile viewports */}
           <ol className={classNames("flex flex-col gap-4 text-sm w-full", customClassNames?.table)}>
             {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
@@ -334,7 +334,7 @@ const EventTypeRestrictionScheduleDetails = memo(
     return (
       <div>
         <div className={classNames("stack-y-4 border-subtle border-x p-6", customClassNames?.tableContainer)}>
-          {/* CORREÇÃO MOBILE: Trocado 'table' por flex dinâmico para evitar o esmagamento lateral */}
+          {/* Maintain fluid flex alignment consistency across schedule restriction items */}
           <ol className={classNames("flex flex-col gap-4 text-sm w-full", customClassNames?.table)}>
             {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
