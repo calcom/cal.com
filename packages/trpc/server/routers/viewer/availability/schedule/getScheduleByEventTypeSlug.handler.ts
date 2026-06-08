@@ -38,12 +38,17 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
     });
 
     if (foundUserDefaultId?.defaultScheduleId) {
-      return await getHandler({
-        ctx,
-        input: {
-          scheduleId: foundUserDefaultId.defaultScheduleId,
-        },
-      });
+      try {
+        return await getHandler({
+          ctx,
+          input: {
+            scheduleId: foundUserDefaultId.defaultScheduleId,
+          },
+        });
+      } catch (e) {
+        logger.error("Failed to retrieve user default schedule", e);
+        throw e;
+      }
     }
 
     return {
