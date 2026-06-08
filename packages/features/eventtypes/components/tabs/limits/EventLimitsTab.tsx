@@ -581,7 +581,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             />
           </div>
         </div>
-        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
+        <div className="flex flex-wrap items-stretch gap-4 lg:flex-row lg:space-x-4 lg:gap-0">
           <div
             className={classNames(
               "w-full",
