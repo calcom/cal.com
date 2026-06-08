@@ -116,7 +116,7 @@ test.describe("Availability", () => {
       await page.getByTestId("new-schedule").first().click();
       await page.locator('[id="name"]').fill("More working hours");
       page.locator('[type="submit"]').click();
-      await expect(page.getByTestId("availablity-title")).toHaveValue("More working hours");
+      await expect(page.getByTestId("availability-title")).toHaveValue("More working hours");
     });
     await test.step("Can delete a schedule", async () => {
       await page.getByTestId("go-back-button").click();
@@ -147,11 +147,11 @@ test.describe("Availability", () => {
     const save = (await localize("en"))("save");
     const copyTimesTo = (await localize("en"))("copy_times_to");
 
-    const availTitle = page.getByTestId("availablity-title");
+    const availTitle = page.getByTestId("availability-title");
     await availTitle.locator("xpath=..").locator("span.whitespace-pre").first().click();
     await expect(availTitle).toBeEditable();
     // change availability name
-    await page.getByTestId("availablity-title").fill("Working Hours test");
+    await page.getByTestId("availability-title").fill("Working Hours test");
     await expect(page.getByTestId("subtitle").first()).toBeVisible();
     await page.getByTestId(sunday).getByRole("switch").click();
     await page.getByTestId(monday).first().click();
