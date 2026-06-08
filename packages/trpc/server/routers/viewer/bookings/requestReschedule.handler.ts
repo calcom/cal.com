@@ -129,7 +129,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     endTime: bookingToReschedule.endTime.toISOString(),
     hideOrganizerEmail: eventType?.hideOrganizerEmail,
     attendees: usersToPeopleType(
-      // username field doesn't exists on attendee but could be in the future
+      // username field doesn't exist on attendee but could be added in the future
       bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
       tAttendees
     ),
@@ -229,7 +229,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     endTime: bookingToReschedule.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
     organizer,
     attendees: usersToPeopleType(
-      // username field doesn't exists on attendee but could be in the future
+      // username field doesn't exist on attendee but could be added in the future
       bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
       tAttendees
     ),
