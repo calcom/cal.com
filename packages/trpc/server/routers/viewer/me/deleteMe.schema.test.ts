@@ -11,6 +11,9 @@ describe("ZDeleteMeInputSchema", () => {
   it("rejects an empty password", () => {
     const result = ZDeleteMeInputSchema.safeParse({ password: "" });
     expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.password).toContain("Password is required");
+    }
   });
 
   it("rejects when password is missing", () => {
