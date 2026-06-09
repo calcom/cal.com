@@ -117,3 +117,12 @@ agents/devin-knowledge.json
 
 # pagefind
 _pagefind/
+
+# PTOSS-2 working files (mantidos localmente, fora do versionamento)
+/ptoss-2-funcao-*.md
+/ptoss-2-plano-geral.md
+/ptoss-2-test-method-selection.md
+/26-1-PTOSS-2.pdf
+/26-1-PTOSS-2-template_relatorio.docx
+/26-1-PTOSS-2-relatorio.docx
+/prints/
