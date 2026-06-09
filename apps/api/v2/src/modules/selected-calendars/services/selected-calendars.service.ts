@@ -11,6 +11,7 @@ import {
   SelectedCalendarsRepository,
 } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
+
 @Injectable()
 export class SelectedCalendarsService {
   constructor(
@@ -18,24 +19,30 @@ export class SelectedCalendarsService {
     private readonly calendarsCacheService: CalendarsCacheService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
+
   async addSelectedCalendar(user: UserWithProfile, input: SelectedCalendarsInputDto) {
     const { integration, externalId, credentialId } = input;
     await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
+
     const userSelectedCalendar = await this.selectedCalendarsRepository.addUserSelectedCalendar(
       user.id,
       integration,
       externalId,
       credentialId
     );
+
     await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(user.id);
+
     return userSelectedCalendar;
   }
+
   async deleteSelectedCalendar(
     selectedCalendar: SelectedCalendarsQueryParamsInputDto,
     user: UserWithProfile
   ) {
     const { integration, externalId, credentialId } = selectedCalendar;
     await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
+
     try {
       const removedCalendarEntry = await this.selectedCalendarsRepository.removeUserSelectedCalendar(
         user.id,
@@ -51,10 +58,12 @@ export class SelectedCalendarsService {
           throw new NotFoundException(NO_SELECTED_CALENDAR_FOUND);
         } else if (error.message === MULTIPLE_SELECTED_CALENDARS_FOUND) {
           throw new BadRequestException(MULTIPLE_SELECTED_CALENDARS_FOUND);
+        } else {
+          throw new InternalServerErrorException(error.message);
         }
-      }     
+      }
       throw new InternalServerErrorException(
-        error instanceof Error ? error.message : "An unexpected error occurred while deleting the selected calendar"
+        "An unexpected error occurred while deleting the selected calendar"
       );
     }
   }
