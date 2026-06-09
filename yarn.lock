@@ -2778,6 +2778,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/mcp-copa@workspace:apps/mcp-copa":
+  version: 0.0.0-use.local
+  resolution: "@calcom/mcp-copa@workspace:apps/mcp-copa"
+  dependencies:
+    "@modelcontextprotocol/sdk": "npm:^1.0.0"
+    zod: "npm:^3.0.0"
+  bin:
+    mcp-copa: ./src/index.js
+  languageName: unknown
+  linkType: soft
+
 "@calcom/metapixel@workspace:packages/app-store/metapixel":
   version: 0.0.0-use.local
   resolution: "@calcom/metapixel@workspace:packages/app-store/metapixel"
@@ -42298,7 +42309,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:3.25.76, zod@npm:^3.20.0, zod@npm:^3.20.2, zod@npm:^3.24.1":
+"zod@npm:3.25.76, zod@npm:^3.0.0, zod@npm:^3.20.0, zod@npm:^3.20.2, zod@npm:^3.24.1":
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10/f0c963ec40cd96858451d1690404d603d36507c1fc9682f2dae59ab38b578687d542708a7fdbf645f77926f78c9ed558f57c3d3aa226c285f798df0c4da16995

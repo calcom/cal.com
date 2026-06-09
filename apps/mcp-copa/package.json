@@ -1,0 +1,14 @@
+{
+  "name": "@calcom/mcp-copa",
+  "version": "0.1.0",
+  "description": "MCP server for Cal.diy - Copa do Mundo 2026 games",
+  "type": "module",
+  "bin": "./src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.0.0"
+  }
+}
