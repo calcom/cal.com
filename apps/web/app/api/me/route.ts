@@ -1,11 +1,9 @@
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { performance } from "@calcom/lib/server/perfObserver";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { performance } from "@calcom/lib/server/perfObserver";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function getHandler() {
   const prePrismaDate = performance.now();
@@ -17,7 +15,7 @@ async function getHandler() {
 
   const session = await getServerSession({ req: legacyReq });
   if (!session) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 409 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const preUserDate = performance.now();
