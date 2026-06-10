@@ -197,16 +197,5 @@ jobs:
       source_run_attempt: ${{ needs.get-pr-info.outputs.source-run-attempt }}
       source_head_sha: ${{ needs.get-pr-info.outputs.source-head-sha }}
     # No secrets: inherit - merge-reports only needs the default GITHUB_TOKEN for artifact download
-
-  publish-report:
-    name: Publish HTML report
-    needs: [get-pr-info, merge-reports]
-    if: ${{ needs.get-pr-info.outputs.pr-number != '' }}
-    uses: ./.github/workflows/publish-report.yml
-    with:
-      head_branch: ${{ needs.get-pr-info.outputs.head-branch }}
-      source_run_id: ${{ needs.get-pr-info.outputs.source-run-id }}
-      source_run_number: ${{ needs.get-pr-info.outputs.source-run-number }}
-      source_run_attempt: ${{ needs.get-pr-info.outputs.source-run-attempt }}
-      pr_number: ${{ needs.get-pr-info.outputs.pr-number }}
-    secrets: inherit
+    # The merged HTML report is kept as a workflow artifact; publishing to the
+    # external test-results repo is intentionally disabled.
