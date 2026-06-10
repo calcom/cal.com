@@ -1,0 +1,5 @@
+self-hosted-runner:
+  # CRACI runners route on the single "craci" label; machine resources are
+  # configured via the cracicorp/setup@v1 step, never via runs-on.
+  labels:
+    - craci

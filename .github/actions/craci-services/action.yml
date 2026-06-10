@@ -1,0 +1,63 @@
+name: Start CI services
+description: "Install and start Postgres/MailHog/Redis natively on the CRACI runner (replaces Docker service containers, which are not available there)"
+inputs:
+  postgres:
+    description: "Start PostgreSQL 18 on :5432 with user postgres/postgres and database calendso"
+    required: false
+    default: "true"
+  mailhog:
+    description: "Start MailHog (SMTP :1025, HTTP :8025)"
+    required: false
+    default: "false"
+  redis:
+    description: "Start Redis on :6379"
+    required: false
+    default: "false"
+runs:
+  using: "composite"
+  steps:
+    - name: Install and start PostgreSQL 18
+      if: inputs.postgres == 'true'
+      shell: bash
+      run: |
+        sudo install -d /usr/share/postgresql-common/pgdg
+        sudo curl -sSf -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+        sudo apt-get update -qq
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq postgresql-18
+        # The CRACI job VM has no systemd, so the package postinst cannot start
+        # the cluster; create it if needed and start it directly.
+        if [ ! -d /etc/postgresql/18/main ]; then
+          sudo pg_createcluster 18 main
+        fi
+        sudo pg_ctlcluster 18 main start || true
+        for i in $(seq 1 30); do
+          pg_isready -h 127.0.0.1 -p 5432 -U postgres && break
+          sleep 2
+        done
+        pg_isready -h 127.0.0.1 -p 5432 -U postgres
+        sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+        sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'calendso'" | grep -q 1 || sudo -u postgres createdb -O postgres calendso
+    - name: Install and start MailHog
+      if: inputs.mailhog == 'true'
+      shell: bash
+      run: |
+        sudo curl -sSfL -o /usr/local/bin/mailhog https://github.com/mailhog/MailHog/releases/download/v1.0.1/MailHog_linux_amd64
+        sudo chmod +x /usr/local/bin/mailhog
+        nohup mailhog > /tmp/mailhog.log 2>&1 &
+        for i in $(seq 1 15); do
+          curl -sf http://127.0.0.1:8025/api/v2/messages > /dev/null && break
+          sleep 1
+        done
+        curl -sf http://127.0.0.1:8025/api/v2/messages > /dev/null
+    - name: Install and start Redis
+      if: inputs.redis == 'true'
+      shell: bash
+      run: |
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq redis-server
+        redis-server --daemonize yes --port 6379
+        for i in $(seq 1 15); do
+          redis-cli ping 2>/dev/null | grep -q PONG && break
+          sleep 1
+        done
+        redis-cli ping

@@ -30,18 +30,15 @@ runs:
     - run: yarn db-seed
       if: steps.cache-db.outputs.cache-hit != 'true'
       shell: bash
+    # pg_dump/psql come from the postgresql-18 package installed by
+    # ./.github/actions/craci-services (no Docker on CRACI runners).
     - name: Postgres Dump Backup
       if: steps.cache-db.outputs.cache-hit != 'true'
       run: |
         mkdir -p $(dirname "${{ inputs.path }}")
-        docker run --rm --network host \
-          -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} \
-          postgres:18 pg_dump "${{ inputs.DATABASE_URL }}" -O -f ${{ inputs.path }}
+        pg_dump "${{ inputs.DATABASE_URL }}" -O -f ${{ inputs.path }}
       shell: bash
     - name: Postgres Backup Restore
       if: steps.cache-db.outputs.cache-hit == 'true'
-      run: |
-        docker run --rm -i --network host \
-          -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} \
-          postgres:18 psql "${{ inputs.DATABASE_URL }}" -f ${{ inputs.path }}
+      run: psql "${{ inputs.DATABASE_URL }}" -f ${{ inputs.path }}
       shell: bash

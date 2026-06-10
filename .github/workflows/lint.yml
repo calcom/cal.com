@@ -6,9 +6,13 @@ permissions:
   contents: read
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: [craci]
 
     steps:
+      - uses: cracicorp/setup@v1
+        with:
+          size: "4"
+          image: "default"
       - uses: actions/checkout@v4
         with:
           sparse-checkout: .github

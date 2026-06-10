@@ -26,29 +26,17 @@ env:
 jobs:
   setup-db:
     name: Setup Database
-    runs-on: ubuntu-latest
+    runs-on: [craci]
     timeout-minutes: 15
-    services:
-      postgres:
-        image: postgres:18
-        credentials:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: calendso
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
     steps:
+      - uses: cracicorp/setup@v1
+        with:
+          size: "4"
+          image: "default"
       - uses: actions/checkout@v4
         with:
           sparse-checkout: .github
+      - uses: ./.github/actions/craci-services
       - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
         if: inputs.DB_CACHE_HIT != 'true'

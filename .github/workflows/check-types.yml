@@ -9,8 +9,12 @@ permissions:
   contents: read
 jobs:
   check-types:
-    runs-on: ubuntu-latest
+    runs-on: [craci]
     steps:
+      - uses: cracicorp/setup@v1
+        with:
+          size: "8"
+          image: "default"
       - uses: actions/checkout@v4
         with:
           sparse-checkout: .github

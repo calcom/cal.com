@@ -39,9 +39,13 @@ env:
 jobs:
   build:
     name: Build Web App
-    runs-on: ubuntu-latest
+    runs-on: [craci]
     timeout-minutes: 30
     steps:
+      - uses: cracicorp/setup@v1
+        with:
+          size: "8"
+          image: "default"
       - uses: actions/checkout@v4
         with:
           sparse-checkout: .github

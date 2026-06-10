@@ -20,8 +20,12 @@ on:
         type: string
 jobs:
   merge-reports:
-    runs-on: ubuntu-latest
+    runs-on: [craci]
     steps:
+      - uses: cracicorp/setup@v1
+        with:
+          size: "4"
+          image: "default"
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_head_sha }}

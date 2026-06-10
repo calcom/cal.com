@@ -12,8 +12,12 @@ permissions:
 jobs:
   annotate:
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: [craci]
     steps:
+      - uses: cracicorp/setup@v1
+        with:
+          size: "8"
+          image: "default"
       - uses: actions/checkout@v4
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-build

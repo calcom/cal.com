@@ -162,7 +162,7 @@ jobs:
     name: Prepare
     needs: [trust-check]
     if: needs.trust-check.outputs.is-trusted == 'true'
-    runs-on: ubuntu-latest
+    runs-on: [craci]
     permissions:
       pull-requests: read
     outputs:
@@ -173,6 +173,10 @@ jobs:
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
       db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
     steps:
+      - uses: cracicorp/setup@v1
+        with:
+          size: "4"
+          image: "default"
       - uses: actions/checkout@v4
         with:
           sparse-checkout: .github
