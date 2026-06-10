@@ -66,6 +66,7 @@ describe("StripeService", () => {
 
       await expect(service.createStripeCustomerId(user)).resolves.toBe("cus_existing");
 
+      expect(mockCustomersList).toHaveBeenCalledWith({ email: user.email, limit: 1 });
       expect(mockCustomersCreate).not.toHaveBeenCalled();
       expect(mockUsersRepository.updateByEmail).toHaveBeenCalledWith(user.email, {
         metadata: {
@@ -81,6 +82,7 @@ describe("StripeService", () => {
 
       await expect(service.createStripeCustomerId(user)).resolves.toBe("cus_new");
 
+      expect(mockCustomersList).toHaveBeenCalledWith({ email: user.email, limit: 1 });
       expect(mockCustomersCreate).toHaveBeenCalledWith({ email: user.email });
       expect(mockUsersRepository.updateByEmail).toHaveBeenCalledWith(user.email, {
         metadata: {
@@ -96,6 +98,7 @@ describe("StripeService", () => {
 
       await expect(service.createStripeCustomerId(user)).rejects.toThrow(stripeError);
 
+      expect(mockCustomersList).toHaveBeenCalledWith({ email: user.email, limit: 1 });
       expect(mockCustomersCreate).not.toHaveBeenCalled();
       expect(mockUsersRepository.updateByEmail).not.toHaveBeenCalled();
     });

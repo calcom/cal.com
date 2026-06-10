@@ -11,12 +11,12 @@ import { ConfigService } from "@nestjs/config";
 import Stripe from "stripe";
 import { z } from "zod";
 import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
-import { AppConfig } from "@/config/type";
+import type { AppConfig } from "@/config/type";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
-import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
+import type { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
 import { UsersRepository } from "@/modules/users/users.repository";
 
 import stringify = require("qs-stringify");
