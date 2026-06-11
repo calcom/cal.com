@@ -33,7 +33,7 @@ jobs:
         run: npm install -g npm@11.5.1
       - name: Create Release Pull Request or Publish to npm
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d  # v1
         with:
           version: yarn changesets-version
           publish: yarn changesets-release
