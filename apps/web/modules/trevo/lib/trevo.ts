@@ -1,6 +1,5 @@
-import TrevoSDK from "@trevosdk/browser";
-
 import logger from "@calcom/lib/logger";
+import TrevoSDK from "@trevosdk/browser";
 
 const log = logger.getSubLogger({ prefix: ["[trevo]"] });
 
@@ -11,6 +10,7 @@ let identifiedUserId: string | null = null;
 
 export function initTrevo(): void {
   if (initialized) return;
+  // biome-ignore lint/correctness/noProcessGlobal: Next.js only inlines NEXT_PUBLIC_* vars when `process` is the global identifier; importing node:process breaks the replacement in client bundles
   const apiKey = process.env.NEXT_PUBLIC_TREVO_SDK_KEY;
   if (!apiKey) return;
   try {
