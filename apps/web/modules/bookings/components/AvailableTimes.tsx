@@ -20,6 +20,7 @@ import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
 import type { Slot } from "~/schedules/lib/types";
 import type { IUseBookingLoadingStates } from "../hooks/useBookings";
+import type { FifaGame } from "../hooks/useFifaGames";
 import { OutOfOfficeInSlots } from "./OutOfOfficeInSlots";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
@@ -74,6 +75,8 @@ type SlotItemProps = {
   unavailableTimeSlots?: string[];
   confirmButtonDisabled?: boolean;
   handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
+  /** FIFA World Cup games for the day being displayed */
+  fifaGames?: FifaGame[];
 };
 
 const SlotItem = ({
@@ -95,6 +98,7 @@ const SlotItem = ({
   unavailableTimeSlots = [],
   confirmButtonDisabled,
   confirmStepClassNames,
+  fifaGames,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -147,6 +151,46 @@ const SlotItem = ({
   };
 
   const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
+
+  const fifaGame = useMemo(() => {
+    if (!fifaGames?.length) return null;
+    const slotMs = new Date(slot.time).getTime();
+    return (
+      fifaGames.find((g) => {
+        const start = new Date(g.startISO).getTime();
+        const end = new Date(g.endISO).getTime();
+        return slotMs >= start && slotMs < end;
+      }) ?? null
+    );
+  }, [fifaGames, slot.time]);
+
+  if (fifaGame) {
+    return (
+      <HoverCard.Root openDelay={100}>
+        <HoverCard.Trigger asChild>
+          <button
+            type="button"
+            disabled
+            className="mb-2 flex h-auto w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 py-2 text-sm font-medium text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+            <span aria-hidden>⚽</span>
+            {computedDateWithUsersTimezone.format(timeFormat)}
+          </button>
+        </HoverCard.Trigger>
+        <HoverCard.Portal>
+          <HoverCard.Content side="top" align="center" sideOffset={4} className="z-50">
+            <div className="bg-inverted text-inverted max-w-[220px] rounded-md p-3 text-sm shadow-lg">
+              <p className="font-semibold">
+                {fifaGame.homeTeam.name} vs {fifaGame.awayTeam.name}
+              </p>
+              <p className="text-inverted/70 mt-1 text-xs">{fifaGame.stage}</p>
+              <p className="text-inverted/70 text-xs">{fifaGame.venue}</p>
+            </div>
+          </HoverCard.Content>
+        </HoverCard.Portal>
+      </HoverCard.Root>
+    );
+  }
+
   return (
     <AnimatePresence>
       <div className="flex gap-2">

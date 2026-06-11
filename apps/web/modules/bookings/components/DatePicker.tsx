@@ -11,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import type { PeriodData } from "@calcom/types/Event";
 import { useSlotsViewOnSmallScreen } from "@calcom/embed-core/embed-iframe";
+import { useFifaGames } from "@calcom/web/modules/bookings/hooks/useFifaGames";
 
 import type { Slots } from "@calcom/features/bookings/types";
 
@@ -79,6 +80,7 @@ export const DatePicker = ({
   onDateChange?: () => void;
 }) => {
   const { i18n } = useLocale();
+  const { getGameDates } = useFifaGames();
   const [month, selectedDate, layout] = useBookerStoreContext(
     (state) => [state.month, state.selectedDate, state.layout],
     shallow
@@ -166,6 +168,7 @@ export const DatePicker = ({
       periodData={periodData}
       isCompact={isCompact}
       showNoAvailabilityDialog={showNoAvailabilityDialog}
+      gameDates={getGameDates()}
     />
   );
 };

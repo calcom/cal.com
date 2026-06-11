@@ -51,6 +51,8 @@ export type DatePickerProps = {
   isCompact?: boolean;
   // Whether to show the no availability dialog
   showNoAvailabilityDialog?: boolean;
+  /** Dates (YYYY-MM-DD) that have a FIFA World Cup game scheduled */
+  gameDates?: string[];
 };
 
 const Day = ({
@@ -62,6 +64,7 @@ const Day = ({
   customClassName,
   showMonthTooltip,
   isFirstDayOfNextMonth,
+  hasGame,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
@@ -74,6 +77,7 @@ const Day = ({
   };
   showMonthTooltip?: boolean;
   isFirstDayOfNextMonth?: boolean;
+  hasGame?: boolean;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
@@ -109,6 +113,12 @@ const Day = ({
           )}>
           <span className="sr-only">{t("today")}</span>
         </span>
+      )}
+      {hasGame && (
+        <span
+          aria-label="Copa do Mundo"
+          className="absolute right-0.5 top-0.5 h-[6px] w-[6px] rounded-full bg-amber-400"
+        />
       )}
     </button>
   );
@@ -157,6 +167,7 @@ const Days = ({
   periodData,
   isCompact,
   showNoAvailabilityDialog = true,
+  gameDates,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -275,6 +286,7 @@ const Days = ({
       away,
       emoji: oooInfo?.emoji,
       isFirstDayOfNextMonth,
+      hasGame: gameDates ? gameDates.includes(dateKey) : false,
     };
   });
 
@@ -315,7 +327,7 @@ const Days = ({
 
   return (
     <>
-      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji, isFirstDayOfNextMonth }, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji, isFirstDayOfNextMonth, hasGame }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -343,6 +355,7 @@ const Days = ({
               emoji={emoji}
               showMonthTooltip={showNextMonthDays && !disabled && day.month() !== browsingDate.month()}
               isFirstDayOfNextMonth={isFirstDayOfNextMonth}
+              hasGame={hasGame}
             />
           )}
         </div>

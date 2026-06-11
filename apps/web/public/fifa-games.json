@@ -1,0 +1,56 @@
+{
+  "games": [
+    {
+      "id": "BRA_MAR_2026-06-13",
+      "homeTeam": {
+        "name": "Brasil",
+        "code": "BRA"
+      },
+      "awayTeam": {
+        "name": "Marrocos",
+        "code": "MAR"
+      },
+      "startISO": "2026-06-13T22:00:00Z",
+      "endISO": "2026-06-14T00:00:00Z",
+      "venue": "Estádio de Nova York/Nova Jersey, Nova Jersey",
+      "stage": "Primeira fase",
+      "status": "SCHEDULED"
+    },
+    {
+      "id": "BRA_HAI_2026-06-20",
+      "homeTeam": {
+        "name": "Brasil",
+        "code": "BRA"
+      },
+      "awayTeam": {
+        "name": "Haiti",
+        "code": "HAI"
+      },
+      "startISO": "2026-06-20T00:30:00Z",
+      "endISO": "2026-06-20T02:30:00Z",
+      "venue": "Estádio de Filadélfia, Filadélfia",
+      "stage": "Primeira fase",
+      "status": "SCHEDULED"
+    },
+    {
+      "id": "SCO_BRA_2026-06-24",
+      "homeTeam": {
+        "name": "Escócia",
+        "code": "SCO"
+      },
+      "awayTeam": {
+        "name": "Brasil",
+        "code": "BRA"
+      },
+      "startISO": "2026-06-24T22:00:00Z",
+      "endISO": "2026-06-25T00:00:00Z",
+      "venue": "Estádio de Miami, Miami",
+      "stage": "Primeira fase",
+      "status": "SCHEDULED"
+    }
+  ],
+  "fetchedTeams": [
+    "BRA"
+  ],
+  "lastUpdated": "2026-06-11T12:32:25Z"
+}

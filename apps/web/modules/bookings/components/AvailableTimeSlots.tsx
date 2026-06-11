@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
+import { useFifaGames } from "@calcom/web/modules/bookings/hooks/useFifaGames";
 
 import dayjs from "@calcom/dayjs";
 import {
@@ -130,6 +131,7 @@ export const AvailableTimeSlots = ({
   }, [date, extraDays, nonEmptyScheduleDaysFromSelectedDate]);
 
   const { slotsPerDay, toggleConfirmButton } = useSlotsForAvailableDates(dates, scheduleData?.slots);
+  const { getGamesForDate } = useFifaGames();
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
@@ -252,6 +254,7 @@ export const AvailableTimeSlots = ({
                 handleSlotClick={handleSlotClick}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={confirmStepClassNames}
+                fifaGames={getGamesForDate(slots.date)}
                 {...props}
               />
             </div>
