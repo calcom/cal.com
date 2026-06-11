@@ -3358,6 +3358,7 @@ __metadata:
     "@tanstack/react-query": "npm:5.17.19"
     "@testing-library/react": "npm:13.3.0"
     "@todesktop/client-core": "npm:1.20.0"
+    "@trevosdk/browser": "npm:0.1.14"
     "@types/accept-language-parser": "npm:1.5.2"
     "@types/async": "npm:3.2.15"
     "@types/backblaze-b2": "npm:^1"
@@ -15587,6 +15588,13 @@ __metadata:
   version: 2.0.0
   resolution: "@tootallnate/once@npm:2.0.0"
   checksum: 10/ad87447820dd3f24825d2d947ebc03072b20a42bfc96cbafec16bff8bbda6c1a81fcb0be56d5b21968560c5359a0af4038a68ba150c3e1694fe4c109a063bed8
+  languageName: node
+  linkType: hard
+
+"@trevosdk/browser@npm:0.1.14":
+  version: 0.1.14
+  resolution: "@trevosdk/browser@npm:0.1.14"
+  checksum: 10/a46e95346b4e8f25590a007107cf246b911097eae7e7b8ef4e12c798db4ff49e919053c4a32e96408d446778f91fe41317319eb4a5d6db2738af5940deced3f1
   languageName: node
   linkType: hard
 
