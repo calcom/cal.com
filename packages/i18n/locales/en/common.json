@@ -689,6 +689,7 @@
   "password_hint_num": "Contain at least 1 number",
   "max_limit_allowed_hint": "Must be {{limit}} or fewer characters long",
   "invalid_password_hint": "The password must be a minimum of {{passwordLength}} characters long containing at least one number and have a mixture of uppercase and lowercase letters",
+  "password_complexity_requirement": "Should contain a number, uppercase and lowercase letters",
   "incorrect_password": "Password is incorrect.",
   "incorrect_email_password": "Email or password is incorrect.",
   "compliance": "Compliance",
