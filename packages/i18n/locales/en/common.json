@@ -3674,7 +3674,7 @@
   "can_you_tell_me_about": "Can you tell me about ",
   "use_ai_to_answer_your_questions": "Use AI to answer your questions",
   "error_fetching_answer": "Error while fetching answer ",
-  "k_bar_ai_error": "An unexpected error occured. Please try again later",
+  "k_bar_ai_error": "An unexpected error occurred. Please try again later",
   "select_oAuth_client": "Select OAuth client",
   "on_every_instance": "On every instance",
   "delegation_credential_feature_not_enabled": "Delegation credential feature is not enabled for your organization",
