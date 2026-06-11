@@ -44,7 +44,7 @@ export const Select = <
   const hasMultiLastIcons = props.isMulti || props.isLoading || props.isClearable;
 
   // Annoyingly if we update styles here we have to update timezone select too
-  // We cant create a generate function for this as we can't force state changes - onSelect styles dont change for example
+  // We can't create a generate function for this as we can't force state changes - onSelect styles don't change for example
   return (
     <ReactSelect
       {...reactSelectProps}
