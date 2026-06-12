@@ -154,13 +154,16 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     value: mins,
   }));
 
+  const oldPassword = formMethods.watch("oldPassword");
+  const newPassword = formMethods.watch("newPassword");
+
   const isDisabled =
     formMethods.formState.isSubmitting ||
     !formMethods.formState.isValid ||
     passwordMutation.isPending ||
     sessionMutation.isPending ||
-    !formMethods.getValues("oldPassword") ||
-    !formMethods.getValues("newPassword");
+    !oldPassword ||
+    !newPassword;
 
   const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
   const isUser = data?.user.role === "USER";
