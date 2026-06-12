@@ -37,6 +37,7 @@ import type { BookingRepository } from "@calcom/features/bookings/repositories/B
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
@@ -725,11 +726,19 @@ export class AvailableSlotsService {
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
+    // Widen the prefetch window by the largest configurable buffer so bookings outside the
+    // requested range whose buffers overlap it are included, the same way getBusyTimes widens
+    // its own query. Otherwise their buffers are never applied and unbookable slots are offered.
+    const definedBufferTimes = getDefinedBufferTimes();
+    const maxBufferMs = definedBufferTimes[definedBufferTimes.length - 1] * 60 * 1000;
+    const startTimeAdjustedWithMaxBuffer = new Date(startTimeDate.valueOf() - maxBufferMs);
+    const endTimeAdjustedWithMaxBuffer = new Date(endTimeDate.valueOf() + maxBufferMs);
+
     const bookingRepo = this.dependencies.bookingRepo;
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
-        startDate: startTimeDate,
-        endDate: endTimeDate,
+        startDate: startTimeAdjustedWithMaxBuffer,
+        endDate: endTimeAdjustedWithMaxBuffer,
         eventTypeId: eventType.id,
         seatedEvent: Boolean(eventType.seatsPerTimeSlot),
         userIdAndEmailMap,
