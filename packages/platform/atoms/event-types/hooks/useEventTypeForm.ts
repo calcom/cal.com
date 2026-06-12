@@ -37,9 +37,7 @@ export const useEventTypeForm = ({
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
-  // this is a nightmare to type, will do in follow up PR
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const defaultValues: any = useMemo(() => {
+  const defaultValues: Partial<FormValues> = useMemo(() => {
     return {
       title: eventType.title,
       id: eventType.id,
@@ -201,13 +199,13 @@ export const useEventTypeForm = ({
     return Array.isArray(value);
   };
 
-  const getNestedField = (obj: typeof dirtyFields, path: string) => {
+  const getNestedField = (obj: typeof dirtyFields, path: string): unknown => {
     const keys = path.split(".");
-    let current = obj;
+    let current: unknown = obj;
 
     for (let i = 0; i < keys.length; i++) {
-      // @ts-expect-error /—— currentKey could be any deeply nested fields thanks to recursion
-      const currentKey = current[keys[i]];
+      if (current === null || typeof current !== "object") return undefined;
+      const currentKey = (current as Record<string, unknown>)[keys[i]];
       if (currentKey === undefined) return undefined;
       current = currentKey;
     }
@@ -227,8 +225,7 @@ export const useEventTypeForm = ({
       }
 
       // Check if the field is an object or an array
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fieldValue: any = getNestedField(dirtyFields, fieldName);
+      const fieldValue = getNestedField(dirtyFields, fieldName as string);
       if (isObject(fieldValue)) {
         for (const key in fieldValue) {
           if (fieldValue[key] === true) {
@@ -401,11 +398,10 @@ export const useEventTypeForm = ({
     // Filter out undefined values
     const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {
       if (value !== undefined) {
-        // @ts-expect-error Element implicitly has any type
-        acc[key] = value;
+        (acc as Record<string, unknown>)[key] = value;
       }
       return acc;
-    }, {}) as EventTypeUpdateInput;
+    }, {} as Record<string, unknown>) as EventTypeUpdateInput;
 
     if (dirtyFieldExists) {
       onSubmit({ ...filteredPayload, id: eventType.id });

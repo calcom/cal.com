@@ -94,8 +94,7 @@ const BookerPlatformWrapperComponent = (
   );
   const prevStateRef = useRef<BookerStoreValues | null>(null);
   const bookerStoreContext = useContext(BookerStoreContext);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getStateValues = useCallback((state: any): BookerStoreValues => {
+  const getStateValues = useCallback((state: Record<string, unknown>): BookerStoreValues => {
     return Object.fromEntries(
       Object.entries(state).filter(([_, value]) => typeof value !== "function")
     ) as BookerStoreValues;

@@ -8,8 +8,6 @@ export class AxiosLikeResponseToFetchResponse<
     data: unknown;
   }
 > extends Response {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  body: any;
   constructor(axiomResponse: T) {
     super(JSON.stringify(axiomResponse.data), {
       status: axiomResponse.status,
