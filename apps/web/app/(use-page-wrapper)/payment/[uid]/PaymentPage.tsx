@@ -72,7 +72,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
     let embedIframeWidth = 0;
     const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE;
     setTimezone(_timezone);
-    setDate(date.tz(_timezone));
+    if (date.isValid()) {
+      setDate(date.tz(_timezone));
+    }
     setIs24h(!!getIs24hClockFromLocalStorage());
     if (isEmbed) {
       requestAnimationFrame(function fixStripeIframe() {
@@ -126,9 +128,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">{eventName}</div>
                       <div className="font-medium">{t("when")}</div>
                       <div className="col-span-2 mb-6">
-                        {date.locale(i18n.language ?? "en").format("dddd, DD MMMM YYYY")}
+                        {date.isValid() ? date.locale(i18n.language ?? "en").format("dddd, DD MMMM YYYY") : "—"}
                         <br />
-                        {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
+                        {date.isValid() ? date.format(is24h ? "H:mm" : "h:mma") : "—"} - {props.eventType.length} mins{" "}
                         <span className="text-subtle">({timezone})</span>
                       </div>
                       {props.booking.location && (
