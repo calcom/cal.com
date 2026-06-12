@@ -36,6 +36,7 @@ import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-gu
 import { OAuthClientsService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients.service";
 import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { UsersRepository } from "@/modules/users/users.repository";
+import { OAuthAuthorizationRepository } from "@/modules/oauth-clients/oauth-authorization.repository";
 
 @Controller({
   path: "/v2/oauth-clients",
@@ -50,7 +51,8 @@ export class OAuthClientsController {
   constructor(
     private readonly oAuthClientUsersOutputService: OAuthClientUsersOutputService,
     private readonly oAuthClientsService: OAuthClientsService,
-    private readonly userRepository: UsersRepository
+    private readonly userRepository: UsersRepository,
+    private readonly oAuthAuthorizationRepository: OAuthAuthorizationRepository
   ) {}
 
   @Post("/")
@@ -124,6 +126,30 @@ export class OAuthClientsController {
     return {
       status: SUCCESS_STATUS,
       data: existingManagedUsers.map((user) => this.oAuthClientUsersOutputService.getResponseUser(user)),
+    };
+  }
+
+  @Get("/:clientId/users")
+  @HttpCode(HttpStatus.OK)
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
+  @UseGuards(OAuthClientGuard)
+  @ApiExcludeEndpoint()
+  async getOAuthClientAuthorizedUsers(
+    @Param("clientId") clientId: string
+  ) {
+    const authorizations = await this.oAuthAuthorizationRepository.getAuthorizationsByClient(clientId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        total: authorizations.length,
+        users: authorizations.map((a) => ({
+          name: a.user.name,
+          email: a.user.email,
+          authorizedAt: a.createdAt,
+          lastRefreshedAt: a.lastRefreshedAt,
+        })),
+      },
     };
   }
 

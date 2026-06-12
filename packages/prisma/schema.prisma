@@ -475,6 +475,7 @@ model User {
   // Used to lock the user account
   locked                         Boolean                       @default(false)
   platformOAuthClients           PlatformOAuthClient[]
+  oAuthAuthorizations            OAuthAuthorization[]
   AccessToken                    AccessToken[]
   RefreshToken                   RefreshToken[]
   PlatformAuthorizationToken     PlatformAuthorizationToken[]
@@ -1475,6 +1476,8 @@ model OAuthClient {
   user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt       DateTime          @default(now())
 
+  authorizations OAuthAuthorization[]
+
   @@index([userId])
 }
 
@@ -1738,6 +1741,21 @@ model PlatformOAuthClient {
   areCalendarEventsEnabled     Boolean @default(true)
 
   createdAt DateTime @default(now())
+}
+
+model OAuthAuthorization {
+  id              String    @id @default(cuid())
+  userId          Int
+  oAuthClientId   String
+  scopes          String[]
+  createdAt       DateTime  @default(now())
+  lastRefreshedAt DateTime?
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  oAuthClient OAuthClient @relation(fields: [oAuthClientId], references: [clientId], onDelete: Cascade)
+  // ^^^^^^^^ era "id", agora "clientId"
+
+  @@unique([userId, oAuthClientId])
 }
 
 model PlatformAuthorizationToken {

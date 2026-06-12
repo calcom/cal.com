@@ -8,6 +8,7 @@ import { RedisService } from "@/modules/redis/redis.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { DateTime } from "luxon";
+import { OAuthAuthorizationRepository } from "@/modules/oauth-clients/oauth-authorization.repository";
 
 import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
 
@@ -18,7 +19,8 @@ export class OAuthFlowService {
   constructor(
     private readonly tokensRepository: TokensRepository,
     private readonly oAuthClientRepository: OAuthClientRepository,
-    private readonly redisService: RedisService
+    private readonly redisService: RedisService,
+    private readonly oAuthAuthorizationRepository: OAuthAuthorizationRepository
   ) {}
 
   async propagateAccessToken(accessToken: string) {
@@ -127,6 +129,11 @@ export class OAuthFlowService {
     const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
       await this.tokensRepository.createOAuthTokens(clientId, authorizationToken.owner.id);
     await this.tokensRepository.invalidateAuthorizationToken(authorizationToken.id);
+    await this.oAuthAuthorizationRepository.upsertAuthorization(
+      authorizationToken.owner.id,
+      clientId,
+      [] // scopes virão do authorizationToken se disponível
+    );
     void this.propagateAccessToken(accessToken); // void result, ignored.
 
     return {
@@ -158,6 +165,11 @@ export class OAuthFlowService {
       clientId,
       currentRefreshToken.secret,
       currentRefreshToken.userId
+    );
+
+    await this.oAuthAuthorizationRepository.updateLastRefreshed(
+      currentRefreshToken.userId,
+      clientId
     );
 
     return {

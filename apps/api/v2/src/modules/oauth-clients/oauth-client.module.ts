@@ -28,6 +28,7 @@ import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
 import { Global, Module } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { OAuthAuthorizationRepository } from "@/modules/oauth-clients/oauth-authorization.repository";
 
 @Global()
 @Module({
@@ -46,6 +47,7 @@ import { JwtService } from "@nestjs/jwt";
   ],
   providers: [
     OAuthClientRepository,
+    OAuthAuthorizationRepository,
     TokensRepository,
     OAuthFlowService,
     CalendarsService,
