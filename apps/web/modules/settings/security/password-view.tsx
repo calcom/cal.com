@@ -122,6 +122,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
   });
 
   const formMethods = useForm<ChangePasswordSessionFormValues>({
+    mode: "onChange",
     defaultValues: {
       oldPassword: "",
       newPassword: "",
@@ -157,7 +158,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     value: mins,
   }));
 
-  const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
+  const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty || !formMethods.formState.isValid;
 
   const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
   const isUser = data?.user.role === "USER";
