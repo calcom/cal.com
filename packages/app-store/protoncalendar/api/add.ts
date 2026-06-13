@@ -11,6 +11,18 @@ import BuildCalendarService from "../lib/CalendarService";
 import { isValidProtonCalendarUrl, normalizeProtonCalendarUrl } from "../lib/validateProtonCalendarUrl";
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+  throw new Error("Missing CALENDSO_ENCRYPTION_KEY environment variable");
+}
+
+function makeValidationCredential(data: any, email: string | null | undefined) {
+  return {
+    id: 0,
+    ...data,
+    user: { email: email ?? "" },
+    encryptedKey: null,
+  };
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -31,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const normalizedUrls = urls.map((url: string) => normalizeProtonCalendarUrl(url));
 
-    const user = await prisma.user.findFirstOrThrow({
+    const user = await prisma.user.findUniqueOrThrow({
       where: {
         id: userId,
       },
@@ -52,12 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     try {
-      const protonCalendar = BuildCalendarService({
-        id: 0,
-        ...data,
-        user: { email: user.email },
-        encryptedKey: null,
-      });
+      const protonCalendar = BuildCalendarService(makeValidationCredential(data, user.email));
       const listedCalendars = await protonCalendar.listCalendars();
 
       if (listedCalendars.length !== normalizedUrls.length) {
@@ -70,6 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
       logger.error("Could not add Proton Calendar feeds", {
         message: error instanceof Error ? error.message : "Unknown error",
+        error,
       });
       return res.status(500).json({ message: "Could not add Proton Calendar feeds" });
     }

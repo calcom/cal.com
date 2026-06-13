@@ -48,15 +48,27 @@ export default function ProtonCalendarSetup() {
                         "Content-Type": "application/json",
                       },
                     });
-                    const json = await res.json().catch(() => ({}));
+
+                    let json: any;
+                    try {
+                      json = await res.json();
+                    } catch (err) {
+                      console.error("Failed to parse JSON response:", err);
+                      json = {};
+                    }
 
                     if (!res.ok) {
                       setErrorMessage(json?.message || t("something_went_wrong"));
                       return;
                     }
 
-                    router.push(json.url);
-                  } catch {
+                    if (json && typeof json.url === "string" && json.url.trim() !== "") {
+                      router.push(json.url);
+                    } else {
+                      throw new Error("Invalid or empty redirection URL received from server");
+                    }
+                  } catch (err) {
+                    console.error("Proton Calendar setup submission failed:", err);
                     setErrorMessage(t("something_went_wrong"));
                   }
                 }}>
@@ -68,7 +80,7 @@ export default function ProtonCalendarSetup() {
                         type="text"
                         label={t("calendar_url")}
                         value={url}
-                        containerClassName={`w-full ${i === 0 ? "mr-6" : ""}`}
+                        containerClassName={i === 0 ? "w-full mr-6" : "w-full"}
                         onChange={(e) => {
                           const newVal = e.target.value as string;
                           setUrls((urls) => urls.map((x, ii) => (ii === i ? newVal : x)));
@@ -88,14 +100,15 @@ export default function ProtonCalendarSetup() {
                   ))}
                 </fieldset>
 
-                <button
+                <Button
+                  color="minimal"
                   className="text-sm"
                   type="button"
                   onClick={() => {
                     setUrls((urls) => urls.concat(""));
                   }}>
-                  {t("add")} <PlusIcon className="inline" size={16} />
-                </button>
+                  {t("add")} <PlusIcon className="inline ml-1" size={16} />
+                </Button>
 
                 {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
 
