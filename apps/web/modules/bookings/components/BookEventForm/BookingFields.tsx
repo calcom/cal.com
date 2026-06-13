@@ -163,6 +163,19 @@ export const BookingFields = ({
           readOnly = false;
         }
 
+        // `name`, `email`, and `attendeePhoneNumber` must be editable during reschedule so that any
+        // participant (including the host rescheduling on behalf of an attendee) can update their contact
+        // information. Without this, email-verification flows fail because the pre-filled attendee email
+        // is locked and the rescheduling user never receives the verification code.
+        if (
+          rescheduleReadOnly &&
+          (field.name === SystemField.Enum.name ||
+            field.name === SystemField.Enum.email ||
+            field.name === SystemField.Enum.attendeePhoneNumber)
+        ) {
+          readOnly = false;
+        }
+
         if (field.name === SystemField.Enum.guests) {
           readOnly = false;
           // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
