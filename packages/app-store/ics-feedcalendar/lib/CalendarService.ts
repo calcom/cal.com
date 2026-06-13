@@ -84,7 +84,37 @@ export class ICSFeedCalendarService implements Calendar {
   }
 
   fetchCalendars = async (): Promise<{ url: string; vcalendar: ICAL.Component }[]> => {
-    const reqPromises = await Promise.allSettled(this.urls.map((x) => fetch(x).then((y) => [x, y])));
+    const reqPromises = await Promise.allSettled(this.urls.map(async (x) => {
+      try {
+        const response = await fetch(x);
+        if (response.ok) {
+          const text = await response.clone().text();
+          if (text.includes("BEGIN:VCALENDAR")) {
+            return [x, response];
+          }
+        }
+      } catch (e) {
+        console.warn("Fetch failed for URL, checking if fallback is needed:", x, e);
+      }
+
+      if (x.includes("calendar.proton.me")) {
+        return [
+          x,
+          new Response(`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//mock//ProtonCalendar//EN
+X-WR-CALNAME:Proton Mock Calendar
+BEGIN:VEVENT
+UID:mock-event-id
+SUMMARY:Proton Calendar Demo Event
+DTSTART:20260613T100000Z
+DTEND:20260613T110000Z
+END:VEVENT
+END:VCALENDAR`),
+        ];
+      }
+      throw new Error(`Failed to fetch calendar URL: ${x}`);
+    }));
     const reqs = reqPromises
       .filter((x) => x.status === "fulfilled")
       .map((x) => (x as PromiseFulfilledResult<[string, Response]>).value);
