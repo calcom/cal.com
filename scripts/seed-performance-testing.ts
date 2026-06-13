@@ -32,13 +32,24 @@ function parseArgs() {
   }
  
   const parseNonNegativeInt = (flag: string, raw: string | undefined, fallback: number) => {
-    const n = parseInt(raw ?? String(fallback), 10);
-    if (!Number.isFinite(n) || n < 0) {
-      console.error(`Invalid ${flag} "${raw}". Must be a non-negative integer.`);
-      process.exit(1);
-    }
-    return n;
-  };
+  if (raw === undefined) {
+    return fallback;
+  }
+
+  if (!/^\d+$/.test(raw)) {
+    console.error(`Invalid ${flag} "${raw}". Must be a non-negative integer.`);
+    process.exit(1);
+  }
+
+  const n = Number(raw);
+  
+  if (!Number.isSafeInteger(n)) {
+    console.error(`Invalid ${flag} "${raw}". Must be a safe non-negative integer.`);
+    process.exit(1);
+  }
+
+  return n;
+};
  
   const bookingsPerEventType = parseNonNegativeInt("--bookings", get("--bookings"), 100);
   const startFrom = parseNonNegativeInt("--start-from", get("--start-from"), 0);
