@@ -1,13 +1,12 @@
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { Toaster } from "sonner";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { PlusIcon, TrashIcon } from "@coss/ui/icons";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Toaster } from "sonner";
 
 /**
  * React setup page component for registering a Proton Calendar integration.
@@ -25,11 +24,12 @@ export default function ProtonCalendarSetup() {
   const [errorMessage, setErrorMessage] = useState("");
 
   return (
-    <div className="bg-emphasis flex h-screen">
-      <div className="bg-default m-auto rounded p-5 md:w-[560px] md:p-10">
-        <div className="flex flex-col stack-y-5 md:flex-row md:space-x-5 md:stack-y-0">
+    <div className="flex h-screen bg-emphasis">
+      <div className="m-auto rounded bg-default p-5 md:w-[560px] md:p-10">
+        <div className="stack-y-5 md:stack-y-0 flex flex-col md:flex-row md:space-x-5">
           <div>
             {/* eslint-disable @next/next/no-img-element */}
+            {/* biome-ignore lint/performance/noImgElement: standard image tag usage for app store icons */}
             <img
               src="/api/app-store/protoncalendar/icon.svg"
               alt={t("proton_calendar")}
@@ -54,7 +54,7 @@ export default function ProtonCalendarSetup() {
                       },
                     });
 
-                    let json: any;
+                    let json: { url?: string; message?: string } = {};
                     try {
                       json = await res.json();
                     } catch (err) {
@@ -79,6 +79,7 @@ export default function ProtonCalendarSetup() {
                 }}>
                 <fieldset className="stack-y-2" disabled={form.formState.isSubmitting}>
                   {urls.map((url, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: standard list indexing for dynamic URL inputs
                     <div key={i} className="flex w-full items-center gap-2">
                       <TextField
                         required
@@ -112,12 +113,12 @@ export default function ProtonCalendarSetup() {
                   onClick={() => {
                     setUrls((urls) => urls.concat(""));
                   }}>
-                  {t("add")} <PlusIcon className="inline ml-1" size={16} />
+                  {t("add")} <PlusIcon className="ml-1 inline" size={16} />
                 </Button>
 
                 {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
 
-                <div className="mt-5 justify-end space-x-2 rtl:space-x-reverse sm:mt-4 sm:flex">
+                <div className="mt-5 justify-end space-x-2 sm:mt-4 sm:flex rtl:space-x-reverse">
                   <Button type="button" color="secondary" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>

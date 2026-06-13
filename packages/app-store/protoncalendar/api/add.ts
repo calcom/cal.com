@@ -1,10 +1,8 @@
 import process from "node:process";
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
 import BuildCalendarService from "../lib/CalendarService";
@@ -22,7 +20,7 @@ if (!process.env.CALENDSO_ENCRYPTION_KEY) {
  * @param email - The email address associated with the user.
  * @returns The structured validation credential object.
  */
-function makeValidationCredential(data: any, email: string | null | undefined) {
+function makeValidationCredential(data: Record<string, unknown>, email: string | null | undefined) {
   return {
     id: 0,
     ...data,
@@ -82,7 +80,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const listedCalendars = await protonCalendar.listCalendars();
 
       if (listedCalendars.length !== normalizedUrls.length) {
-        throw new Error(`Listed calendars and URLs mismatch: ${listedCalendars.length} vs. ${normalizedUrls.length}`);
+        throw new Error(
+          `Listed calendars and URLs mismatch: ${listedCalendars.length} vs. ${normalizedUrls.length}`
+        );
       }
 
       await prisma.credential.create({

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { isValidProtonCalendarUrl, normalizeProtonCalendarUrl } from "../validateProtonCalendarUrl";
 
 describe("Proton Calendar URL validation", () => {
@@ -13,9 +12,9 @@ describe("Proton Calendar URL validation", () => {
   });
 
   it("normalizes webcal URLs to HTTPS before storage", () => {
-    expect(normalizeProtonCalendarUrl("webcal://calendar.proton.me/api/calendar/v1/url/token/calendar.ics")).toBe(
-      "https://calendar.proton.me/api/calendar/v1/url/token/calendar.ics"
-    );
+    expect(
+      normalizeProtonCalendarUrl("webcal://calendar.proton.me/api/calendar/v1/url/token/calendar.ics")
+    ).toBe("https://calendar.proton.me/api/calendar/v1/url/token/calendar.ics");
   });
 
   it("rejects non-HTTPS or malformed URLs", () => {
