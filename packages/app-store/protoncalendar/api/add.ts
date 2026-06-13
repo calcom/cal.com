@@ -15,6 +15,13 @@ if (!process.env.CALENDSO_ENCRYPTION_KEY) {
   throw new Error("Missing CALENDSO_ENCRYPTION_KEY environment variable");
 }
 
+/**
+ * Helper to construct a validation credential payload matching the shape required
+ * by BuildCalendarService for validation/testing purposes.
+ * @param data - The raw credential data fields.
+ * @param email - The email address associated with the user.
+ * @returns The structured validation credential object.
+ */
 function makeValidationCredential(data: any, email: string | null | undefined) {
   return {
     id: 0,
@@ -24,6 +31,13 @@ function makeValidationCredential(data: any, email: string | null | undefined) {
   };
 }
 
+/**
+ * Next.js API route handler to validate and add Proton Calendar ICS subscription feeds.
+ * Supports POST for additions (encrypts URLs and tests availability check before saving)
+ * and GET for redirect URLs.
+ * @param req - The Next.js API request object.
+ * @param res - The Next.js API response object.
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const userId = req.session?.user?.id;

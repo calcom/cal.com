@@ -9,6 +9,11 @@ import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { PlusIcon, TrashIcon } from "@coss/ui/icons";
 
+/**
+ * React setup page component for registering a Proton Calendar integration.
+ * Renders the form allowing users to submit one or more subscription URLs.
+ * @returns The Proton Calendar Setup component.
+ */
 export default function ProtonCalendarSetup() {
   const { t } = useLocale();
   const router = useRouter();
