@@ -13,6 +13,8 @@ Semi-autonomous development harness built on top of Claude Code. An orchestrator
 ```
 Read task (GitHub MCP)
   ↓
+can-start.sh <n>  — exits 1 if open blockers; abort here
+  ↓
 Researcher agent — reads issue, codebase, produces plan
   ↓
 [GATE 1: human approves plan]
