@@ -1,0 +1,245 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Deterministic quality gate for Cal.diy harness.
+# Usage: quality-gate [--base <ref>]
+# Exit 0 = PASS (all checks passed)
+# Exit 1 = FAIL (one or more checks failed)
+#
+# Options:
+#   --base <ref>   Git ref to diff against for changed-file scoping (default: main)
+#
+# Report is written to .harness/reports/quality-gate.json
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+REPORTS_DIR="${REPO_ROOT}/.harness/reports"
+REPORT_FILE="${REPORTS_DIR}/quality-gate.json"
+
+BASE_REF="main"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base)
+      BASE_REF="$2"; shift 2 ;;
+    *)
+      echo "Unknown option: $1" >&2; exit 1 ;;
+  esac
+done
+
+mkdir -p "${REPORTS_DIR}"
+cd "${REPO_ROOT}"
+
+# ── helpers ──────────────────────────────────────────────────────────────────
+
+timestamp() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
+started_at=$(timestamp)
+
+PASS_COUNT=0
+FAIL_COUNT=0
+CHECKS=()
+
+record() {
+  local name="$1" status="$2" message="$3"
+  CHECKS+=("{\"name\":\"${name}\",\"status\":\"${status}\",\"message\":$(printf '%s' "${message}" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')}")
+  if [[ "$status" == "pass" ]]; then
+    PASS_COUNT=$((PASS_COUNT + 1))
+    echo "  ✓ ${name}"
+  else
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    echo "  ✗ ${name}: ${message}"
+  fi
+}
+
+# ── changed files ─────────────────────────────────────────────────────────────
+
+echo "==> Detecting changed files vs ${BASE_REF}"
+CHANGED_FILES=$(git diff --name-only "${BASE_REF}...HEAD" 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || true)
+
+if [[ -z "$CHANGED_FILES" ]]; then
+  echo "     (no changed files detected; running checks against working tree)"
+fi
+
+# Touched TypeScript/TSX files for grep-based checks
+CHANGED_TS=$(echo "$CHANGED_FILES" | grep -E '\.(ts|tsx)$' || true)
+
+# Packages that have changed files (for targeted test runs)
+CHANGED_PACKAGES=$(echo "$CHANGED_FILES" | grep -oE '^(packages|apps)/[^/]+' | sort -u || true)
+
+# ── check 1: repo-rule grepping ───────────────────────────────────────────────
+
+echo ""
+echo "==> Repo-rule grep checks"
+
+run_grep_check() {
+  local check_name="$1" pattern="$2" description="$3"
+  local files_to_check="$CHANGED_TS"
+
+  if [[ -z "$files_to_check" ]]; then
+    record "$check_name" "pass" "no changed TypeScript files"
+    return
+  fi
+
+  # Filter to files that still exist
+  local existing_files=()
+  while IFS= read -r f; do
+    [[ -n "$f" && -f "${REPO_ROOT}/${f}" ]] && existing_files+=("${REPO_ROOT}/${f}")
+  done <<< "$files_to_check"
+
+  if [[ ${#existing_files[@]} -eq 0 ]]; then
+    record "$check_name" "pass" "no changed TypeScript files exist on disk"
+    return
+  fi
+
+  local hits
+  hits=$(grep -rn --include='*.ts' --include='*.tsx' -E "$pattern" "${existing_files[@]}" 2>/dev/null || true)
+
+  if [[ -z "$hits" ]]; then
+    record "$check_name" "pass" "no violations found"
+  else
+    local count
+    count=$(echo "$hits" | wc -l | tr -d ' ')
+    record "$check_name" "fail" "${count} violation(s): $(echo "$hits" | head -5 | tr '\n' '|')"
+  fi
+}
+
+run_grep_check "no-as-any" \
+  " as any[^A-Za-z]" \
+  "TypeScript 'as any' casts are forbidden; use proper types"
+
+run_grep_check "no-prisma-include" \
+  "^\s+include:" \
+  "Use Prisma 'select' instead of 'include' for performance and security"
+
+run_grep_check "no-barrel-ui-import" \
+  "from ['\"]@calcom/ui['\"]" \
+  "Import from specific component paths, not @calcom/ui barrel"
+
+# ── check 2: Biome lint/format ────────────────────────────────────────────────
+
+echo ""
+echo "==> Biome lint/format"
+
+if ! command -v yarn &>/dev/null; then
+  record "biome" "fail" "yarn not found in PATH"
+else
+  biome_out=$(yarn biome check . 2>&1 || true)
+  if echo "$biome_out" | grep -qE "^Found [1-9]"; then
+    record "biome" "fail" "$(echo "$biome_out" | tail -5 | tr '\n' ' ')"
+  elif echo "$biome_out" | grep -q "error"; then
+    record "biome" "fail" "$(echo "$biome_out" | grep 'error' | head -3 | tr '\n' ' ')"
+  else
+    record "biome" "pass" "no lint/format violations"
+  fi
+fi
+
+# ── check 3: TypeScript type-check ────────────────────────────────────────────
+
+echo ""
+echo "==> TypeScript type-check"
+
+if ! command -v yarn &>/dev/null; then
+  record "type-check" "fail" "yarn not found in PATH"
+else
+  tc_out=$(yarn type-check:ci --force 2>&1 || true)
+  # Count lines that look like TS errors: "path.ts(line,col): error TS..."
+  error_lines=$(echo "$tc_out" | grep -cE 'error TS[0-9]+' || true)
+  if [[ "$error_lines" -gt 0 ]]; then
+    first_errors=$(echo "$tc_out" | grep -E 'error TS[0-9]+' | head -5 | tr '\n' '|')
+    record "type-check" "fail" "${error_lines} type error(s): ${first_errors}"
+  else
+    record "type-check" "pass" "no type errors"
+  fi
+fi
+
+# ── check 4: unit tests for touched packages ─────────────────────────────────
+
+echo ""
+echo "==> Unit tests"
+
+if ! command -v yarn &>/dev/null; then
+  record "unit-tests" "fail" "yarn not found in PATH"
+elif [[ -z "$CHANGED_PACKAGES" ]]; then
+  record "unit-tests" "pass" "no changed packages to test"
+else
+  echo "     touched packages: $(echo "$CHANGED_PACKAGES" | tr '\n' ' ')"
+
+  # Build a glob pattern of test files inside touched packages for vitest --reporter
+  # Run from repo root so vitest workspace config resolves correctly.
+  test_dirs=()
+  while IFS= read -r pkg; do
+    [[ -z "$pkg" ]] && continue
+    pkg_dir="${REPO_ROOT}/${pkg}"
+    [[ -d "$pkg_dir" ]] || continue
+    has_tests=$(find "$pkg_dir" -name '*.test.ts' -o -name '*.spec.ts' 2>/dev/null | head -1 || true)
+    [[ -z "$has_tests" ]] && continue
+    test_dirs+=("${pkg}")
+  done <<< "$CHANGED_PACKAGES"
+
+  if [[ ${#test_dirs[@]} -eq 0 ]]; then
+    record "unit-tests" "pass" "no test files in touched packages"
+  else
+    # Build path pattern for vitest: run only test files under touched package dirs
+    pattern=$(printf '%s|' "${test_dirs[@]}")
+    pattern="${pattern%|}"
+    echo "     running tests matching: ${pattern}"
+    test_out=$(TZ=UTC yarn vitest run --reporter=verbose 2>&1 \
+      $(for d in "${test_dirs[@]}"; do echo "--project=${d}"; done) || true)
+    # Fall back to simpler run if --project flag not supported
+    if echo "$test_out" | grep -q "unknown option"; then
+      test_out=$(TZ=UTC yarn vitest run "${pattern}" 2>&1 || true)
+    fi
+    if echo "$test_out" | grep -qE "FAIL|failed"; then
+      failures=$(echo "$test_out" | grep -E "FAIL" | head -3 | tr '\n' '|')
+      record "unit-tests" "fail" "test failures: ${failures}"
+    else
+      record "unit-tests" "pass" "all tests passed"
+    fi
+  fi
+fi
+
+# ── write JSON report ─────────────────────────────────────────────────────────
+
+finished_at=$(timestamp)
+overall="PASS"
+[[ "$FAIL_COUNT" -gt 0 ]] && overall="FAIL"
+
+# Build JSON array from CHECKS
+checks_json="["
+first=true
+for c in "${CHECKS[@]}"; do
+  if [[ "$first" == true ]]; then
+    checks_json+="${c}"
+    first=false
+  else
+    checks_json+=",${c}"
+  fi
+done
+checks_json+="]"
+
+cat > "${REPORT_FILE}" <<EOF
+{
+  "verdict": "${overall}",
+  "started_at": "${started_at}",
+  "finished_at": "${finished_at}",
+  "base_ref": "${BASE_REF}",
+  "summary": {
+    "pass": ${PASS_COUNT},
+    "fail": ${FAIL_COUNT}
+  },
+  "checks": ${checks_json}
+}
+EOF
+
+# ── final output ──────────────────────────────────────────────────────────────
+
+echo ""
+echo "────────────────────────────────────────"
+if [[ "$overall" == "PASS" ]]; then
+  echo "PASS  ${PASS_COUNT} check(s) passed"
+else
+  echo "FAIL  ${PASS_COUNT} passed, ${FAIL_COUNT} failed"
+fi
+echo "Report: ${REPORT_FILE}"
+echo "────────────────────────────────────────"
+
+[[ "$overall" == "PASS" ]] && exit 0 || exit 1
