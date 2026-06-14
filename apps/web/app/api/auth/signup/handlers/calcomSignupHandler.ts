@@ -13,7 +13,7 @@ import {
 } from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
-import { getUserRepository } from "@calcom/features/users/di/UserRepository.container";
+import { getUserRepository } from "@calcom/features/di/containers/UserRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";

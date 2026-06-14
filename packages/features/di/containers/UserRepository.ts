@@ -1,5 +1,6 @@
 import { createContainer } from "@calcom/features/di/di";
-import { type UserRepository, moduleLoader as userRepositoryModuleLoader } from "./UserRepository.module";
+import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 const userRepositoryContainer = createContainer();
 

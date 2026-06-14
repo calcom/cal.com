@@ -1419,6 +1419,14 @@ export class UserRepository {
     });
   }
 
+  async deleteMany({ userIds }: {userIds: number[]}){
+    await this.prismaClient.user.deleteMany({
+      where: {
+        id: { in: userIds },
+      },
+    });
+  }
+
   /**
    * Finds a user by ID returning only their username
    * @param userId - The user ID

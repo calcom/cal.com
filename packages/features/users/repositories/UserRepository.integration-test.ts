@@ -1,27 +1,21 @@
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
-import { prisma } from "@calcom/prisma";
 import { UserRepository } from "./UserRepository";
-import { getUserRepository } from "@calcom/features/users/di/UserRepository.container";
+import { getUserRepository } from "@calcom/features/di/containers/UserRepository";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import bcrypt from "bcryptjs";
 
 const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 const createdUserIds: number[] = [];
 
-async function cleanupTestUsers() {
-  if (createdUserIds.length > 0) {
-    await prisma.user.deleteMany({
-      where: {
-        id: { in: createdUserIds },
-      },
-    });
-
-    createdUserIds.length = 0
-  }
-}
-
 describe("UserRepository Integration Tests - Signup Methods", () => {
   let userRepository: UserRepository;
+
+  async function cleanupTestUsers() {
+    if (createdUserIds.length > 0) {
+      await userRepository.deleteMany({ userIds: createdUserIds })
+      createdUserIds.length = 0
+    }
+  }
 
   beforeAll(async () => {
     userRepository = getUserRepository();
@@ -41,7 +35,7 @@ describe("UserRepository Integration Tests - Signup Methods", () => {
         username: `signupuser-${testRunId}`,
         hashedPassword,
         organizationId: null,
-        emailVerified: new Date(),
+        emailVerified: new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
       });
 
@@ -49,9 +43,8 @@ describe("UserRepository Integration Tests - Signup Methods", () => {
       expect(result.id).toBeDefined();
       createdUserIds.push(result.id);
 
-      const createdUser = await prisma.user.findUnique({
-        where: { email: testEmail },
-      });
+      const createdUser = await userRepository.findByEmail({ email: testEmail});
+
       expect(createdUser).not.toBeNull();
       expect(createdUser?.email).toBe(testEmail);
       expect(createdUser?.emailVerified).not.toBeNull();
@@ -83,17 +76,8 @@ describe("UserRepository Integration Tests - Signup Methods", () => {
 
       expect(user2.id).toBe(user1.id);
 
-      const updatedUser = await prisma.user.findUnique({
-        where: { email: testEmail },
-        select: {
-          username: true,
-          password: {
-            select: {
-              hash: true
-            }
-          }
-        },
-      });
+      const updatedUser = await userRepository.findByEmailAndIncludeProfilesAndPassword({ email: testEmail});
+
       expect(updatedUser?.username).toBe(`user-${testRunId}-updated`);
       expect(updatedUser?.password?.hash).toBe(hashedPassword2);
     });
@@ -140,9 +124,11 @@ describe("UserRepository Integration Tests - Signup Methods", () => {
       });
       createdUserIds.push(result.id);
 
-      const user = await prisma.user.findUnique({
-        where: { email: testEmail },
-      });
+      const user = await userRepository.findByEmail({ email: testEmail });
+
+      if (!user) {
+        throw new Error("User was not found after signup");
+      }
 
       expect(user?.emailVerified).not.toBeNull();
       expect(user?.emailVerified?.getTime()).toBe(verificationDate.getTime());
@@ -162,17 +148,11 @@ describe("UserRepository Integration Tests - Signup Methods", () => {
       });
       createdUserIds.push(result.id);
 
-      const userWithPassword = await prisma.user.findUnique({
-        where: { email: testEmail },
-        select: {
-          password: {
-            select: {
-              hash: true,
-              userId: true
-            }
-          }
-        },
-      });
+      const userWithPassword = await userRepository.findByEmailAndIncludeProfilesAndPassword({ email: testEmail })
+
+       if (!userWithPassword) {
+        throw new Error("User was not found after signup");
+      }
 
       expect(userWithPassword?.password).not.toBeNull();
       expect(userWithPassword?.password?.hash).toBe(hashedPassword);
@@ -208,53 +188,49 @@ describe("UserRepository Integration Tests - Signup Methods", () => {
     });
   });
 
-  describe("Integration: Individual Signup flow", () => {  
-  it("should complete full individual signup flow: check email, check username, then upsert", async () => {  
-    const testEmail = `flow-${testRunId}@example.com`;  
-    const testUsername = `flowuser-${testRunId}`;  
-    const hashedPassword = await bcrypt.hash("password123", 10);  
-  
-    const existingUser = await userRepository.findByEmail({  
-      email: testEmail,  
-    });  
-    expect(existingUser).toBeNull();  
-  
-    const usersWithUsername = await userRepository.findUsersByUsername({  
+  describe("Integration: Individual Signup flow", () => {
+  it("should complete full individual signup flow: check email, check username, then upsert", async () => {
+    const testEmail = `flow-${testRunId}@example.com`;
+    const testUsername = `flowuser-${testRunId}`;
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const existingUser = await userRepository.findByEmail({
+      email: testEmail,
+    });
+    expect(existingUser).toBeNull();
+
+    const usersWithUsername = await userRepository.findUsersByUsername({
       orgSlug: null,
-      usernameList: [testUsername],  
-    });  
-    const usernameTaken = usersWithUsername.length > 0 ? usersWithUsername[0] : null;  
-    expect(usernameTaken).toBeNull();  
-  
-    const signupResult = await userRepository.upsertForSignup({  
-      email: testEmail,  
-      username: testUsername,  
-      hashedPassword,  
+      usernameList: [testUsername],
+    });
+    const usernameTaken = usersWithUsername.length > 0 ? usersWithUsername[0] : null;
+    expect(usernameTaken).toBeNull();
+
+    const signupResult = await userRepository.upsertForSignup({
+      email: testEmail,
+      username: testUsername,
+      hashedPassword,
       organizationId: null,
-      emailVerified: new Date(),  
-      identityProvider: IdentityProvider.CAL,  
-    });  
-    createdUserIds.push(signupResult.id);  
-  
-    expect(signupResult.id).toBeDefined();  
-  
-    const createdUser = await prisma.user.findUnique({  
-      where: { email: testEmail },  
-      select: {
-        email: true,
-        username: true,
-        organizationId: true,
-        password: {
-          select: {
-            userId: true
-          }
-        }
-      },  
-    });  
-    expect(createdUser?.email).toBe(testEmail);  
-    expect(createdUser?.username).toBe(testUsername);  
-    expect(createdUser?.password).not.toBeNull();  
-    expect(createdUser?.organizationId).toBeNull();
-  });  
+      emailVerified: new Date(Date.now()),
+      identityProvider: IdentityProvider.CAL,
+    });
+    createdUserIds.push(signupResult.id);
+
+    expect(signupResult.id).toBeDefined();
+
+    const userWithPassword = await userRepository.findByEmailAndIncludeProfilesAndPassword({ email: testEmail })
+
+    if (!userWithPassword) {
+      throw new Error("User was not found after signup");
+    }
+
+    expect(userWithPassword?.email).toBe(testEmail);
+    expect(userWithPassword?.username).toBe(testUsername);
+    expect(userWithPassword?.password).not.toBeNull();
+
+    const userWithOrganizationId = await userRepository.getUserOrganizationAndTeams({ userId: userWithPassword.id});
+
+    expect(userWithOrganizationId?.organizationId).toBeNull();
+  });
 });
 });

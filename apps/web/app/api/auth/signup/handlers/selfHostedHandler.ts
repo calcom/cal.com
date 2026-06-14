@@ -20,8 +20,7 @@ import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { NextResponse } from "next/server";
-import { getUserRepository } from "@calcom/features/users/di/UserRepository.container";
-
+import { getUserRepository } from "@calcom/features/di/containers/UserRepository";
 import { CreationSource } from "@calcom/prisma/enums";
 
 export default async function handler(body: Record<string, string>) {
@@ -122,7 +121,7 @@ export default async function handler(body: Record<string, string>) {
           username: correctedUsername,
           hashedPassword,
           organizationId,
-          emailVerified: new Date(),
+          emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL
         })
       } catch (error) {
