@@ -24,8 +24,12 @@ import { NextResponse } from "next/server";
 async function getHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
-  if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
-    return NextResponse.json({ message: "Forbiden" }, { status: 403 });
+  const validKeys = [
+    process.env.CRON_API_KEY,
+    process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : null,
+  ].filter(Boolean) as string[];
+  if (!validKeys.length || !validKeys.includes(`${apiKey}`)) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
   // instantiate dependencies

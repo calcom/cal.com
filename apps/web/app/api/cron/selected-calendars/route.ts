@@ -3,23 +3,23 @@
  *
  * It works in conjunction with `/api/cron/credentials` route(which creates the Credential records for all the members of an organization that has delegation credentials enabled)
  */
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
+import process from "node:process";
 import { findUniqueDelegationCalendarCredential } from "@calcom/app-store/delegationCredential";
 import {
   createGoogleCalendarServiceWithGoogleType,
   type GoogleCalendar,
 } from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/CalendarAppError";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import type { Ensure } from "@calcom/types/utils";
-
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
 const limitOnQueryingGoogleCalendar = 50;
@@ -27,7 +27,11 @@ const log = logger.getSubLogger({ prefix: ["[api]", "[delegation]", "[selected-c
 const validateRequest = (req: NextRequest) => {
   const url = new URL(req.url);
   const apiKey = req.headers.get("authorization") || url.searchParams.get("apiKey");
-  if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
+  const validKeys = [
+    process.env.CRON_API_KEY,
+    process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : null,
+  ].filter(Boolean) as string[];
+  if (!validKeys.length || !validKeys.includes(`${apiKey}`)) {
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   }
 };
@@ -122,7 +126,7 @@ async function getCalendarService(delegationUserCredential: DelegationUserCreden
     return null;
   }
 
-  const googleCalendarService= createGoogleCalendarServiceWithGoogleType(
+  const googleCalendarService = createGoogleCalendarServiceWithGoogleType(
     credentialForCalendarService as CredentialForCalendarServiceWithEmail
   );
 

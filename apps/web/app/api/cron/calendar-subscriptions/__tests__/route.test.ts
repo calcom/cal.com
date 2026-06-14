@@ -1,7 +1,6 @@
-import { NextRequest } from "next/server";
-import { describe, test, expect, vi, beforeEach } from "vitest";
-
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
+import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("next/server", () => ({
   NextRequest: class MockNextRequest {
@@ -59,7 +58,7 @@ describe("/api/cron/calendar-subscriptions", () => {
 
       expect(response.status).toBe(403);
       const body = await response.json();
-      expect(body.message).toBe("Forbiden");
+      expect(body.message).toBe("Forbidden");
     }, 10000);
 
     test("should return 403 when invalid API key is provided", async () => {
@@ -71,7 +70,7 @@ describe("/api/cron/calendar-subscriptions", () => {
 
       expect(response.status).toBe(403);
       const body = await response.json();
-      expect(body.message).toBe("Forbiden");
+      expect(body.message).toBe("Forbidden");
     });
 
     test("should accept valid API key", async () => {
