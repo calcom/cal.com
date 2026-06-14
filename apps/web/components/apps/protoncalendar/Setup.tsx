@@ -30,14 +30,14 @@ export default function ProtonCalendarSetup() {
             {/* eslint-disable @next/next/no-img-element */}
             <img
               src="/api/app-store/protoncalendar/icon.svg"
-              alt="Proton Calendar"
+              alt={t("proton_calendar")}
               className="h-12 w-12 max-w-2xl"
             />
           </div>
           <div className="flex w-10/12 flex-col">
-            <h1 className="text-default">Connect Proton Calendar</h1>
+            <h1 className="text-default">{t("connect_proton_calendar")}</h1>
             <div className="mt-1 text-sm">
-              {t("credentials_stored_encrypted")} Proton Calendar requires{" "}
+              {t("credentials_stored_encrypted")} {t("proton_calendar_requires")}{" "}
               <a
                 className="underline"
                 href="https://proton.me/mail/bridge"
@@ -45,8 +45,7 @@ export default function ProtonCalendarSetup() {
                 rel="noreferrer">
                 Proton Bridge
               </a>{" "}
-              to expose a local CalDAV endpoint. Enter the Bridge CalDAV URL and your Bridge-generated app
-              password below.
+              {t("proton_bridge_caldav_instructions")}
             </div>
             <div className="my-2 mt-3">
               <Form
