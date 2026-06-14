@@ -15,6 +15,7 @@ type Booking = {
   eventTypeId: number | null;
   eventTypeParentId: number | null | undefined;
   teamId?: number | null;
+  oAuthClientId?: string | null;
 };
 
 const getWebhooksByEventTrigger = async (eventTrigger: WebhookTriggerEvents, booking: Booking) => {
@@ -30,6 +31,7 @@ const getWebhooksByEventTrigger = async (eventTrigger: WebhookTriggerEvents, boo
     triggerEvent: eventTrigger,
     teamId: booking.teamId,
     orgId,
+    oAuthClientId: booking.oAuthClientId,
   };
 
   return getWebhooks(subscriberOptions);
