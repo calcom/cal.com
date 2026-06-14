@@ -20,14 +20,14 @@ import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { NextResponse } from "next/server";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getUserRepository } from "@calcom/features/users/di/UserRepository.container";
 
 import { CreationSource } from "@calcom/prisma/enums";
 
 export default async function handler(body: Record<string, string>) {
   const { email, password, language, token } = signupSchema.parse(body);
 
-  const userRepository = new UserRepository(prisma)
+  const userRepository = getUserRepository()
 
   const username = slugify(body.username);
   const userEmail = email.toLowerCase();
