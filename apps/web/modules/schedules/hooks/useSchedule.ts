@@ -20,6 +20,7 @@ export type UseScheduleWithCacheArgs = {
   duration?: number | null;
   dayCount?: number | null;
   rescheduleUid?: string | null;
+  rescheduledBy?: string | null;
   isTeamEvent?: boolean;
   orgSlug?: string;
   teamMemberEmail?: string | null;
@@ -58,6 +59,7 @@ export const useSchedule = ({
   duration,
   dayCount,
   rescheduleUid,
+  rescheduledBy,
   isTeamEvent,
   orgSlug,
   teamMemberEmail,
@@ -102,6 +104,7 @@ export const useSchedule = ({
     timeZone: timezone ?? "PLACEHOLDER_TIMEZONE",
     duration: duration ? `${duration}` : undefined,
     rescheduleUid,
+    rescheduledBy,
     orgSlug,
     teamMemberEmail,
     routedTeamMemberIds,
@@ -135,7 +138,14 @@ export const useSchedule = ({
       enabledProp,
   };
 
-  const isCallingApiV2Slots = useApiV2 && Boolean(isTeamEvent) && options.enabled;
+  // Fall back to V1 when rescheduledBy is set: the V2 available-slots DTO does not
+  // carry rescheduledBy, so host/attendee initiator gating in guest busy-time lookup
+  // would be lost if we routed the reschedule through V2.
+  // TODO: extend the V2 available-slots DTO to accept rescheduledBy and drop this
+  // fallback. Requires propagating the param through the slots service and adding
+  // host-initiated reschedule test coverage.
+  const isCallingApiV2Slots =
+    useApiV2 && Boolean(isTeamEvent) && options.enabled && !(rescheduleUid && rescheduledBy);
 
   // API V2 query for team events
   const teamScheduleV2 = useApiV2AvailableSlots({
