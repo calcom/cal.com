@@ -117,3 +117,6 @@ agents/devin-knowledge.json
 
 # pagefind
 _pagefind/
+
+# Harness runtime state (approval tokens, eval reports)
+.harness/
