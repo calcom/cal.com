@@ -8,11 +8,14 @@ export class AxiosLikeResponseToFetchResponse<
     data: unknown;
   }
 > extends Response {
+  body: unknown;
+
   constructor(axiomResponse: T) {
     super(JSON.stringify(axiomResponse.data), {
       status: axiomResponse.status,
       statusText: axiomResponse.statusText,
     });
+    this.body = axiomResponse.data;
   }
   async json() {
     return super.json() as unknown as T["data"];
