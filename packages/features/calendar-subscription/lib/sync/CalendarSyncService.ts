@@ -42,10 +42,10 @@ export class CalendarSyncService {
       },
     });
 
-    // only process cal.com calendar events
-    const calEvents = calendarSubscriptionEvents.filter((e) =>
-      e.iCalUID?.toLowerCase()?.endsWith("@cal.com")
-    );
+    const calEvents = calendarSubscriptionEvents.filter((e) =>{
+      const uid = e.iCalUID?.toLowerCase();
+      return uid?.endsWith("@cal.com") || uid?.endsWith("@cal.diy");
+  });
 
     metrics.distribution("calendar.sync.handleEvents.events_count", calEvents.length, {
       attributes: {

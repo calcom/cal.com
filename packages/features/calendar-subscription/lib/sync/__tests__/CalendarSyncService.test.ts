@@ -96,7 +96,7 @@ const mockBooking = {
 
 const mockCalComEvent: CalendarSubscriptionEventItem = {
   id: "event-1",
-  iCalUID: "test-booking-uid@cal.com",
+  iCalUID: "test-booking-uid@Cal.diy",
   start: new Date("2023-12-01T10:00:00Z"),
   end: new Date("2023-12-01T11:00:00Z"),
   busy: true,
@@ -137,7 +137,7 @@ const mockNonCalComEvent: CalendarSubscriptionEventItem = {
 const mockCancelledEvent: CalendarSubscriptionEventItem = {
   ...mockCalComEvent,
   id: "event-3",
-  iCalUID: "cancelled-booking-uid@cal.com",
+  iCalUID: "cancelled-booking-uid@Cal.diy",
   status: "cancelled",
 };
 
@@ -194,7 +194,7 @@ describe("CalendarSyncService", () => {
     test("should handle mixed case iCalUID", async () => {
       const eventWithMixedCase: CalendarSubscriptionEventItem = {
         ...mockCalComEvent,
-        iCalUID: "test-booking-uid@CAL.COM",
+        iCalUID: "test-booking-uid@CAL.DIY",
       };
 
       mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
