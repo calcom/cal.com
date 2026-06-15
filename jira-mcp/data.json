@@ -1,0 +1,45 @@
+{
+  "tasks": {
+    "PROJ-1": {
+      "id": "PROJ-1",
+      "title": "Adicionar utilitário formatDuration para converter minutos em string legível",
+      "description": "Criar uma função utilitária `formatDuration(minutes: number): string` no pacote de utilities do projeto.\n\nA função deve:\n- Receber um número inteiro de minutos\n- Retornar uma string no formato \"Xh Ym\" quando >= 60 minutos (ex: 90 → \"1h 30m\")\n- Retornar \"Ym\" quando < 60 minutos (ex: 45 → \"45m\")\n- Retornar \"0m\" quando minutes <= 0\n- Incluir testes unitários cobrindo os 3 casos acima\n\nExemplo de uso esperado:\n- formatDuration(90) → \"1h 30m\"\n- formatDuration(45) → \"45m\"\n- formatDuration(0)  → \"0m\"",
+      "status": "To Do",
+      "priority": "Low",
+      "created_at": "2026-06-15T09:02:20.464986",
+      "updated_at": "2026-06-15T09:02:20.464986",
+      "comments": []
+    },
+    "PROJ-2": {
+      "id": "PROJ-2",
+      "title": "Adicionar utilitário isValidUrl para validação de URLs",
+      "description": "Criar uma função utilitária `isValidUrl(value: string): boolean` no pacote de utilities do projeto.\n\nA função deve:\n- Retornar `true` para URLs válidas com protocolo http ou https\n- Retornar `false` para strings vazias, sem protocolo, ou malformadas\n- Não usar regex — usar a API nativa `URL` do JavaScript/Node\n- Incluir testes unitários cobrindo casos positivos e negativos\n\nExemplos esperados:\n- isValidUrl(\"https://cal.com\") → true\n- isValidUrl(\"http://example.com/path?q=1\") → true\n- isValidUrl(\"not-a-url\") → false\n- isValidUrl(\"\") → false\n- isValidUrl(\"ftp://files.com\") → false (apenas http/https)",
+      "status": "To Do",
+      "priority": "Low",
+      "created_at": "2026-06-15T09:02:49.815153",
+      "updated_at": "2026-06-15T09:02:49.815153",
+      "comments": []
+    },
+    "PROJ-3": {
+      "id": "PROJ-3",
+      "title": "Adicionar utilitário capitalize para formatar strings",
+      "description": "Criar uma função utilitária `capitalize(value: string): string` no pacote de utilities do projeto.\n\nA função deve:\n- Receber uma string qualquer\n- Retornar a mesma string com a primeira letra em maiúscula e o restante em minúsculas\n- Retornar string vazia se receber string vazia\n- Incluir testes unitários\n\nExemplos esperados:\n- capitalize(\"hello world\") → \"Hello world\"\n- capitalize(\"HELLO\") → \"Hello\"\n- capitalize(\"\") → \"\"\n- capitalize(\"a\") → \"A\"",
+      "status": "To Do",
+      "priority": "Low",
+      "created_at": "2026-06-15T09:03:05.699353",
+      "updated_at": "2026-06-15T09:03:05.699353",
+      "comments": []
+    },
+    "PROJ-4": {
+      "id": "PROJ-4",
+      "title": "Exibir ícone ⚽ no calendário em datas com jogos da Copa",
+      "description": "A skill `fifa-world-cup` salva os jogos em `apps/web/public/fifa-games.json`. Atualmente o calendário **não exibe nenhuma indicação visual** nessas datas.\n\n## O que deve ser feito\n\nModificar o componente de calendário da aplicação web (`apps/web`) para que, nos dias que possuem pelo menos um jogo salvo no arquivo `apps/web/public/fifa-games.json`, seja exibido um ícone de bola de futebol ⚽ (emoji ou SVG) sobre a data.\n\n## Comportamento esperado\n\n- Ao renderizar o calendário, carregar (ou importar) os dados de `apps/web/public/fifa-games.json`\n- Para cada data que possua um ou mais jogos no array `games`, exibir o ícone ⚽ abaixo ou sobreposto ao número do dia\n- Se o arquivo `fifa-games.json` não existir ou o array estiver vazio, o calendário deve funcionar normalmente sem erros\n- O ícone não deve quebrar o layout existente do calendário em telas mobile e desktop\n\n## Estrutura do JSON (referência)\n\n```json\n{\n  \"games\": [\n    {\n      \"id\": \"BRA_MAR_2026-06-13\",\n      \"startISO\": \"2026-06-13T22:00:00Z\",\n      ...\n    }\n  ]\n}\n```\n\nA data do jogo é extraída do campo `startISO` (considerar apenas `YYYY-MM-DD` em UTC).\n\n## Critérios de aceite\n\n- Dias com jogo exibem ⚽ no calendário\n- Dias sem jogo não são afetados\n- Sem erros no console quando o arquivo não existe",
+      "status": "To Do",
+      "priority": "Medium",
+      "created_at": "2026-06-15T09:05:35.659506",
+      "updated_at": "2026-06-15T09:05:35.659506",
+      "comments": []
+    }
+  },
+  "counter": 4
+}
