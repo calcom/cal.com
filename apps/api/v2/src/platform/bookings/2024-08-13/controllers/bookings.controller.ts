@@ -35,7 +35,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import {
+import { ApiBearerAuth,
   ApiBody,
   ApiExtraModels,
   ApiHeader,
@@ -106,7 +106,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Create a booking",
     description: `
@@ -164,7 +164,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get a booking by seat UID",
     description: `Get a seated booking by its seat reference UID. This is useful when you have a seatUid from a seated booking and want to retrieve the full booking details.
@@ -191,7 +191,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get a booking",
     description: `\`:bookingUid\` can be
@@ -224,7 +224,7 @@ export class BookingsController_2024_08_13 {
   @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get all the recordings for the booking",
     description: `Fetches all the recordings for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.
@@ -245,7 +245,7 @@ export class BookingsController_2024_08_13 {
   @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get Cal Video real time transcript download links for the booking",
     description: `Fetches all the transcript download links for the booking \`:bookingUid\`
@@ -268,7 +268,7 @@ export class BookingsController_2024_08_13 {
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Permissions([BOOKING_READ])
   @ApiOperation({
     summary: "Get all bookings",
@@ -297,7 +297,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Reschedule a booking",
     description: `Reschedule a booking or seated booking
@@ -337,7 +337,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Cancel a booking",
@@ -391,7 +391,7 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Mark a booking absence",
     description: `The provided authorization header refers to the owner of the booking.
@@ -416,7 +416,7 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Reassign a booking to auto-selected host",
     description: `Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.
@@ -440,7 +440,7 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Reassign a booking to a specific host",
     description: `Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.
@@ -471,7 +471,7 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Confirm a booking",
     description: `The provided authorization header refers to the owner of the booking.
@@ -495,7 +495,7 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Decline a booking",
     description: `The provided authorization header refers to the owner of the booking.
@@ -519,7 +519,7 @@ export class BookingsController_2024_08_13 {
   @Get("/:bookingUid/calendar-links")
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @Permissions([BOOKING_READ])
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get 'Add to Calendar' links for a booking",
     description: `Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.
@@ -540,7 +540,7 @@ export class BookingsController_2024_08_13 {
   @Get("/:bookingUid/references")
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @Permissions([BOOKING_READ])
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get booking references",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
@@ -568,7 +568,7 @@ export class BookingsController_2024_08_13 {
   @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get Video Meeting Sessions. Only supported for Cal Video",
     description: `Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.

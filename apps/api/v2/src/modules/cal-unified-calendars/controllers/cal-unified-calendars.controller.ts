@@ -12,10 +12,9 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiBearerAuth,  ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { GetBusyTimesOutput } from "@/platform/calendars/outputs/busy-times.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -44,7 +43,7 @@ export class CalUnifiedCalendarsController {
   @Get("connections")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "List calendar connections",
     description:
@@ -69,7 +68,7 @@ export class CalUnifiedCalendarsController {
   @Get("connections/:connectionId/events")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "List events for a connection",
     description:
@@ -100,7 +99,7 @@ export class CalUnifiedCalendarsController {
   @Post("connections/:connectionId/events")
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Create event on a connection",
     description:
@@ -127,7 +126,7 @@ export class CalUnifiedCalendarsController {
   @Get("connections/:connectionId/events/:eventId")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get event for a connection",
     description:
@@ -154,7 +153,7 @@ export class CalUnifiedCalendarsController {
   @Patch("connections/:connectionId/events/:eventId")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Update event for a connection",
     description:
@@ -183,7 +182,7 @@ export class CalUnifiedCalendarsController {
   @Delete("connections/:connectionId/events/:eventId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Delete event for a connection",
     description:
@@ -203,7 +202,7 @@ export class CalUnifiedCalendarsController {
   @Get("connections/:connectionId/freebusy")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get free/busy for a connection",
     description: "Get busy time slots for the specified calendar connection.",
@@ -241,7 +240,7 @@ export class CalUnifiedCalendarsController {
   @Get(["/:calendar/events/:eventUid", "/:calendar/event/:eventUid"])
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get meeting details from calendar",
     description:
@@ -269,7 +268,7 @@ export class CalUnifiedCalendarsController {
   @Patch(["/:calendar/events/:eventUid", "/:calendar/event/:eventUid"])
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Update meeting details in calendar",
     description:
@@ -288,7 +287,7 @@ export class CalUnifiedCalendarsController {
   @Get("/:calendar/events")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "List calendar events",
     description:
@@ -319,7 +318,7 @@ export class CalUnifiedCalendarsController {
   @Post("/:calendar/events")
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Create a calendar event",
     description:
@@ -343,7 +342,7 @@ export class CalUnifiedCalendarsController {
   @Delete("/:calendar/events/:eventUid")
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Delete a calendar event",
     description:
@@ -361,7 +360,7 @@ export class CalUnifiedCalendarsController {
   @Get("/:calendar/freebusy")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get free/busy times",
     description:

@@ -10,11 +10,10 @@ import {
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
-import { ApiExcludeController, ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiExcludeController,  ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { ProviderVerifyAccessTokenOutput } from "@/platform/provider/outputs/verify-access-token.output";
 import { ProviderVerifyClientOutput } from "@/platform/provider/outputs/verify-client.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -56,7 +55,7 @@ export class CalProviderController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Verify an access token" })
-  @ApiHeader(ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   async verifyAccessToken(
     @Param("clientId") clientId: string,
     @GetUser() user: UserWithProfile

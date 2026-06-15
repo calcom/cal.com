@@ -6,17 +6,7 @@
         "operationId": "ApiKeysController_refresh",
         "summary": "Refresh API Key",
         "description": "Generate a new API key and delete the current one. Provide API key to refresh as a Bearer token in the Authorization header (e.g. \"Authorization: Bearer <apiKey>\").",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -39,7 +29,12 @@
             }
           }
         },
-        "tags": ["Api Keys"]
+        "tags": ["Api Keys"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings": {
@@ -56,15 +51,6 @@
             "schema": {
               "type": "string",
               "default": "2024-08-13"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -116,7 +102,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookings",
@@ -342,15 +333,6 @@
               "example": 0,
               "type": "number"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -365,7 +347,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/by-seat/{seatUid}": {
@@ -393,15 +380,6 @@
             }
           },
           {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "x-cal-secret-key",
             "in": "header",
             "description": "For platform customers - OAuth client secret key",
@@ -432,7 +410,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}": {
@@ -460,15 +443,6 @@
             }
           },
           {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "x-cal-secret-key",
             "in": "header",
             "description": "For platform customers - OAuth client secret key",
@@ -499,7 +473,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/recordings": {
@@ -525,15 +504,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -548,7 +518,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/transcripts": {
@@ -574,15 +549,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -597,7 +563,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/reschedule": {
@@ -620,15 +591,6 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": false,
             "schema": {
               "type": "string"
             }
@@ -682,7 +644,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/cancel": {
@@ -705,15 +672,6 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": false,
             "schema": {
               "type": "string"
             }
@@ -767,7 +725,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/mark-absent": {
@@ -790,15 +753,6 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -826,7 +780,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/reassign": {
@@ -852,15 +811,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -875,7 +825,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/reassign/{userId}": {
@@ -909,15 +864,6 @@
             "schema": {
               "type": "number"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "requestBody": {
@@ -942,7 +888,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/confirm": {
@@ -968,15 +919,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -991,7 +933,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/decline": {
@@ -1014,15 +961,6 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1050,7 +988,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/calendar-links": {
@@ -1076,15 +1019,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1099,7 +1033,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/references": {
@@ -1143,15 +1082,6 @@
               ],
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1166,7 +1096,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/conferencing-sessions": {
@@ -1192,15 +1127,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1215,7 +1141,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/location": {
@@ -1237,15 +1168,6 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1273,7 +1195,12 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/attendees": {
@@ -1298,15 +1225,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1321,7 +1239,12 @@
             }
           }
         },
-        "tags": ["Bookings / Attendees"]
+        "tags": ["Bookings / Attendees"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "post": {
         "operationId": "BookingAttendeesController_2024_08_13_addAttendee",
@@ -1341,15 +1264,6 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1377,7 +1291,12 @@
             }
           }
         },
-        "tags": ["Bookings / Attendees"]
+        "tags": ["Bookings / Attendees"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/attendees/{attendeeId}": {
@@ -1410,15 +1329,6 @@
             "schema": {
               "type": "number"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1433,7 +1343,12 @@
             }
           }
         },
-        "tags": ["Bookings / Attendees"]
+        "tags": ["Bookings / Attendees"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "BookingAttendeesController_2024_08_13_removeAttendee",
@@ -1464,15 +1379,6 @@
             "schema": {
               "type": "number"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1487,7 +1393,12 @@
             }
           }
         },
-        "tags": ["Bookings / Attendees"]
+        "tags": ["Bookings / Attendees"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/guests": {
@@ -1509,15 +1420,6 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1545,7 +1447,12 @@
             }
           }
         },
-        "tags": ["Bookings / Guests"]
+        "tags": ["Bookings / Guests"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/connections": {
@@ -1553,17 +1460,7 @@
         "operationId": "CalUnifiedCalendarsController_listConnections",
         "summary": "List calendar connections",
         "description": "Returns all calendar connections for the authenticated user (Google, Office 365, Apple). Use connectionId in connection-scoped endpoints. Note: Event CRUD (list/create/get/update/delete events) is currently only supported for Google Calendar connections; other types will return 400.",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -1576,7 +1473,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/connections/{connectionId}/events": {
@@ -1632,15 +1534,6 @@
               "default": "primary",
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1655,7 +1548,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "post": {
         "operationId": "CalUnifiedCalendarsController_createConnectionEvent",
@@ -1674,15 +1572,6 @@
             "name": "calendarId",
             "required": false,
             "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1710,7 +1599,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/connections/{connectionId}/events/{eventId}": {
@@ -1742,15 +1636,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1765,7 +1650,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "patch": {
         "operationId": "CalUnifiedCalendarsController_updateConnectionEvent",
@@ -1795,15 +1685,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "requestBody": {
@@ -1828,7 +1709,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "CalUnifiedCalendarsController_deleteConnectionEvent",
@@ -1858,15 +1744,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1874,7 +1751,12 @@
             "description": ""
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/connections/{connectionId}/freebusy": {
@@ -1919,15 +1801,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -1942,7 +1815,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/{calendar}/events/{eventUid}": {
@@ -1964,16 +1842,7 @@
             "name": "eventUid",
             "required": true,
             "in": "path",
-            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: GET /v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
             "schema": {
               "type": "string"
             }
@@ -1991,7 +1860,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "patch": {
         "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
@@ -2011,16 +1885,7 @@
             "name": "eventUid",
             "required": true,
             "in": "path",
-            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: GET /v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
             "schema": {
               "type": "string"
             }
@@ -2048,7 +1913,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "CalUnifiedCalendarsController_deleteCalendarEvent",
@@ -2072,15 +1942,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -2088,7 +1949,12 @@
             "description": ""
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/{calendar}/event/{eventUid}": {
@@ -2110,16 +1976,7 @@
             "name": "eventUid",
             "required": true,
             "in": "path",
-            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: GET /v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
             "schema": {
               "type": "string"
             }
@@ -2137,7 +1994,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "patch": {
         "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
@@ -2157,16 +2019,7 @@
             "name": "eventUid",
             "required": true,
             "in": "path",
-            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: GET /v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
             "schema": {
               "type": "string"
             }
@@ -2194,7 +2047,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/{calendar}/events": {
@@ -2250,15 +2108,6 @@
               "default": "primary",
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -2273,7 +2122,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "post": {
         "operationId": "CalUnifiedCalendarsController_createCalendarEvent",
@@ -2286,15 +2140,6 @@
             "in": "path",
             "schema": {
               "enum": ["google", "office365", "apple"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
               "type": "string"
             }
           }
@@ -2321,7 +2166,12 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/{calendar}/freebusy": {
@@ -2367,15 +2217,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -2390,24 +2231,19 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
+        "tags": ["Cal Unified Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/ics-feed/save": {
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
         "summary": "Save an ICS feed",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -2430,24 +2266,19 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": ["Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/ics-feed/check": {
       "get": {
         "operationId": "CalendarsController_checkIcsFeed",
         "summary": "Check an ICS feed",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -2460,7 +2291,12 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": ["Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/busy-times": {
@@ -2525,15 +2361,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -2548,24 +2375,19 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": ["Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars": {
       "get": {
         "operationId": "CalendarsController_getCalendars",
         "summary": "Get all calendars",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -2578,7 +2400,12 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": ["Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/{calendar}/connect": {
@@ -2590,7 +2417,6 @@
             "name": "Authorization",
             "required": true,
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "schema": {
               "type": "string"
             }
@@ -2634,7 +2460,12 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": ["Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/{calendar}/save": {
@@ -2689,15 +2520,6 @@
               "enum": ["apple"],
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "requestBody": {
@@ -2715,7 +2537,12 @@
             "description": ""
           }
         },
-        "tags": ["Calendars"]
+        "tags": ["Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/{calendar}/check": {
@@ -2729,15 +2556,6 @@
             "in": "path",
             "schema": {
               "enum": ["apple", "google", "office365"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
               "type": "string"
             }
           }
@@ -2754,7 +2572,12 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": ["Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/calendars/{calendar}/disconnect": {
@@ -2768,15 +2591,6 @@
             "in": "path",
             "schema": {
               "enum": ["apple", "google", "office365"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
               "type": "string"
             }
           }
@@ -2803,7 +2617,12 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": ["Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/conferencing/{app}/connect": {
@@ -2820,15 +2639,6 @@
               "enum": ["google-meet"],
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -2843,7 +2653,12 @@
             }
           }
         },
-        "tags": ["Conferencing"]
+        "tags": ["Conferencing"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/conferencing/{app}/oauth/auth-url": {
@@ -2855,7 +2670,6 @@
             "name": "Authorization",
             "required": true,
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "schema": {
               "type": "string"
             }
@@ -2899,7 +2713,12 @@
             }
           }
         },
-        "tags": ["Conferencing"]
+        "tags": ["Conferencing"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/conferencing/{app}/oauth/callback": {
@@ -2946,17 +2765,7 @@
       "get": {
         "operationId": "ConferencingController_listInstalledConferencingApps",
         "summary": "List your conferencing applications",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -2969,7 +2778,12 @@
             }
           }
         },
-        "tags": ["Conferencing"]
+        "tags": ["Conferencing"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/conferencing/{app}/default": {
@@ -2986,15 +2800,6 @@
               "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -3009,24 +2814,19 @@
             }
           }
         },
-        "tags": ["Conferencing"]
+        "tags": ["Conferencing"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/conferencing/default": {
       "get": {
         "operationId": "ConferencingController_getDefault",
         "summary": "Get your default conferencing application",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -3039,7 +2839,12 @@
             }
           }
         },
-        "tags": ["Conferencing"]
+        "tags": ["Conferencing"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/conferencing/{app}/disconnect": {
@@ -3056,15 +2861,6 @@
               "enum": ["google-meet", "zoom", "msteams"],
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -3079,7 +2875,12 @@
             }
           }
         },
-        "tags": ["Conferencing"]
+        "tags": ["Conferencing"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/oauth-clients/{clientId}/users": {
@@ -3744,17 +3545,7 @@
         "operationId": "OAuthClientsController_createOAuthClient",
         "summary": "Create an OAuth client",
         "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -3777,23 +3568,18 @@
             }
           }
         },
-        "tags": ["Deprecated: Platform OAuth Clients"]
+        "tags": ["Deprecated: Platform OAuth Clients"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
         "operationId": "OAuthClientsController_getOAuthClients",
         "summary": "Get all OAuth clients",
         "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -3806,7 +3592,12 @@
             }
           }
         },
-        "tags": ["Deprecated: Platform OAuth Clients"]
+        "tags": ["Deprecated: Platform OAuth Clients"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/oauth-clients/{clientId}": {
@@ -3815,15 +3606,6 @@
         "summary": "Get an OAuth client",
         "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "clientId",
             "required": true,
@@ -3845,22 +3627,18 @@
             }
           }
         },
-        "tags": ["Deprecated: Platform OAuth Clients"]
+        "tags": ["Deprecated: Platform OAuth Clients"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "patch": {
         "operationId": "OAuthClientsController_updateOAuthClient",
         "summary": "Update an OAuth client",
         "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "clientId",
             "required": true,
@@ -3892,22 +3670,18 @@
             }
           }
         },
-        "tags": ["Deprecated: Platform OAuth Clients"]
+        "tags": ["Deprecated: Platform OAuth Clients"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "OAuthClientsController_deleteOAuthClient",
         "summary": "Delete an OAuth client",
         "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "clientId",
             "required": true,
@@ -3929,24 +3703,19 @@
             }
           }
         },
-        "tags": ["Deprecated: Platform OAuth Clients"]
+        "tags": ["Deprecated: Platform OAuth Clients"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/destination-calendars": {
       "put": {
         "operationId": "DestinationCalendarsController_updateDestinationCalendars",
         "summary": "Update destination calendars",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -3969,7 +3738,12 @@
             }
           }
         },
-        "tags": ["Destination Calendars"]
+        "tags": ["Destination Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/event-types": {
@@ -3986,15 +3760,6 @@
             "schema": {
               "type": "string",
               "default": "2024-06-14"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -4020,7 +3785,12 @@
             }
           }
         },
-        "tags": ["Event Types"]
+        "tags": ["Event Types"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypes",
@@ -4093,15 +3863,6 @@
             }
           },
           {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "x-cal-secret-key",
             "in": "header",
             "description": "For platform customers - OAuth client secret key",
@@ -4132,7 +3893,12 @@
             }
           }
         },
-        "tags": ["Event Types"]
+        "tags": ["Event Types"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/event-types/{eventTypeId}": {
@@ -4158,15 +3924,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -4181,7 +3938,12 @@
             }
           }
         },
-        "tags": ["Event Types"]
+        "tags": ["Event Types"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "patch": {
         "operationId": "EventTypesController_2024_06_14_updateEventType",
@@ -4204,15 +3966,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -4238,7 +3991,12 @@
             }
           }
         },
-        "tags": ["Event Types"]
+        "tags": ["Event Types"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "EventTypesController_2024_06_14_deleteEventType",
@@ -4262,15 +4020,6 @@
             "schema": {
               "type": "number"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -4285,7 +4034,12 @@
             }
           }
         },
-        "tags": ["Event Types"]
+        "tags": ["Event Types"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/event-types/{eventTypeId}/webhooks": {
@@ -4293,15 +4047,6 @@
         "operationId": "EventTypeWebhooksController_createEventTypeWebhook",
         "summary": "Create a webhook",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -4333,21 +4078,17 @@
             }
           }
         },
-        "tags": ["Event Types / Webhooks"]
+        "tags": ["Event Types / Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
         "operationId": "EventTypeWebhooksController_getEventTypeWebhooks",
         "summary": "Get all webhooks",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -4394,21 +4135,17 @@
             }
           }
         },
-        "tags": ["Event Types / Webhooks"]
+        "tags": ["Event Types / Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "EventTypeWebhooksController_deleteAllEventTypeWebhooks",
         "summary": "Delete all webhooks",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -4430,7 +4167,12 @@
             }
           }
         },
-        "tags": ["Event Types / Webhooks"]
+        "tags": ["Event Types / Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/event-types/{eventTypeId}/webhooks/{webhookId}": {
@@ -4438,15 +4180,6 @@
         "operationId": "EventTypeWebhooksController_updateEventTypeWebhook",
         "summary": "Update a webhook",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "webhookId",
             "required": true,
@@ -4486,22 +4219,18 @@
             }
           }
         },
-        "tags": ["Event Types / Webhooks"]
+        "tags": ["Event Types / Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
         "operationId": "EventTypeWebhooksController_getEventTypeWebhook",
         "summary": "Get a webhook",
         "parameters": [
           {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "webhookId",
             "required": true,
             "in": "path",
@@ -4530,22 +4259,18 @@
             }
           }
         },
-        "tags": ["Event Types / Webhooks"]
+        "tags": ["Event Types / Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "EventTypeWebhooksController_deleteEventTypeWebhook",
         "summary": "Delete a webhook",
         "parameters": [
           {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "webhookId",
             "required": true,
             "in": "path",
@@ -4574,7 +4299,12 @@
             }
           }
         },
-        "tags": ["Event Types / Webhooks"]
+        "tags": ["Event Types / Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/event-types/{eventTypeId}/private-links": {
@@ -4588,15 +4318,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -4622,7 +4343,12 @@
             }
           }
         },
-        "tags": ["Event Types Private Links"]
+        "tags": ["Event Types Private Links"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
         "operationId": "EventTypesPrivateLinksController_getPrivateLinks",
@@ -4634,15 +4360,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -4658,7 +4375,12 @@
             }
           }
         },
-        "tags": ["Event Types Private Links"]
+        "tags": ["Event Types Private Links"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/event-types/{eventTypeId}/private-links/{linkId}": {
@@ -4678,15 +4400,6 @@
             "name": "linkId",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4714,7 +4427,12 @@
             }
           }
         },
-        "tags": ["Event Types Private Links"]
+        "tags": ["Event Types Private Links"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "EventTypesPrivateLinksController_deletePrivateLink",
@@ -4735,15 +4453,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -4758,24 +4467,19 @@
             }
           }
         },
-        "tags": ["Event Types Private Links"]
+        "tags": ["Event Types Private Links"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/me": {
       "get": {
         "operationId": "MeController_getMe",
         "summary": "Get my profile",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -4788,23 +4492,18 @@
             }
           }
         },
-        "tags": ["Me"]
+        "tags": ["Me"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "patch": {
         "operationId": "MeController_updateMe",
         "summary": "Update my profile",
         "description": "Updates the authenticated user's profile. Email changes require verification and the primary email stays unchanged until verification completes, unless the new email is already a verified secondary email or the user is platform-managed.",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -4827,7 +4526,12 @@
             }
           }
         },
-        "tags": ["Me"]
+        "tags": ["Me"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/auth/oauth2/clients/{clientId}": {
@@ -4909,17 +4613,8 @@
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
         "summary": "Create a schedule",
-        "description": "\n      Create a schedule for the authenticated user.\n\n      The point of creating schedules is for event types to be available at specific times.\n\n      The first goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.\n      1. If you passed `timeZone` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. The managed user can then change the default schedule via the `AvailabilitySettings` atom.\n      2. If you did not, then we assume you want the user to have this specific schedule right away. You should create a default schedule by specifying\n      `\"isDefault\": true` in the request body. Until the user has a default schedule the user can't be booked nor manage their schedule via the AvailabilitySettings atom.\n\n      The second goal of schedules is to create another schedule that event types can point to. This is useful for when an event is booked because availability is not checked against the default schedule but instead against that specific schedule.\n      After creating a non-default schedule, you can update an event type to point to that schedule via the PATCH `event-types/{eventTypeId}` endpoint.\n\n      When specifying start time and end time for each day use the 24 hour format e.g. 08:00, 15:00 etc.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
+        "description": "\n      Create a schedule for the authenticated user.\n\n      The point of creating schedules is for event types to be available at specific times.\n\n      The first goal of schedules is to have a default schedule. If you are a platform customer and have created managed users, then it is important to note that each managed user should have a default schedule.\n      1. If you passed `timeZone` when creating a managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. The managed user can then change the default schedule via the `AvailabilitySettings` atom.\n      2. If you did not, then we assume you want the user to have this specific schedule right away. You should create a default schedule by specifying\n      `\"isDefault\": true` in the request body. Until the user has a default schedule the user can't be booked nor manage their schedule via the AvailabilitySettings atom.\n\n      The second goal of schedules is to create another schedule that event types can point to. This is useful for when an event is booked because availability is not checked against the default schedule but instead against that specific schedule.\n      After creating a non-default schedule, you can update an event type to point to that schedule via the PATCH `event-types/{eventTypeId}` endpoint.\n\n      When specifying start time and end time for each day use the 24 hour format e.g. 08:00, 15:00 etc.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "cal-api-version",
             "in": "header",
@@ -4953,22 +4648,18 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": ["Schedules"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
         "operationId": "SchedulesController_2024_06_11_getSchedules",
         "summary": "Get all schedules",
         "description": "Get all schedules of the authenticated user.\n    \n     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "cal-api-version",
             "in": "header",
@@ -4992,7 +4683,12 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": ["Schedules"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/schedules/default": {
@@ -5001,15 +4697,6 @@
         "summary": "Get default schedule",
         "description": "Get the default schedule of the authenticated user.\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "cal-api-version",
             "in": "header",
@@ -5033,7 +4720,12 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": ["Schedules"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/schedules/{scheduleId}": {
@@ -5042,15 +4734,6 @@
         "summary": "Get a schedule",
         "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "cal-api-version",
             "in": "header",
@@ -5082,22 +4765,18 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": ["Schedules"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "patch": {
         "operationId": "SchedulesController_2024_06_11_updateSchedule",
         "summary": "Update a schedule",
         "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "cal-api-version",
             "in": "header",
@@ -5139,22 +4818,18 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": ["Schedules"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "SchedulesController_2024_06_11_deleteSchedule",
         "summary": "Delete a schedule",
         "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "cal-api-version",
             "in": "header",
@@ -5186,24 +4861,19 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": ["Schedules"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/selected-calendars": {
       "post": {
         "operationId": "SelectedCalendarsController_addSelectedCalendar",
         "summary": "Add a selected calendar",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -5226,21 +4896,17 @@
             }
           }
         },
-        "tags": ["Selected Calendars"]
+        "tags": ["Selected Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "SelectedCalendarsController_deleteSelectedCalendar",
         "summary": "Delete a selected calendar",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "integration",
             "required": true,
@@ -5286,7 +4952,12 @@
             }
           }
         },
-        "tags": ["Selected Calendars"]
+        "tags": ["Selected Calendars"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/slots": {
@@ -5533,15 +5204,6 @@
             }
           },
           {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "x-cal-client-id",
             "in": "header",
             "description": "For platform customers - OAuth client ID",
@@ -5573,7 +5235,12 @@
             }
           }
         },
-        "tags": ["Slots"]
+        "tags": ["Slots"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/slots/reservations/{uid}": {
@@ -5714,7 +5381,6 @@
             "name": "Authorization",
             "required": true,
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "schema": {
               "type": "string"
             }
@@ -5732,7 +5398,12 @@
             }
           }
         },
-        "tags": ["Stripe"]
+        "tags": ["Stripe"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/stripe/save": {
@@ -5776,17 +5447,7 @@
       "get": {
         "operationId": "StripeController_check",
         "summary": "Check Stripe connection",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -5799,7 +5460,12 @@
             }
           }
         },
-        "tags": ["Stripe"]
+        "tags": ["Stripe"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/verified-resources/emails/verification-code/request": {
@@ -5807,17 +5473,7 @@
         "operationId": "UserVerifiedResourcesController_requestEmailVerificationCode",
         "summary": "Request email verification code",
         "description": "Sends a verification code to the email",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -5840,7 +5496,12 @@
             }
           }
         },
-        "tags": ["Verified Resources"]
+        "tags": ["Verified Resources"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/verified-resources/phones/verification-code/request": {
@@ -5848,17 +5509,7 @@
         "operationId": "UserVerifiedResourcesController_requestPhoneVerificationCode",
         "summary": "Request phone number verification code",
         "description": "Sends a verification code to the phone number",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -5881,7 +5532,12 @@
             }
           }
         },
-        "tags": ["Verified Resources"]
+        "tags": ["Verified Resources"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/verified-resources/emails/verification-code/verify": {
@@ -5889,17 +5545,7 @@
         "operationId": "UserVerifiedResourcesController_verifyEmail",
         "summary": "Verify an email",
         "description": "Use code to verify an email",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -5922,7 +5568,12 @@
             }
           }
         },
-        "tags": ["Verified Resources"]
+        "tags": ["Verified Resources"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/verified-resources/phones/verification-code/verify": {
@@ -5930,17 +5581,7 @@
         "operationId": "UserVerifiedResourcesController_verifyPhoneNumber",
         "summary": "Verify a phone number",
         "description": "Use code to verify a phone number",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -5963,7 +5604,12 @@
             }
           }
         },
-        "tags": ["Verified Resources"]
+        "tags": ["Verified Resources"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/verified-resources/emails": {
@@ -5995,15 +5641,6 @@
               "example": 0,
               "type": "number"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -6018,7 +5655,12 @@
             }
           }
         },
-        "tags": ["Verified Resources"]
+        "tags": ["Verified Resources"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/verified-resources/phones": {
@@ -6050,15 +5692,6 @@
               "example": 0,
               "type": "number"
             }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -6073,7 +5706,12 @@
             }
           }
         },
-        "tags": ["Verified Resources"]
+        "tags": ["Verified Resources"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/verified-resources/emails/{id}": {
@@ -6087,15 +5725,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -6111,7 +5740,12 @@
             }
           }
         },
-        "tags": ["Verified Resources"]
+        "tags": ["Verified Resources"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/verified-resources/phones/{id}": {
@@ -6125,15 +5759,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -6149,24 +5774,19 @@
             }
           }
         },
-        "tags": ["Verified Resources"]
+        "tags": ["Verified Resources"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/webhooks": {
       "post": {
         "operationId": "WebhooksController_createWebhook",
         "summary": "Create a webhook",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -6189,22 +5809,18 @@
             }
           }
         },
-        "tags": ["Webhooks"]
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
         "operationId": "WebhooksController_getWebhooks",
         "summary": "Get all webhooks",
         "description": "Gets a paginated list of webhooks for the authenticated user.",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "take",
             "required": false,
@@ -6243,7 +5859,12 @@
             }
           }
         },
-        "tags": ["Webhooks"]
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/v2/webhooks/{webhookId}": {
@@ -6251,15 +5872,6 @@
         "operationId": "WebhooksController_updateWebhook",
         "summary": "Update a webhook",
         "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "webhookId",
             "required": true,
@@ -6291,22 +5903,18 @@
             }
           }
         },
-        "tags": ["Webhooks"]
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
         "operationId": "WebhooksController_getWebhook",
         "summary": "Get a webhook",
         "parameters": [
           {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "webhookId",
             "required": true,
             "in": "path",
@@ -6327,22 +5935,18 @@
             }
           }
         },
-        "tags": ["Webhooks"]
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "WebhooksController_deleteWebhook",
         "summary": "Delete a webhook",
         "parameters": [
           {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "webhookId",
             "required": true,
             "in": "path",
@@ -6363,7 +5967,12 @@
             }
           }
         },
-        "tags": ["Webhooks"]
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     }
   },
@@ -6376,6 +5985,14 @@
   "tags": [],
   "servers": [],
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Enter your API key or access token prefixed with `Bearer `"
+      }
+    },
     "schemas": {
       "OAuth2ClientDto": {
         "type": "object",
@@ -15194,7 +14811,6 @@
                 "MEETING_ENDED",
                 "MEETING_STARTED",
                 "RECORDING_READY",
-                "INSTANT_MEETING",
                 "RECORDING_TRANSCRIPTION_GENERATED",
                 "OOO_CREATED",
                 "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
@@ -15242,7 +14858,6 @@
                 "MEETING_ENDED",
                 "MEETING_STARTED",
                 "RECORDING_READY",
-                "INSTANT_MEETING",
                 "RECORDING_TRANSCRIPTION_GENERATED",
                 "OOO_CREATED",
                 "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
@@ -15326,7 +14941,6 @@
                 "MEETING_ENDED",
                 "MEETING_STARTED",
                 "RECORDING_READY",
-                "INSTANT_MEETING",
                 "RECORDING_TRANSCRIPTION_GENERATED",
                 "OOO_CREATED",
                 "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
@@ -15390,7 +15004,6 @@
                 "MEETING_ENDED",
                 "MEETING_STARTED",
                 "RECORDING_READY",
-                "INSTANT_MEETING",
                 "RECORDING_TRANSCRIPTION_GENERATED",
                 "OOO_CREATED",
                 "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
@@ -15489,7 +15102,6 @@
                 "MEETING_ENDED",
                 "MEETING_STARTED",
                 "RECORDING_READY",
-                "INSTANT_MEETING",
                 "RECORDING_TRANSCRIPTION_GENERATED",
                 "OOO_CREATED",
                 "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",

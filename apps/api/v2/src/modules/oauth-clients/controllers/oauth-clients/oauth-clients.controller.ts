@@ -16,7 +16,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import {
+import { ApiBearerAuth,
   ApiExcludeEndpoint,
   ApiHeader,
   ApiOperation,
@@ -24,7 +24,6 @@ import {
   ApiCreatedResponse as DocsCreatedResponse,
 } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { GetOrgId } from "@/modules/auth/decorators/get-org-id/get-org-id.decorator";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -43,7 +42,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 })
 @ApiTags("Deprecated: Platform OAuth Clients")
 @UseGuards(ApiAuthGuard)
-@ApiHeader(API_KEY_HEADER)
+@ApiBearerAuth("bearerAuth")
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 

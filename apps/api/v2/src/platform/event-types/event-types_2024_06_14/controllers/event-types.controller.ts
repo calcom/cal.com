@@ -24,7 +24,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiBearerAuth,  ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { CreateEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { DeleteEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/delete-event-type.output";
 import { GetEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/get-event-type.output";
@@ -83,7 +83,7 @@ export class EventTypesController_2024_06_14 {
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Create an event type",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
@@ -108,7 +108,7 @@ export class EventTypesController_2024_06_14 {
   @Get("/:eventTypeId")
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get an event type",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
@@ -162,7 +162,7 @@ export class EventTypesController_2024_06_14 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   async getEventTypes(
     @Query() queryParams: GetEventTypesQuery_2024_06_14,
     @GetOptionalUser() authUser: AuthOptionalUser
@@ -181,7 +181,7 @@ export class EventTypesController_2024_06_14 {
   @Patch("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Update an event type",
@@ -209,7 +209,7 @@ export class EventTypesController_2024_06_14 {
   @Delete("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Delete an event type",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,

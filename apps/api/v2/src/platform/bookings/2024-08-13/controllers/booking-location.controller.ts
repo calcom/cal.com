@@ -9,12 +9,11 @@ import {
   UpdateInputAddressLocation_2024_08_13,
 } from "@calcom/platform-types";
 import { Body, Controller, HttpCode, HttpStatus, Param, Patch, UseGuards } from "@nestjs/common";
-import { ApiExtraModels, ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiBearerAuth, ApiExtraModels,  ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { BookingUidGuard } from "@/platform/bookings/2024-08-13/guards/booking-uid.guard";
 import { UpdateBookingLocationOutput_2024_08_13 } from "@/platform/bookings/2024-08-13/outputs/update-location.output";
 import { BookingLocationService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/booking-location.service";
 import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -50,7 +49,7 @@ export class BookingLocationController_2024_08_13 {
   @Throttle({ name: "booking_location_update", limit: 5, ttl: 60000, blockDuration: 60000 })
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Update booking location for an existing booking",
     description: `Updates the location for an existing booking.

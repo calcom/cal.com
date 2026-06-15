@@ -1,4 +1,3 @@
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -20,7 +19,7 @@ import {
 } from "@/modules/verified-resources/outputs/verified-phone.output";
 import { VerifiedResourcesService } from "@/modules/verified-resources/services/verified-resources.service";
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth,  ApiOperation, ApiTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -37,7 +36,7 @@ export class UserVerifiedResourcesController {
     summary: "Request email verification code",
     description: `Sends a verification code to the email`,
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Post("/emails/verification-code/request")
   @HttpCode(HttpStatus.OK)
   @Throttle({ limit: 5, ttl: 60000, blockDuration: 60000, name: "users_verified_resources_emails_requests" })
@@ -60,7 +59,7 @@ export class UserVerifiedResourcesController {
     summary: "Request phone number verification code",
     description: `Sends a verification code to the phone number`,
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Post("/phones/verification-code/request")
   @HttpCode(HttpStatus.OK)
   @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "users_verified_resources_phones_requests" })
@@ -80,7 +79,7 @@ export class UserVerifiedResourcesController {
     summary: "Verify an email",
     description: `Use code to verify an email`,
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Post("/emails/verification-code/verify")
   @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "users_verified_resources_phones_verify" })
   @HttpCode(HttpStatus.OK)
@@ -99,7 +98,7 @@ export class UserVerifiedResourcesController {
     summary: "Verify a phone number",
     description: `Use code to verify a phone number`,
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Post("/phones/verification-code/verify")
   @HttpCode(HttpStatus.OK)
   async verifyPhoneNumber(
@@ -116,7 +115,7 @@ export class UserVerifiedResourcesController {
   @ApiOperation({
     summary: "Get list of verified emails",
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Get("/emails")
   @HttpCode(HttpStatus.OK)
   async getVerifiedEmails(
@@ -137,7 +136,7 @@ export class UserVerifiedResourcesController {
   @ApiOperation({
     summary: "Get list of verified phone numbers",
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Get("/phones")
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneNumbers(
@@ -160,7 +159,7 @@ export class UserVerifiedResourcesController {
   @ApiOperation({
     summary: "Get verified email by id",
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Get("/emails/:id")
   @HttpCode(HttpStatus.OK)
   async getVerifiedEmailById(
@@ -177,7 +176,7 @@ export class UserVerifiedResourcesController {
   @ApiOperation({
     summary: "Get verified phone number by id",
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Get("/phones/:id")
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneById(

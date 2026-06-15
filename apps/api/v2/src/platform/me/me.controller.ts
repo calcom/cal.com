@@ -2,7 +2,6 @@ import { GetMeOutput } from "@/platform/me/outputs/get-me.output";
 import { UpdateMeOutput } from "@/platform/me/outputs/update-me.output";
 import { MeService } from "@/platform/me/services/me.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -11,7 +10,7 @@ import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-us
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiBearerAuth,  ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { userSchemaResponse } from "@calcom/platform-types";
@@ -22,7 +21,7 @@ import { userSchemaResponse } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, PermissionsGuard)
 @DocsTags("Me")
-@ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+@ApiBearerAuth("bearerAuth")
 export class MeController {
   constructor(
     private readonly usersService: UsersService,

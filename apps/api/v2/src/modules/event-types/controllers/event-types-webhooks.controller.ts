@@ -1,5 +1,4 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
 import { IsUserEventTypeWebhookGuard } from "@/modules/webhooks/guards/is-user-event-type-webhook-guard";
@@ -26,7 +25,7 @@ import {
   Patch,
   ParseIntPipe,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiBearerAuth,  ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -39,7 +38,7 @@ import type { Webhook } from "@calcom/prisma/client";
 })
 @UseGuards(ApiAuthGuard, IsUserEventTypeWebhookGuard)
 @DocsTags("Event Types / Webhooks")
-@ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+@ApiBearerAuth("bearerAuth")
 @ApiParam({ name: "eventTypeId", type: Number, required: true })
 export class EventTypeWebhooksController {
   constructor(

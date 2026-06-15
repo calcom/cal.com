@@ -20,7 +20,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import {
+import { ApiBearerAuth,
   ApiHeader,
   ApiOperation,
   ApiQuery,
@@ -29,7 +29,7 @@ import {
 } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
-import { OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER, OPTIONAL_X_CAL_CLIENT_ID_HEADER } from "@/lib/docs/headers";
+import { OPTIONAL_X_CAL_CLIENT_ID_HEADER } from "@/lib/docs/headers";
 import {
   AuthOptionalUser,
   GetOptionalUser,
@@ -280,7 +280,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
-  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   async reserveSlot(
     @Body() body: ReserveSlotInput_2024_09_04,
     @GetOptionalUser() user: AuthOptionalUser

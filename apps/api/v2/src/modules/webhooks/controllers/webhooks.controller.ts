@@ -1,5 +1,4 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -16,7 +15,7 @@ import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
 import { UserWebhooksService } from "@/modules/webhooks/services/user-webhooks.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiBearerAuth,  ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -29,7 +28,7 @@ import type { Webhook } from "@calcom/prisma/client";
 })
 @UseGuards(ApiAuthGuard)
 @DocsTags("Webhooks")
-@ApiHeader(API_KEY_HEADER)
+@ApiBearerAuth("bearerAuth")
 export class WebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,

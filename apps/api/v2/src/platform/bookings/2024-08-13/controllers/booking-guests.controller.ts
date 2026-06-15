@@ -2,7 +2,6 @@ import { BookingUidGuard } from "@/platform/bookings/2024-08-13/guards/booking-u
 import { AddGuestsOutput_2024_08_13 } from "@/platform/bookings/2024-08-13/outputs/add-guests.output";
 import { BookingGuestsService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/booking-guests.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -10,7 +9,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { Controller, Post, Logger, Body, UseGuards, Param, HttpCode, HttpStatus } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
+import { ApiHeader, ApiBearerAuth, ApiOperation, ApiTags as DocsTags} from "@nestjs/swagger";
 
 import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { AddGuestsInput_2024_08_13 } from "@calcom/platform-types";
@@ -42,7 +41,7 @@ export class BookingGuestsController_2024_08_13 {
     blockDuration: 60000,
     name: "booking_guests_add",
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Add guests to an existing booking",
     description: `Add one or more guests to an existing booking. Maximum 10 guests per request, with a limit of 30 total guests per booking.

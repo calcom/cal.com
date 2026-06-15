@@ -1,5 +1,4 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
@@ -13,7 +12,7 @@ import {
 import { SelectedCalendarsService } from "@/modules/selected-calendars/services/selected-calendars.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Body, Controller, Post, UseGuards, Delete, Query } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiBearerAuth,  ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -24,7 +23,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 })
 @DocsTags("Selected Calendars")
 @UseGuards(ApiAuthGuard)
-@ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+@ApiBearerAuth("bearerAuth")
 export class SelectedCalendarsController {
   constructor(private readonly selectedCalendarsService: SelectedCalendarsService) {}
 

@@ -15,7 +15,6 @@ import { GoogleCalendarService } from "@/platform/calendars/services/gcal.servic
 import { IcsFeedService } from "@/platform/calendars/services/ics-feed.service";
 import { OutlookService } from "@/platform/calendars/services/outlook.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -38,7 +37,7 @@ import {
   Body,
   ParseBoolPipe,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiBearerAuth,  ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { z } from "zod";
@@ -90,7 +89,7 @@ export class CalendarsController {
 
   @Post("/ics-feed/save")
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({ summary: "Save an ICS feed" })
   async createIcsFeed(
     @GetUser("id") userId: number,
@@ -102,14 +101,14 @@ export class CalendarsController {
 
   @Get("/ics-feed/check")
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({ summary: "Check an ICS feed" })
   async checkIcsFeed(@GetUser("id") userId: number): Promise<ApiResponse> {
     return await this.icsFeedService.check(userId);
   }
 
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Get("/busy-times")
   @ApiOperation({
     summary: "Get busy times",
@@ -144,7 +143,7 @@ export class CalendarsController {
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({ summary: "Get all calendars" })
   async getCalendars(@GetUser("id") userId: number): Promise<ConnectedCalendarsOutput> {
     const calendars = await this.calendarsService.getCalendars(userId);
@@ -162,7 +161,7 @@ export class CalendarsController {
   })
   @UseGuards(ApiAuthGuard)
   @ApiAuthGuardOnlyAllow(["API_KEY", "ACCESS_TOKEN", "THIRD_PARTY_ACCESS_TOKEN"])
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get OAuth connect URL" })
@@ -245,7 +244,7 @@ export class CalendarsController {
     name: "calendar",
   })
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Post("/:calendar/credentials")
   @ApiOperation({ summary: "Save Apple calendar credentials" })
   async syncCredentials(
@@ -274,7 +273,7 @@ export class CalendarsController {
   @Get("/:calendar/check")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Permissions([APPS_READ])
   @ApiOperation({ summary: "Check a calendar connection" })
   async check(@GetUser("id") userId: number, @Param("calendar") calendar: string): Promise<ApiResponse> {
@@ -299,7 +298,7 @@ export class CalendarsController {
     name: "calendar",
   })
   @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @Post("/:calendar/disconnect")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Disconnect a calendar" })

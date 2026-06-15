@@ -12,7 +12,7 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiBearerAuth,  ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { BookingPbacGuard } from "@/platform/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingUidGuard } from "@/platform/bookings/2024-08-13/guards/booking-uid.guard";
 import { AddAttendeeOutput_2024_08_13 } from "@/platform/bookings/2024-08-13/outputs/add-attendee.output";
@@ -23,7 +23,6 @@ import {
 import { RemoveAttendeeOutput_2024_08_13 } from "@/platform/bookings/2024-08-13/outputs/remove-attendee.output";
 import { BookingAttendeesService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/booking-attendees.service";
 import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -49,7 +48,7 @@ export class BookingAttendeesController_2024_08_13 {
   @Get("/")
   @Permissions([BOOKING_READ])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get all attendees for a booking",
     description: `Retrieve all attendees for a specific booking by its UID.
@@ -72,7 +71,7 @@ export class BookingAttendeesController_2024_08_13 {
   @Get("/:attendeeId")
   @Permissions([BOOKING_READ])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get a specific attendee for a booking",
     description: `Retrieve a specific attendee by their ID for a booking identified by its UID.
@@ -102,7 +101,7 @@ export class BookingAttendeesController_2024_08_13 {
     blockDuration: 60000,
     name: "booking_attendees_add",
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Add an attendee to a booking",
     description: `Add a new attendee to an existing booking by its UID.
@@ -141,7 +140,7 @@ export class BookingAttendeesController_2024_08_13 {
     blockDuration: 60000,
     name: "booking_attendees_remove",
   })
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Remove an attendee from a booking",
     description: `Remove an attendee from an existing booking by their attendee ID. The primary attendee (first attendee) cannot be removed — to remove them, cancel the booking instead. The removed attendee will receive a cancellation email notification.

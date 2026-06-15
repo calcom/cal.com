@@ -1,6 +1,5 @@
 import { SchedulesService_2024_06_11 } from "@/platform/schedules/schedules_2024_06_11/services/schedules.service";
 import { VERSION_2024_06_14, VERSION_2024_06_11 } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -18,7 +17,7 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiBearerAuth,  ApiOperation, ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -47,7 +46,7 @@ import {
     default: VERSION_2024_06_11,
   },
 })
-@ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+@ApiBearerAuth("bearerAuth")
 export class SchedulesController_2024_06_11 {
   constructor(private readonly schedulesService: SchedulesService_2024_06_11) {}
 

@@ -1,5 +1,4 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { DestinationCalendarsInputBodyDto } from "@/modules/destination-calendars/inputs/destination-calendars.input";
@@ -10,7 +9,7 @@ import {
 import { DestinationCalendarsService } from "@/modules/destination-calendars/services/destination-calendars.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Body, Controller, Put, UseGuards } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiBearerAuth,  ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -20,7 +19,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   version: API_VERSIONS_VALUES,
 })
 @DocsTags("Destination Calendars")
-@ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+@ApiBearerAuth("bearerAuth")
 @UseGuards(ApiAuthGuard)
 export class DestinationCalendarsController {
   constructor(private readonly destinationCalendarsService: DestinationCalendarsService) {}
