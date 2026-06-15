@@ -37,6 +37,7 @@ import type { BookingRepository } from "@calcom/features/bookings/repositories/B
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
@@ -725,11 +726,20 @@ export class AvailableSlotsService {
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
+    // Widen the prefetch window by the largest possible buffer so that bookings ending
+    // before the requested range, whose afterEventBuffer reaches into it, are still
+    // fetched. getBusyTimes already widens this way; without it those buffers are
+    // dropped and the slots endpoint offers times that booking validation rejects (#29532).
+    const definedBufferTimes = getDefinedBufferTimes();
+    const maxBuffer = definedBufferTimes[definedBufferTimes.length - 1];
+    const bookingsStartDate = dayjs(startTimeDate).subtract(maxBuffer, "minute").toDate();
+    const bookingsEndDate = dayjs(endTimeDate).add(maxBuffer, "minute").toDate();
+
     const bookingRepo = this.dependencies.bookingRepo;
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
-        startDate: startTimeDate,
-        endDate: endTimeDate,
+        startDate: bookingsStartDate,
+        endDate: bookingsEndDate,
         eventTypeId: eventType.id,
         seatedEvent: Boolean(eventType.seatsPerTimeSlot),
         userIdAndEmailMap,

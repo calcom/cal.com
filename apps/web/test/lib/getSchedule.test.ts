@@ -1422,6 +1422,69 @@ describe("getSchedule", () => {
       );
     });
 
+    // Regression test for #29532: when the slots query starts mid-day, an earlier
+    // booking whose afterEventBuffer reaches into the requested range must still
+    // block the buffered slots, even though the booking itself ends before the range.
+    test("afterBuffer of a booking that ends before the requested range still blocks slots", async () => {
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 30,
+            slotInterval: 30,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 60,
+            users: [{ id: 101 }],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            eventTypeId: 1,
+            // Ends at 04:00; a 60 min afterEventBuffer keeps the host busy until 05:00.
+            startTime: `${plus2DateString}T03:30:00.000Z`,
+            endTime: `${plus2DateString}T04:00:00.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+          },
+        ],
+        apps: [TestData.apps["google-calendar"]],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const schedule = await availableSlotsService.getAvailableSlots({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          // Range starts after the booking ends but inside its afterEventBuffer.
+          startTime: `${plus2DateString}T04:05:00.000Z`,
+          endTime: `${plus2DateString}T07:00:00.000Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+          orgSlug: null,
+        },
+      });
+
+      // `04:30:00.000Z` is inside the buffer (04:00-05:00) and must not be offered.
+      expect(schedule).toHaveTimeSlots([`05:00:00.000Z`, `05:30:00.000Z`, `06:00:00.000Z`, `06:30:00.000Z`], {
+        dateString: plus2DateString,
+        doExactMatch: true,
+      });
+    });
+
     test("Start times are offset (offsetStart)", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
