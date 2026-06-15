@@ -30,7 +30,7 @@ async function getHandler(request: NextRequest) {
   ].filter(Boolean);
 
   if (!apiKey || !validApiKeys.includes(apiKey)) {
-    return NextResponse.json({ message: "Forbiden" }, { status: 403 });
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
   // instantiate dependencies

@@ -113,6 +113,16 @@ describe("tasker api auth", () => {
       expect(processQueueMock).not.toHaveBeenCalled();
     });
 
+    test("rejects a request with no authorization header when CRON_SECRET is unset", async () => {
+      vi.stubEnv("CRON_SECRET", undefined);
+      const { GET } = await import("../cron");
+
+      const response = await GET(buildRequest());
+
+      expect(response.status).toBe(401);
+      expect(processQueueMock).not.toHaveBeenCalled();
+    });
+
     test("accepts the correct Bearer token via POST when CRON_SECRET is set", async () => {
       vi.stubEnv("CRON_SECRET", "super-secret");
       const { POST } = await import("../cron");
