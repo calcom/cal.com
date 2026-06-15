@@ -42,11 +42,12 @@ const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
-  protected integrationName = "ics-feed_calendar";
+  protected integrationName: string;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, integrationName = "ics-feed_calendar") {
     const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
     this.urls = urls;
+    this.integrationName = integrationName;
   }
 
   createEvent(_event: CalendarEvent, _credentialId: number): Promise<NewCalendarEventType> {
@@ -313,6 +314,9 @@ class ICSFeedCalendarService implements Calendar {
  * This is exported instead of the class to prevent internal types
  * from leaking into the emitted .d.ts file.
  */
-export default function BuildCalendarService(credential: CredentialPayload): Calendar {
-  return new ICSFeedCalendarService(credential);
+export default function BuildCalendarService(
+  credential: CredentialPayload,
+  integrationName?: string
+): Calendar {
+  return new ICSFeedCalendarService(credential, integrationName);
 }

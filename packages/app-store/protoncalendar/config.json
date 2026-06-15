@@ -1,0 +1,15 @@
+{
+  "name": "Proton Calendar",
+  "title": "Proton Calendar",
+  "slug": "proton-calendar",
+  "dirName": "protoncalendar",
+  "type": "proton_calendar",
+  "logo": "icon.svg",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Import events from your [Proton Calendar](https://proton.me/calendar) into [Cal.diy](https://cal.com) using its ICS share link. The feed is read-only and used for availability.",
+  "isTemplate": false,
+  "__createdUsingCli": true
+}
