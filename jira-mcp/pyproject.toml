@@ -1,0 +1,13 @@
+[project]
+name = "jira-mcp"
+version = "0.1.0"
+description = "A JIRA-like MCP server for task management"
+requires-python = ">=3.10"
+dependencies = ["mcp[cli]>=1.0.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+jira-mcp = "server:mcp.run"

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "jira-mcp": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["C:\\Users\\rodri\\workspace\\cal.diy\\jira-mcp\\server.py"]
+    }
+  }
+}
