@@ -117,8 +117,9 @@ const Day = ({
       {hasGame && (
         <span
           aria-label="Copa do Mundo"
-          className="absolute right-0.5 top-0.5 h-[6px] w-[6px] rounded-full bg-amber-400"
-        />
+          className="absolute right-0.5 top-0.5 text-[10px] leading-none">
+          ⚽
+        </span>
       )}
     </button>
   );

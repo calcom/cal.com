@@ -69,6 +69,62 @@ describe("Tests for DatePicker Component", () => {
     await expect(selectedMonthLabel).toHaveAttribute("dateTime", testDate.format("YYYY-MM"));
   });
 
+  describe("FIFA World Cup game indicator", () => {
+    test("Should display ⚽ emoji on dates with a game", async () => {
+      const browsingDate = dayjs("2026-06-01");
+      const gameDates = ["2026-06-13", "2026-06-18"];
+
+      const { getAllByLabelText } = render(
+        <BookerStoreProvider>
+          <TooltipProvider>
+            <DatePicker
+              onChange={noop}
+              browsingDate={browsingDate}
+              locale="en"
+              gameDates={gameDates}
+              periodData={{
+                periodType: PeriodType.UNLIMITED,
+                periodDays: null,
+                periodCountCalendarDays: false,
+                periodStartDate: null,
+                periodEndDate: null,
+              }}
+            />
+          </TooltipProvider>
+        </BookerStoreProvider>
+      );
+
+      const indicators = getAllByLabelText("Copa do Mundo");
+      expect(indicators).toHaveLength(gameDates.length);
+      indicators.forEach((el) => expect(el).toHaveTextContent("⚽"));
+    });
+
+    test("Should not display ⚽ when no gameDates provided", async () => {
+      const browsingDate = dayjs("2026-06-01");
+
+      const { queryByLabelText } = render(
+        <BookerStoreProvider>
+          <TooltipProvider>
+            <DatePicker
+              onChange={noop}
+              browsingDate={browsingDate}
+              locale="en"
+              periodData={{
+                periodType: PeriodType.UNLIMITED,
+                periodDays: null,
+                periodCountCalendarDays: false,
+                periodStartDate: null,
+                periodEndDate: null,
+              }}
+            />
+          </TooltipProvider>
+        </BookerStoreProvider>
+      );
+
+      expect(queryByLabelText("Copa do Mundo")).toBeNull();
+    });
+  });
+
   describe("End-of-Month UI Improvements", () => {
     const createMockSlots = (dates: string[]) => {
       const slots: Record<string, { time: string; userIds?: number[] }[]> = {};
