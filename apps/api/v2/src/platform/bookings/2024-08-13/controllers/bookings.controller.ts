@@ -106,7 +106,6 @@ export class BookingsController_2024_08_13 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Create a booking",
     description: `
@@ -164,7 +163,6 @@ export class BookingsController_2024_08_13 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get a booking by seat UID",
     description: `Get a seated booking by its seat reference UID. This is useful when you have a seatUid from a seated booking and want to retrieve the full booking details.
@@ -191,7 +189,6 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get a booking",
     description: `\`:bookingUid\` can be
@@ -297,7 +294,6 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Reschedule a booking",
     description: `Reschedule a booking or seated booking
@@ -337,7 +333,6 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiBearerAuth("bearerAuth")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Cancel a booking",

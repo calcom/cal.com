@@ -279,7 +279,6 @@ export class SlotsController_2024_09_04 {
     `,
   })
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
-  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiBearerAuth("bearerAuth")
   async reserveSlot(
     @Body() body: ReserveSlotInput_2024_09_04,

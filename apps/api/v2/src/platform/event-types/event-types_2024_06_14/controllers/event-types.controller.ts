@@ -162,7 +162,6 @@ export class EventTypesController_2024_06_14 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
-  @ApiBearerAuth("bearerAuth")
   async getEventTypes(
     @Query() queryParams: GetEventTypesQuery_2024_06_14,
     @GetOptionalUser() authUser: AuthOptionalUser
