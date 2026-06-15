@@ -1,16 +1,16 @@
-import { getEnv } from "@/env";
 import { Logger } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import type {
+  OperationObject,
   PathItemObject,
   PathsObject,
-  OperationObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { getEnv } from "@/env";
 import "dotenv/config";
+import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import type { Server } from "node:http";
-import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 
 const nodeRequire = createRequire(__filename);
@@ -22,7 +22,18 @@ export async function generateSwaggerForApp(app: NestExpressApplication<Server>)
   const logger = new Logger("App");
   logger.log(`Generating Swagger documentation...\n`);
 
-  const config = new DocumentBuilder().setTitle("Cal.diy API v2").addBearerAuth({ type: "http", scheme: "bearer", bearerFormat: "JWT", description: "Enter your API key or access token (without the `Bearer ` prefix)." }, "bearerAuth").build();
+  const config = new DocumentBuilder()
+    .setTitle("Cal.diy API v2")
+    .addBearerAuth(
+      {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description: "Enter your API key or access token (without the `Bearer ` prefix).",
+      },
+      "bearerAuth"
+    )
+    .build();
   const document = SwaggerModule.createDocument(app, config);
   document.paths = groupAndSortPathsByFirstTag(document.paths);
 

@@ -20,7 +20,8 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth,
+import {
+  ApiBearerAuth,
   ApiHeader,
   ApiOperation,
   ApiQuery,

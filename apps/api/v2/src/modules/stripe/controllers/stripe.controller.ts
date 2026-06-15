@@ -1,3 +1,22 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { HttpService } from "@nestjs/axios";
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Query,
+  Redirect,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { ApiBearerAuth, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
+import { Request } from "express";
+import { stringify } from "querystring";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -11,26 +30,6 @@ import { OAuthCallbackState, StripeService } from "@/modules/stripe/stripe.servi
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { HttpService } from "@nestjs/axios";
-import {
-  Controller,
-  Query,
-  UseGuards,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Redirect,
-  Req,
-  BadRequestException,
-  Headers,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ApiBearerAuth, ApiTags as DocsTags, ApiOperation} from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-import { Request } from "express";
-import { stringify } from "querystring";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/stripe",
@@ -61,9 +60,9 @@ export class StripeController {
     const accessToken = authorization.replace("Bearer ", "");
 
     const state: OAuthCallbackState = {
-      onErrorReturnTo: !!onErrorReturnTo ? onErrorReturnTo : origin,
+      onErrorReturnTo: onErrorReturnTo ? onErrorReturnTo : origin,
       fromApp: false,
-      returnTo: !!returnTo ? returnTo : origin,
+      returnTo: returnTo ? returnTo : origin,
       accessToken,
     };
 
@@ -113,7 +112,7 @@ export class StripeController {
           const response = await this.httpService.axiosRef.get(url, { params, headers });
           const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
           return { url: redirectUrl };
-        } catch (err) {
+        } catch (_err) {
           const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
           return { url: fallbackUrl };
         }

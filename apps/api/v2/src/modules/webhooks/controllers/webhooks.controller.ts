@@ -1,3 +1,9 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import type { Webhook } from "@calcom/prisma/client";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -14,13 +20,6 @@ import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pi
 import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
 import { UserWebhooksService } from "@/modules/webhooks/services/user-webhooks.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
-import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
-import { ApiBearerAuth,  ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
-import type { Webhook } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/webhooks",

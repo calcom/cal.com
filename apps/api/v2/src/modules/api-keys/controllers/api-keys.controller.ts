@@ -1,3 +1,6 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { RefreshApiKeyInput } from "@/modules/api-keys/inputs/refresh-api-key.input";
 import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
@@ -5,10 +8,6 @@ import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { ApiAuthGuardRequest } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags,  ApiOperation } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/api-keys",

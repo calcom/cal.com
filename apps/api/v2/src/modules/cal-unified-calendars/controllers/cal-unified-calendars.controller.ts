@@ -12,8 +12,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth,  ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
-import { GetBusyTimesOutput } from "@/platform/calendars/outputs/busy-times.output";
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -29,6 +28,7 @@ import {
 import { ListConnectionsOutput } from "@/modules/cal-unified-calendars/outputs/list-connections.output";
 import { ParseConnectionIdPipe } from "@/modules/cal-unified-calendars/pipes/parse-connection-id.pipe";
 import { UnifiedCalendarService } from "@/modules/cal-unified-calendars/services/unified-calendar.service";
+import { GetBusyTimesOutput } from "@/platform/calendars/outputs/busy-times.output";
 
 const UNIFIED_CALENDAR_PARAM = ["google", "office365", "apple"] as const;
 
@@ -53,7 +53,11 @@ export class CalUnifiedCalendarsController {
     const connections = await this.unifiedCalendarService.getConnections(userId);
     // Defense-in-depth: only forward the public fields so that any future service
     // regression that accidentally includes credential.key cannot leak to the client.
-    const safeConnections = connections.map(({ connectionId, type, email }) => ({ connectionId, type, email }));
+    const safeConnections = connections.map(({ connectionId, type, email }) => ({
+      connectionId,
+      type,
+      email,
+    }));
     return {
       status: SUCCESS_STATUS,
       data: { connections: safeConnections },
@@ -195,7 +199,12 @@ export class CalUnifiedCalendarsController {
     @GetUser("id") userId: number,
     @Query("calendarId") calendarId?: string
   ): Promise<void> {
-    await this.unifiedCalendarService.deleteConnectionEvent(userId, credentialId, calendarId ?? "primary", eventId);
+    await this.unifiedCalendarService.deleteConnectionEvent(
+      userId,
+      credentialId,
+      calendarId ?? "primary",
+      eventId
+    );
   }
 
   @ApiParam({ name: "connectionId", type: String })
@@ -375,7 +384,13 @@ export class CalUnifiedCalendarsController {
     @Query() query: FreebusyUnifiedInput
   ): Promise<GetBusyTimesOutput> {
     const timezone = query.timeZone ?? "UTC";
-    const data = await this.unifiedCalendarService.getFreeBusy(calendar, userId, query.from, query.to, timezone);
+    const data = await this.unifiedCalendarService.getFreeBusy(
+      calendar,
+      userId,
+      query.from,
+      query.to,
+      timezone
+    );
     return { status: SUCCESS_STATUS, data };
   }
 }

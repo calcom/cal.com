@@ -28,14 +28,14 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Logger,
   Param,
   Post,
   Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth,
+import {
+  ApiBearerAuth,
   ApiBody,
   ApiExtraModels,
   ApiHeader,
@@ -44,6 +44,20 @@ import { ApiBearerAuth,
   getSchemaPath,
 } from "@nestjs/swagger";
 import { Request } from "express";
+import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
+import { OPTIONAL_X_CAL_CLIENT_ID_HEADER, OPTIONAL_X_CAL_SECRET_KEY_HEADER } from "@/lib/docs/headers";
+import {
+  AuthOptionalUser,
+  GetOptionalUser,
+} from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { UsersService } from "@/modules/users/services/users.service";
 import { BookingPbacGuard } from "@/platform/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingUidGuard } from "@/platform/bookings/2024-08-13/guards/booking-uid.guard";
 import { BookingReferencesFilterInput_2024_08_13 } from "@/platform/bookings/2024-08-13/inputs/booking-references-filter.input";
@@ -57,25 +71,6 @@ import { RescheduleBookingOutput_2024_08_13 } from "@/platform/bookings/2024-08-
 import { BookingReferencesService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/bookings.service";
 import { CalVideoService } from "@/platform/bookings/2024-08-13/services/cal-video.service";
-import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
-import {
-  API_KEY_OR_ACCESS_TOKEN_HEADER,
-  OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
-  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
-  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
-} from "@/lib/docs/headers";
-import {
-  AuthOptionalUser,
-  GetOptionalUser,
-} from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { UsersService } from "@/modules/users/services/users.service";
 
 @Controller({
   path: "/v2/bookings",
@@ -93,8 +88,6 @@ import { UsersService } from "@/modules/users/services/users.service";
   },
 })
 export class BookingsController_2024_08_13 {
-  private readonly logger = new Logger("BookingsController_2024_08_13");
-
   constructor(
     private readonly bookingsService: BookingsService_2024_08_13,
     private readonly usersService: UsersService,
@@ -106,6 +99,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Create a booking",
     description: `
@@ -163,6 +157,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get a booking by seat UID",
     description: `Get a seated booking by its seat reference UID. This is useful when you have a seatUid from a seated booking and want to retrieve the full booking details.
@@ -189,6 +184,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Get a booking",
     description: `\`:bookingUid\` can be
@@ -294,6 +290,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @ApiOperation({
     summary: "Reschedule a booking",
     description: `Reschedule a booking or seated booking
@@ -333,6 +330,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiBearerAuth("bearerAuth")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Cancel a booking",

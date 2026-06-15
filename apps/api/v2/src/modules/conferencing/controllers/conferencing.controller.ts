@@ -1,44 +1,43 @@
+import { CAL_VIDEO, GOOGLE_MEET, OFFICE_365_VIDEO, SUCCESS_STATUS, ZOOM } from "@calcom/platform-constants";
+import { HttpService } from "@nestjs/axios";
+import {
+  BadRequestException,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Logger,
+  Param,
+  Post,
+  Query,
+  Redirect,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToInstance } from "class-transformer";
+import { Request } from "express";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
+  ConferencingAppOutputResponseDto,
+  ConferencingAppsOutputDto,
+  ConferencingAppsOutputResponseDto,
+  DisconnectConferencingAppOutputResponseDto,
+} from "@/modules/conferencing/outputs/get-conferencing-apps.output";
+import {
   ConferencingAppsOauthUrlOutputDto,
   GetConferencingAppsOauthUrlResponseDto,
 } from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
-import {
-  ConferencingAppsOutputResponseDto,
-  ConferencingAppOutputResponseDto,
-  ConferencingAppsOutputDto,
-  DisconnectConferencingAppOutputResponseDto,
-} from "@/modules/conferencing/outputs/get-conferencing-apps.output";
 import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { HttpService } from "@nestjs/axios";
-import { Logger } from "@nestjs/common";
-import {
-  Controller,
-  Get,
-  Query,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
-  Post,
-  Param,
-  BadRequestException,
-  Delete,
-  Headers,
-  Redirect,
-  Req,
-  HttpException,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ApiBearerAuth,  ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToInstance } from "class-transformer";
-import { Request } from "express";
-
-import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -164,7 +163,7 @@ export class ConferencingController {
           const response = await this.httpService.axiosRef.get(url, { params, headers });
           const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
           return { url: redirectUrl };
-        } catch (err) {
+        } catch (_err) {
           const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
           return { url: fallbackUrl };
         }

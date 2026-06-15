@@ -12,7 +12,14 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiBearerAuth,  ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
+import { Throttle } from "@/lib/endpoint-throttler-decorator";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { BookingPbacGuard } from "@/platform/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingUidGuard } from "@/platform/bookings/2024-08-13/guards/booking-uid.guard";
 import { AddAttendeeOutput_2024_08_13 } from "@/platform/bookings/2024-08-13/outputs/add-attendee.output";
@@ -22,13 +29,6 @@ import {
 } from "@/platform/bookings/2024-08-13/outputs/get-booking-attendees.output";
 import { RemoveAttendeeOutput_2024_08_13 } from "@/platform/bookings/2024-08-13/outputs/remove-attendee.output";
 import { BookingAttendeesService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/booking-attendees.service";
-import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
-import { Throttle } from "@/lib/endpoint-throttler-decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 
 @Controller({
   path: "/v2/bookings/:bookingUid/attendees",
@@ -58,7 +58,7 @@ export class BookingAttendeesController_2024_08_13 {
   })
   async getBookingAttendees(
     @Param("bookingUid") bookingUid: string,
-    @GetUser() user: ApiAuthGuardUser
+    @GetUser() _user: ApiAuthGuardUser
   ): Promise<GetBookingAttendeesOutput_2024_08_13> {
     const attendees = await this.bookingAttendeesService.getBookingAttendees(bookingUid);
 

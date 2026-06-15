@@ -24,24 +24,9 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiBearerAuth,  ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { CreateEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/create-event-type.output";
-import { DeleteEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/delete-event-type.output";
-import { GetEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/get-event-type.output";
-import { GetEventTypesOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/get-event-types.output";
-import { UpdateEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/update-event-type.output";
-import { EventTypeResponseTransformPipe } from "@/platform/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
-import { EventTypesService_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/services/event-types.service";
-import { InputEventTypesService_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/services/input-event-types.service";
-import type { DatabaseEventType } from "@/platform/event-types/event-types_2024_06_14/services/output-event-types.service";
-import { OutputEventTypesService_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/services/output-event-types.service";
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
-import {
-  API_KEY_OR_ACCESS_TOKEN_HEADER,
-  OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
-  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
-  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
-} from "@/lib/docs/headers";
+import { OPTIONAL_X_CAL_CLIENT_ID_HEADER, OPTIONAL_X_CAL_SECRET_KEY_HEADER } from "@/lib/docs/headers";
 import {
   AuthOptionalUser,
   GetOptionalUser,
@@ -55,6 +40,16 @@ import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.st
 import { OutputTeamEventTypesResponsePipe } from "@/modules/teams/event-types/pipes/output-team-event-types-response.pipe";
 import type { DatabaseTeamEventType } from "@/modules/teams/event-types/services/output-team-event-types.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
+import { CreateEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/create-event-type.output";
+import { DeleteEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/delete-event-type.output";
+import { GetEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/get-event-type.output";
+import { GetEventTypesOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/get-event-types.output";
+import { UpdateEventTypeOutput_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/outputs/update-event-type.output";
+import { EventTypeResponseTransformPipe } from "@/platform/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
+import { EventTypesService_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/services/event-types.service";
+import { InputEventTypesService_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/services/input-event-types.service";
+import type { DatabaseEventType } from "@/platform/event-types/event-types_2024_06_14/services/output-event-types.service";
+import { OutputEventTypesService_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/services/output-event-types.service";
 
 @Controller({
   path: "/v2/event-types",
@@ -162,6 +157,7 @@ export class EventTypesController_2024_06_14 {
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiBearerAuth("bearerAuth")
   async getEventTypes(
     @Query() queryParams: GetEventTypesQuery_2024_06_14,
     @GetOptionalUser() authUser: AuthOptionalUser

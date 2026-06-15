@@ -5990,7 +5990,7 @@
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "type": "http",
-        "description": "Enter your API key or access token prefixed with `Bearer `"
+        "description": "Enter your API key or access token (without the `Bearer ` prefix)."
       }
     },
     "schemas": {

@@ -9,10 +9,7 @@ import {
   UpdateInputAddressLocation_2024_08_13,
 } from "@calcom/platform-types";
 import { Body, Controller, HttpCode, HttpStatus, Param, Patch, UseGuards } from "@nestjs/common";
-import { ApiHeader, ApiBearerAuth, ApiExtraModels,  ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { BookingUidGuard } from "@/platform/bookings/2024-08-13/guards/booking-uid.guard";
-import { UpdateBookingLocationOutput_2024_08_13 } from "@/platform/bookings/2024-08-13/outputs/update-location.output";
-import { BookingLocationService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/booking-location.service";
+import { ApiBearerAuth, ApiExtraModels, ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -20,6 +17,9 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { BookingUidGuard } from "@/platform/bookings/2024-08-13/guards/booking-uid.guard";
+import { UpdateBookingLocationOutput_2024_08_13 } from "@/platform/bookings/2024-08-13/outputs/update-location.output";
+import { BookingLocationService_2024_08_13 } from "@/platform/bookings/2024-08-13/services/booking-location.service";
 
 @Controller({
   path: "/v2/bookings/:bookingUid/location",
