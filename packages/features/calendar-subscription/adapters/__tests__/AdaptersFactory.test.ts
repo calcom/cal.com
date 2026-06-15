@@ -48,7 +48,7 @@ describe("DefaultAdapterFactory", () => {
     test("should return array with correct length", () => {
       const providers = factory.getProviders();
 
-      expect(providers).toHaveLength(1);
+      expect(providers).toHaveLength(2);
     });
   });
 });

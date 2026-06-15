@@ -340,8 +340,11 @@ describe("CalendarCacheEventService", () => {
       expect(CalendarCacheEventService.isCalendarTypeSupported("google_calendar")).toBe(true);
     });
 
+    test("should return true for office365_calendar (now supported)", () => {
+      expect(CalendarCacheEventService.isCalendarTypeSupported("office365_calendar")).toBe(true);
+    });
+
     test("should return false for unsupported calendar types", () => {
-      expect(CalendarCacheEventService.isCalendarTypeSupported("office365_calendar")).toBe(false);
       expect(CalendarCacheEventService.isCalendarTypeSupported("outlook_calendar")).toBe(false);
       expect(CalendarCacheEventService.isCalendarTypeSupported("apple_calendar")).toBe(false);
       expect(CalendarCacheEventService.isCalendarTypeSupported("unknown_calendar")).toBe(false);
