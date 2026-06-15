@@ -34,11 +34,37 @@
       "id": "PROJ-4",
       "title": "Exibir ícone ⚽ no calendário em datas com jogos da Copa",
       "description": "A skill `fifa-world-cup` salva os jogos em `apps/web/public/fifa-games.json`. Atualmente o calendário **não exibe nenhuma indicação visual** nessas datas.\n\n## O que deve ser feito\n\nModificar o componente de calendário da aplicação web (`apps/web`) para que, nos dias que possuem pelo menos um jogo salvo no arquivo `apps/web/public/fifa-games.json`, seja exibido um ícone de bola de futebol ⚽ (emoji ou SVG) sobre a data.\n\n## Comportamento esperado\n\n- Ao renderizar o calendário, carregar (ou importar) os dados de `apps/web/public/fifa-games.json`\n- Para cada data que possua um ou mais jogos no array `games`, exibir o ícone ⚽ abaixo ou sobreposto ao número do dia\n- Se o arquivo `fifa-games.json` não existir ou o array estiver vazio, o calendário deve funcionar normalmente sem erros\n- O ícone não deve quebrar o layout existente do calendário em telas mobile e desktop\n\n## Estrutura do JSON (referência)\n\n```json\n{\n  \"games\": [\n    {\n      \"id\": \"BRA_MAR_2026-06-13\",\n      \"startISO\": \"2026-06-13T22:00:00Z\",\n      ...\n    }\n  ]\n}\n```\n\nA data do jogo é extraída do campo `startISO` (considerar apenas `YYYY-MM-DD` em UTC).\n\n## Critérios de aceite\n\n- Dias com jogo exibem ⚽ no calendário\n- Dias sem jogo não são afetados\n- Sem erros no console quando o arquivo não existe",
-      "status": "To Do",
+      "status": "In Review",
       "priority": "Medium",
       "created_at": "2026-06-15T09:05:35.659506",
-      "updated_at": "2026-06-15T09:05:35.659506",
-      "comments": []
+      "updated_at": "2026-06-15T09:24:05.846698",
+      "comments": [
+        {
+          "author": "Claude Code",
+          "text": "[PLANEJANDO] Iniciando análise e planejamento da task.",
+          "created_at": "2026-06-15T09:07:42.831310"
+        },
+        {
+          "author": "Claude Code",
+          "text": "[IMPLEMENTANDO] Iniciando implementação (tentativa 1).",
+          "created_at": "2026-06-15T09:15:48.424899"
+        },
+        {
+          "author": "Claude Code",
+          "text": "[TESTANDO] Executando testes e verificando compilação.",
+          "created_at": "2026-06-15T09:17:14.481125"
+        },
+        {
+          "author": "Claude Code",
+          "text": "[FINALIZADO] Implementação aprovada. Testes passando e code review aprovado após 1 tentativa(s).",
+          "created_at": "2026-06-15T09:19:45.244965"
+        },
+        {
+          "author": "Claude Code",
+          "text": "[PR ABERTO] Branch feat/PROJ-4 publicada. PR pendente de abertura manual: https://github.com/RodrigoMatos/cal.diy/pull/new/feat/PROJ-4 (gh CLI não instalado no ambiente)",
+          "created_at": "2026-06-15T09:23:31.005340"
+        }
+      ]
     }
   },
   "counter": 4
