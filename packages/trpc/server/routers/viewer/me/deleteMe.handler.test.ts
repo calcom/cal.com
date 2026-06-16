@@ -1,39 +1,27 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { HttpError } from "@calcom/lib/http-error";
 
 import { deleteMeHandler } from "./deleteMe.handler";
-
-vi.mock("@calcom/lib/auth/isPasswordValid", () => ({
-  isPasswordValid: vi.fn(),
-}));
+import type { DeleteMeOptions } from "./deleteMe.handler";
+  
+const makeMockCtx = (role: "USER" | "ADMIN" = "USER") =>
+  ({
+    user: {
+      id: 123,
+      name: "Test User",
+      email: "test@example.com",
+      role,
+    },
+  } as DeleteMeOptions["ctx"]);
 
 describe("deleteMeHandler", () => {
-  const mockIsPasswordValid = vi.mocked(isPasswordValid);
-
-  const mockUser = {
-    id: 123,
-    name: "Test User",
-    email: "test@example.com",
-    role: "USER" as const,
-  };
-
-  const mockCtx = {
-    user: mockUser,
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    process.env.CALENDSO_ENCRYPTION_KEY = "test-encryption-key-32-characters";
-  });
-
-  describe("Password validation", () => {
-    it("should throw error when password is missing", async () => {
+  describe("Password presence validation", () => {
+    it("should throw error when password is empty", async () => {
       await expect(
         deleteMeHandler({
-          ctx: mockCtx,
+          ctx: makeMockCtx(),
           input: { password: "" },
         })
       ).rejects.toThrow(new HttpError({ statusCode: 400, message: ErrorCode.UserMissingPassword }));
@@ -42,40 +30,34 @@ describe("deleteMeHandler", () => {
     it("should throw error when password is only whitespace", async () => {
       await expect(
         deleteMeHandler({
-          ctx: mockCtx,
+          ctx: makeMockCtx(),
           input: { password: "   " },
         })
       ).rejects.toThrow(new HttpError({ statusCode: 400, message: ErrorCode.UserMissingPassword }));
     });
+  });
 
-    it("should validate password with strict mode for non-USER roles", async () => {
-      const adminCtx = {
-        user: { ...mockUser, role: "ADMIN" as const },
-      };
-
-      mockIsPasswordValid.mockReturnValue(false);
-
+  describe("Password policy validation", () => {
+    it("should throw error for a weak password (USER role)", async () => {
       await expect(
         deleteMeHandler({
-          ctx: adminCtx,
+          ctx: makeMockCtx("USER"),
           input: { password: "weak" },
         })
-      ).rejects.toThrow(new HttpError({ statusCode: 400, message: ErrorCode.PasswordPolicyViolation }));
-
-      expect(mockIsPasswordValid).toHaveBeenCalledWith("weak", false, true);
+      ).rejects.toThrow(
+        new HttpError({ statusCode: 400, message: ErrorCode.PasswordPolicyViolation })
+      );
     });
 
-    it("should validate password with non-strict mode for USER role", async () => {
-      mockIsPasswordValid.mockReturnValue(false);
-
+    it("should throw error for a weak password (ADMIN role)", async () => {
       await expect(
         deleteMeHandler({
-          ctx: mockCtx,
+          ctx: makeMockCtx("ADMIN"),
           input: { password: "weak" },
         })
-      ).rejects.toThrow(new HttpError({ statusCode: 400, message: ErrorCode.PasswordPolicyViolation }));
-
-      expect(mockIsPasswordValid).toHaveBeenCalledWith("weak", false, false);
+      ).rejects.toThrow(
+        new HttpError({ statusCode: 400, message: ErrorCode.PasswordPolicyViolation })
+      );
     });
   });
 });

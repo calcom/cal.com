@@ -11,7 +11,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TDeleteMeInputSchema } from "./deleteMe.schema";
 
-type DeleteMeOptions = {
+export type DeleteMeOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
