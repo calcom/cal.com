@@ -1,3 +1,5 @@
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import { getBasecampKeys } from "./getBasecampKeys";
@@ -18,6 +20,17 @@ export const refreshAccessToken = async (credential: CredentialPayload): Promise
     method: "POST",
     headers: { "User-Agent": userAgent },
   });
+  if (!tokenInfo.ok) {
+    const status = [tokenInfo.status, tokenInfo.statusText].filter(Boolean).join(" ");
+    let message = "Failed to refresh Basecamp token";
+    if (status) {
+      message = `${message}: ${status}`;
+    }
+    throw new ErrorWithCode(ErrorCode.InternalServerError, message, {
+      status: tokenInfo.status,
+      statusText: tokenInfo.statusText,
+    });
+  }
   const tokenInfoJson = (await tokenInfo.json()) as BasecampRefreshTokenResponse;
   const refreshedToken: BasecampToken = {
     ...credentialKey,

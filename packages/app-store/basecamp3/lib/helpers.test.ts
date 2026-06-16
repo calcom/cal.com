@@ -1,3 +1,4 @@
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { refreshAccessToken } from "./helpers";
@@ -53,6 +54,9 @@ describe("refreshAccessToken", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
+    mockFetch.mockReset();
+    mockGetBasecampKeys.mockReset();
+    mockCredentialUpdate.mockReset();
     global.fetch = mockFetch;
     vi.spyOn(Date, "now").mockReturnValue(1710000000000);
     mockGetBasecampKeys.mockResolvedValue({
@@ -61,6 +65,9 @@ describe("refreshAccessToken", () => {
       user_agent: "cal-diy-test-agent",
     });
     mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: "OK",
       json: async () => ({
         access_token: "new-access-token",
         refresh_token: "new-refresh-token",
@@ -94,6 +101,30 @@ describe("refreshAccessToken", () => {
       method: "POST",
       headers: { "User-Agent": "cal-diy-test-agent" },
     });
+  });
+
+  it("does not update the credential when the refresh request fails", async () => {
+    const json = vi.fn(async () => ({
+      error: "invalid_grant",
+    }));
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      statusText: "Unauthorized",
+      json,
+    });
+
+    await expect(refreshAccessToken(credential)).rejects.toMatchObject({
+      code: ErrorCode.InternalServerError,
+      message: "Failed to refresh Basecamp token: 401 Unauthorized",
+      data: {
+        status: 401,
+        statusText: "Unauthorized",
+      },
+    });
+
+    expect(json).not.toHaveBeenCalled();
+    expect(mockCredentialUpdate).not.toHaveBeenCalled();
   });
 
   it("stores the refreshed token data on the existing credential", async () => {
