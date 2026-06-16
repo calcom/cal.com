@@ -9,6 +9,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User as UserType } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
+import type { IdentityProvider } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -896,20 +897,19 @@ export class UserRepository {
 
   async create(
     data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
-      username: string;
+      username: string | null;
       hashedPassword?: string;
       organizationId: number | null;
       creationSource: CreationSource;
       locked: boolean;
     }
   ) {
-    const organizationIdValue = data.organizationId;
-    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
+    const { email, username, creationSource, locked, hashedPassword, organizationId, ...rest } = data;
 
-    logger.info("create user", {
+    log.info("create user", {
       email,
       username,
-      organizationIdValue,
+      organizationId,
       locked,
     });
     const t = await getTranslation("en", "common");
@@ -939,13 +939,13 @@ export class UserRepository {
         },
         creationSource,
         locked,
-        ...(organizationIdValue
+        ...(organizationId && username
           ? {
-              organizationId: organizationIdValue,
+              organizationId,
               profiles: {
                 create: {
                   username,
-                  organizationId: organizationIdValue,
+                  organizationId,
                   uid: ProfileRepository.generateProfileUid(),
                 },
               },
@@ -1419,6 +1419,14 @@ export class UserRepository {
     });
   }
 
+  async deleteMany({ userIds }: {userIds: number[]}){
+    await this.prismaClient.user.deleteMany({
+      where: {
+        id: { in: userIds },
+      },
+    });
+  }
+
   /**
    * Finds a user by ID returning only their username
    * @param userId - The user ID
@@ -1480,6 +1488,38 @@ export class UserRepository {
     });
   }
 
+  async findByEmailWithInvitedTo({ email }: { email: string } ) {
+    return this.prismaClient.user.findUnique({
+      where: {
+        email: email.toLowerCase()
+      },
+      select: {
+        invitedTo: true
+      }
+    })
+  }
+
+  async findByUsernameAndOrganizationId({
+    username,
+    organizationId,
+    excludeEmail,
+  }: {
+    username: string,
+    organizationId: number | null,
+    excludeEmail: string
+  }) {
+    return this.prismaClient.user.findFirst({
+      where: {
+        username,
+        organizationId,
+        NOT: { email: excludeEmail }
+      },
+      select: {
+        id: true
+      }
+    })
+  }
+
   async lockByEmail({ email }: { email: string }) {
     await this.prismaClient.user.updateMany({
       where: { email },
@@ -1505,5 +1545,46 @@ export class UserRepository {
     });
 
     return { email: user.email, username: user.username };
+  }
+
+  async upsertForSignup({
+    email,
+    username,
+    hashedPassword,
+    organizationId,
+    emailVerified,
+    identityProvider,
+  }: {
+    email: string;
+    username: string | null;
+    hashedPassword: string;
+    organizationId: number | null;
+    emailVerified: Date;
+    identityProvider: IdentityProvider;
+  }) {
+    return this.prismaClient.user.upsert({
+      where: { email },
+      update: {
+        username,
+        emailVerified,
+        identityProvider,
+        password: {
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword },
+          },
+        },
+        organizationId,
+      },
+      create: {
+        username,
+        email,
+        emailVerified,
+        identityProvider,
+        password: { create: { hash: hashedPassword } },
+        organizationId,
+      },
+      select: { id: true },
+    });
   }
 }
