@@ -2,6 +2,7 @@
 
 import { Input as InputPrimitive } from "@base-ui/react/input";
 import type * as React from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@coss/ui/lib/utils";
 
@@ -21,6 +22,13 @@ function Input({
   nativeInput = false,
   ...props
 }: InputProps) {
+  // Client-side hydration safety toggle
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const inputClassName = cn(
     "h-8.5 w-full min-w-0 rounded-[inherit] px-[calc(--spacing(3)-1px)] leading-8.5 outline-none placeholder:text-muted-foreground/72 sm:h-7.5 sm:leading-7.5 [transition:background-color_5000000s_ease-in-out_0s]",
     size === "sm" &&
@@ -43,12 +51,26 @@ function Input({
       }
       data-size={size}
       data-slot="input-control"
+      suppressHydrationWarning
     >
-      {nativeInput ? (
+      {!isMounted ? (
+        // Server fallback rendering with zero dynamic interference
         <input
           className={inputClassName}
           data-slot="input"
           size={typeof size === "number" ? size : undefined}
+          type={props.type}
+          disabled={props.disabled}
+          placeholder={props.placeholder}
+          readOnly
+          suppressHydrationWarning
+        />
+      ) : nativeInput ? (
+        <input
+          className={inputClassName}
+          data-slot="input"
+          size={typeof size === "number" ? size : undefined}
+          suppressHydrationWarning
           {...props}
         />
       ) : (
@@ -56,6 +78,7 @@ function Input({
           className={inputClassName}
           data-slot="input"
           size={typeof size === "number" ? size : undefined}
+          suppressHydrationWarning
           {...props}
         />
       )}

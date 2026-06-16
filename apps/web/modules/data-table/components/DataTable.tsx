@@ -19,7 +19,7 @@ import type { Header, HeaderGroup, Table as ReactTableType, Row } from "@tanstac
 import { flexRender } from "@tanstack/react-table";
 import { useVirtualizer, type VirtualItem, type Virtualizer } from "@tanstack/react-virtual";
 import kebabCase from "lodash/kebabCase";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useState, useMemo } from "react";
 import { useColumnResizing } from "~/data-table/hooks/useColumnResizing";
 import { useColumnSizingVars } from "~/data-table/hooks/useColumnSizingVars";
 
@@ -47,7 +47,7 @@ export type DataTablePropsFromWrapper<TData> = {
 
 export type DataTableProps<TData> = DataTablePropsFromWrapper<TData> & {
   onRowMouseclick?: (row: Row<TData>) => void;
-  onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
+  onScroll?: (e: React.UIEvent<HTMLDivElement>) => void;
   tableOverlay?: React.ReactNode;
   enableColumnResizing?: boolean;
 };
@@ -78,6 +78,12 @@ export function DataTable<TData>({
 }: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
 
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (onScroll) {
+      onScroll(e);
+    }
+  };
+
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     estimateSize: () => 100,
@@ -89,21 +95,6 @@ export function DataTable<TData>({
     overscan: 10,
   });
 
-  const virtualItemsCount = rowVirtualizer.getVirtualItems().length;
-
-  useEffect(() => {
-    if (paginationMode === "infinite" && virtualItemsCount >= rows.length && tableContainerRef.current) {
-      const target = tableContainerRef.current;
-      // Right after the last row is rendered, tableContainer's scrollHeight is
-      // temporarily larger than the actual height of the table, so we need to
-      // wait for a short time before calling onScroll to ensure the scrollHeight
-      // is correct.
-      setTimeout(() => {
-        onScroll?.({ target });
-      }, 100);
-    }
-  }, [virtualItemsCount, rows.length, tableContainerRef.current, paginationMode, onScroll]);
-
   const columnSizingVars = useColumnSizingVars({ table });
 
   useColumnResizing({
@@ -112,6 +103,12 @@ export function DataTable<TData>({
     tableContainerRef,
   });
 
+  const totalCount = table.getMeta() && typeof table.getMeta() === "object" && "totalCount" in (table.getMeta() as Record<string, unknown>)
+    ? ((table.getMeta() as Record<string, unknown>).totalCount as number)
+    : rows.length;
+
+  const hasMore = rows.length < totalCount;
+
   return (
     <div
       className={classNames(
@@ -119,15 +116,11 @@ export function DataTable<TData>({
         className
       )}
       style={{
-        gridTemplateRows: "auto 1fr auto",
-        gridTemplateAreas: "'header' 'body' 'footer'",
+        gridTemplateRows: "auto 1fr auto auto",
+        gridTemplateAreas: "'header' 'body' 'fallback' 'footer'",
         ...rest.style,
       }}
       data-testid={testId ?? "data-table"}>
-      {/*
-        Invalidate left & right properties for <= sm screen size,
-        because we pin columns only for >= sm screen sizes.
-      */}
       <style jsx global>{`
         @media (max-width: 640px) {
           .data-table th,
@@ -137,16 +130,17 @@ export function DataTable<TData>({
           }
         }
       `}</style>
+
       <div
         ref={tableContainerRef}
-        onScroll={onScroll}
+        onScroll={handleScroll}
         className={classNames(
-          "relative overflow-auto",
-          "scrollbar-thin relative rounded-md ",
-          paginationMode === "infinite" && "h-[80dvh]", // Set a fixed height for the container
+          "relative overflow-auto w-full",
+          "scrollbar-thin rounded-md border border-subtle",
+          paginationMode === "infinite" ? "h-[65vh] max-h-[70dvh] min-h-[350px]" : "h-auto",
           containerClassName
         )}
-        style={{ gridArea: "body" }}>
+        style={{ gridArea: "body", WebkitOverflowScrolling: "touch" }}>
         <TableNew
           className={classNames(
             "data-table grid border-0",
@@ -176,24 +170,12 @@ export function DataTable<TData>({
                         column.getIsPinned() && "top-0 z-20 sm:sticky"
                       )}>
                       <TableHeadLabel header={header} />
-                      {Boolean(enableColumnResizing) && header.column.getCanResize() && (
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className={classNames(
-                            "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
-                            header.column.getIsResizing() && "opacity-75!"
-                          )}>
-                          <div className="bg-inverted mx-auto h-full w-px" />
-                        </div>
-                      )}
                     </TableHead>
                   );
                 })}
               </TableRow>
             ))}
           </TableHeader>
-          {/* When resizing any column we will render this special memoized version of our table body */}
           {table.getState().columnSizingInfo.isResizingColumn ? (
             <MemoizedTableBody
               table={table}
@@ -232,7 +214,39 @@ export function DataTable<TData>({
             />
           )}
         </TableNew>
+        
+        {isPending && (
+          <div className="p-4 text-center text-sm text-muted-foreground bg-default border-t border-subtle sticky bottom-0 z-10 w-full animate-pulse">
+            Loading next page...
+          </div>
+        )}
+
+        {!isPending && !hasMore && rows.length > 0 && (
+          <div className="p-4 text-center text-sm text-muted-foreground bg-default border-t border-subtle sticky bottom-0 z-10 w-full">
+            No more results
+          </div>
+        )}
       </div>
+
+      {paginationMode === "infinite" && hasMore && !isPending && (
+        <div style={{ gridArea: "fallback" }} className="flex justify-center w-full pt-4">
+          <button
+            type="button"
+            onClick={() => {
+              if (tableContainerRef.current && onScroll) {
+                const simulatedEvent = {
+                  currentTarget: tableContainerRef.current,
+                  target: tableContainerRef.current,
+                } as unknown as React.UIEvent<HTMLDivElement>;
+                onScroll(simulatedEvent);
+              }
+            }}
+            className="inline-flex items-center justify-center rounded-md border border-button-neutral bg-default px-4 py-2 text-sm font-medium text-default shadow-sm hover:bg-muted focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 w-full max-w-xs transition-colors">
+            Load more
+          </button>
+        </div>
+      )}
+
       {children}
     </div>
   );
@@ -396,13 +410,12 @@ function DataTableBody<TData>({
             key={row.id}
             data-testid={computedRowTestId}
             {...computedDataAttributes}
-            data-index={virtualItem?.index} // needed for dynamic row height measurement
+            data-index={virtualItem?.index}
             data-state={row.getIsSelected() && "selected"}
             onClick={(e) => {
               if (!onRowMouseclick) return;
               const target = e.target as Node | null;
               const current = e.currentTarget as HTMLElement | null;
-              // Only invoke the handler when the event target is inside the row element.
               if (!target || !current || !current.contains(target)) return;
               onRowMouseclick(row);
             }}
