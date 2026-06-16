@@ -17,7 +17,7 @@ async function getHandler() {
 
   const session = await getServerSession({ req: legacyReq });
   if (!session) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 409 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const preUserDate = performance.now();

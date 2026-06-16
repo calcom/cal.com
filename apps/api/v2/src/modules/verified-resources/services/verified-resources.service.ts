@@ -102,7 +102,7 @@ export class VerifiedResourcesService {
   }
 
   async getUserVerifiedPhoneNumber(userId: number, phoneNumber: string) {
-    return this.usersVerifiedResourcesRepository.getUserVerifiedEmail(userId, phoneNumber);
+    return this.usersVerifiedResourcesRepository.getUserVerifiedPhoneNumber(userId, phoneNumber);
   }
 
   async getTeamVerifiedPhoneNumber(userId: number, phoneNumber: string, teamId: number) {
