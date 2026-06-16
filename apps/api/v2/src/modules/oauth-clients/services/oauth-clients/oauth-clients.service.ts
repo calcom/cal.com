@@ -5,13 +5,15 @@ import { CreateOAuthClientInput, UpdateOAuthClientInput } from "@calcom/platform
 import { OAuthClientRepository } from "../../oauth-client.repository";
 import { OAuthClientsInputService } from "./oauth-clients-input.service";
 import { OAuthClientsOutputService } from "./oauth-clients-output.service";
+import { OAuthAuthorizationRepository } from "@/modules/oauth-clients/oauth-authorization.repository";
 
 @Injectable()
 export class OAuthClientsService {
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,
     private readonly oauthClientsInputService: OAuthClientsInputService,
-    private readonly oauthClientsOutputService: OAuthClientsOutputService
+    private readonly oauthClientsOutputService: OAuthClientsOutputService,
+    private readonly oAuthAuthorizationRepository: OAuthAuthorizationRepository
   ) {}
 
   async createOAuthClient(organizationId: number, input: CreateOAuthClientInput) {
@@ -49,5 +51,18 @@ export class OAuthClientsService {
   async deleteOAuthClient(clientId: string) {
     const client = await this.oauthClientRepository.deleteOAuthClient(clientId);
     return this.oauthClientsOutputService.transformOAuthClient(client);
+  }
+
+  async getOAuthClientAuthorizedUsers(clientId: string) {
+    const authorizations = await this.oAuthAuthorizationRepository.getAuthorizationsByClient(clientId);
+    return {
+      total: authorizations.length,
+      users: authorizations.map((a) => ({
+        name: a.user.name,
+        email: a.user.email,
+        authorizedAt: a.createdAt,
+        lastRefreshedAt: a.lastRefreshedAt,
+      })),
+    };
   }
 }

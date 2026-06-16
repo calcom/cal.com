@@ -51,8 +51,7 @@ export class OAuthClientsController {
   constructor(
     private readonly oAuthClientUsersOutputService: OAuthClientUsersOutputService,
     private readonly oAuthClientsService: OAuthClientsService,
-    private readonly userRepository: UsersRepository,
-    private readonly oAuthAuthorizationRepository: OAuthAuthorizationRepository
+    private readonly userRepository: UsersRepository
   ) {}
 
   @Post("/")
@@ -129,29 +128,21 @@ export class OAuthClientsController {
     };
   }
 
-  @Get("/:clientId/users")
-  @HttpCode(HttpStatus.OK)
-  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
-  @UseGuards(OAuthClientGuard)
-  @ApiExcludeEndpoint()
-  async getOAuthClientAuthorizedUsers(
-    @Param("clientId") clientId: string
-  ) {
-    const authorizations = await this.oAuthAuthorizationRepository.getAuthorizationsByClient(clientId);
+@Get("/:clientId/users")
+@HttpCode(HttpStatus.OK)
+@MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
+@UseGuards(OAuthClientGuard)
+@ApiExcludeEndpoint()
+async getOAuthClientAuthorizedUsers(
+  @Param("clientId") clientId: string
+) {
+  const data = await this.oAuthClientsService.getOAuthClientAuthorizedUsers(clientId);
 
-    return {
-      status: SUCCESS_STATUS,
-      data: {
-        total: authorizations.length,
-        users: authorizations.map((a) => ({
-          name: a.user.name,
-          email: a.user.email,
-          authorizedAt: a.createdAt,
-          lastRefreshedAt: a.lastRefreshedAt,
-        })),
-      },
-    };
-  }
+  return {
+    status: SUCCESS_STATUS,
+    data,
+  };
+}
 
   @Patch("/:clientId")
   @HttpCode(HttpStatus.OK)
