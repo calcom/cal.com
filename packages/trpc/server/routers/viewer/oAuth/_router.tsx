@@ -7,6 +7,7 @@ import { ZGetClientForAuthorizationInputSchema } from "./getClientForAuthorizati
 import { ZListClientsInputSchema } from "./listClients.schema";
 import { ZSubmitClientInputSchema, ZSubmitClientOutputSchema } from "./submitClientForReview.schema";
 import { ZUpdateClientInputSchema } from "./updateClient.schema";
+import { ZGetClientAuthorizedUsersInputSchema } from "./getClientAuthorizedUsers.schema";
 
 export const oAuthRouter = router({
   getClientForAuthorization: authedProcedure
@@ -65,6 +66,17 @@ export const oAuthRouter = router({
     return listUserClientsHandler({
       ctx,
     });
+  }),
+
+  getClientAuthorizedUsers: authedProcedure
+    .input(ZGetClientAuthorizedUsersInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getClientAuthorizedUsersHandler } = await import("./getClientAuthorizedUsers.handler");
+
+      return getClientAuthorizedUsersHandler({
+        ctx,
+        input,
+      });
   }),
 
   updateClient: authedProcedure.input(ZUpdateClientInputSchema).mutation(async ({ ctx, input }) => {
