@@ -4,6 +4,10 @@
   "version": "1.5.3",
   "description": "Embed Cal Link as a React Component",
   "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://github.com/calcom/cal.diy/tree/main/packages/embeds/embed-react#readme",
+  "bugs": {
+    "url": "https://github.com/calcom/cal.diy/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/calcom/cal.diy",
