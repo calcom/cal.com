@@ -16,7 +16,11 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
+import type {
+  ZohoAuthCredentials,
+  FreeBusy,
+  ZohoCalendarListResp,
+} from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 class ZohoCalendarService implements Calendar {
@@ -49,12 +53,15 @@ class ZohoCalendarService implements Calendar {
 
         const query = stringify(params);
 
-        const res = await fetch(`https://accounts.zoho.${server_location}/oauth/v2/token?${query}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-          },
-        });
+        const res = await fetch(
+          `https://accounts.zoho.${server_location}/oauth/v2/token?${query}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json; charset=utf-8",
+            },
+          }
+        );
 
         const token = await res.json();
 
@@ -82,39 +89,54 @@ class ZohoCalendarService implements Calendar {
 
     return {
       getToken: async () => {
-        const isExpired = () => new Date(zohoCredentials.expires_in * 1000).getTime() <= new Date().getTime();
-        return !isExpired() ? Promise.resolve(zohoCredentials) : refreshAccessToken();
+        const isExpired = () =>
+          new Date(zohoCredentials.expires_in * 1000).getTime() <=
+          new Date().getTime();
+        return !isExpired()
+          ? Promise.resolve(zohoCredentials)
+          : refreshAccessToken();
       },
     };
   };
 
-  private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
+  private fetcher = async (
+    endpoint: string,
+    init?: RequestInit | undefined
+  ) => {
     const credentials = await this.auth.getToken();
-    return fetch(`https://calendar.zoho.${credentials.server_location}/api/v1${endpoint}`, {
-      method: "GET",
-      ...init,
-      headers: {
-        Authorization: `Bearer ${credentials.access_token}`,
-        "Content-Type": "application/json",
-        ...init?.headers,
-      },
-    });
+    return fetch(
+      `https://calendar.zoho.${credentials.server_location}/api/v1${endpoint}`,
+      {
+        method: "GET",
+        ...init,
+        headers: {
+          Authorization: `Bearer ${credentials.access_token}`,
+          "Content-Type": "application/json",
+          ...init?.headers,
+        },
+      }
+    );
   };
 
   private getUserInfo = async () => {
     const credentials = await this.auth.getToken();
-    const response = await fetch(`https://accounts.zoho.${credentials.server_location}/oauth/user/info`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${credentials.access_token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `https://accounts.zoho.${credentials.server_location}/oauth/user/info`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${credentials.access_token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     return this.handleData(response, this.log);
   };
 
-  async createEvent(event: CalendarServiceEvent): Promise<NewCalendarEventType> {
+  async createEvent(
+    event: CalendarServiceEvent
+  ): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
     const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
@@ -128,9 +150,12 @@ class ZohoCalendarService implements Calendar {
         eventdata: JSON.stringify(this.translateEvent(event)),
       });
 
-      const eventResponse = await this.fetcher(`/calendars/${calendarId}/events?${query}`, {
-        method: "POST",
-      });
+      const eventResponse = await this.fetcher(
+        `/calendars/${calendarId}/events?${query}&sendnotification=0`,
+        {
+          method: "POST",
+        }
+      );
       eventRespData = await this.handleData(eventResponse, this.log);
       eventId = eventRespData.events[0].uid as string;
     } catch (error) {
@@ -160,19 +185,29 @@ class ZohoCalendarService implements Calendar {
    * @param event
    * @returns
    */
-  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId?: string) {
+  async updateEvent(
+    uid: string,
+    event: CalendarServiceEvent,
+    externalCalendarId?: string
+  ) {
     const eventId = uid;
     let eventRespData;
     const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
-    const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
+    const calendarId =
+      externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in updateEvent");
       throw new Error("no calendar id provided in updateEvent");
     }
     try {
       // needed to fetch etag
-      const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
-      const existingEventData = await this.handleData(existingEventResponse, this.log);
+      const existingEventResponse = await this.fetcher(
+        `/calendars/${calendarId}/events/${uid}`
+      );
+      const existingEventData = await this.handleData(
+        existingEventResponse,
+        this.log
+      );
 
       const query = stringify({
         eventdata: JSON.stringify({
@@ -181,9 +216,12 @@ class ZohoCalendarService implements Calendar {
         }),
       });
 
-      const eventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}?${query}`, {
-        method: "PUT",
-      });
+      const eventResponse = await this.fetcher(
+        `/calendars/${calendarId}/events/${uid}?${query}&sendnotification=0`,
+        {
+          method: "PUT",
+        }
+      );
       eventRespData = await this.handleData(eventResponse, this.log);
     } catch (error) {
       this.log.error(error);
@@ -212,24 +250,37 @@ class ZohoCalendarService implements Calendar {
    * @param event
    * @returns
    */
-  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
+  async deleteEvent(
+    uid: string,
+    event: CalendarEvent,
+    externalCalendarId?: string
+  ) {
     const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
-    const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
+    const calendarId =
+      externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in deleteEvent");
       throw new Error("no calendar id provided in deleteEvent");
     }
     try {
       // needed to fetch etag
-      const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
-      const existingEventData = await this.handleData(existingEventResponse, this.log);
+      const existingEventResponse = await this.fetcher(
+        `/calendars/${calendarId}/events/${uid}`
+      );
+      const existingEventData = await this.handleData(
+        existingEventResponse,
+        this.log
+      );
 
-      const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}`, {
-        method: "DELETE",
-        headers: {
-          etag: existingEventData.events[0].etag,
-        },
-      });
+      const response = await this.fetcher(
+        `/calendars/${calendarId}/events/${uid}?sendnotification=0`,
+        {
+          method: "DELETE",
+          headers: {
+            etag: existingEventData.events[0].etag,
+          },
+        }
+      );
       await this.handleData(response, this.log);
     } catch (error) {
       this.log.error(error);
@@ -241,11 +292,17 @@ class ZohoCalendarService implements Calendar {
     const dateOnlyFormat = "YYYYMMDD";
     const dateTimeFormat = "YYYYMMDD[T]HHmmss[Z]";
     // Check if the string matches the date-only format (YYYYMMDDZ) or date-time format
-    const format = /^\d{8}Z$/.test(dateTimeStr) ? dateOnlyFormat : dateTimeFormat;
+    const format = /^\d{8}Z$/.test(dateTimeStr)
+      ? dateOnlyFormat
+      : dateTimeFormat;
     return dayjs.utc(dateTimeStr, format);
   };
 
-  private async getBusyData(dateFrom: string, dateTo: string, userEmail: string) {
+  private async getBusyData(
+    dateFrom: string,
+    dateTo: string,
+    userEmail: string
+  ) {
     const query = stringify({
       sdate: dateFrom,
       edate: dateTo,
@@ -282,7 +339,9 @@ class ZohoCalendarService implements Calendar {
     this.log.debug("getUnavailability query", query);
     try {
       // List all events within the range
-      const response = await this.fetcher(`/calendars/${calendarId}/events?${query}`);
+      const response = await this.fetcher(
+        `/calendars/${calendarId}/events?${query}`
+      );
       const data = await this.handleData(response, this.log);
 
       // Check for no data scenario
@@ -292,8 +351,12 @@ class ZohoCalendarService implements Calendar {
         data.events
           .filter((event: any) => event.isprivate === false)
           .map((event: any) => {
-            const start = dayjs(event.dateandtime.start, "YYYYMMDD[T]HHmmssZ").utc().toISOString();
-            const end = dayjs(event.dateandtime.end, "YYYYMMDD[T]HHmmssZ").utc().toISOString();
+            const start = dayjs(event.dateandtime.start, "YYYYMMDD[T]HHmmssZ")
+              .utc()
+              .toISOString();
+            const end = dayjs(event.dateandtime.end, "YYYYMMDD[T]HHmmssZ")
+              .utc()
+              .toISOString();
             return { start, end };
           }) || []
       );
@@ -303,7 +366,9 @@ class ZohoCalendarService implements Calendar {
     }
   }
 
-  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+  async getAvailability(
+    params: GetAvailabilityParams
+  ): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
@@ -403,7 +468,10 @@ class ZohoCalendarService implements Calendar {
   async listCalendars(): Promise<IntegrationCalendar[]> {
     try {
       const resp = await this.fetcher(`/calendars`);
-      const data = (await this.handleData(resp, this.log)) as ZohoCalendarListResp;
+      const data = (await this.handleData(
+        resp,
+        this.log
+      )) as ZohoCalendarListResp;
       const userInfo = await this.getUserInfo();
       const result = data.calendars
         .filter((cal) => {
@@ -429,7 +497,10 @@ class ZohoCalendarService implements Calendar {
 
       // No primary calendar found, get primary calendar directly
       const respPrimary = await this.fetcher(`/calendars?category=own`);
-      const dataPrimary = (await this.handleData(respPrimary, this.log)) as ZohoCalendarListResp;
+      const dataPrimary = (await this.handleData(
+        respPrimary,
+        this.log
+      )) as ZohoCalendarListResp;
       return dataPrimary.calendars.map((cal) => {
         const calendar: IntegrationCalendar = {
           externalId: cal.uid ?? "No Id",
@@ -441,7 +512,10 @@ class ZohoCalendarService implements Calendar {
         return calendar;
       });
     } catch (err) {
-      this.log.error("There was an error contacting zoho calendar service: ", err);
+      this.log.error(
+        "There was an error contacting zoho calendar service: ",
+        err
+      );
       throw err;
     }
   }
@@ -470,9 +544,9 @@ class ZohoCalendarService implements Calendar {
       reminders: [
         {
           minutes: "-15",
-            action: "popup",
-          },
-        ],
+          action: "popup",
+        },
+      ],
       location: event.location
         ? getLocation({
             videoCallData: event.videoCallData,
@@ -492,6 +566,8 @@ class ZohoCalendarService implements Calendar {
  * This is exported instead of the class to prevent internal types
  * from leaking into the emitted .d.ts file.
  */
-export default function BuildCalendarService(credential: CredentialPayload): Calendar {
+export default function BuildCalendarService(
+  credential: CredentialPayload
+): Calendar {
   return new ZohoCalendarService(credential);
 }
