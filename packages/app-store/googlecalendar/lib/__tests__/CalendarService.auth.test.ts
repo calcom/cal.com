@@ -328,5 +328,6 @@ describe("GoogleCalendarService retry configuration", () => {
     expect(retryConfig?.httpMethodsToRetry).toContain("PATCH");
     expect(retryConfig?.httpMethodsToRetry).not.toContain("POST");
     expect(retryConfig?.statusCodesToRetry).toContainEqual([403, 403]);
+    expect(retryConfig?.statusCodesToRetry).toContainEqual([408, 408]);
   });
 });

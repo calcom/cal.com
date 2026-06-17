@@ -33,12 +33,14 @@ const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/Calenda
 // (https://developers.google.com/workspace/calendar/api/guides/errors). A transient 403 on that PATCH
 // was therefore never retried, silently desyncing the calendar event from the booking. PATCH is
 // idempotent so retrying it is safe; POST/insert is intentionally left out to avoid duplicate events.
+// 408 (request timeout) is also included as a transient, retryable status alongside gaxios's defaults.
 const GOOGLE_CALENDAR_RETRY_CONFIG = {
   retry: 3,
   httpMethodsToRetry: ["GET", "HEAD", "PUT", "OPTIONS", "DELETE", "PATCH"],
   statusCodesToRetry: [
     [100, 199],
     [403, 403],
+    [408, 408],
     [429, 429],
     [500, 599],
   ],
