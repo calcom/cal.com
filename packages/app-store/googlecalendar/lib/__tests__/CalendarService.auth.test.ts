@@ -193,9 +193,11 @@ describe("GoogleCalendarService credential handling", () => {
 
       expectOAuth2InstanceToBeCreated();
 
-      expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith({
-        auth: getLastCreatedOAuth2Client(),
-      });
+      expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: getLastCreatedOAuth2Client(),
+        })
+      );
       await expectCredentialsInDb([
         expect.objectContaining({
           id: regularCredential.id,
@@ -308,5 +310,23 @@ describe("GoogleCalendarService credential handling", () => {
       await calendarService.listCalendars();
       expectOAuth2InstanceToBeCreated();
     });
+  });
+});
+
+describe("GoogleCalendarService retry configuration", () => {
+  test("retries PATCH requests and 403 rate-limit errors, but not POST", async () => {
+    const regularCredential = await createCredentialForCalendarService();
+    mockSuccessfulCalendarListFetch();
+    const calendarService = BuildCalendarService(regularCredential);
+    await calendarService.listCalendars();
+
+    const lastCall = calendarMock.calendar_v3.Calendar.mock.calls.at(-1);
+    const retryConfig = lastCall?.[0]?.retryConfig;
+    expect(retryConfig).toBeDefined();
+
+    // PATCH (idempotent) and 403 rate-limit errors are retried; POST/insert is not (avoids duplicate events)
+    expect(retryConfig?.httpMethodsToRetry).toContain("PATCH");
+    expect(retryConfig?.httpMethodsToRetry).not.toContain("POST");
+    expect(retryConfig?.statusCodesToRetry).toContainEqual([403, 403]);
   });
 });

@@ -27,6 +27,23 @@ import { getGoogleAppKeys } from "./getGoogleAppKeys";
 type DelegatedTo = NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]>;
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarAuth"] });
 
+// gaxios (the HTTP client behind googleapis) does not retry PATCH or HTTP 403 by default. Creating a
+// Google Calendar event does an insert (POST) followed by a PATCH to add description/location/
+// conferenceData, and Google returns 403 for rateLimitExceeded
+// (https://developers.google.com/workspace/calendar/api/guides/errors). A transient 403 on that PATCH
+// was therefore never retried, silently desyncing the calendar event from the booking. PATCH is
+// idempotent so retrying it is safe; POST/insert is intentionally left out to avoid duplicate events.
+const GOOGLE_CALENDAR_RETRY_CONFIG = {
+  retry: 3,
+  httpMethodsToRetry: ["GET", "HEAD", "PUT", "OPTIONS", "DELETE", "PATCH"],
+  statusCodesToRetry: [
+    [100, 199],
+    [403, 403],
+    [429, 429],
+    [500, 599],
+  ],
+};
+
 class MyGoogleOAuth2Client extends OAuth2Client {
   constructor(client_id: string, client_secret: string, redirect_uri: string) {
     super({
@@ -303,6 +320,7 @@ export class CalendarAuth {
 
     return new calendar_v3.Calendar({
       auth: googleAuthClient,
+      retryConfig: GOOGLE_CALENDAR_RETRY_CONFIG,
     });
   }
 }
