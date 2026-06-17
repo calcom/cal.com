@@ -151,7 +151,7 @@ class ZohoCalendarService implements Calendar {
       });
 
       const eventResponse = await this.fetcher(
-        `/calendars/${calendarId}/events?${query}&sendnotification=0`,
+        `/calendars/${calendarId}/events?${query}&notify_attendee=0`,
         {
           method: "POST",
         }
@@ -217,7 +217,7 @@ class ZohoCalendarService implements Calendar {
       });
 
       const eventResponse = await this.fetcher(
-        `/calendars/${calendarId}/events/${uid}?${query}&sendnotification=0`,
+        `/calendars/${calendarId}/events/${uid}?${query}&notify_attendee=0`,
         {
           method: "PUT",
         }
@@ -273,7 +273,7 @@ class ZohoCalendarService implements Calendar {
       );
 
       const response = await this.fetcher(
-        `/calendars/${calendarId}/events/${uid}?sendnotification=0`,
+        `/calendars/${calendarId}/events/${uid}?notify_attendee=0`,
         {
           method: "DELETE",
           headers: {
