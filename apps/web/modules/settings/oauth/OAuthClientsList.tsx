@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
-import { ChevronRightIcon, KeyIcon, UsersIcon } from "@coss/ui/icons";
+import { ChevronRightIcon, KeyIcon, UsersIcon, SettingsIcon } from "@coss/ui/icons";
 
 import type { OAuthClientDetails } from "./view/OAuthClientDetailsDialog";
 
@@ -95,7 +95,7 @@ export const OAuthClientsList = ({
             e.stopPropagation();
             onSelectClient(client);
           }}>
-          <ChevronRightIcon className="text-subtle h-4 w-4" />
+          <SettingsIcon className="text-subtle h-4 w-4" />
           {t("settings")}
         </button>
       </div>

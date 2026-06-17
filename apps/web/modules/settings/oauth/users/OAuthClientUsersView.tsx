@@ -27,10 +27,10 @@ const OAuthClientUsersView = () => {
     borderInShellHeader={true}
     CTA={
         <Button
-        color="secondary"
-        StartIcon={ArrowLeftIcon}
-        onClick={() => router.push("/settings/developer/oauth")}>
-        {t("back")}
+          color="secondary"
+          StartIcon="arrow-left"
+          onClick={() => router.push("/settings/developer/oauth")}>
+          {t("back")}
         </Button>
     }>
       <div>
