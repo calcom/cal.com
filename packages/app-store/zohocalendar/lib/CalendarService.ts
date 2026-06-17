@@ -223,11 +223,19 @@ class ZohoCalendarService implements Calendar {
       // needed to fetch etag
       const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
       const existingEventData = await this.handleData(existingEventResponse, this.log);
+      const etag = existingEventData.events[0].etag;
 
-      const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}`, {
+      const query = stringify({
+        eventdata: JSON.stringify({
+          uid,
+          notify_attendee: 0,
+        }),
+      });
+
+      const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}?${query}`, {
         method: "DELETE",
         headers: {
-          etag: existingEventData.events[0].etag,
+          etag,
         },
       });
       await this.handleData(response, this.log);
@@ -470,9 +478,10 @@ class ZohoCalendarService implements Calendar {
       reminders: [
         {
           minutes: "-15",
-            action: "popup",
-          },
-        ],
+          action: "popup",
+        },
+      ],
+      notify_attendee: 0,
       location: event.location
         ? getLocation({
             videoCallData: event.videoCallData,
