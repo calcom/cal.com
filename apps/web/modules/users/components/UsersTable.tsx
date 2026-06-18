@@ -109,16 +109,22 @@ export function UsersTable() {
   }, [fetchMoreOnBottomReached]);
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       <TextField
         placeholder="username or email"
         label={t("search")}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
+      <p className="text-subtle text-sm">
+        {isFetching && totalFetched === 0
+          ? t("loading")
+          : `${t("showing_x_of_y", { x: totalFetched, y: totalRowCount })}`}
+      </p>
+
       <div
         className="border-subtle rounded-md border"
         ref={tableContainerRef}
-        onScroll={() => fetchMoreOnBottomReached()}
+        onScroll={() => fetchMoreOnBottomReached(tableContainerRef.current)}
         style={{
           height: "calc(100vh - 30vh)",
           overflow: "auto",
