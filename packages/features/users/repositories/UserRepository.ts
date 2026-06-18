@@ -1587,4 +1587,79 @@ export class UserRepository {
       select: { id: true },
     });
   }
+  async listUsers({
+    searchTerm,
+    cursor,
+    limit,
+  }: {
+    searchTerm?: string | null;
+    cursor: number | null | undefined;
+    limit?: number | null;
+  }) {
+    const bothLockedAndUnlockedWhere: Prisma.UserWhereInput = {
+      OR: [{ locked: false }, { locked: true }],
+    };
+    const trimmedSearchTerm = searchTerm?.trim();
+    const searchFilters: Prisma.UserWhereInput = trimmedSearchTerm
+      ? {
+        AND: [
+          // To bypass the excludeLockedUsersExtension
+          bothLockedAndUnlockedWhere,
+          {
+            OR: [
+              { email: { contains: trimmedSearchTerm, mode: "insensitive" } },
+              { username: { contains: trimmedSearchTerm, mode: "insensitive" } },
+              {
+                profiles: {
+                  some: {
+                    username: { contains: trimmedSearchTerm, mode: "insensitive" },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      }
+      // To bypass the excludeLockedUsersExtension
+      : bothLockedAndUnlockedWhere;
+
+    const hasLimit = limit !== undefined && limit !== null;
+    const take = hasLimit ? limit + 1 : undefined; // +1 lets us detect "has more" for the cursor
+
+    const users = await this.prismaClient.user.findMany({
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      ...(take !== undefined ? { take } : {}),
+      where: searchFilters,
+      orderBy: {
+        id: "asc",
+      },
+      select: {
+        id: true,
+        locked: true,
+        email: true,
+        username: true,
+        name: true,
+        timeZone: true,
+        role: true,
+        profiles: {
+          select: {
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (!hasLimit) {
+      return { users, nextCursor: undefined, total: users.length };
+    }
+
+    const total = await this.prismaClient.user.count({
+      where: searchFilters,
+    });
+    const hasMore = users.length > limit;
+    const items = hasMore ? users.slice(0, limit) : users;
+    const nextCursor = hasMore ? items[items.length - 1].id : undefined;
+    return { users: items, nextCursor, total };
+  }
 }
