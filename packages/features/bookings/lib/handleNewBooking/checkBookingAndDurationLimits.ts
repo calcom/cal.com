@@ -3,7 +3,6 @@ import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/ch
 import { checkDurationLimits } from "@calcom/features/bookings/lib/checkDurationLimits";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 
 type EventType = Pick<NewBookingEventType, "bookingLimits" | "durationLimits" | "id" | "schedule">;
@@ -11,6 +10,14 @@ type EventType = Pick<NewBookingEventType, "bookingLimits" | "durationLimits" | 
 type InputProps = {
   eventType: EventType;
   reqBodyStart: string;
+  reqBodyRescheduleUid?: string;
+  // Skip the booking-limit check (e.g. already validated up front for a whole recurring series).
+  skipBookingLimits?: boolean;
+};
+
+type RecurringInputProps = {
+  eventType: Pick<EventType, "bookingLimits" | "id" | "schedule">;
+  reqBodyStarts: string[];
   reqBodyRescheduleUid?: string;
 };
 
@@ -26,13 +33,15 @@ export class CheckBookingAndDurationLimitsService {
     "checkBookingAndDurationLimits"
   );
 
-  async _checkBookingAndDurationLimits({ eventType, reqBodyStart, reqBodyRescheduleUid }: InputProps) {
-    if (
-      Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
-      Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
-    ) {
+  async _checkBookingAndDurationLimits({
+    eventType,
+    reqBodyStart,
+    reqBodyRescheduleUid,
+    skipBookingLimits = false,
+  }: InputProps) {
+    if (Object.hasOwn(eventType, "bookingLimits") || Object.hasOwn(eventType, "durationLimits")) {
       const startAsDate = dayjs(reqBodyStart).toDate();
-      if (eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
+      if (!skipBookingLimits && eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
         await this.dependencies.checkBookingLimitsService.checkBookingLimits(
           eventType.bookingLimits as IntervalLimit,
           startAsDate,
@@ -50,5 +59,26 @@ export class CheckBookingAndDurationLimitsService {
         );
       }
     }
+  }
+
+  checkRecurringBookingLimits = withReporting(
+    this._checkRecurringBookingLimits.bind(this),
+    "checkRecurringBookingLimits"
+  );
+
+  async _checkRecurringBookingLimits({
+    eventType,
+    reqBodyStarts,
+    reqBodyRescheduleUid,
+  }: RecurringInputProps) {
+    if (!eventType.bookingLimits || Object.keys(eventType.bookingLimits).length === 0) return;
+
+    await this.dependencies.checkBookingLimitsService.checkBookingLimitsForRecurringBooking(
+      eventType.bookingLimits as IntervalLimit,
+      reqBodyStarts.map((start) => dayjs(start).toDate()),
+      eventType.id,
+      reqBodyRescheduleUid,
+      eventType.schedule?.timeZone
+    );
   }
 }

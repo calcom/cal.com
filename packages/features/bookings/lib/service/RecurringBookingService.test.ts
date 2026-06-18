@@ -19,7 +19,7 @@ import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenari
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { v4 as uuidv4 } from "uuid";
-import { describe, expect } from "vitest";
+import { beforeEach, describe, expect, vi } from "vitest";
 
 import { getRecurringBookingService } from "@calcom/features/bookings/di/RecurringBookingService.container";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -254,6 +254,93 @@ describe("handleNewRecurringBooking", () => {
         timeout
       );
     });
+  });
+
+  describe("Booking limits:", () => {
+    beforeEach(() => {
+      // Anchor to the 1st so the recurring occurrences below stay within the same month.
+      vi.setSystemTime(new Date("2024-08-01T00:00:00.000Z"));
+    });
+
+    test(
+      `rejects a recurring request when its occurrences exceed the event type booking limit,
+        and does not persist any of them (all-or-nothing)`,
+      async ({}) => {
+        const booker = getBooker({ email: "booker@example.com", name: "Booker" });
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+        });
+
+        const numOfSlotsToBeBooked = 3;
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                recurringEvent: getRecurrence({ type: "weekly", numberOfOccurrences: numOfSlotsToBeBooked }),
+                bookingLimits: { PER_MONTH: 2 },
+                // Unconfirmed bookings are created as PENDING; the per-period count ignores them,
+                // which is exactly how a recurring request could previously bypass the limit.
+                requiresConfirmation: true,
+                users: [{ id: 101 }],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["daily-video"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: { id: "MOCK_ID", password: "MOCK_PASS", url: "http://mock.example.com/m" },
+        });
+        await mockCalendarToHaveNoBusySlots("googlecalendar", {});
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            start: `2024-08-05T04:00:00.000Z`,
+            end: `2024-08-05T04:30:00.000Z`,
+            recurringEventId: uuidv4(),
+            recurringCount: numOfSlotsToBeBooked,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:daily" },
+            },
+          },
+        });
+
+        // All three occurrences fall in August, exceeding the PER_MONTH limit of 2.
+        const bookingDataArray = Array(numOfSlotsToBeBooked)
+          .fill(mockBookingData)
+          .map((data, index) => ({
+            ...data,
+            start: getPlusDayDate(data.start, index).toISOString(),
+            end: getPlusDayDate(data.end, index).toISOString(),
+          }));
+
+        const recurringBookingService = getRecurringBookingService();
+
+        await expect(
+          recurringBookingService.createBooking({
+            bookingData: bookingDataArray,
+            bookingMeta: { userId: -1 },
+            creationSource: "WEBAPP",
+          })
+        ).rejects.toThrowError("booking_limit_reached");
+
+        const { default: prisma } = await import("@calcom/prisma");
+        const bookingCount = await prisma.booking.count({ where: { eventTypeId: 1 } });
+        expect(bookingCount).toBe(0);
+      },
+      timeout
+    );
   });
 
   function getRecurrence({
