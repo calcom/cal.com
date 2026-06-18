@@ -72,11 +72,26 @@ jobs:
             if (latestRun.status === 'in_progress' || latestRun.status === 'queued') {
               console.log(`Workflow is running (status: ${latestRun.status}). Cancelling it first...`);
 
-              await github.rest.actions.cancelWorkflowRun({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                run_id: latestRun.id,
-              });
+              const cancelMaxRetries = 10;
+              const cancelRetryDelay = 3000;
+              for (let attempt = 1; attempt <= cancelMaxRetries; attempt++) {
+                try {
+                  await github.rest.actions.cancelWorkflowRun({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    run_id: latestRun.id,
+                  });
+                  console.log(`Cancel request accepted on attempt ${attempt}`);
+                  break;
+                } catch (err) {
+                  if (err.status === 409 && attempt < cancelMaxRetries) {
+                    console.log(`Cancel attempt ${attempt} got 409 (not yet cancellable), retrying in ${cancelRetryDelay / 1000}s...`);
+                    await new Promise(resolve => setTimeout(resolve, cancelRetryDelay));
+                  } else {
+                    throw err;
+                  }
+                }
+              }
 
               // Wait for the workflow to be cancelled (poll with timeout)
               const maxWaitTime = 60000; // 60 seconds
