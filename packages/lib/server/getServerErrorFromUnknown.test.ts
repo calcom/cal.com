@@ -179,10 +179,10 @@ describe("ZodError handling", () => {
 
 describe("Prisma error handling", () => {
   test("should handle Prisma P2025 error (record not found)", () => {
-    const prismaError = new Error("Record to delete does not exist.") as any;
-    prismaError.code = "P2025";
-    prismaError.clientVersion = "5.0.0";
-    Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
+    const prismaError = new Prisma.PrismaClientKnownRequestError("Record to delete does not exist.", {
+      code: "P2025",
+      clientVersion: "5.0.0",
+    });
 
     const result = getServerErrorFromUnknown(prismaError);
 
@@ -192,10 +192,13 @@ describe("Prisma error handling", () => {
   });
 
   test("should handle Prisma P2002 error (unique constraint violation) as 409", () => {
-    const prismaError = new Error('Unique constraint failed on the fields: ("idempotencyKey")') as any;
-    prismaError.code = "P2002";
-    prismaError.clientVersion = "5.0.0";
-    Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
+    const prismaError = new Prisma.PrismaClientKnownRequestError(
+      'Unique constraint failed on the fields: ("idempotencyKey")',
+      {
+        code: "P2002",
+        clientVersion: "5.0.0",
+      }
+    );
 
     const result = getServerErrorFromUnknown(prismaError);
 
@@ -205,10 +208,10 @@ describe("Prisma error handling", () => {
   });
 
   test("should handle other Prisma errors as 400", () => {
-    const prismaError = new Error("Foreign key constraint failed") as any;
-    prismaError.code = "P2003";
-    prismaError.clientVersion = "5.0.0";
-    Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
+    const prismaError = new Prisma.PrismaClientKnownRequestError("Foreign key constraint failed", {
+      code: "P2003",
+      clientVersion: "5.0.0",
+    });
 
     const result = getServerErrorFromUnknown(prismaError);
 
