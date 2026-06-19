@@ -47,7 +47,10 @@ const useDescription = (noFutureAvailability: boolean, p: PeriodData) => {
         date: dayjs.utc(p.periodStartDate).format("MMMM D YYYY"),
       });
     }
-    return t("no_availability_range", { date: dayjs.utc(p.periodEndDate).format("MMMM D YYYY") });
+    if (p.periodEndDate) {
+      return t("no_availability_range", { date: dayjs.utc(p.periodEndDate).format("MMMM D YYYY") });
+    }
+    return "";
   }
 
   return "";
