@@ -608,11 +608,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       break;
     }
   }
-  console.log("multiplePrivateLinks", multiplePrivateLinks);
   // Handle multiple private links using the service
   const privateLinksRepo = HashedLinkRepository.create();
   const connectedLinks = await privateLinksRepo.findLinksByEventTypeId(input.id);
-  console.log("connectedLinks", connectedLinks);
   const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
 
   const privateLinksService = new HashedLinkService();
@@ -724,9 +722,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
+  const updatedValues = Object.entries(data).reduce<Record<string, unknown>>((acc, [key, value]) => {
     if (value !== undefined) {
-      // @ts-expect-error Element implicitly has any type
       acc[key] = value;
     }
     return acc;
