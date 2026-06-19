@@ -3,6 +3,7 @@ import { AuthMethods } from "@/lib/enums/auth-methods";
 import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
+import { isJwtIssuedBeforePasswordChange } from "@/modules/auth/strategies/is-jwt-issued-before-password-change";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
@@ -151,7 +152,10 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     }
   }
 
-  async authenticateNextAuth(token: { email?: string | null }, request: ApiAuthGuardRequest) {
+  async authenticateNextAuth(
+    token: { email?: string | null; iat?: number | null; error?: unknown; sub?: string | null },
+    request: ApiAuthGuardRequest
+  ) {
     const user = await this.nextAuthStrategy(token, request);
     return this.success(this.getSuccessUser(user));
   }
@@ -298,10 +302,21 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     return user;
   }
 
-  async nextAuthStrategy(token: { email?: string | null }, request: ApiAuthGuardRequest) {
+  async nextAuthStrategy(
+    token: { email?: string | null; iat?: number | null; error?: unknown; sub?: string | null },
+    request: ApiAuthGuardRequest
+  ) {
     if (!token.email) {
       throw new UnauthorizedException(
         "ApiAuthStrategy - next auth - Email not found in the authentication token."
+      );
+    }
+
+    // Sticky revocation flag set by the NextAuth jwt callback; survives `iat` rotation
+    // on session refresh, so check it before the raw-iat check below.
+    if (token.error === "SessionInvalidated") {
+      throw new UnauthorizedException(
+        "ApiAuthStrategy - next auth - Session was invalidated. Please sign in again."
       );
     }
 
@@ -311,6 +326,22 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
         "ApiAuthStrategy - next auth - User associated with the authentication token email not found."
       );
     }
+
+    // Defense in depth: the token subject (stable user id) must match the user resolved by
+    // the token's (mutable) email, so a stale email later reused by another account cannot
+    // authenticate as — or be revocation-checked against — the wrong user.
+    if (token.sub && Number(token.sub) !== user.id) {
+      throw new UnauthorizedException(
+        "ApiAuthStrategy - next auth - Token subject does not match the resolved user."
+      );
+    }
+
+    if (isJwtIssuedBeforePasswordChange(token.iat, user.passwordChangedAt)) {
+      throw new UnauthorizedException(
+        "ApiAuthStrategy - next auth - Session was invalidated by a password change. Please sign in again."
+      );
+    }
+
     const organizationId = this.usersService.getUserMainOrgId(user) as number;
     request.organizationId = organizationId;
 

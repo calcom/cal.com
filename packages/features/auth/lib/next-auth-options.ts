@@ -12,6 +12,7 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { isJwtIssuedBeforePasswordChange } from "@calcom/lib/auth/isJwtIssuedBeforePasswordChange";
 import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
@@ -428,6 +429,33 @@ export const getOptions = ({
       account,
     }) {
       log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
+
+      // Password-change session revocation, enforced once here for every refresh/update
+      // of an existing session, BEFORE NextAuth re-encodes the token (encode rotates the
+      // token's `iat` forward, so the raw-iat checks on getToken-based paths can only
+      // rely on this flag once that happens). Keyed by the stable user id (token.sub),
+      // not the mutable email, so a token with a stale email is still revoked. The flag
+      // is sticky: once set it short-circuits all later refreshes. Fresh sign-in calls
+      // have no token.iat yet, so they skip this and are unaffected.
+      if (token.error === "SessionInvalidated") {
+        return token;
+      }
+      if (token.sub && token.iat) {
+        const revocationUserId = Number(token.sub);
+        if (!Number.isNaN(revocationUserId) && revocationUserId > 0) {
+          const userForRevocationCheck = await prisma.user.findUnique({
+            where: { id: revocationUserId },
+            select: { passwordChangedAt: true },
+          });
+          if (
+            userForRevocationCheck &&
+            isJwtIssuedBeforePasswordChange(token.iat, userForRevocationCheck.passwordChangedAt)
+          ) {
+            return { ...token, error: "SessionInvalidated" } as JWT;
+          }
+        }
+      }
+
       // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
         return {
@@ -441,10 +469,6 @@ export const getOptions = ({
         } as JWT;
       }
       const autoMergeIdentities = async () => {
-        // Session was explicitly invalidated (e.g. password changed). Skip DB lookup
-        // and propagate the error flag so the session callback can surface it to the client.
-        if (token.error === "SessionInvalidated") return token;
-
         const existingUser = await prisma.user.findFirst({
           where: { email: token.email! },
           select: {
@@ -455,7 +479,6 @@ export const getOptions = ({
             email: true,
             role: true,
             locale: true,
-            passwordChangedAt: true,
             movedToProfileId: true,
             teams: {
               include: {
@@ -472,16 +495,6 @@ export const getOptions = ({
 
         if (!existingUser) {
           return token;
-        }
-
-        if (existingUser.passwordChangedAt && token.iat) {
-          const changedAtSeconds = Math.floor(existingUser.passwordChangedAt.getTime() / 1000);
-          if (token.iat <= changedAtSeconds) {
-            // Mark the token as invalidated. The early-exit at the top of autoMergeIdentities
-            // prevents any further DB lookups on subsequent JWT refreshes, and the session
-            // callback propagates the error to the client so it can redirect to sign-in.
-            return { ...token, error: "SessionInvalidated" } as JWT;
-          }
         }
 
         // Check if the existingUser has any active teams

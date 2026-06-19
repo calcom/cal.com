@@ -75,6 +75,10 @@ async function handler(req: NextRequest) {
             update: { hash: hashedPassword },
           },
         },
+        // Revoke existing JWT sessions issued before this reset (account recovery
+        // should not leave a stolen pre-reset token valid). See next-auth-options
+        // and getServerSession for how passwordChangedAt invalidates old tokens.
+        passwordChangedAt: new Date(),
         emailVerified: new Date(),
         identityProvider: IdentityProvider.CAL,
         identityProviderId: null,

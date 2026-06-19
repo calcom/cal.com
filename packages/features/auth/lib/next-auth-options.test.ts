@@ -109,6 +109,7 @@ const mockUpdateProfilePhotoGoogle = vi.fn();
 const mockGetIdentityProvider = vi.fn();
 const mockWaitUntil = vi.fn();
 const mockPrismaUserFindFirst = vi.fn();
+const mockPrismaUserFindUnique = vi.fn();
 const mockPrismaUserCreate = vi.fn();
 const mockPrismaUserUpdate = vi.fn();
 const mockPrismaTeamFindFirst = vi.fn();
@@ -1285,5 +1286,125 @@ describe("Azure AD JWT callback", () => {
         })
       );
     });
+  });
+});
+
+describe("JWT callback password-change session revocation", () => {
+  let jwtCallback: NonNullable<
+    ReturnType<typeof import("./next-auth-options").getOptions>["callbacks"]
+  >["jwt"];
+
+  const iat = 1_700_000_000;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    const prismaModule = await import("@calcom/prisma");
+    const prismaDefault = (prismaModule as any).default;
+    prismaDefault.user = {
+      ...prismaDefault.user,
+      findFirst: mockPrismaUserFindFirst,
+      findUnique: mockPrismaUserFindUnique,
+    };
+
+    const authModule = await import("./next-auth-options");
+    const options = authModule.getOptions({
+      getDubId: () => undefined,
+      getTrackingData: () => ({}) as any,
+    });
+    jwtCallback = options.callbacks!.jwt! as any;
+  });
+
+  it("flags the token as SessionInvalidated when iat predates passwordChangedAt (keyed by user id)", async () => {
+    mockPrismaUserFindUnique.mockResolvedValue({ passwordChangedAt: new Date((iat + 60) * 1000) });
+
+    const result = await jwtCallback({
+      token: { sub: "1", email: "user@example.com", iat } as any,
+      account: { type: "email", provider: "email" },
+      trigger: undefined,
+      session: undefined,
+      user: undefined,
+    } as any);
+
+    expect((result as any).error).toBe("SessionInvalidated");
+    expect(mockPrismaUserFindUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 1 } })
+    );
+  });
+
+  it("revokes on the trigger==='update' path when iat predates passwordChangedAt", async () => {
+    mockPrismaUserFindUnique.mockResolvedValue({ passwordChangedAt: new Date((iat + 60) * 1000) });
+
+    const result = await jwtCallback({
+      token: { sub: "1", email: "user@example.com", iat } as any,
+      trigger: "update",
+      session: {},
+    } as any);
+
+    expect((result as any).error).toBe("SessionInvalidated");
+  });
+
+  it("revokes a token with a stale email (lookup is keyed by user id, not email)", async () => {
+    mockPrismaUserFindUnique.mockResolvedValue({ passwordChangedAt: new Date((iat + 60) * 1000) });
+
+    const result = await jwtCallback({
+      token: { sub: "1", email: "old-email@example.com", iat } as any,
+      trigger: "update",
+      session: {},
+    } as any);
+
+    expect((result as any).error).toBe("SessionInvalidated");
+  });
+
+  it("keeps an already-invalidated token revoked without a DB lookup (sticky flag)", async () => {
+    const result = await jwtCallback({
+      token: { sub: "1", email: "user@example.com", iat, error: "SessionInvalidated" } as any,
+      trigger: "update",
+      session: {},
+    } as any);
+
+    expect((result as any).error).toBe("SessionInvalidated");
+    expect(mockPrismaUserFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("does not revoke on update when the user never changed their password", async () => {
+    mockPrismaUserFindUnique.mockResolvedValue({ passwordChangedAt: null });
+
+    const result = await jwtCallback({
+      token: { sub: "1", email: "user@example.com", iat } as any,
+      trigger: "update",
+      session: { locale: "en" },
+    } as any);
+
+    expect((result as any).error).toBeUndefined();
+  });
+
+  it("does not revoke a freshly issued token whose iat is after the password change", async () => {
+    mockPrismaUserFindUnique.mockResolvedValue({ passwordChangedAt: new Date((iat - 60) * 1000) });
+
+    const result = await jwtCallback({
+      token: { sub: "1", email: "user@example.com", iat } as any,
+      trigger: "update",
+      session: {},
+    } as any);
+
+    expect((result as any).error).toBeUndefined();
+  });
+
+  it("skips the revocation guard for a fresh sign-in token that has no iat yet", async () => {
+    // On first sign-in NextAuth has not minted iat yet (it is set at encode, after this
+    // callback), so the guard must skip and never block the sign-in.
+    mockPrismaUserFindUnique.mockResolvedValue({ passwordChangedAt: new Date((iat + 60) * 1000) });
+    mockPrismaUserFindFirst.mockResolvedValue(null);
+
+    const result = await jwtCallback({
+      token: { sub: "1", email: "user@example.com" } as any,
+      account: { type: "email", provider: "email" },
+      user: { id: "1" } as any,
+      trigger: undefined,
+      session: undefined,
+    } as any);
+
+    expect((result as any).error).toBeUndefined();
+    expect(mockPrismaUserFindUnique).not.toHaveBeenCalled();
   });
 });
