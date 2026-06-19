@@ -93,8 +93,9 @@ describe("NoAvailabilityOverlay", () => {
   test("Displays range not-started description when period type is RANGE and the booking window opens after the next month", () => {
     // Booking window opens 2 months out, so browsing the current month is before the window starts.
     // The dialog must say "Scheduling opens on ..." rather than the misleading "Scheduling ended on ...".
-    const startDate = dayjs().add(2, "month");
-    const endDate = dayjs().add(4, "month");
+    // Build the dates in UTC so the test matches the component's dayjs.utc formatting in any local timezone.
+    const startDate = dayjs.utc().add(2, "month").startOf("day");
+    const endDate = dayjs.utc().add(4, "month").startOf("day");
     render(
       <NoAvailabilityDialog
         {...defaultProps}
