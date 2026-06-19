@@ -1,42 +1,14 @@
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
-// TODO: use BookingRepository
 export const getBooking = async (bookingId: number) => {
-  const booking = await prisma.booking.findUniqueOrThrow({
-    where: {
-      id: bookingId,
-    },
-    select: {
-      ...bookingMinimalSelect,
-      uid: true,
-      location: true,
-      isRecorded: true,
-      eventTypeId: true,
-      eventType: {
-        select: {
-          teamId: true,
-          parentId: true,
-          canSendCalVideoTranscriptionEmails: true,
-          customReplyToEmail: true,
-        },
-      },
-      user: {
-        select: {
-          id: true,
-          timeZone: true,
-          email: true,
-          name: true,
-          locale: true,
-          destinationCalendar: true,
-        },
-      },
-    },
-  });
+  const bookingRepository = new BookingRepository(prisma);
+  const booking = await bookingRepository.findByIdWithUserAndEventType(bookingId);
 
   if (!booking) {
     log.error(
