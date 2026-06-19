@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CalendarsService } from "@/platform/calendars/services/calendars.service";
 import { CalendarsCacheService } from "@/platform/calendars/services/calendars-cache.service";
 import {
@@ -58,8 +58,13 @@ export class SelectedCalendarsService {
           throw new NotFoundException(NO_SELECTED_CALENDAR_FOUND);
         } else if (error.message === MULTIPLE_SELECTED_CALENDARS_FOUND) {
           throw new BadRequestException(MULTIPLE_SELECTED_CALENDARS_FOUND);
+        } else {
+          throw new InternalServerErrorException(error.message);
         }
       }
+      throw new InternalServerErrorException(
+        "An unexpected error occurred while deleting the selected calendar"
+      );
     }
   }
 }
