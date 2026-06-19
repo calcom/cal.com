@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import dayjs from "@calcom/dayjs";
-
-import { parseBookingTime } from "./page";
+import { parseBookingTime } from "./parseBookingTime";
 
 describe("parseBookingTime", () => {
   it("returns null for null input", () => {

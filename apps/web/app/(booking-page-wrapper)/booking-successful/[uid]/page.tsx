@@ -2,20 +2,11 @@
 
 import { useParams } from "next/navigation";
 
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { DecoyBookingSuccessCard } from "~/bookings/components/DecoyBookingSuccessCard";
 import { useDecoyBooking } from "~/bookings/hooks/useDecoyBooking";
 
-export function parseBookingTime(time: string | Date | null | undefined): Dayjs | null {
-  if (!time) return null;
-
-  if (typeof time === "string" && time.endsWith("Z")) {
-    return dayjs.utc(time);
-  }
-
-  return dayjs(time);
-}
+import { parseBookingTime } from "./parseBookingTime";
 
 export default function BookingSuccessful() {
   const params = useParams();
