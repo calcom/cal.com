@@ -632,7 +632,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     eventTypes: user.eventTypes,
     self,
     apiLogin: async (navigateToUrl?: string, password?: string) =>
-      apiLogin({ ...(await self()), password: password || user.username }, store.page, navigateToUrl),
+      apiLogin({ ...(await self()), password: password ?? `${user.username!.charAt(0).toUpperCase()}${user.username!.slice(1)}1` }, store.page, navigateToUrl),
     /** Don't forget to close context at the end */
     apiLoginOnNewBrowser: async (browser: Browser, password?: string) => {
       const newContext = await browser.newContext();
@@ -826,13 +826,15 @@ const createUser = (
       : `${opts?.username || "user"}${suffixToMakeUsernameUnique}`;
 
   const emailDomain = opts?.emailDomain || "example.com";
+  const defaultPassword = opts?.password ?? `${uname.charAt(0).toUpperCase()}${uname.slice(1)}1`;
+
   return {
     username: uname,
     name: opts?.name,
     email: opts?.email ?? `${uname}@${emailDomain}`,
     password: {
       create: {
-        hash: hashPassword(opts?.password ?? `${uname.charAt(0).toUpperCase()}${uname.slice(1)}1`),
+        hash: hashPassword(defaultPassword),
       },
     },
     emailVerified: new Date(),
