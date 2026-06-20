@@ -83,7 +83,7 @@ export const VerifyCodeDialog = ({
   useEffect(() => setValue(""), [isOpenDialog]);
 
   const digitClassName =
-    "h-10 w-8 sm:h-12 sm:w-12 text-center text-base sm:text-xl! text-emphasis caret-emphasis [-webkit-text-fill-color:currentColor] px-0! sm:px-3!";
+    "h-12 w-12 max-[350px]:h-10 max-[350px]:w-8 text-center text-xl! max-[350px]:text-base text-emphasis caret-emphasis [-webkit-text-fill-color:currentColor] max-[350px]:px-0!";
 
   return (
     <Dialog
