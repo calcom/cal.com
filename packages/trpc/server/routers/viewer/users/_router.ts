@@ -62,6 +62,21 @@ export const userAdminRouter = router({
   }),
   add: authedAdminProcedure.input(userBodySchema).mutation(async ({ ctx, input }) => {
     const { prisma } = ctx;
+    // Check for duplicate email or username before creating
+    const existingByEmail = await prisma.user.findUnique({ where: { email: input.email } });
+    if (existingByEmail) {
+      throw new TRPCError({
+        code: 'CONFLICT',
+        message: 'A user with this email address already exists.',
+      });
+    }
+    const existingByUsername = await prisma.user.findUnique({ where: { username: input.username } });
+    if (existingByUsername) {
+      throw new TRPCError({
+        code: 'CONFLICT',
+        message: 'A user with this username already exists.',
+      });
+    }
     const user = await prisma.user.create({ data: { ...input, creationSource: CreationSource.WEBAPP } });
     return { user, message: `User with id: ${user.id} added successfully` };
   }),
