@@ -29,7 +29,6 @@ import {
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
-
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
 import {
@@ -472,6 +471,37 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (teamId && hosts) {
+    // Ensure all hosts have a userId (fallback to 0 if only email is present)
+    hosts.forEach((host) => {
+      if (!host.userId && host.email) {
+        host.userId = 0;
+      }
+    });
+
+    // Validate that if both userId and email are provided, they match the actual user's email
+    const hostUserIds = hosts.map((h) => h.userId).filter((id): id is number => !!id && id > 0);
+
+    if (hostUserIds.length > 0) {
+      const usersForHosts = await ctx.prisma.user.findMany({
+        where: { id: { in: hostUserIds } },
+        select: { id: true, email: true },
+      });
+
+      const userEmailsMap = new Map(usersForHosts.map((u) => [u.id, u.email.toLowerCase()]));
+
+      hosts.forEach((host) => {
+        if (host.userId && host.userId > 0 && host.email) {
+          const actualEmail = userEmailsMap.get(host.userId);
+          if (actualEmail && actualEmail !== host.email.toLowerCase()) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Mismatched userId and email",
+            });
+          }
+        }
+      });
+    }
+
     const invites = hosts.filter((host) => host.userId === 0 && host.email);
 
     if (invites.length > 0) {
@@ -506,6 +536,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       }
     }
 
+    // Narrow type: only keep hosts that have a resolved userId (number).
+    // Any host that still has no userId after invite resolution is dropped.
+    const resolvedHosts = hosts.filter(
+      (host): host is typeof host & { userId: number } => typeof host.userId === "number"
+    );
+
     // check if all hosts can be assigned (memberships that have accepted invite)
     // We allow pending members too since we might have just invited them
     const teamMembers = await ctx.prisma.membership.findMany({
@@ -517,17 +553,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // guard against missing IDs, this may mean a member has just been removed
     // or this request was forged.
     // we let this pass through on organization sub-teams
-    if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+    if (!resolvedHosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
       throw new TRPCError({
         code: "FORBIDDEN",
       });
     }
 
     const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
-    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
+    const newHostsSet = new Set(resolvedHosts.map((host) => host.userId));
 
-    const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
-    const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
+    const existingHosts = resolvedHosts.filter((host) => oldHostsSet.has(host.userId));
+    const newHosts = resolvedHosts.filter((host) => !oldHostsSet.has(host.userId));
     const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
 
     data.hosts = {
@@ -537,17 +573,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           eventTypeId: id,
         })),
       },
-      create: newHosts.map((host) => {
-        return {
-          // Explicitly map allowed fields, ignoring 'email' or other unexpected properties
-          userId: host.userId,
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-          scheduleId: host.scheduleId,
-          groupId: host.groupId,
-        };
-      }),
+      create: newHosts.map((host) => ({
+        // Explicitly map allowed fields, ignoring 'email' or other unexpected properties
+        userId: host.userId,
+        isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+        priority: host.priority ?? 2,
+        weight: host.weight ?? 100,
+        scheduleId: host.scheduleId,
+        groupId: host.groupId,
+      })),
       update: existingHosts.map((host) => ({
         where: {
           userId_eventTypeId: {
@@ -616,11 +650,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       break;
     }
   }
-  console.log("multiplePrivateLinks", multiplePrivateLinks);
   // Handle multiple private links using the service
   const privateLinksRepo = HashedLinkRepository.create();
   const connectedLinks = await privateLinksRepo.findLinksByEventTypeId(input.id);
-  console.log("connectedLinks", connectedLinks);
   const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
 
   const privateLinksService = new HashedLinkService();

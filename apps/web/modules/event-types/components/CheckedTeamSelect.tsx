@@ -12,9 +12,8 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
-import type { Options, Props } from "react-select";
+import { components, type Options, type Props } from "react-select";
 import CreatableSelect from "react-select/creatable";
-
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
 
@@ -90,16 +89,30 @@ export const CheckedTeamSelect = ({
   };
 
   const reactSelectProps = getReactSelectProps({
-    components: props.components || {},
+    components: {
+      Option: (optionProps) => (
+        <components.Option {...optionProps}>
+          <span data-testid={`select-option-${optionProps.data.value}`}>{optionProps.children}</span>
+        </components.Option>
+      ),
+      ...props.components,
+    },
     menuPlacement: props.menuPlacement || "auto",
   });
 
   const handleCreateOption = (inputValue: string) => {
-    const newEmails = inputValue
-      .split(",")
-      .map((e) => e.trim())
-      .filter((e) => isValidEmail(e));
-    const newOptions: CheckedSelectOption[] = newEmails.map((email) => ({
+    const newEmails = Array.from(
+      new Set(
+        inputValue
+          .split(",")
+          .map((e) => e.trim())
+          .filter((e) => isValidEmail(e))
+      )
+    );
+    const existingEmails = new Set(valueFromGroup.map((item) => item.value.toLowerCase()));
+    const uniqueNewEmails = newEmails.filter((email) => !existingEmails.has(email.toLowerCase()));
+
+    const newOptions: CheckedSelectOption[] = uniqueNewEmails.map((email) => ({
       label: email,
       value: email,
       avatar: "",
@@ -125,14 +138,14 @@ export const CheckedTeamSelect = ({
         onCreateOption={handleCreateOption}
         isMulti
         classNames={{
-          input: () => classNames("text-emphasis", customClassNames?.hostsSelect?.input),
+          input: () => classNames("text-emphasis", customClassNames?.hostsSelect?.innerClassNames?.input),
           option: (state) =>
             classNames(
               "bg-default flex cursor-pointer justify-between py-2 px-3 rounded-md text-default items-center",
               state.isFocused && "bg-subtle",
               state.isDisabled && "bg-cal-muted",
               state.isSelected && "bg-emphasis text-default",
-              customClassNames?.hostsSelect?.option
+              customClassNames?.hostsSelect?.innerClassNames?.option
             ),
           placeholder: (state) => classNames("text-muted", state.isFocused && "hidden"),
           dropdownIndicator: () => classNames("text-default", "w-4 h-4", "flex items-center justify-center "),
@@ -143,14 +156,17 @@ export const CheckedTeamSelect = ({
               state.isDisabled && "bg-subtle !cursor-not-allowed !pointer-events-auto hover:border-subtle",
               "rounded-[10px]",
               "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused focus-within:ring-0 flex! **:[input]:leading-none text-sm",
-              customClassNames?.hostsSelect?.control
+              customClassNames?.hostsSelect?.innerClassNames?.control
             ),
           singleValue: () =>
-            classNames("text-default placeholder:text-muted", customClassNames?.hostsSelect?.singleValue),
+            classNames(
+              "text-default placeholder:text-muted",
+              customClassNames?.hostsSelect?.innerClassNames?.singleValue
+            ),
           valueContainer: () =>
             classNames(
               "text-default placeholder:text-muted flex gap-1",
-              customClassNames?.hostsSelect?.valueContainer
+              customClassNames?.hostsSelect?.innerClassNames?.valueContainer
             ),
           multiValue: () =>
             classNames(
@@ -160,13 +176,13 @@ export const CheckedTeamSelect = ({
           menu: () =>
             classNames(
               "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
-              customClassNames?.hostsSelect?.menu
+              customClassNames?.hostsSelect?.innerClassNames?.menu
             ),
           groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ml-1",
           menuList: () =>
             classNames(
               "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-1",
-              customClassNames?.hostsSelect?.menuList
+              customClassNames?.hostsSelect?.innerClassNames?.menuList
             ),
           indicatorsContainer: (state) =>
             classNames(
@@ -199,80 +215,75 @@ export const CheckedTeamSelect = ({
         )}
         ref={animationRef}>
         {valueFromGroup.map((option, index) => (
-          <>
-            <li
-              key={option.value}
+          <li
+            key={option.value}
+            className={classNames(
+              `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
+              customClassNames?.selectedHostList?.listItem?.container
+            )}>
+            {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
+            {isPlatform && (
+              <Icon
+                name="user"
+                className={classNames("mt-0.5 h-4 w-4", customClassNames?.selectedHostList?.listItem?.avatar)}
+              />
+            )}
+            <p
               className={classNames(
-                `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
-                customClassNames?.selectedHostList?.listItem?.container
+                "text-emphasis my-auto ms-3 text-sm",
+                customClassNames?.selectedHostList?.listItem?.name
               )}>
-              {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
-              {isPlatform && (
-                <Icon
-                  name="user"
-                  className={classNames(
-                    "mt-0.5 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.avatar
+              {option.label}
+            </p>
+            <div className="ml-auto flex items-center">
+              {option && !option.isFixed ? (
+                <>
+                  <Tooltip content={t("change_priority")}>
+                    <Button
+                      color="minimal"
+                      onClick={() => {
+                        setPriorityDialogOpen(true);
+                        setCurrentOption(option);
+                      }}
+                      className={classNames(
+                        "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                        getPriorityTextAndColor(option.priority).color,
+                        customClassNames?.selectedHostList?.listItem?.changePriorityButton
+                      )}>
+                      {t(getPriorityTextAndColor(option.priority).text)}
+                    </Button>
+                  </Tooltip>
+                  {isRRWeightsEnabled ? (
+                    <Button
+                      color="minimal"
+                      className={classNames(
+                        "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
+                        customClassNames?.selectedHostList?.listItem?.changeWeightButton
+                      )}
+                      onClick={() => {
+                        setWeightDialogOpen(true);
+                        setCurrentOption(option);
+                      }}>
+                      {option.weight ?? 100}%
+                    </Button>
+                  ) : (
+                    <></>
                   )}
-                />
+                </>
+              ) : (
+                <></>
               )}
-              <p
-                className={classNames(
-                  "text-emphasis my-auto ms-3 text-sm",
-                  customClassNames?.selectedHostList?.listItem?.name
-                )}>
-                {option.label}
-              </p>
-              <div className="ml-auto flex items-center">
-                {option && !option.isFixed ? (
-                  <>
-                    <Tooltip content={t("change_priority")}>
-                      <Button
-                        color="minimal"
-                        onClick={() => {
-                          setPriorityDialogOpen(true);
-                          setCurrentOption(option);
-                        }}
-                        className={classNames(
-                          "mr-6 h-2 p-0 text-sm hover:bg-transparent",
-                          getPriorityTextAndColor(option.priority).color,
-                          customClassNames?.selectedHostList?.listItem?.changePriorityButton
-                        )}>
-                        {t(getPriorityTextAndColor(option.priority).text)}
-                      </Button>
-                    </Tooltip>
-                    {isRRWeightsEnabled ? (
-                      <Button
-                        color="minimal"
-                        className={classNames(
-                          "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
-                          customClassNames?.selectedHostList?.listItem?.changeWeightButton
-                        )}
-                        onClick={() => {
-                          setWeightDialogOpen(true);
-                          setCurrentOption(option);
-                        }}>
-                        {option.weight ?? 100}%
-                      </Button>
-                    ) : (
-                      <></>
-                    )}
-                  </>
-                ) : (
-                  <></>
-                )}
 
-                <Icon
-                  name="x"
-                  onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-                  className={classNames(
-                    "my-auto ml-2 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.removeButton
-                  )}
-                />
-              </div>
-            </li>
-          </>
+              <Icon
+                name="x"
+                onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
+                className={classNames(
+                  "my-auto ml-2 h-4 w-4",
+                  customClassNames?.selectedHostList?.listItem?.removeButton
+                )}
+              />
+            </div>
+          </li>
         ))}
       </ul>
       {currentOption && !currentOption.isFixed ? (

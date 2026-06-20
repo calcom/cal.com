@@ -14,7 +14,6 @@ import { type ComponentProps, type Dispatch, type SetStateAction, useMemo } from
 import { Controller, useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
 import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper";
-
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
 import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
 import CheckedTeamSelect from "./CheckedTeamSelect";
@@ -79,8 +78,8 @@ const CheckedHostField = ({
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
           isOptionDisabled={(option) => {
-            const userId = parseInt(option.value, 10);
-            if (Number.isNaN(userId)) {
+            const isEmail = option.value.includes("@") || !/^\d+$/.test(option.value);
+            if (isEmail) {
               // It's an email, check if it's already in value (hosts)
               return !!value.find((host) => host.email === option.value);
             }
@@ -89,8 +88,8 @@ const CheckedHostField = ({
           onChange={(options) => {
             onChange?.(
               options.map((option) => {
-                const userId = parseInt(option.value, 10);
-                const isEmail = Number.isNaN(userId);
+                const isEmail = option.value.includes("@") || !/^\d+$/.test(option.value);
+                const userId = isEmail ? 0 : parseInt(option.value, 10);
 
                 return {
                   isFixed,

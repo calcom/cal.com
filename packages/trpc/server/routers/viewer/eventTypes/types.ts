@@ -59,7 +59,7 @@ type CalVideoSettings = {
 } | null;
 
 type HostInput = {
-  userId: number;
+  userId?: number;
   email?: string;
   profileId?: number | null;
   isFixed?: boolean;
@@ -276,16 +276,20 @@ const calVideoSettingsSchema: z.ZodType<CalVideoSettings | undefined> = z
   .optional()
   .nullable();
 
-const hostSchema: z.ZodType<HostInput> = z.object({
-  userId: z.number(),
-  email: z.string().email().optional(),
-  profileId: z.number().or(z.null()).optional(),
-  isFixed: z.boolean().optional(),
-  priority: z.number().min(0).max(4).optional().nullable(),
-  weight: z.number().min(0).optional().nullable(),
-  scheduleId: z.number().optional().nullable(),
-  groupId: z.string().optional().nullable(),
-});
+const hostSchema: z.ZodType<HostInput> = z
+  .object({
+    userId: z.number().optional(),
+    email: z.string().email().optional(),
+    profileId: z.number().or(z.null()).optional(),
+    isFixed: z.boolean().optional(),
+    priority: z.number().min(0).max(4).optional().nullable(),
+    weight: z.number().min(0).optional().nullable(),
+    scheduleId: z.number().optional().nullable(),
+    groupId: z.string().optional().nullable(),
+  })
+  .refine((data) => data.userId !== undefined || data.email !== undefined, {
+    message: "Either userId or email must be provided",
+  });
 
 const hostGroupSchema: z.ZodType<HostGroupInput> = z.object({
   id: z.string().uuid(),

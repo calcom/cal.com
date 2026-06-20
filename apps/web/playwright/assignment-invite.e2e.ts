@@ -1,5 +1,5 @@
+import { randomString } from "@calcom/lib/random";
 import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 
 test.describe("Event Type Assignment - Invite Member", () => {
@@ -11,7 +11,7 @@ test.describe("Event Type Assignment - Invite Member", () => {
     const team = await prisma.team.create({
       data: {
         name: "Test Team",
-        slug: "test-team",
+        slug: `test-team-${randomString(5)}`,
         members: {
           create: {
             userId: owner.id,
@@ -26,13 +26,19 @@ test.describe("Event Type Assignment - Invite Member", () => {
     const eventType = await prisma.eventType.create({
       data: {
         title: "Test Event Type",
-        slug: "test-event-type",
+        slug: `test-event-type-${randomString(5)}`,
         length: 30,
         teamId: team.id,
         schedulingType: "ROUND_ROBIN",
         users: {
+          connect: {
+            id: owner.id,
+          },
+        },
+        hosts: {
           create: {
             userId: owner.id,
+            isFixed: false,
           },
         },
       },
@@ -43,6 +49,7 @@ test.describe("Event Type Assignment - Invite Member", () => {
 
     // 5. Navigate to the event type page
     await page.goto(`/event-types/${eventType.id}?tabName=hosts`);
+    await expect(page).toHaveURL(new RegExp(`/event-types/${eventType.id}`));
 
     // 6. Find the hosts select dropdown
     // We look for the combobox. In the assignment tab, it's usually the main interaction.
@@ -50,18 +57,17 @@ test.describe("Event Type Assignment - Invite Member", () => {
     await hostsSelect.click();
 
     // 7. Type a new email
-    const newEmail = "new-invitee@example.com";
+    const newEmail = `new-invitee-${randomString(5)}@example.com`;
     await hostsSelect.fill(newEmail);
 
     // 8. Wait for the "Invite <email>" option given by CreatableSelect and select it
-    // The text typically says "Invite new-invitee@example.com" or similar
-    await page.getByText(`Invite ${newEmail}`).click();
+    await page.getByTestId(`select-option-${newEmail}`).click();
 
     // 9. Save the event type
     await page.getByTestId("update-eventtype").click();
 
     // Wait for success toast
-    await expect(page.getByText("Event type updated successfully")).toBeVisible();
+    await expect(page.getByTestId("toast-success")).toBeVisible();
 
     // 10. Verify via DB
     // a) Check if the user was created/exists
