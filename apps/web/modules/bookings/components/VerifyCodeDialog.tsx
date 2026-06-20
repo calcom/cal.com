@@ -83,7 +83,7 @@ export const VerifyCodeDialog = ({
   useEffect(() => setValue(""), [isOpenDialog]);
 
   const digitClassName =
-    "h-12 w-12 text-center text-xl! text-emphasis caret-emphasis [-webkit-text-fill-color:currentColor]";
+    "h-10 w-8 sm:h-12 sm:w-12 text-center text-base sm:text-xl! text-emphasis caret-emphasis [-webkit-text-fill-color:currentColor] px-0! sm:px-3!";
 
   return (
     <Dialog
@@ -92,11 +92,10 @@ export const VerifyCodeDialog = ({
         resetErrors();
       }}>
       <DialogContent className="sm:max-w-md">
-        <div className="flex flex-row">
-          <div className="w-full">
-            <DialogHeader title={t("verify_your_email")} subtitle={t("enter_digit_code", { email })} />
-            <Label htmlFor="code">{t("code")}</Label>
-            <div className="flex flex-row justify-between">
+        <DialogHeader title={t("verify_your_email")} subtitle={t("enter_digit_code", { email })} />
+        <div className="mb-8 mt-2">
+          <Label htmlFor="code">{t("code")}</Label>
+            <div className="flex flex-row justify-between gap-1 sm:gap-2">
               <Input
                 className={digitClassName}
                 name="2fa1"
@@ -119,14 +118,13 @@ export const VerifyCodeDialog = ({
                 <p>{error}</p>
               </div>
             )}
-            <DialogFooter noSticky>
-              <DialogClose onClick={() => setIsOpenDialog(false)} />
-              <Button type="submit" onClick={verifyCode} loading={isPending}>
-                {t("submit")}
-              </Button>
-            </DialogFooter>
-          </div>
         </div>
+        <DialogFooter showDivider>
+          <DialogClose onClick={() => setIsOpenDialog(false)} />
+          <Button type="submit" onClick={verifyCode} loading={isPending}>
+            {t("submit")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

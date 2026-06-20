@@ -584,10 +584,10 @@ const BookerComponent = ({
       </>
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
-        visible={bookerState === "booking" && shouldShowFormInDialog}>
+        visible={bookerState === "booking" && shouldShowFormInDialog && !isEmailVerificationModalVisible}>
         {EventBooker}
       </BookFormAsModal>
-      <Dialog open={isMobile && isSlotSelectionModalVisible}>
+      <Dialog open={isMobile && isSlotSelectionModalVisible && !isEmailVerificationModalVisible}>
         <DialogContent
           type={undefined}
           enableOverflow
