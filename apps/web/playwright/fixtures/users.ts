@@ -644,11 +644,11 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     /**
      * @deprecated use apiLogin instead
      */
-    login: async () => login({ ...(await self()), password: user.username }, store.page),
-    loginOnNewBrowser: async (browser: Browser) => {
+    login: async (password?: string) => login({ ...(await self()), password: password ?? `${user.username!.charAt(0).toUpperCase()}${user.username!.slice(1)}1` }, store.page),
+    loginOnNewBrowser: async (browser: Browser, password?: string) => {
       const newContext = await browser.newContext();
       const newPage = await newContext.newPage();
-      await login({ ...(await self()), password: user.username }, newPage);
+      await login({ ...(await self()), password: password ?? `${user.username!.charAt(0).toUpperCase()}${user.username!.slice(1)}1` }, newPage);
       // Don't forget to: newContext.close();
       return [newContext, newPage] as const;
     },

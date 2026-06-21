@@ -16,7 +16,7 @@ test.describe("Change Password Test", () => {
     expect(pro.username).toBeTruthy();
 
     // Fill form
-    await page.locator('[name="oldPassword"]').fill(String(pro.username));
+    await page.locator('[name="oldPassword"]').fill(currentPassword);
 
     const $newPasswordField = page.locator('[name="newPassword"]');
     await $newPasswordField.fill(`${pro.username}Aa1111`);
