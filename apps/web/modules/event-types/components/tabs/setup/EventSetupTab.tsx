@@ -103,7 +103,11 @@ export const EventSetupTab = (
 
   const isManagedEventType = false;
   const isChildrenManagedEventType = false;
-  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
+  const shouldLockDisableProps = (_field: string) => ({
+    disabled: false,
+    LockedIcon: false as const,
+    isLocked: false,
+  });
   const shouldLockIndicator = (_field: string) => false;
 
   const lengthLockedProps = shouldLockDisableProps("length");
@@ -385,7 +389,7 @@ export const EventSetupTab = (
                 loadingClassName="w-16"
                 htmlFor="locations"
                 className={customClassNames?.locationSection?.label}>
-                {t("location")}
+                {t("location_and_conferencing")}
                 {/*improve shouldLockIndicator function to also accept eventType and then conditionally render
                 based on Managed Event type or not.*/}
                 {shouldLockIndicator("locations")}
