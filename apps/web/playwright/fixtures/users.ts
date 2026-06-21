@@ -637,7 +637,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     apiLoginOnNewBrowser: async (browser: Browser, password?: string) => {
       const newContext = await browser.newContext();
       const newPage = await newContext.newPage();
-      await apiLogin({ ...(await self()), password: password || user.username }, newPage);
+      await apiLogin({ ...(await self()), password: password ?? `${user.username!.charAt(0).toUpperCase()}${user.username!.slice(1)}1` }, newPage);
       // Don't forget to: newContext.close();
       return [newContext, newPage] as const;
     },
