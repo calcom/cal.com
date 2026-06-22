@@ -39,7 +39,10 @@ export class CheckBookingAndDurationLimitsService {
     reqBodyRescheduleUid,
     skipBookingLimits = false,
   }: InputProps) {
-    if (Object.hasOwn(eventType, "bookingLimits") || Object.hasOwn(eventType, "durationLimits")) {
+    if (
+      Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
+      Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
+    ) {
       const startAsDate = dayjs(reqBodyStart).toDate();
       if (!skipBookingLimits && eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
         await this.dependencies.checkBookingLimitsService.checkBookingLimits(
