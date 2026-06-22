@@ -1,4 +1,6 @@
 ---
+paths:
+  - "apps/api/**/*.controller.ts"
 title: Keep Controllers Thin - HTTP Concerns Only
 impact: HIGH
 impactDescription: Enables technology-agnostic business logic
