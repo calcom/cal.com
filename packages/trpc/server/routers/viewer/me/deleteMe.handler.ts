@@ -2,6 +2,7 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { deleteUser } from "@calcom/features/users/lib/deleteUser";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { deleteContactFromSendgrid } from "@calcom/lib/Sendgrid";
 import { HttpError } from "@calcom/lib/http-error";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import { prisma } from "@calcom/prisma";
@@ -83,5 +84,12 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
   }
 
   await deleteUser(user);
+
+  try {
+    await deleteContactFromSendgrid(user.email);
+  } catch (error) {
+    console.error(`Failed to delete SendGrid contact for user ${user.id}`, error);
+  }
+
   return;
 };
