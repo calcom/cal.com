@@ -632,23 +632,23 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     eventTypes: user.eventTypes,
     self,
     apiLogin: async (navigateToUrl?: string, password?: string) =>
-      apiLogin({ ...(await self()), password: password || user.username }, store.page, navigateToUrl),
+      apiLogin({ ...(await self()), password: password ?? `${user.username!.charAt(0).toUpperCase()}${user.username!.slice(1)}1` }, store.page, navigateToUrl),
     /** Don't forget to close context at the end */
     apiLoginOnNewBrowser: async (browser: Browser, password?: string) => {
       const newContext = await browser.newContext();
       const newPage = await newContext.newPage();
-      await apiLogin({ ...(await self()), password: password || user.username }, newPage);
+      await apiLogin({ ...(await self()), password: password ?? `${user.username!.charAt(0).toUpperCase()}${user.username!.slice(1)}1` }, newPage);
       // Don't forget to: newContext.close();
       return [newContext, newPage] as const;
     },
     /**
      * @deprecated use apiLogin instead
      */
-    login: async () => login({ ...(await self()), password: user.username }, store.page),
-    loginOnNewBrowser: async (browser: Browser) => {
+    login: async (password?: string) => login({ ...(await self()), password: password ?? `${user.username!.charAt(0).toUpperCase()}${user.username!.slice(1)}1` }, store.page),
+    loginOnNewBrowser: async (browser: Browser, password?: string) => {
       const newContext = await browser.newContext();
       const newPage = await newContext.newPage();
-      await login({ ...(await self()), password: user.username }, newPage);
+      await login({ ...(await self()), password: password ?? `${user.username!.charAt(0).toUpperCase()}${user.username!.slice(1)}1` }, newPage);
       // Don't forget to: newContext.close();
       return [newContext, newPage] as const;
     },
@@ -826,13 +826,15 @@ const createUser = (
       : `${opts?.username || "user"}${suffixToMakeUsernameUnique}`;
 
   const emailDomain = opts?.emailDomain || "example.com";
+  const defaultPassword = opts?.password ?? `${uname.charAt(0).toUpperCase()}${uname.slice(1)}1`;
+
   return {
     username: uname,
     name: opts?.name,
     email: opts?.email ?? `${uname}@${emailDomain}`,
     password: {
       create: {
-        hash: hashPassword(uname),
+        hash: hashPassword(defaultPassword),
       },
     },
     emailVerified: new Date(),

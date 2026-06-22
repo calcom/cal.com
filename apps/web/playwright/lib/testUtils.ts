@@ -637,3 +637,7 @@ export async function cancelBookingFromBookingsList({
     bookingUid,
   };
 }
+
+export function getDefaultPassword(username: string) {
+  return `${username.charAt(0).toUpperCase()}${username.slice(1)}1`;
+}
