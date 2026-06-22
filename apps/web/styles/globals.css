@@ -71,11 +71,11 @@ html.todesktop-platform-darwin.light main.bg-default {
 }
 
 html.todesktop.light {
-  --cal-bg-emphasis: hsla(0, 0%, 11%, 0.1);
+  --cal-bg-emphasis: hsla(120, 70%, 32%, 0.1);
 }
 
 html.todesktop.dark {
-  --cal-bg-emphasis: hsla(220, 2%, 26%, 0.3);
+  --cal-bg-emphasis: hsla(0, 81%, 29%, 0.3);
 }
 
 /*
