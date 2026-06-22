@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type IcsFeedCalendarApiMocks = {
   mockPrisma: {
@@ -73,6 +73,10 @@ describe("ics-feedcalendar add API", () => {
     });
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("persists skipWriting when the setup form requests a read-only feed", async () => {
     const { default: handler } = await import("../add");
     const req = {
@@ -133,6 +137,7 @@ describe("ics-feedcalendar add API", () => {
       urls: ["https://example.com/calendar.ics"],
       skipWriting: true,
     });
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
   it("persists skipWriting when explicitly requested as false", async () => {
@@ -158,6 +163,7 @@ describe("ics-feedcalendar add API", () => {
       urls: ["https://example.com/calendar.ics"],
       skipWriting: false,
     });
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
   it("rejects invalid urls payloads", async () => {
@@ -172,6 +178,28 @@ describe("ics-feedcalendar add API", () => {
       body: {
         urls: "https://example.com/calendar.ics",
         skipWriting: true,
+      },
+    } as Partial<NextApiRequest> as NextApiRequest;
+    const res = createRes();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mockPrisma.credential.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-boolean skipWriting payloads", async () => {
+    const { default: handler } = await import("../add");
+    const req = {
+      method: "POST",
+      session: {
+        user: {
+          id: 1,
+        },
+      },
+      body: {
+        urls: ["https://example.com/calendar.ics"],
+        skipWriting: "true",
       },
     } as Partial<NextApiRequest> as NextApiRequest;
     const res = createRes();
