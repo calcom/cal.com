@@ -352,8 +352,8 @@ const MinimumBookingNoticeInput = function MinimumBookingNoticeInput({
   }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
   return (
-    <div className="flex items-end justify-end">
-      <div className="w-1/2 md:w-full">
+    <div className="flex items-end justify-end w-full">
+      <div className="w-full">
         <InputField
           required
           disabled={passThroughProps.disabled}
