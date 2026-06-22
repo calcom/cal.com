@@ -35,5 +35,11 @@ export function errorFormatter({ shape, error }: ErrorFormatterOptions): ErrorSh
       },
     };
   }
-  return shape;
+  return {
+    ...shape,
+    data: {
+      ...shape.data,
+      fields: (error.cause as { fields?: string[] })?.fields,
+    },
+  };
 }
