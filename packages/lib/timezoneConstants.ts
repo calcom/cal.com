@@ -4,7 +4,9 @@
 // (e.g. inside the bundled `@calcom/atoms` package), `dayjs.tz` is undefined
 // and accessing `.guess()` crashes at module-eval time. `Intl.DateTimeFormat`
 // is what `dayjs.tz.guess()` wraps internally and has no plugin dependency.
-const guessedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+// `timeZone` is a string per ECMA-402, but can be undefined on non-conformant
+// engines; fall back so the `.indexOf` below never throws in those cases.
+const guessedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/London";
 
 export const IS_EUROPE = guessedTimezone.indexOf("Europe") !== -1;
 export const CURRENT_TIMEZONE = guessedTimezone !== "Etc/Unknown" ? guessedTimezone : "Europe/London";
