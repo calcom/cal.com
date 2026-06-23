@@ -122,6 +122,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
   });
 
   const formMethods = useForm<ChangePasswordSessionFormValues>({
+    mode: "onChange",
     defaultValues: {
       oldPassword: "",
       newPassword: "",
@@ -130,22 +131,6 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const handleSubmit = (values: ChangePasswordSessionFormValues) => {
     const { oldPassword, newPassword } = values;
-
-    if (!oldPassword.length) {
-      formMethods.setError(
-        "oldPassword",
-        { type: "required", message: t("error_required_field") },
-        { shouldFocus: true }
-      );
-    }
-
-    if (!newPassword.length) {
-      formMethods.setError(
-        "newPassword",
-        { type: "required", message: t("error_required_field") },
-        { shouldFocus: true }
-      );
-    }
 
     if (oldPassword && newPassword) {
       passwordMutation.mutate({ oldPassword, newPassword });
@@ -157,7 +142,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     value: mins,
   }));
 
-  const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
+  const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty || !formMethods.formState.isValid;
 
   const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
   const isUser = data?.user.role === "USER";
@@ -196,17 +181,23 @@ const PasswordView = ({ user }: PasswordViewProps) => {
             )}
             <div className="w-full sm:grid sm:grid-cols-2 sm:gap-x-6">
               <div>
-                <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
+                <PasswordField
+                  {...formMethods.register("oldPassword", {
+                    required: t("error_required_field"),
+                  })}
+                  label={t("old_password")}
+                />
               </div>
               <div>
                 <PasswordField
                   {...formMethods.register("newPassword", {
+                    required: t("error_required_field"),
                     minLength: {
                       message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
                       value: passwordMinLength,
                     },
                     pattern: {
-                      message: "Should contain a number, uppercase and lowercase letters",
+                      message: t("password_complexity_requirement"),
                       value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
                     },
                   })}

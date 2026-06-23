@@ -37379,10 +37379,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shell-quote@npm:^1.6.1, shell-quote@npm:^1.7.3, shell-quote@npm:^1.8.1":
-  version: 1.8.2
-  resolution: "shell-quote@npm:1.8.2"
-  checksum: 10/3ae4804fd80a12ba07650d0262804ae3b479a62a6b6971a6dc5fa12995507aa63d3de3e6a8b7a8d18f4ce6eb118b7d75db7fcb2c0acbf016f210f746b10cfe02
+"shell-quote@npm:1.8.4":
+  version: 1.8.4
+  resolution: "shell-quote@npm:1.8.4"
+  checksum: 10/a3e3796385f2cd5cf0b78207a4439f0c7395c0833fc75b2473084b5d298c109c5c0fa687fcd1c04e4b4484866e5bb8eaae7efae443b80fff71ea7e29baf11f0c
   languageName: node
   linkType: hard
 
