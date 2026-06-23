@@ -36,7 +36,15 @@ export const useOAuthFlow = ({
   useEffect(() => {
     const interceptorId =
       clientAccessToken && http.getAuthorizationHeader()
-        ? http.responseInterceptor.use(undefined, async (err: AxiosError) => {
+        ? http.responseInterceptor.use(undefined, async (err: AxiosError | undefined) => {
+            // Axios can invoke the rejection handler with a non-Axios or
+            // undefined value (e.g. a network failure, or an upstream
+            // interceptor rejecting with something other than an AxiosError).
+            // Dereferencing `err.config` then throws "undefined is not an
+            // object (evaluating 'e.config')", so bail out safely first.
+            if (!err) {
+              return Promise.reject(err);
+            }
             const originalRequest = err.config as AxiosRequestConfig;
             if (refreshUrl && err.response?.status === 498 && !isRefreshing) {
               setIsRefreshing(true);
