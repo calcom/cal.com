@@ -107,12 +107,12 @@ Here’s what you need to run Cal.diy.
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
- > **Windows users:** Replace the `packages/prisma/.env` symlink with a real copy to avoid a Prisma error (`unexpected character / in variable name`):
- >
- > ```sh
- > # Git Bash / WSL
- > rm packages/prisma/.env && cp .env packages/prisma/.env
- > ```
+> **Windows users:** Replace the `packages/prisma/.env` symlink with a real copy to avoid a Prisma error (`unexpected character / in variable name`):
+>
+> ```sh
+> # Git Bash / WSL
+> rm packages/prisma/.env && cp .env packages/prisma/.env
+> ```
 
 5. Set up Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
@@ -141,13 +141,13 @@ yarn dx
 
 **Default credentials created:**
 
-| Email | Password | Role |
-|-------|----------|------|
-| `free@example.com` | `free` | Free user |
-| `pro@example.com` | `pro` | Pro user |
-| `trial@example.com` | `trial` | Trial user |
-| `admin@example.com` | `ADMINadmin2022!` | Admin user |
-| `onboarding@example.com` | `onboarding` | Onboarding incomplete |
+| Email                    | Password          | Role                  |
+| ------------------------ | ----------------- | --------------------- |
+| `free@example.com`       | `free`            | Free user             |
+| `pro@example.com`        | `pro`             | Pro user              |
+| `trial@example.com`      | `trial`           | Trial user            |
+| `admin@example.com`      | `ADMINadmin2022!` | Admin user            |
+| `onboarding@example.com` | `onboarding`      | Onboarding incomplete |
 
 You can use any of these credentials to sign in at [http://localhost:3000](http://localhost:3000)
 
@@ -199,7 +199,6 @@ for Logger level to be set at info, for example.
 
    <details>
    <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick local DB</summary>
-
    1. [Download](https://www.postgresql.org/download/) and install PostgreSQL locally (if you don't have it already).
 
    2. Create your own local db by executing `createDB <DB name>`
