@@ -13,6 +13,7 @@ import {
   getDate,
   getMockBookingAttendee,
   mockCalendarToHaveNoBusySlots,
+  getStripeAppCredential,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/testing/lib/bookingScenario/createMockNextJsRequest";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
@@ -28,6 +29,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { getNewBookingHandler } from "../../handleNewBooking/test/getNewBookingHandler";
+import * as handlePaymentModule from "../../handlePayment";
 import * as handleSeatsModule from "../handleSeats";
 
 describe("handleSeats", () => {
@@ -387,6 +389,117 @@ describe("handleSeats", () => {
 
   describe("As an attendee", () => {
     describe("Creating a new booking", () => {
+      test("subsequent seat on a paid event passes bookingFields to handlePayment (so add-ons are charged)", async () => {
+        const handleNewBooking = getNewBookingHandler();
+        // Mock the payment service-facing call so we can assert the args createNewSeat passes to it.
+        const handlePaymentSpy = vi
+          .spyOn(handlePaymentModule, "handlePayment")
+          .mockResolvedValue({ uid: "MOCK_PAYMENT_UID", id: 1 } as never);
+
+        const booker = getBooker({ email: "seat2@example.com", name: "Seat 2" });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
+        });
+
+        const bookingId = 1;
+        const bookingUid = "paid-seated-abc";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const bookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const bookingEndTime = `${plus1DateString}T04:30:00Z`;
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slug: "paid-seated-event",
+                slotInterval: 30,
+                length: 30,
+                users: [{ id: 101 }],
+                seatsPerTimeSlot: 3,
+                seatsShowAttendees: false,
+                metadata: {
+                  apps: {
+                    stripe: { price: 100, enabled: true, currency: "usd" },
+                  },
+                },
+              },
+            ],
+            bookings: [
+              {
+                id: bookingId,
+                uid: bookingUid,
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                startTime: bookingStartTime,
+                endTime: bookingEndTime,
+                metadata: {
+                  videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                },
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                    credentialId: null,
+                  },
+                ],
+                attendees: [
+                  getMockBookingAttendee({
+                    id: 1,
+                    name: "Seat 1",
+                    email: "seat1@test.com",
+                    locale: "en",
+                    timeZone: "America/Toronto",
+                    bookingSeat: { referenceUid: "booking-seat-1", data: {} },
+                  }),
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["stripe-payment"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: { id: "MOCK_ID", password: "MOCK_PASS", url: "http://mock-dailyvideo.example.com/meeting-1" },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            bookingUid: bookingUid,
+            user: "seatedAttendee",
+          },
+        });
+
+        await handleNewBooking({ bookingData: mockBookingData });
+
+        // Regression: createNewSeat previously omitted `bookingFields` (and `locale`), so handlePayment
+        // skipped the priced-booking-field add-on loop and undercharged every seat after the first.
+        expect(handlePaymentSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            bookingFields: expect.any(Array),
+            locale: expect.any(String),
+          })
+        );
+
+        handlePaymentSpy.mockRestore();
+      });
+
       test("Attendee should be added to existing seated event", async () => {
         const handleNewBooking = getNewBookingHandler();
 
