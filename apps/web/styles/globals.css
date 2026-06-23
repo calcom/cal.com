@@ -63,7 +63,7 @@ html.todesktop-platform-darwin aside {
 }
 
 html.todesktop-platform-darwin.dark main.bg-default {
-  background: rgba(0, 0, 0, 0.6) !important;
+  background: rgba(196, 42, 42, 0.6) !important;
 }
 
 html.todesktop-platform-darwin.light main.bg-default {
@@ -75,7 +75,7 @@ html.todesktop.light {
 }
 
 html.todesktop.dark {
-  --cal-bg-emphasis: hsla(220, 2%, 26%, 0.3);
+  --cal-bg-emphasis: hsla(319, 73%, 52%, 0.3);
 }
 
 /*
