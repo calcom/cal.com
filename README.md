@@ -106,13 +106,14 @@ Here’s what you need to run Cal.diy.
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+   - Note: `NODE_ENV` and `REDIS_URL` are required for local development and are pre-configured in the provided `.env.example`.
 
- > **Windows users:** Replace the `packages/prisma/.env` symlink with a real copy to avoid a Prisma error (`unexpected character / in variable name`):
- >
- > ```sh
- > # Git Bash / WSL
- > rm packages/prisma/.env && cp .env packages/prisma/.env
- > ```
+> **Windows users:** Replace the `packages/prisma/.env` symlink with a real copy to avoid a Prisma error (`unexpected character / in variable name`):
+>
+> ```sh
+> # Git Bash / WSL
+> rm packages/prisma/.env && cp .env packages/prisma/.env
+> ```
 
 5. Set up Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
@@ -133,6 +134,7 @@ Here’s what you need to run Cal.diy.
 
 > - **Requires Docker and Docker Compose to be installed**
 > - Will start a local Postgres instance with a few test users - the credentials will be logged in the console
+> - This command is a wrapper that handles both the app (`yarn dev`) and dependencies in one step.
 
 ```sh
 yarn dx
@@ -140,13 +142,13 @@ yarn dx
 
 **Default credentials created:**
 
-| Email | Password | Role |
-|-------|----------|------|
-| `free@example.com` | `free` | Free user |
-| `pro@example.com` | `pro` | Pro user |
-| `trial@example.com` | `trial` | Trial user |
-| `admin@example.com` | `ADMINadmin2022!` | Admin user |
-| `onboarding@example.com` | `onboarding` | Onboarding incomplete |
+| Email                    | Password          | Role                  |
+| ------------------------ | ----------------- | --------------------- |
+| `free@example.com`       | `free`            | Free user             |
+| `pro@example.com`        | `pro`             | Pro user              |
+| `trial@example.com`      | `trial`           | Trial user            |
+| `admin@example.com`      | `ADMINadmin2022!` | Admin user            |
+| `onboarding@example.com` | `onboarding`      | Onboarding incomplete |
 
 You can use any of these credentials to sign in at [http://localhost:3000](http://localhost:3000)
 
@@ -198,7 +200,6 @@ for Logger level to be set at info, for example.
 
    <details>
    <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick local DB</summary>
-
    1. [Download](https://www.postgresql.org/download/) and install PostgreSQL locally (if you don't have it already).
 
    2. Create your own local db by executing `createDB <DB name>`
@@ -556,28 +557,28 @@ Note: `docker compose` without the hyphen is now the primary method of using doc
 
 These variables must also be provided at runtime
 
-| Variable | Description | Required | Default |
-| --- | --- | --- | --- |
-| DATABASE_URL | database url with credentials - if using a connection pooler, this setting should point there | required | `postgresql://unicorn_user:magical_password@database:5432/calendso` |
-| NEXT_PUBLIC_WEBAPP_URL | Base URL of the site. NOTE: if this value differs from the value used at build-time, there will be a slight delay during container start (to update the statically built files). | optional | `http://localhost:3000` |
-| NEXTAUTH_URL | Location of the auth server. By default, this is the Cal.diy docker instance itself. | optional | `{NEXT_PUBLIC_WEBAPP_URL}/api/auth` |
-| NEXTAUTH_SECRET | Cookie encryption key. Must match build variable. Generate with: `openssl rand -base64 32` | required | `secret` |
-| CALENDSO_ENCRYPTION_KEY | Authentication encryption key (32 bytes for AES256). Must match build variable. Generate with: `openssl rand -base64 24` | required | `secret` |
+| Variable                | Description                                                                                                                                                                      | Required | Default                                                             |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------- |
+| DATABASE_URL            | database url with credentials - if using a connection pooler, this setting should point there                                                                                    | required | `postgresql://unicorn_user:magical_password@database:5432/calendso` |
+| NEXT_PUBLIC_WEBAPP_URL  | Base URL of the site. NOTE: if this value differs from the value used at build-time, there will be a slight delay during container start (to update the statically built files). | optional | `http://localhost:3000`                                             |
+| NEXTAUTH_URL            | Location of the auth server. By default, this is the Cal.diy docker instance itself.                                                                                             | optional | `{NEXT_PUBLIC_WEBAPP_URL}/api/auth`                                 |
+| NEXTAUTH_SECRET         | Cookie encryption key. Must match build variable. Generate with: `openssl rand -base64 32`                                                                                       | required | `secret`                                                            |
+| CALENDSO_ENCRYPTION_KEY | Authentication encryption key (32 bytes for AES256). Must match build variable. Generate with: `openssl rand -base64 24`                                                         | required | `secret`                                                            |
 
 ##### Build-time variables
 
 If building the image yourself, these variables must be provided at the time of the docker build, and can be provided by updating the .env file. Currently, if you require changes to these variables, you must follow the instructions to build and publish your own image.
 
-| Variable | Description | Required | Default |
-| --- | --- | --- | --- |
-| DATABASE_URL | database url with credentials - if using a connection pooler, this setting should point there | required | `postgresql://unicorn_user:magical_password@database:5432/calendso` |
-| MAX_OLD_SPACE_SIZE | Needed for Nodejs/NPM build options | required | 4096 |
-| NEXTAUTH_SECRET | Cookie encryption key | required | `secret` |
-| CALENDSO_ENCRYPTION_KEY | Authentication encryption key | required | `secret` |
-| NEXT_PUBLIC_WEBAPP_URL | Base URL injected into static files | optional | `http://localhost:3000` |
-| NEXT_PUBLIC_WEBSITE_TERMS_URL | custom URL for terms and conditions website | optional | |
-| NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL | custom URL for privacy policy website | optional | |
-| CALCOM_TELEMETRY_DISABLED | Allow Cal.diy to collect anonymous usage data (set to `1` to disable) | optional | |
+| Variable                               | Description                                                                                   | Required | Default                                                             |
+| -------------------------------------- | --------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------- |
+| DATABASE_URL                           | database url with credentials - if using a connection pooler, this setting should point there | required | `postgresql://unicorn_user:magical_password@database:5432/calendso` |
+| MAX_OLD_SPACE_SIZE                     | Needed for Nodejs/NPM build options                                                           | required | 4096                                                                |
+| NEXTAUTH_SECRET                        | Cookie encryption key                                                                         | required | `secret`                                                            |
+| CALENDSO_ENCRYPTION_KEY                | Authentication encryption key                                                                 | required | `secret`                                                            |
+| NEXT_PUBLIC_WEBAPP_URL                 | Base URL injected into static files                                                           | optional | `http://localhost:3000`                                             |
+| NEXT_PUBLIC_WEBSITE_TERMS_URL          | custom URL for terms and conditions website                                                   | optional |                                                                     |
+| NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL | custom URL for privacy policy website                                                         | optional |                                                                     |
+| CALCOM_TELEMETRY_DISABLED              | Allow Cal.diy to collect anonymous usage data (set to `1` to disable)                         | optional |                                                                     |
 
 #### Troubleshooting
 
