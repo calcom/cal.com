@@ -36,7 +36,7 @@
 
 ## About Cal.diy
 
-<img width="100%" alt="booking-screen" src="https://github.com/calcom/cal.diy/assets/8019099/407e727e-ff19-4ca4-bcae-049dca05cf02">
+<video src="./apps/web/public/cal-diy-motion-graphics.mp4" autoplay loop muted playsinline width="100%"></video>
 
 **Cal.diy** is the community-driven, fully open-source scheduling platform — a fork of [Cal.com](https://cal.com) with all enterprise/commercial code removed.
 
