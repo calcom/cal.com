@@ -3,39 +3,94 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
 
-vi.mock("next/server", () => ({
-  NextRequest: class MockNextRequest {
-    url: string;
-    method: string;
-    nextUrl: { searchParams: URLSearchParams };
-    private _headers: Map<string, string>;
+vi.mock("next/server", () => {
+  class MockNextResponse {
+    status: number;
+    headers: Map<string, string>;
+    body: string;
 
-    constructor(url: string, options: { method?: string } = {}) {
-      this.url = url;
-      this.method = options.method || "POST";
-      this._headers = new Map();
-      this.nextUrl = { searchParams: new URLSearchParams(url.split("?")[1] || "") };
+    constructor(body: string, init?: { status?: number; headers?: Record<string, string> }) {
+      this.body = body;
+      this.status = init?.status || 200;
+      this.headers = new Map(Object.entries(init?.headers || {}));
     }
 
-    headers = {
-      get: (key: string): string | null => this._headers.get(key.toLowerCase()) || null,
-      set: (key: string, value: string): void => {
-        this._headers.set(key.toLowerCase(), value);
-      },
-      has: (key: string): boolean => this._headers.has(key.toLowerCase()),
-    };
-  },
-  NextResponse: {
-    json: vi.fn((body, init) => ({
-      json: vi.fn().mockResolvedValue(body),
-      status: init?.status || 200,
-    })),
-  },
-}));
+    async text() {
+      return this.body;
+    }
 
-vi.mock("@calcom/features/calendar-subscription/lib/CalendarSubscriptionService");
-vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService");
-vi.mock("@calcom/features/calendar-subscription/lib/sync/CalendarSyncService");
+    static json(body: any, init?: { status?: number }) {
+      const response = new MockNextResponse(JSON.stringify(body), init);
+      (response as any).json = vi.fn().mockResolvedValue(body);
+      return response;
+    }
+  }
+
+  return {
+    NextRequest: class MockNextRequest {
+      url: string;
+      method: string;
+      nextUrl: { searchParams: URLSearchParams };
+      private _headers: Map<string, string>;
+
+      constructor(url: string, options: { method?: string } = {}) {
+        this.url = url;
+        this.method = options.method || "POST";
+        this._headers = new Map();
+        this.nextUrl = { searchParams: new URLSearchParams(url.split("?")[1] || "") };
+      }
+
+      headers = {
+        get: (key: string): string | null => this._headers.get(key.toLowerCase()) || null,
+        set: (key: string, value: string): void => {
+          this._headers.set(key.toLowerCase(), value);
+        },
+        has: (key: string): boolean => this._headers.has(key.toLowerCase()),
+      };
+    },
+    NextResponse: MockNextResponse,
+  };
+});
+
+vi.mock("@calcom/features/calendar-subscription/lib/CalendarSubscriptionService", () => {
+  const mockIsCacheEnabled = vi.fn();
+  const mockIsSyncEnabled = vi.fn();
+  const mockProcessWebhook = vi.fn();
+
+  const MockService = function(this: any) {};
+  MockService.prototype.isCacheEnabled = mockIsCacheEnabled;
+  MockService.prototype.isSyncEnabled = mockIsSyncEnabled;
+  MockService.prototype.processWebhook = mockProcessWebhook;
+
+  const spy = vi.fn().mockImplementation(function (this: any) {
+    return Object.create(MockService.prototype);
+  });
+  spy.prototype = MockService.prototype;
+
+  return {
+    CalendarSubscriptionService: spy,
+  };
+});
+
+vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService", () => {
+  const MockCacheService = function(this: any) {
+    this.handleEvents = vi.fn();
+    this.cleanupCache = vi.fn();
+  };
+  return {
+    CalendarCacheEventService: MockCacheService,
+  };
+});
+
+vi.mock("@calcom/features/calendar-subscription/lib/sync/CalendarSyncService", () => {
+  const MockSyncService = function(this: any) {
+    this.handleEvents = vi.fn();
+  };
+  return {
+    CalendarSyncService: MockSyncService,
+  };
+});
+
 vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
@@ -94,6 +149,25 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
 
       expect(response.status).toBe(200);
       expect(mockProcessWebhook).toHaveBeenCalledWith("office365_calendar", request);
+    });
+
+    test("should handle validationToken handshake for office365_calendar validation request", async () => {
+      const validationToken = "test-token-123%24";
+      const request = new NextRequest(
+        `http://localhost/api/webhooks/calendar-subscription/office365_calendar?validationToken=${validationToken}`,
+        {
+          method: "POST",
+        }
+      );
+
+      const { POST } = await import("../route");
+      const response = await POST(request, {
+        params: Promise.resolve({ provider: "office365_calendar" }),
+      });
+
+      expect(response.status).toBe(200);
+      const text = await response.text();
+      expect(text).toBe("test-token-123$");
     });
 
     test("should reject unsupported provider", async () => {

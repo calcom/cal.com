@@ -46,6 +46,19 @@ async function postHandler(request: NextRequest, ctx: { params: Promise<Params> 
     return NextResponse.json({ message: "Unsupported provider" }, { status: 400 });
   }
 
+  // Handle Office365 subscription validation (handshake) request immediately
+  const { searchParams } = new URL(request.url);
+  const validationToken = searchParams.get("validationToken");
+  if (validationToken && providerFromParams === "office365_calendar") {
+    log.debug("Office365 subscription validation request received", { validationToken });
+    return new NextResponse(decodeURIComponent(validationToken), {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain",
+      },
+    });
+  }
+
   try {
     // instantiate dependencies
     const bookingRepository = new BookingRepository(prisma);
