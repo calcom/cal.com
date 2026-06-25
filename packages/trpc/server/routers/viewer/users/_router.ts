@@ -61,7 +61,7 @@ export const userAdminRouter = router({
     return users;
   }),
   add: authedAdminProcedure.input(userBodySchema).mutation(async (opts) => {
-    const { default: handler } = (await import("./adduser.handler"));
+    const { default: handler } = await import("./adduser.handler");
     return handler(opts);
   }),
   update: authedAdminProcedureWithRequestedUser

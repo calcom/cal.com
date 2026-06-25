@@ -45,7 +45,7 @@ export function errorFormatter({ shape, error }: ErrorFormatterOptions): ErrorSh
     ...shape,
     data: {
       ...shape.data,
-      fields
+      fields,
     },
   };
 }
