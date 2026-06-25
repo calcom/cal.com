@@ -27,11 +27,9 @@ const Cal = function Cal(props: CalProps) {
   const Cal = useEmbed(embedJsUrl);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Effect 1: One-time initialization.
-  // The initializedRef guard is intentional here — it prevents double-init
-  // (e.g. React Strict Mode double-invocation). config and calLink are
-  // intentionally excluded from this effect's dep array; they are handled
-  // reactively in Effect 2 below.
+  // Guard prevents double-invocation in React Strict Mode.
+  // config and calLink are excluded so init fires exactly once;
+  // updates are handled reactively in the effect below.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!Cal || initializedRef.current || !ref.current) {
@@ -60,22 +58,23 @@ const Cal = function Cal(props: CalProps) {
         config,
       });
     }
-  // NOTE: config and calLink deliberately omitted — see Effect 2.
+  // NOTE: config and calLink deliberately omitted — see effect below.
   }, [Cal, namespace, calOrigin, initConfig]);
 
-  // Effect 2: Reactive config + calLink updates after initialization.
-  // Runs whenever config or calLink changes. Skips silently before init
-  // completes (initializedRef.current === false).
+  // Separated from calLink: "ui" only updates visual config and does not
+  // consume calLink, so including it here would cause unnecessary re-runs.
+  // calLink changes are only meaningful during initialization ("inline").
   useEffect(() => {
     if (!Cal || !initializedRef.current) {
       return;
     }
+    // Namespace guard: only call if namespace has been initialized above.
     if (namespace) {
       Cal.ns[namespace]("ui", { ...config });
     } else {
       Cal("ui", { ...config });
     }
-  }, [Cal, namespace, config, calLink]);
+  }, [Cal, namespace, config]);
 
   if (!Cal) {
     return null;
