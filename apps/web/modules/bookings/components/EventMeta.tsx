@@ -183,6 +183,7 @@ export const EventMeta = ({
                 ariaLabel={t("description")}>
                 {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTMLClient */}
                 <div
+                  className="[&_h1]:mb-4 [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-bold"
                   dangerouslySetInnerHTML={{
                     __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
                   }}
