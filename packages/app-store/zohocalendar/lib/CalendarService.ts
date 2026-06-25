@@ -125,7 +125,10 @@ class ZohoCalendarService implements Calendar {
 
     try {
       const query = stringify({
-        eventdata: JSON.stringify(this.translateEvent(event)),
+        eventdata: JSON.stringify({
+          ...this.translateEvent(event),
+          notify_attendee: 0,
+        }),
       });
 
       const eventResponse = await this.fetcher(`/calendars/${calendarId}/events?${query}`, {
@@ -178,6 +181,7 @@ class ZohoCalendarService implements Calendar {
         eventdata: JSON.stringify({
           ...this.translateEvent(event),
           etag: existingEventData.events[0].etag,
+          notify_attendee: 0,
         }),
       });
 
@@ -224,7 +228,15 @@ class ZohoCalendarService implements Calendar {
       const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
       const existingEventData = await this.handleData(existingEventResponse, this.log);
 
-      const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}`, {
+      const query = stringify({
+        eventdata: JSON.stringify({
+          uid,
+          etag: existingEventData.events[0].etag,
+          notify_attendee: 0,
+        }),
+      });
+
+      const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}?${query}`, {
         method: "DELETE",
         headers: {
           etag: existingEventData.events[0].etag,
