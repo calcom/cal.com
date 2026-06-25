@@ -510,9 +510,9 @@ describe("handleSeats", () => {
 
         // Regression: createNewSeat previously omitted `bookingFields`, so handlePayment skipped the
         // priced-booking-field add-on loop and charged subsequent seats the base price only.
-        const payment = await prismaMock.payment.findFirst({ where: { bookingId } });
-        expect(payment).toBeTruthy();
-        expect(payment?.amount).toBe(expectedAmount);
+        const payments = await prismaMock.payment.findMany({ where: { bookingId } });
+        expect(payments).toHaveLength(1);
+        expect(payments[0].amount).toBe(expectedAmount);
       });
 
       test("Attendee should be added to existing seated event", async () => {
