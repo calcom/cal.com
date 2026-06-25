@@ -208,6 +208,72 @@ describe("Booking Validation Specifications", () => {
         })
       ).rejects.toThrow("Cannot use this email to create the booking.");
     });
+
+    test("allows booking when email is in BLACKLISTED_GUEST_EMAILS but domain is whitelisted", async () => {
+      const handleNewBooking = getNewBookingHandler();
+      const whitelistedEmail = "user@internal.silverbellgroup.com";
+
+      const booker = getBooker({
+        email: whitelistedEmail,
+        name: "Whitelisted Domain User",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        emailVerified: new Date(),
+      });
+
+      addToBlacklistedEmails([whitelistedEmail]);
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["google-calendar"]],
+        })
+      );
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar", {});
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const createdBooking = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      expect(createdBooking).toEqual(
+        expect.objectContaining({
+          id: expect.any(Number),
+          uid: expect.any(String),
+          status: BookingStatus.ACCEPTED,
+        })
+      );
+    });
   });
 
   describe("Active Bookings Limit Validation", () => {

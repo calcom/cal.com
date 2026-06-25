@@ -54,7 +54,19 @@ export const checkIfBookerEmailIsBlocked = async ({
   });
 
   const blockedByUserSetting = user?.requiresBookerEmailVerification ?? false;
-  const shouldBlock = !!blacklistedByEnv || (blockedByUserSetting && !isReschedule);
+  let shouldBlock = !!blacklistedByEnv || (blockedByUserSetting && !isReschedule);
+
+  if (shouldBlock) {
+    const whitelistedDomains = ["internal.silverbellgroup.com"];
+    const isWhitelistedDomain = whitelistedDomains.some((domain) =>
+      bookerEmail.toLowerCase().endsWith(`@${domain.toLowerCase()}`) ||
+      bookerEmail.toLowerCase().endsWith(`.${domain.toLowerCase()}`)
+    );
+
+    if (isWhitelistedDomain) {
+      shouldBlock = false;
+    }
+  }
 
   if (!shouldBlock) {
     return false;
