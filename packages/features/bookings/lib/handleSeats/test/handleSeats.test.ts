@@ -14,6 +14,8 @@ import {
   getMockBookingAttendee,
   mockCalendarToHaveNoBusySlots,
   getStripeAppCredential,
+  getDefaultBookingFields,
+  mockPaymentApp,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/testing/lib/bookingScenario/createMockNextJsRequest";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
@@ -29,7 +31,6 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { getNewBookingHandler } from "../../handleNewBooking/test/getNewBookingHandler";
-import * as handlePaymentModule from "../../handlePayment";
 import * as handleSeatsModule from "../handleSeats";
 
 describe("handleSeats", () => {
@@ -389,12 +390,8 @@ describe("handleSeats", () => {
 
   describe("As an attendee", () => {
     describe("Creating a new booking", () => {
-      test("subsequent seat on a paid event passes bookingFields to handlePayment (so add-ons are charged)", async () => {
+      test("subsequent seat on a paid event is charged base price + booking-field add-ons", async () => {
         const handleNewBooking = getNewBookingHandler();
-        // Mock the payment service-facing call so we can assert the args createNewSeat passes to it.
-        const handlePaymentSpy = vi
-          .spyOn(handlePaymentModule, "handlePayment")
-          .mockResolvedValue({ uid: "MOCK_PAYMENT_UID", id: 1 } as never);
 
         const booker = getBooker({ email: "seat2@example.com", name: "Seat 2" });
 
@@ -412,6 +409,13 @@ describe("handleSeats", () => {
         const bookingStartTime = `${plus1DateString}T04:00:00Z`;
         const bookingEndTime = `${plus1DateString}T04:30:00Z`;
 
+        // Base price $1.00 (100 cents) + a priced "tickets" number field at $5 each.
+        const basePriceInCents = 100;
+        const ticketPriceInDollars = 5;
+        const ticketsSelected = 3;
+        // handlePayment converts the add-on (dollars) to the smallest currency unit and adds it to base.
+        const expectedAmount = basePriceInCents + ticketsSelected * ticketPriceInDollars * 100; // 1600
+
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
@@ -425,9 +429,23 @@ describe("handleSeats", () => {
                 seatsShowAttendees: false,
                 metadata: {
                   apps: {
-                    stripe: { price: 100, enabled: true, currency: "usd" },
+                    stripe: { price: basePriceInCents, enabled: true, currency: "usd" },
                   },
                 },
+                bookingFields: getDefaultBookingFields({
+                  bookingFields: [
+                    {
+                      name: "tickets",
+                      type: "number",
+                      label: "Tickets",
+                      hidden: false,
+                      sources: [{ id: "user", type: "user", label: "User" }],
+                      editable: "user",
+                      required: false,
+                      price: ticketPriceInDollars,
+                    },
+                  ],
+                }),
               },
             ],
             bookings: [
@@ -472,6 +490,7 @@ describe("handleSeats", () => {
           metadataLookupKey: "dailyvideo",
           videoMeetingData: { id: "MOCK_ID", password: "MOCK_PASS", url: "http://mock-dailyvideo.example.com/meeting-1" },
         });
+        mockPaymentApp({ metadataLookupKey: "stripe", appStoreLookupKey: "stripepayment" });
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
@@ -480,6 +499,7 @@ describe("handleSeats", () => {
               email: booker.email,
               name: booker.name,
               location: { optionValue: "", value: BookingLocations.CalVideo },
+              tickets: String(ticketsSelected),
             },
             bookingUid: bookingUid,
             user: "seatedAttendee",
@@ -488,16 +508,11 @@ describe("handleSeats", () => {
 
         await handleNewBooking({ bookingData: mockBookingData });
 
-        // Regression: createNewSeat previously omitted `bookingFields` (and `locale`), so handlePayment
-        // skipped the priced-booking-field add-on loop and undercharged every seat after the first.
-        expect(handlePaymentSpy).toHaveBeenCalledWith(
-          expect.objectContaining({
-            bookingFields: expect.any(Array),
-            locale: expect.any(String),
-          })
-        );
-
-        handlePaymentSpy.mockRestore();
+        // Regression: createNewSeat previously omitted `bookingFields`, so handlePayment skipped the
+        // priced-booking-field add-on loop and charged subsequent seats the base price only.
+        const payment = await prismaMock.payment.findFirst({ where: { bookingId } });
+        expect(payment).toBeTruthy();
+        expect(payment?.amount).toBe(expectedAmount);
       });
 
       test("Attendee should be added to existing seated event", async () => {
