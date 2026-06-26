@@ -24,7 +24,8 @@ import { NextResponse } from "next/server";
 async function getHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
-  if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
+  const validCronKeys = [process.env.CRON_API_KEY, process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined].filter((k): k is string => !!k);
+  if (!apiKey || !validCronKeys.includes(apiKey)) {
     return NextResponse.json({ message: "Forbiden" }, { status: 403 });
   }
 
