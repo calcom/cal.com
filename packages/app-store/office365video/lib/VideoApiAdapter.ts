@@ -304,7 +304,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       // If no meetingId is available, fall back to creating a new meeting
       if (!meetingId) {
         log.warn(`No meetingId found in bookingRef for booking ${event.uid}, falling back to createMeeting`);
-        return adapter.createMeeting(event);
+        return adapter!.createMeeting(event);
       }
 
       try {
