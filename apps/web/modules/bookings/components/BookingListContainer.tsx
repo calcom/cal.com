@@ -310,6 +310,15 @@ export function BookingListContainer(props: BookingListContainerProps) {
   // Tab-independent sort by booking creation date (undefined = per-status default ordering)
   const [sortCreated, setSortCreated] = useState<SortCreatedOrder>(undefined);
 
+  // Reset to the first page when the sort changes, otherwise a stale offset can land on an empty page
+  const handleSortCreatedChange = useCallback(
+    (value: SortCreatedOrder) => {
+      setPageIndex(0);
+      setSortCreated(value);
+    },
+    [setPageIndex]
+  );
+
   // Build query input once - shared between query and prefetching
   const queryInput = useMemo(
     () => ({
@@ -374,7 +383,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
         totalRowCount={query.data?.totalCount}
         bookings={bookings}
         sortCreated={sortCreated}
-        onSortCreatedChange={setSortCreated}
+        onSortCreatedChange={handleSortCreatedChange}
       />
     </BookingDetailsSheetStoreProvider>
   );
