@@ -257,7 +257,7 @@ export const fieldTypesSchemaMap = {
     preprocess: ({ response }) => {
       return stringifyResponse(response).trim();
     },
-    superRefine: ({ response, ctx, m }) => {
+    superRefine: ({ field, response, ctx, m }) => {
       const value = response ?? "";
       const urlSchema = z.string().url();
 
@@ -270,25 +270,43 @@ export const fieldTypesSchemaMap = {
         return;
       }
 
-      // 1. Try validating the original value
+      // Determine the valid URL string, accepting the raw value or a https://-prepended form.
+      let validUrl: string | null = null;
       if (urlSchema.safeParse(value).success) {
-        return;
-      }
-
-      // 2. If it failed, try prepending https://
-      const domainLike = /^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i;
-      if (domainLike.test(value)) {
-        const valueWithHttps = `https://${value}`;
-        if (urlSchema.safeParse(valueWithHttps).success) {
-          return;
+        validUrl = value;
+      } else {
+        const domainLike = /^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i;
+        if (domainLike.test(value)) {
+          const valueWithHttps = `https://${value}`;
+          if (urlSchema.safeParse(valueWithHttps).success) {
+            validUrl = valueWithHttps;
+          }
         }
       }
 
-      // 3. If all attempts fail, throw err
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: m("url_validation_error"),
-      });
+      if (!validUrl) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("url_validation_error"),
+        });
+        return;
+      }
+
+      // Optionally restrict the URL to a configured domain (and its subdomains).
+      const allowedDomain = field?.allowedDomain
+        ?.trim()
+        .toLowerCase()
+        .replace(/^https?:\/\//, "");
+      if (allowedDomain) {
+        const host = new URL(validUrl).hostname.toLowerCase();
+        const matchesDomain = host === allowedDomain || host.endsWith(`.${allowedDomain}`);
+        if (!matchesDomain) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: m("url_domain_not_allowed_error", { domain: allowedDomain }),
+          });
+        }
+      }
     },
   }),
 };

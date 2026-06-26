@@ -1027,6 +1027,8 @@ export const baseFieldSchema = z.object({
   excludeEmails: excludeOrRequireEmailSchema.optional(),
   // Emails that need to be required
   requireEmails: excludeOrRequireEmailSchema.optional(),
+  // For `url` fields: restrict accepted URLs to this domain (and its subdomains)
+  allowedDomain: z.string().optional(),
   // Price associated with the field which works like addons which users can add to the booking
   price: z.coerce.number().min(0).optional(),
 });

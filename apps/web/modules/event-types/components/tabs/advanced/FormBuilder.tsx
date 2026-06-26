@@ -782,6 +782,15 @@ function FieldEditDialog({
                       />
                     )}
 
+                    {formFieldType === "url" && (
+                      <InputField
+                        {...fieldForm.register("allowedDomain")}
+                        containerClassName="mt-6"
+                        label={t("url_allowed_domain")}
+                        placeholder="linkedin.com"
+                      />
+                    )}
+
                     {/* Add price field only for fields that support pricing */}
                     {showPriceField && fieldType.supportsPricing && (
                       <InputField

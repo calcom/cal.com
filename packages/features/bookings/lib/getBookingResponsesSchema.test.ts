@@ -1760,6 +1760,87 @@ describe("getBookingResponsesSchema", () => {
         })
       );
     });
+
+    describe("allowedDomain validation", () => {
+      const buildSchema = (allowedDomain: string) =>
+        getBookingResponsesSchema({
+          bookingFields: [
+            { name: "name", type: "name", required: true },
+            { name: "email", type: "email", required: true },
+            { name: "url", type: "url", required: true, allowedDomain },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+
+      test("should pass when url is on the allowed domain", async ({}) => {
+        const parsedResponses = await buildSchema("linkedin.com").safeParseAsync({
+          email: "test@test.com",
+          name: "test",
+          url: "https://linkedin.com/in/someone",
+        });
+        expectResponsesToBe(parsedResponses, {
+          email: "test@test.com",
+          name: "test",
+          url: "https://linkedin.com/in/someone",
+        });
+      });
+
+      test("should pass when url is on a subdomain of the allowed domain", async ({}) => {
+        const parsedResponses = await buildSchema("linkedin.com").safeParseAsync({
+          email: "test@test.com",
+          name: "test",
+          url: "https://www.linkedin.com/in/someone",
+        });
+        expectResponsesToBe(parsedResponses, {
+          email: "test@test.com",
+          name: "test",
+          url: "https://www.linkedin.com/in/someone",
+        });
+      });
+
+      test("should pass when protocol is missing but domain matches", async ({}) => {
+        const parsedResponses = await buildSchema("linkedin.com").safeParseAsync({
+          email: "test@test.com",
+          name: "test",
+          url: "www.linkedin.com/in/someone",
+        });
+        expectResponsesToBe(parsedResponses, {
+          email: "test@test.com",
+          name: "test",
+          url: "www.linkedin.com/in/someone",
+        });
+      });
+
+      test("should fail when url is on a different domain", async ({}) => {
+        const parsedResponses = await buildSchema("linkedin.com").safeParseAsync({
+          email: "test@test.com",
+          name: "test",
+          url: "https://example.com/profile",
+        });
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{url}url_domain_not_allowed_error`,
+          })
+        );
+      });
+
+      test("should not falsely match a domain that is only a suffix", async ({}) => {
+        const parsedResponses = await buildSchema("linkedin.com").safeParseAsync({
+          email: "test@test.com",
+          name: "test",
+          url: "https://notlinkedin.com/in/someone",
+        });
+        expectParsingToFail(
+          parsedResponses,
+          expect.objectContaining({
+            code: "custom",
+            message: `{url}url_domain_not_allowed_error`,
+          })
+        );
+      });
+    });
   });
 });
 
