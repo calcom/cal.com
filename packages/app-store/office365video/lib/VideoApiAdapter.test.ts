@@ -68,8 +68,23 @@ const testCredential = {
 const testEvent = {
   title: "Test Meeting",
   description: "Test Description",
-  startTime: new Date(),
-  endTime: new Date(),
+  startTime: "2024-01-01T10:00:00.000Z",
+  endTime: "2024-01-01T11:00:00.000Z",
+  organizer: {
+    email: "example@cal.com",
+    name: "Test Organizer",
+    timeZone: "UTC",
+    language: { translate: (key: string) => key, locale: "en" },
+  },
+  attendees: [
+    {
+      email: "attendee@cal.com",
+      name: "Test Attendee",
+      timeZone: "UTC",
+      language: { translate: (key: string) => key, locale: "en" },
+    },
+  ],
+  uid: "FAKE_UID",
 };
 
 const testBookingRef = {
