@@ -23,7 +23,10 @@ export function markdownToSafeHTML(markdown: string | null) {
       /<ol>/g,
       "<ol style='list-style-type: decimal; list-style-position: inside; margin-left: 12px; margin-bottom: 4px'>"
     )
-    .replace(/<a\s+href=/g, "<a target='_blank' class='text-blue-500 hover:text-blue-600' href=")
+    .replace(
+      /<a\s+href=/g,
+      "<a target='_blank' rel='noopener noreferrer' class='text-blue-500 hover:text-blue-600' href="
+    )
     .replace(/<h1/g, "<h1 class='mt-6 mb-4 text-2xl font-semibold'")
     .replace(/<h2/g, "<h2 class='mt-5 mb-3 text-xl font-semibold'")
     .replace(/<h3/g, "<h3 class='mt-4 mb-2 text-lg font-semibold'")
