@@ -329,17 +329,19 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
 
         log.debug("Teams meeting updated", { meetingId });
 
+        const joinUrl = resultObject.joinWebUrl || bookingRef.meetingUrl;
+        if (!joinUrl) {
+          throw new HttpError({
+            statusCode: 500,
+            message: `Error updating MS Teams meeting ${meetingId}: response is missing joinWebUrl and no existing meeting URL is available`,
+          });
+        }
+
         return Promise.resolve({
           type: "office365_video",
           id: resultObject.id ?? meetingId,
           password: "",
-          url: (() => {
-            const joinUrl = resultObject.joinWebUrl;
-            if (!joinUrl) {
-              log.warn("Teams PATCH response missing joinWebUrl, falling back to existing meeting URL", { meetingId });
-            }
-            return joinUrl || bookingRef.meetingUrl || "";
-          })(),
+          url: joinUrl,
         });
       } catch (error) {
         log.error(`Error updating MS Teams meeting for booking ${event.uid}`, error);
