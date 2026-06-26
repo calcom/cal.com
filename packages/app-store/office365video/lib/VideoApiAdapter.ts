@@ -33,6 +33,10 @@ const o365VideoAppKeysSchema = z.object({
   client_secret: z.string(),
 });
 
+/**
+ * Retrieves and validates the Office 365 Video app's OAuth client credentials
+ * (`client_id` / `client_secret`) from the app config slug.
+ */
 const getO365VideoAppKeys = async () => {
   return getParsedAppKeysFromSlug(config.slug, o365VideoAppKeysSchema);
 };
@@ -42,6 +46,11 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
   let azureUserId: string | null;
   const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
 
+  /**
+   * Fires the delegation-credential error webhook when a DelegationCredential
+   * is misconfigured or its grant is invalid, so admins are notified out-of-band.
+   * No-ops if the credential is not associated with a delegated user/app.
+   */
   async function triggerDelegationCredentialError(error: Error): Promise<void> {
     if (credential.userId && credential.user && credential.appId && credential.delegatedToId) {
       await triggerDelegationCredentialErrorWebhook({
@@ -127,6 +136,12 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     },
   });
 
+  /**
+   * Builds the Microsoft Identity Platform token endpoint URL.
+   * For DelegationCredential flows this requires a tenantId and throws a
+   * CalendarAppDelegationCredentialInvalidGrantError (and fires the error
+   * webhook) if one isn't present; otherwise falls back to the common/multi-tenant endpoint.
+   */
   async function getAuthUrl(delegatedTo: boolean, tenantId?: string): Promise<string> {
     if (delegatedTo) {
       if (!tenantId) {
@@ -144,6 +159,10 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     return "https://login.microsoftonline.com/common/oauth2/v2.0/token";
   }
 
+  /**
+   * Maps a Cal.com CalendarEvent into the subset of fields the Microsoft
+   * Graph onlineMeetings API expects (startDateTime/endDateTime/subject).
+   */
   const translateEvent = (event: CalendarEvent) => {
     return {
       startDateTime: event.startTime,
@@ -152,6 +171,13 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     };
   };
 
+  /**
+   * Resolves the Azure AD user id for a DelegationCredential by exchanging
+   * client credentials for an app-only token and looking the user up by email
+   * via the Graph `/users` endpoint. Returns null for non-delegated credentials,
+   * caches the result in `azureUserId`, and throws/fires the delegation error
+   * webhook if the credential is misconfigured or the user can't be found.
+   */
   async function getAzureUserId(credential: CredentialForCalendarServiceWithTenantId) {
     if (azureUserId) return azureUserId;
 
@@ -215,6 +241,11 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     return azureUserId;
   }
 
+  /**
+   * Returns the Microsoft Graph base URL to use for onlineMeetings requests:
+   * the specific delegated user's `/users/{id}` endpoint when a DelegationCredential
+   * is in play, otherwise the authenticated `/me` endpoint.
+   */
   async function getUserEndpoint(): Promise<string> {
     const azureUserId = await getAzureUserId(credential);
     return azureUserId
@@ -226,6 +257,11 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     getAvailability: () => {
       return Promise.resolve([]);
     },
+    /**
+     * Deletes a Teams online meeting via `DELETE /onlineMeetings/{uid}`.
+     * A 404 from Microsoft (meeting already gone) is treated as a successful
+     * no-op rather than an error, since the end state we want is already true.
+     */
     deleteMeeting: async (uid: string): Promise<void> => {
       try {
         const response = await auth.requestRaw({
@@ -255,6 +291,13 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         });
       }
     },
+    /**
+     * Updates an existing Teams meeting via `PATCH /onlineMeetings/{meetingId}`
+     * instead of re-POSTing (which previously created duplicate meetings).
+     * Falls back to `createMeeting` when no `meetingId` is present on the
+     * booking reference, and falls back to the previously stored meeting URL
+     * if the PATCH response is missing `joinWebUrl`.
+     */
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
       const meetingId = bookingRef.meetingId;
 
@@ -309,6 +352,11 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         });
       }
     },
+    /**
+     * Creates a new Teams online meeting via `POST /onlineMeetings`.
+     * Treats a response missing `id` or `joinWebUrl` as a failure even when
+     * the HTTP status itself is OK, since both fields are required downstream.
+     */
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       const url = `${await getUserEndpoint()}/onlineMeetings`;
       try {
