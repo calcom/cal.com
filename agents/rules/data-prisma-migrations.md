@@ -1,4 +1,6 @@
 ---
+paths:
+  - "packages/prisma/**"
 title: Prisma Schema and Migrations
 impact: HIGH
 impactDescription: Schema changes affect all downstream code and deployments
