@@ -603,17 +603,23 @@ export async function cancelNoShowTasksForBooking({
   triggerEvent?: WebhookTriggerEvents;
   webhook?: Pick<Webhook, "id" | "userId" | "teamId" | "eventTypeId">;
 }) {
+  // No-show tasks are keyed by `${bookingUid}-${webhookId}` (one per subscriber), so cancellation
+  // matches every subscriber's task by the bookingUid prefix rather than an exact referenceUid.
   if (bookingUid) {
     if (triggerEvent && !NO_SHOW_TRIGGERS.includes(triggerEvent)) return;
 
     if (triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW) {
-      await tasker.cancelWithReference(bookingUid, "triggerHostNoShowWebhook");
+      await prisma.task.deleteMany({
+        where: { referenceUid: { startsWith: bookingUid }, type: "triggerHostNoShowWebhook" },
+      });
     } else if (triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW) {
-      await tasker.cancelWithReference(bookingUid, "triggerGuestNoShowWebhook");
+      await prisma.task.deleteMany({
+        where: { referenceUid: { startsWith: bookingUid }, type: "triggerGuestNoShowWebhook" },
+      });
     } else {
       await prisma.task.deleteMany({
         where: {
-          referenceUid: bookingUid,
+          referenceUid: { startsWith: bookingUid },
         },
       });
     }
@@ -625,7 +631,7 @@ export async function cancelNoShowTasksForBooking({
     const promises = bookings.map(async (booking) => {
       return await prisma.task.deleteMany({
         where: {
-          referenceUid: booking.uid,
+          referenceUid: { startsWith: booking.uid },
         },
       });
     });

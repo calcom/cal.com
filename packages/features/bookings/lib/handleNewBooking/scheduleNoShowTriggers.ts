@@ -63,7 +63,10 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
           },
-          { scheduledAt, referenceUid: booking.uid }
+          // Each subscriber needs a distinct referenceUid: Task has a @@unique([referenceUid, type])
+          // constraint, so sharing booking.uid makes every subscriber after the first collide and
+          // silently lose its no-show task.
+          { scheduledAt, referenceUid: `${booking.uid}-${webhook.id}` }
         );
       }
       return Promise.resolve();
@@ -94,7 +97,10 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
           },
-          { scheduledAt, referenceUid: booking.uid }
+          // Each subscriber needs a distinct referenceUid: Task has a @@unique([referenceUid, type])
+          // constraint, so sharing booking.uid makes every subscriber after the first collide and
+          // silently lose its no-show task.
+          { scheduledAt, referenceUid: `${booking.uid}-${webhook.id}` }
         );
       }
 
