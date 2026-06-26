@@ -24,6 +24,7 @@ type TGetInputSchemaFilters = {
 
 type TGetInputSchemaSort = {
   sortStart?: "asc" | "desc";
+  sortCreated?: "asc" | "desc";
 };
 
 export type TGetInputRawSchema = {
@@ -68,6 +69,7 @@ export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInput
   sort: z
     .object({
       sortStart: z.enum(["asc", "desc"]).optional(),
+      sortCreated: z.enum(["asc", "desc"]).optional(),
     })
     .optional(),
 });

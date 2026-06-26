@@ -7,6 +7,14 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
@@ -58,6 +66,64 @@ function FilterButton({ table, displayedFilterCount, setShowFilters }: FilterBut
   );
 }
 
+type SortCreatedOrder = "asc" | "desc" | undefined;
+
+interface SortButtonProps {
+  value: SortCreatedOrder;
+  onChange: (value: SortCreatedOrder) => void;
+}
+
+function SortButton({ value, onChange }: SortButtonProps) {
+  const { t } = useLocale();
+  const [open, setOpen] = useState(false);
+
+  const label = value === "desc" ? t("newest_first") : value === "asc" ? t("oldest_first") : t("sort");
+
+  return (
+    <Dropdown open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          color="secondary"
+          StartIcon="chevrons-up-down"
+          EndIcon={open ? "chevron-up" : "chevron-down"}
+          className="h-full"
+          size="sm"
+          data-testid="bookings-sort-button">
+          {label}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuContent align="end" className="w-48" data-testid="bookings-sort-content">
+          <DropdownMenuItem>
+            <DropdownItem
+              type="button"
+              StartIcon={value === "desc" ? "check" : undefined}
+              onClick={() => onChange("desc")}>
+              {t("newest_first")}
+            </DropdownItem>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <DropdownItem
+              type="button"
+              StartIcon={value === "asc" ? "check" : undefined}
+              onClick={() => onChange("asc")}>
+              {t("oldest_first")}
+            </DropdownItem>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <DropdownItem
+              type="button"
+              StartIcon={value === undefined ? "check" : undefined}
+              onClick={() => onChange(undefined)}>
+              {t("default")}
+            </DropdownItem>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
+    </Dropdown>
+  );
+}
+
 interface BookingListContainerProps {
   status: BookingListingStatus;
   permissions: {
@@ -74,6 +140,8 @@ interface BookingListInnerProps extends BookingListContainerProps {
   errorMessage?: string;
   totalRowCount?: number;
   bookings: BookingsGetOutput["bookings"];
+  sortCreated: SortCreatedOrder;
+  onSortCreatedChange: (value: SortCreatedOrder) => void;
 }
 
 function BookingListInner({
@@ -87,6 +155,8 @@ function BookingListInner({
   hasError,
   errorMessage,
   totalRowCount,
+  sortCreated,
+  onSortCreatedChange,
 }: BookingListInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
@@ -184,6 +254,8 @@ function BookingListInner({
           setShowFilters={setShowFilters}
         />
 
+        <SortButton value={sortCreated} onChange={onSortCreatedChange} />
+
         {/* Desktop: auto-pushed to right via flex-grow spacer, Mobile: continue on second row */}
         <div className="hidden grow md:block" />
 
@@ -235,6 +307,9 @@ export function BookingListContainer(props: BookingListContainerProps) {
   const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
     useBookingFilters();
 
+  // Tab-independent sort by booking creation date (undefined = per-status default ordering)
+  const [sortCreated, setSortCreated] = useState<SortCreatedOrder>(undefined);
+
   // Build query input once - shared between query and prefetching
   const queryInput = useMemo(
     () => ({
@@ -253,6 +328,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
           : undefined,
         beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
       },
+      sort: sortCreated ? { sortCreated } : undefined,
     }),
     [
       limit,
@@ -265,6 +341,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
       attendeeEmail,
       bookingUid,
       dateRange,
+      sortCreated,
     ]
   );
 
@@ -296,6 +373,8 @@ export function BookingListContainer(props: BookingListContainerProps) {
         errorMessage={query.error?.message}
         totalRowCount={query.data?.totalCount}
         bookings={bookings}
+        sortCreated={sortCreated}
+        onSortCreatedChange={setSortCreated}
       />
     </BookingDetailsSheetStoreProvider>
   );
