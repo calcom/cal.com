@@ -7,7 +7,7 @@ import type { Messages } from "mailhog";
 import type { createEmailsFixture } from "./fixtures/emails";
 import type { createUsersFixture } from "./fixtures/users";
 import { test } from "./lib/fixtures";
-import { getEmailsReceivedByUser, submitAndWaitForResponse } from "./lib/testUtils";
+import { getEmailsReceivedByUser, submitAndWaitForResponse, getDefaultPassword } from "./lib/testUtils";
 
 const expectInvitationEmailToBeReceived = async ({
   emails,
@@ -73,7 +73,7 @@ test.describe("Update Profile", () => {
     await page
       .getByTestId("password")
       .first()
-      .fill(user?.username ?? "Nameless User");
+      .fill(getDefaultPassword(String(user.username)));
 
     await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
       action: () => page.getByTestId("profile-update-email-submit-button").first().click(),
