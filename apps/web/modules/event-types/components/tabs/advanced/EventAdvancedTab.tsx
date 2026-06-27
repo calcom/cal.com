@@ -1343,10 +1343,10 @@ export const EventAdvancedTab = ({
         )}
       />
       <div className="border-subtle rounded-lg border py-6 px-4 sm:px-6">
-        <Label className="text-sm font-semibold">{t("confirmation_email_subject")}</Label>
-        <p className="text-subtle mb-2 text-sm">{t("confirmation_email_subject_description")}</p>
         <TextField
           {...formMethods.register("metadata.confirmationEmailSubject")}
+          label={t("confirmation_email_subject")}
+          hint={t("confirmation_email_subject_description")}
           placeholder={t("confirmation_email_subject_placeholder")}
           data-testid="confirmation-email-subject-input"
         />
