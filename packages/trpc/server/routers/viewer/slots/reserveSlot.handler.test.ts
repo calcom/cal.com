@@ -1,4 +1,5 @@
 import { vi, describe, it, expect, afterEach } from "vitest";
+import type { PrismaClient } from "@calcom/prisma";
 
 // We want to test that the UID cookie set by reserveSlotHandler is configured with the correct
 // SameSite and Secure attributes depending on the environment (http vs https).
@@ -33,7 +34,7 @@ const buildContext = () => {
     selectedSlots: {
       upsert: vi.fn().mockResolvedValue(null),
     },
-  } as unknown as any;
+  } as unknown as PrismaClient;
 
   // Capture header values to assert on.
   let cookieHeaderValue: string | null = null;
@@ -76,7 +77,7 @@ describe("reserveSlotHandler seated event reservation", () => {
       selectedSlots: {
         upsert: upsertMock,
       },
-    } as unknown as any;
+    } as unknown as PrismaClient;
 
     await reserveSlotHandler({
       ctx: { prisma: prismaStub, req: { cookies: {} }, res: { setHeader: vi.fn() } },
@@ -113,7 +114,7 @@ describe("reserveSlotHandler seated event reservation", () => {
       selectedSlots: {
         upsert: upsertMock,
       },
-    } as unknown as any;
+    } as unknown as PrismaClient;
 
     await reserveSlotHandler({
       ctx: { prisma: prismaStub, req: { cookies: {} }, res: { setHeader: vi.fn() } },
