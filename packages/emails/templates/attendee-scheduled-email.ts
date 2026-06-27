@@ -116,7 +116,7 @@ ${getRichDescription(this.calEvent, this.t)}
     if (!responses) return template;
 
     return template.replace(/\{(\w+)\}/g, (_, key) => {
-      const field = responses[key];
+      const field = responses[key] ?? responses[key.toLowerCase()];
       if (!field) return "{" + key + "}";
 
       const val = field.value;
