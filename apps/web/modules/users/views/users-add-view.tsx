@@ -23,7 +23,7 @@ export default function UsersAddView() {
     },
     onError: (err) => {
       console.error(err.message);
-      showToast(t("error_adding_user"), "error");
+      showToast(err.message || t("error_adding_user"), "error");
     },
   });
 
