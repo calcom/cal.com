@@ -98,15 +98,10 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             </div>
           )}
           {type === "confirmation" && (
-            <div className="flex">
-              {icon && (
-                <div className="bg-emphasis flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                  <Icon name={icon} className="text-emphasis h-4 w-4" />
-                </div>
-              )}
-              <div className="ml-4 grow">
-                <DialogHeader title={title} subtitle={props.description} />
-                <div data-testid="dialog-confirmation">{children}</div>
+            <div>
+              <DialogHeader title={title} subtitle={props.description} icon={icon} />
+              <div data-testid="dialog-confirmation" className="flex flex-col">
+                {children}
               </div>
             </div>
           )}
@@ -120,6 +115,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
 type DialogHeaderProps = {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
+  icon?: IconName;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export function DialogHeader(props: DialogHeaderProps) {
@@ -127,17 +123,26 @@ export function DialogHeader(props: DialogHeaderProps) {
 
   return (
     <div className="mb-4">
-      <h2
-        data-testid="dialog-title"
-        className="text-semibold text-emphasis font-cal mb-1 text-xl"
-        id="modal-title">
-        {props.title}
-      </h2>
-      {props.subtitle && (
-        <p className="text-subtle text-sm" data-testid="dialog-subtitle">
-          {props.subtitle}
-        </p>
-      )}
+      <div className={classNames("flex gap-2", props.subtitle ? "items-start" : "items-center")}>
+        {props.icon && (
+          <div className="bg-emphasis flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+            <Icon name={props.icon} className="text-emphasis h-4 w-4" />
+          </div>
+        )}
+        <div>
+          <h2
+            data-testid="dialog-title"
+            className="text-semibold text-emphasis font-cal text-xl"
+            id="modal-title">
+            {props.title}
+          </h2>
+          {props.subtitle && (
+            <p className="text-subtle text-sm" data-testid="dialog-subtitle">
+              {props.subtitle}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

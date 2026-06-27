@@ -1,11 +1,15 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
 import { MembershipRole } from "@calcom/platform-libraries";
 
 @Injectable()
 export class MembershipsRepository {
-  constructor(private readonly dbRead: PrismaReadService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async findOrgUserMembership(organizationId: number, userId: number) {
     const membership = await this.dbRead.prisma.membership.findUniqueOrThrow({
@@ -111,7 +115,7 @@ export class MembershipsRepository {
   }
 
   async createMembership(teamId: number, userId: number, role: MembershipRole, accepted: boolean) {
-    const membership = await this.dbRead.prisma.membership.create({
+    const membership = await this.dbWrite.prisma.membership.create({
       data: {
         createdAt: new Date(),
         role,

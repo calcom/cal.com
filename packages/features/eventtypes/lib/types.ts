@@ -185,6 +185,7 @@ export type FormValues = {
   calVideoSettings?: CalVideoSettings;
   maxActiveBookingPerBookerOfferReschedule: boolean;
   enablePerHostLocations: boolean;
+  requiresCancellationReason?: CancellationReasonRequirement | null;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
