@@ -28,11 +28,11 @@ export const WEBAPP_URL =
   RAILWAY_STATIC_URL ||
   HEROKU_URL ||
   RENDER_URL ||
-  "http://localhost:3000";
+  "http://localhost:4000";
 
 // OAuth needs to have HTTPS(which is not generally setup locally) and a valid tld(*.local isn't a valid tld)
 // So for development purpose, we would stick to localhost only
-export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:3000";
+export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:4000";
 
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
@@ -139,17 +139,19 @@ export const API_NAME_LENGTH_MAX_LIMIT = 80;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
 export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SWITCHER === "1";
 // Needed for orgs
-export const ALLOWED_HOSTNAMES = (process.env.ALLOWED_HOSTNAMES || "")
-  .replace(/[[\]"']/g, "")
-  .split(",")
-  .map((item) => item.trim())
-  .filter(Boolean);
 
-export const RESERVED_SUBDOMAINS = (process.env.RESERVED_SUBDOMAINS || "")
-  .replace(/[[\]"']/g, "")
-  .split(",")
-  .map((item) => item.trim())
-  .filter(Boolean);
+const parseEnvList = (value?: string) =>
+  (value ?? "")
+    .trim()
+    .replace(/^\[/, "")
+    .replace(/\]$/, "")
+    .split(",")
+    .map((item) => item.trim().replace(/^['"]|['"]$/g, ""))
+    .filter(Boolean);
+
+export const ALLOWED_HOSTNAMES = parseEnvList(process.env.ALLOWED_HOSTNAMES);
+
+export const RESERVED_SUBDOMAINS = parseEnvList(process.env.RESERVED_SUBDOMAINS);
 
 export const ORGANIZATION_SELF_SERVE_PRICE = parseFloat(
   process.env.NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW || "37"
