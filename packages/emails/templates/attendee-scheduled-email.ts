@@ -51,7 +51,9 @@ export default class AttendeeScheduledEmail extends BaseEmail {
         this.calEvent,
         this.calEvent.attendees.filter(({ email }) => email !== this.attendee.email).map(({ email }) => email)
       ),
-      subject: `${this.calEvent.title}`,
+      subject: this.calEvent.customEmailSubject
+        ? this.getInterpolatedSubject(this.calEvent.customEmailSubject)
+        : this.calEvent.title,
       html: await this.getHtml(clonedCalEvent, this.attendee),
       text: this.getTextBody(),
     };
@@ -107,5 +109,34 @@ ${getRichDescription(this.calEvent, this.t)}
     return `${this.getInviteeStart(inviteeTimeFormat)} - ${this.getInviteeEnd(inviteeTimeFormat)}, ${this.t(
       this.getInviteeStart("dddd").toLowerCase()
     )}, ${this.t(this.getInviteeStart("MMMM").toLowerCase())} ${this.getInviteeStart("D, YYYY")}`;
+  }
+
+  /**
+   * Replaces {fieldIdentifier} placeholders in a custom email subject template
+   * with the corresponding values submitted by the attendee at booking time.
+   */
+  private getInterpolatedSubject(template: string): string {
+    const responses = this.calEvent.responses;
+    if (!responses) return template;
+
+    return template.replace(/\{(\w+)\}/g, (_, key) => {
+      const field = responses[key];
+      if (!field) return "";
+
+      const val = field.value;
+
+      if (typeof val === "string") return val;
+
+      if (
+        typeof val === "object" &&
+        val !== null &&
+        "firstName" in val
+      ) {
+        const name = val as { firstName: string; lastName?: string };
+        return `${name.firstName} ${name.lastName ?? ""}`.trim();
+      }
+
+      return String(val ?? "");
+    });
   }
 }
