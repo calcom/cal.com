@@ -11,11 +11,15 @@ import type { NextRequest } from "next/server";
  * from the allow-list so that `Bearer undefined` can never match.
  */
 export function isValidCronRequest(req: NextRequest): boolean {
-  const apiKey = req.headers.get("authorization") ?? req.nextUrl.searchParams.get("apiKey");
-  const validKeys = [
-    process.env.CRON_API_KEY,
-    process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined,
-  ].filter((k): k is string => !!k);
+  const authHeader = req.headers.get("authorization");
+  const queryApiKey = req.nextUrl.searchParams.get("apiKey");
 
-  return validKeys.length > 0 && validKeys.includes(apiKey ?? "");
+  if (authHeader) {
+    if (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) return true;
+    if (process.env.CRON_API_KEY && authHeader === process.env.CRON_API_KEY) return true;
+  }
+
+  if (queryApiKey && process.env.CRON_API_KEY && queryApiKey === process.env.CRON_API_KEY) return true;
+
+  return false;
 }
