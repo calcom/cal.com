@@ -70,12 +70,12 @@ export const userAdminRouter = router({
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
         const target = (e.meta as { target?: string[] })?.target ?? [];
         if (target.includes("email")) {
-          throw new TRPCError({ code: "CONFLICT", message: "A user with this email already exists." });
+          throw new TRPCError({ code: "CONFLICT", message: "email_already_used" });
         }
         if (target.includes("username")) {
-          throw new TRPCError({ code: "CONFLICT", message: "This username is already taken." });
+          throw new TRPCError({ code: "CONFLICT", message: "username_already_taken" });
         }
-        throw new TRPCError({ code: "CONFLICT", message: "A user with this email or username already exists." });
+        throw new TRPCError({ code: "CONFLICT", message: "email_already_used" });
       }
       throw e;
     }

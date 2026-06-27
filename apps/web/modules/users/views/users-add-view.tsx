@@ -22,8 +22,8 @@ export default function UsersAddView() {
       }
     },
     onError: (err) => {
-      console.error(err.message);
-      showToast(err.message || t("error_adding_user"), "error");
+      const i18nKey = err.message as Parameters<typeof t>[0];
+      showToast(t(i18nKey) !== i18nKey ? t(i18nKey) : t("error_adding_user"), "error");
     },
   });
 
