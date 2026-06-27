@@ -1391,9 +1391,9 @@ async function handler(
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
       customReplyToEmail: eventType.customReplyToEmail,
-            customEmailSubject: eventType.metadata?.confirmationEmailSubject ?? null,
       disableRescheduling: eventType.disableRescheduling ?? false,
       disableCancelling: eventType.disableCancelling ?? false,
+      metadata: eventType.metadata as { confirmationEmailSubject?: string | null } | null,
     })
     .withMetadataAndResponses({
       additionalNotes,

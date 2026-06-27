@@ -111,17 +111,13 @@ ${getRichDescription(this.calEvent, this.t)}
     )}, ${this.t(this.getInviteeStart("MMMM").toLowerCase())} ${this.getInviteeStart("D, YYYY")}`;
   }
 
-  /**
-   * Replaces {fieldIdentifier} placeholders in a custom email subject template
-   * with the corresponding values submitted by the attendee at booking time.
-   */
   private getInterpolatedSubject(template: string): string {
     const responses = this.calEvent.responses;
     if (!responses) return template;
 
     return template.replace(/\{(\w+)\}/g, (_, key) => {
       const field = responses[key];
-      if (!field) return "";
+      if (!field) return "{" + key + "}";
 
       const val = field.value;
 
@@ -136,7 +132,7 @@ ${getRichDescription(this.calEvent, this.t)}
         return `${name.firstName} ${name.lastName ?? ""}`.trim();
       }
 
-      return String(val ?? "");
+      return val != null ? String(val) : "{" + key + "}";
     });
   }
 }
