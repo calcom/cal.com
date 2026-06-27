@@ -1,4 +1,4 @@
-import process from "node:process";
+import { isValidCronRequest } from "@calcom/lib/cronAuth";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { DefaultAdapterFactory } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
@@ -22,11 +22,8 @@ import { NextResponse } from "next/server";
  * @returns
  */
 async function getHandler(request: NextRequest) {
-  const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
-
-  const validCronKeys = [process.env.CRON_API_KEY, process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined].filter((k): k is string => !!k);
-  if (!apiKey || !validCronKeys.includes(apiKey)) {
-    return NextResponse.json({ message: "Forbiden" }, { status: 403 });
+  if (!isValidCronRequest(request)) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
   // instantiate dependencies
