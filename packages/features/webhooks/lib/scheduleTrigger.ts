@@ -633,7 +633,12 @@ export async function cancelNoShowTasksForBooking({
 
     const promises = bookings.map(async (booking) => {
       return await prisma.task.deleteMany({
-        where: matchesBookingTasks(booking.uid),
+        // Disabling a webhook should only cancel its no-show tasks — not other tasks keyed by
+        // booking.uid (e.g. the sendAwaitingPaymentEmail reminder).
+        where: {
+          ...matchesBookingTasks(booking.uid),
+          type: { in: ["triggerHostNoShowWebhook", "triggerGuestNoShowWebhook"] },
+        },
       });
     });
 
