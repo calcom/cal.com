@@ -25,7 +25,6 @@ vi.mock("@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepositor
 const buildContext = () => {
   const prismaStub = {
     eventType: {
-      // Return a minimal event type that will exercise the happy path.
       findUnique: vi.fn().mockResolvedValue({ users: [{ id: 1 }], seatsPerTimeSlot: null }),
     },
     booking: {
@@ -52,9 +51,12 @@ const buildContext = () => {
 };
 
 describe("reserveSlotHandler seated event reservation", () => {
+  const originalWebappUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+
   afterEach(() => {
     vi.resetModules();
-    delete process.env.NEXT_PUBLIC_WEBAPP_URL;
+    if (originalWebappUrl === undefined) delete process.env.NEXT_PUBLIC_WEBAPP_URL;
+    else process.env.NEXT_PUBLIC_WEBAPP_URL = originalWebappUrl;
   });
 
   it("reserves the slot for the first attendee of a seated event (no existing booking)", async () => {
@@ -71,7 +73,6 @@ describe("reserveSlotHandler seated event reservation", () => {
         }),
       },
       booking: {
-        // No existing booking — first person to reserve this seated slot
         findFirst: vi.fn().mockResolvedValue(null),
       },
       selectedSlots: {
@@ -108,7 +109,7 @@ describe("reserveSlotHandler seated event reservation", () => {
       },
       booking: {
         findFirst: vi.fn().mockResolvedValue({
-          attendees: [{ id: 10 }, { id: 11 }], // 2 attendees = seats full
+          attendees: [{ id: 10 }, { id: 11 }],
         }),
       },
       selectedSlots: {
