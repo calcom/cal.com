@@ -603,24 +603,27 @@ export async function cancelNoShowTasksForBooking({
   triggerEvent?: WebhookTriggerEvents;
   webhook?: Pick<Webhook, "id" | "userId" | "teamId" | "eventTypeId">;
 }) {
-  // No-show tasks are keyed by `${bookingUid}-${webhookId}` (one per subscriber), so cancellation
-  // matches every subscriber's task by the bookingUid prefix rather than an exact referenceUid.
+  // A booking's no-show tasks are keyed `${bookingUid}-${webhookId}` (one per subscriber). Match them
+  // by an exact referenceUid (legacy/other tasks) or the delimiter-prefixed scheme — never a bare
+  // prefix, which could also match a different booking whose uid happens to share this one as a prefix.
+  const matchesBookingTasks = (uid: string) => ({
+    OR: [{ referenceUid: uid }, { referenceUid: { startsWith: `${uid}-` } }],
+  });
+
   if (bookingUid) {
     if (triggerEvent && !NO_SHOW_TRIGGERS.includes(triggerEvent)) return;
 
     if (triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW) {
       await prisma.task.deleteMany({
-        where: { referenceUid: { startsWith: bookingUid }, type: "triggerHostNoShowWebhook" },
+        where: { ...matchesBookingTasks(bookingUid), type: "triggerHostNoShowWebhook" },
       });
     } else if (triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW) {
       await prisma.task.deleteMany({
-        where: { referenceUid: { startsWith: bookingUid }, type: "triggerGuestNoShowWebhook" },
+        where: { ...matchesBookingTasks(bookingUid), type: "triggerGuestNoShowWebhook" },
       });
     } else {
       await prisma.task.deleteMany({
-        where: {
-          referenceUid: { startsWith: bookingUid },
-        },
+        where: matchesBookingTasks(bookingUid),
       });
     }
   } else if (webhook) {
@@ -630,9 +633,7 @@ export async function cancelNoShowTasksForBooking({
 
     const promises = bookings.map(async (booking) => {
       return await prisma.task.deleteMany({
-        where: {
-          referenceUid: { startsWith: booking.uid },
-        },
+        where: matchesBookingTasks(booking.uid),
       });
     });
 
