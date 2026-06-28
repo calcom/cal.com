@@ -51,9 +51,12 @@ const buildContext = () => {
 };
 
 describe("reserveSlotHandler seated event reservation", () => {
+  const originalWebappUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+
   afterEach(() => {
     vi.resetModules();
-    delete process.env.NEXT_PUBLIC_WEBAPP_URL;
+    if (originalWebappUrl === undefined) delete process.env.NEXT_PUBLIC_WEBAPP_URL;
+    else process.env.NEXT_PUBLIC_WEBAPP_URL = originalWebappUrl;
   });
 
   it("reserves the slot for the first attendee of a seated event (no existing booking)", async () => {
