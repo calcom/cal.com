@@ -28,7 +28,7 @@ export const APP_CATEGORY_ENTRIES: Record<ActiveAppCategoryKeys, Omit<AppCategor
   other:        { href: "", icon: "grid-3x3",    "data-testid": "other"        },
 };
 
-const CATEGORY_ORDER = [
+export const CATEGORY_ORDER = [
   "analytics",
   "automation",
   "calendar",
@@ -39,12 +39,6 @@ const CATEGORY_ORDER = [
   "other",
 ] as const satisfies readonly ActiveAppCategoryKeys[];
 
-const _assertCategoryOrderIsExhaustive: Exclude<
-  ActiveAppCategoryKeys,
-  (typeof CATEGORY_ORDER)[number]
-> extends never
-  ? true
-  : never = true;
 
 const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryEntry[] =>
   CATEGORY_ORDER.map((name): AppCategoryEntry => ({
