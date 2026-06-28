@@ -453,6 +453,22 @@ describe("handleSeats", () => {
             ],
             organizer,
             apps: [TestData.apps["stripe-payment"]],
+            // Seat 1 already has its own payment, so the booking has more than one payment and a
+            // bookingId-only lookup would be ambiguous — the new seat must link to its own payment.
+            payment: [
+              {
+                uid: "SEAT_1_PAYMENT_UID",
+                bookingId,
+                amount: 100,
+                fee: 0,
+                currency: "usd",
+                success: true,
+                refunded: false,
+                data: {},
+                externalId: "seat_1_external_id",
+                appId: "stripe",
+              },
+            ],
           })
         );
 
@@ -478,15 +494,16 @@ describe("handleSeats", () => {
         });
 
         // The new seat's payment should be linked on its BookingSeat so the success page can resolve
-        // this seat's amount instead of the first seat's.
+        // this seat's own amount instead of the first seat's.
         const newSeat = await prismaMock.bookingSeat.findFirst({
           where: { attendee: { email: booker.email } },
           select: { metadata: true },
         });
-        const payment = await prismaMock.payment.findFirst({ where: { bookingId } });
+        const newSeatPaymentUid = (newSeat?.metadata as { paymentUid?: string } | null)?.paymentUid;
 
-        expect(payment).toBeTruthy();
-        expect((newSeat?.metadata as { paymentUid?: string } | null)?.paymentUid).toBe(payment?.uid);
+        // Must point to this seat's own payment, not seat 1's pre-seeded payment.
+        expect(newSeatPaymentUid).toBe("MOCK_PAYMENT_UID");
+        expect(newSeatPaymentUid).not.toBe("SEAT_1_PAYMENT_UID");
       });
 
       test("Attendee should be added to existing seated event", async () => {
