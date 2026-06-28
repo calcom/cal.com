@@ -189,10 +189,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
   }
 
+  // For seated paid bookings each seat has its own payment (Payment has no per-seat link — all of a
+  // slot's seats share one bookingId), so resolve the viewer's seat-specific payment via the uid
+  // stored on its BookingSeat. Falls back to the booking's first payment (first seat / non-seated).
+  let seatPaymentUid: string | undefined;
+  if (seatReferenceUid) {
+    const seat = await prisma.bookingSeat.findUnique({
+      where: { referenceUid: seatReferenceUid },
+      select: { metadata: true },
+    });
+    seatPaymentUid = (seat?.metadata as { paymentUid?: string } | null)?.paymentUid;
+  }
+
   const payment = await prisma.payment.findFirst({
-    where: {
-      bookingId: bookingInfo.id,
-    },
+    where: seatPaymentUid ? { uid: seatPaymentUid } : { bookingId: bookingInfo.id },
+    orderBy: { id: "asc" },
     select: {
       appId: true,
       success: true,
