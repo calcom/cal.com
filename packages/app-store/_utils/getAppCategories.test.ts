@@ -11,6 +11,7 @@ describe("getAppCategories", () => {
         const missingInOrder = categoryEntriesKeys.filter((key) => !categoryOrderKeys.includes(key))
         const missingInEntries = categoryOrderKeys.filter((key) => !categoryEntriesKeys.includes(key))
 
+        expect(categoryOrderKeys).toHaveLength(categoryEntriesKeys.length)
         expect(missingInEntries).toHaveLength(0)
         expect(missingInOrder).toHaveLength(0)
     })
