@@ -183,10 +183,12 @@ const EventType = forwardRef<
       if (saveButtonRef.current) {
         saveButtonRef.current.click();
       } else {
-        form.handleSubmit((data) => {
+        form.handleSubmit(async (data) => {
           try {
-            handleSubmit(data);
-            customCallbacks?.onSuccess?.();
+            const submitted = await handleSubmit(data);
+            if (submitted) {
+              customCallbacks?.onSuccess?.();
+            }
           } catch (error) {
             customCallbacks?.onError?.(error as Error);
           }
