@@ -12,7 +12,10 @@ export function applyMarkdownHtmlFormatting(html: string): string {
       /<ol>/g,
       "<ol style='list-style-type: decimal; list-style-position: inside; margin-left: 12px; margin-bottom: 4px'>"
     )
-    .replace(/<a\s+href=/g, "<a target='_blank' class='text-blue-500 hover:text-blue-600' href=")
+    .replace(
+      /<a\s+href=/g,
+      "<a target='_blank' rel='noopener noreferrer' class='text-blue-500 hover:text-blue-600' href="
+    )
     .replace(/<h1>/g, "<h1 class='text-2xl font-semibold mb-2'>")
     .replace(/<h2>/g, "<h2 class='text-xl font-semibold mb-2'>")
     .replace(/<h3>/g, "<h3 class='text-lg font-semibold mb-1'>")

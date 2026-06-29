@@ -16,4 +16,11 @@ describe("markdownToSafeHTML", () => {
     expect(html).toContain("<h2 class='text-xl font-semibold mb-2'>");
     expect(html).toContain("<h3 class='text-lg font-semibold mb-1'>");
   });
+
+  it("adds rel noopener on links opened in a new tab", () => {
+    const html = markdownToSafeHTML("[site](https://example.com)");
+
+    expect(html).toContain("rel='noopener noreferrer'");
+    expect(html).toContain("target='_blank'");
+  });
 });
