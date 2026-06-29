@@ -285,6 +285,10 @@ export const useEventTypeForm = ({
   };
 
   const handleSubmit = async (values: FormValues) => {
+    if (!isFormDirty) {
+      return;
+    }
+
     const { children } = values;
     const dirtyValues = getDirtyFields(values);
     const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
