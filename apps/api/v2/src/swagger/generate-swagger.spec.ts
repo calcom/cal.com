@@ -79,6 +79,33 @@ describe("applyAuthorizationSecurity", () => {
     ]);
   });
 
+  it("handles an Authorization header declared at the path level (inherited by all operations)", () => {
+    const document = buildDocument({
+      "/v2/orgs/{orgId}": {
+        parameters: [{ name: "Authorization", in: "header", schema: { type: "string" } }],
+        get: { tags: ["Orgs"], responses: {} },
+        post: {
+          tags: ["Orgs"],
+          parameters: [{ name: "cal-api-version", in: "header", schema: { type: "string" } }],
+          responses: {},
+        },
+      },
+    } as unknown as OpenAPIObject["paths"]);
+
+    applyAuthorizationSecurity(document);
+
+    const pathItem = document.paths["/v2/orgs/{orgId}"];
+    // The inherited path-level Authorization header is removed...
+    expect(pathItem.parameters).toEqual([]);
+    // ...and every operation in the path gets the bearer security requirement.
+    expect(pathItem.get?.security).toEqual([{ [AUTHORIZATION_SECURITY_SCHEME]: [] }]);
+    expect(pathItem.post?.security).toEqual([{ [AUTHORIZATION_SECURITY_SCHEME]: [] }]);
+    // Unrelated operation-level parameters are preserved.
+    expect(pathItem.post?.parameters).toEqual([
+      { name: "cal-api-version", in: "header", schema: { type: "string" } },
+    ]);
+  });
+
   it("ignores reference ($ref) parameters without throwing", () => {
     const document = buildDocument({
       "/v2/ref": {

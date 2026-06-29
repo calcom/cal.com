@@ -65,6 +65,10 @@ export async function generateSwaggerForApp(app: NestExpressApplication<Server>)
   }
 }
 
+function isAuthorizationHeaderParam(param: ParameterObject | { $ref: string }): boolean {
+  return "in" in param && param.in === "header" && param.name === "Authorization";
+}
+
 /**
  * Swagger UI silently drops a header parameter named "Authorization" because the
  * OpenAPI spec requires it to be ignored. For every operation that declared such
@@ -72,6 +76,9 @@ export async function generateSwaggerForApp(app: NestExpressApplication<Server>)
  * bearer security requirement so the "Authorize" button actually attaches the
  * `Authorization` header to outgoing requests. Operations without that header
  * (i.e. genuinely public endpoints) are left untouched.
+ *
+ * Parameters can also be declared at the path level, where they are inherited by
+ * every operation in the path, so those are handled as well.
  */
 export function applyAuthorizationSecurity(document: OpenAPIObject): OpenAPIObject {
   if (!document.paths) {
@@ -81,25 +88,37 @@ export function applyAuthorizationSecurity(document: OpenAPIObject): OpenAPIObje
   Object.keys(document.paths).forEach((pathKey) => {
     const pathItem = document.paths[pathKey];
 
+    const pathHasAuthHeader = Array.isArray(pathItem.parameters)
+      ? pathItem.parameters.some(isAuthorizationHeaderParam)
+      : false;
+
     HttpMethods.forEach((method) => {
       const operation = pathItem[method];
 
-      if (!isOperationObject(operation) || !operation.parameters) {
+      if (!isOperationObject(operation)) {
         return;
       }
 
-      const isAuthorizationHeader = (param: ParameterObject | { $ref: string }): boolean =>
-        "in" in param && param.in === "header" && param.name === "Authorization";
+      const operationHasAuthHeader = operation.parameters?.some(isAuthorizationHeaderParam) ?? false;
 
-      if (!operation.parameters.some(isAuthorizationHeader)) {
+      // Nothing to do for operations that neither declare nor inherit the header.
+      if (!operationHasAuthHeader && !pathHasAuthHeader) {
         return;
       }
 
-      // Drop the parameter Swagger UI ignores...
-      operation.parameters = operation.parameters.filter((param) => !isAuthorizationHeader(param));
+      // Drop the operation-level parameter Swagger UI ignores...
+      if (operationHasAuthHeader && operation.parameters) {
+        operation.parameters = operation.parameters.filter((param) => !isAuthorizationHeaderParam(param));
+      }
       // ...and require the bearer scheme instead so the header is actually sent.
       operation.security = [...(operation.security ?? []), { [AUTHORIZATION_SECURITY_SCHEME]: [] }];
     });
+
+    // Drop the inherited path-level Authorization header, now represented as a
+    // security requirement on each operation above.
+    if (pathHasAuthHeader && Array.isArray(pathItem.parameters)) {
+      pathItem.parameters = pathItem.parameters.filter((param) => !isAuthorizationHeaderParam(param));
+    }
   });
 
   return document;
