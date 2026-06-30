@@ -48,6 +48,52 @@ describe("ConferencingController", () => {
     expect(conferencingService.connectOauthApps).not.toHaveBeenCalled();
   });
 
+  it("sanitizes the proxy success redirect when the upstream returns an external url", async () => {
+    httpService.axiosRef.get = jest.fn().mockResolvedValue({
+      data: { url: "https://evil.com" },
+    }) as unknown as typeof httpService.axiosRef.get;
+
+    const state = JSON.stringify({
+      onErrorReturnTo: "https://evil.com/fallback",
+      fromApp: false,
+      accessToken: "dummy-access-token",
+      teamId: "team-id",
+      orgId: "org-id",
+    });
+
+    const response = await controller.save(state, "zoom", "code", undefined, undefined);
+
+    expect(httpService.axiosRef.get).toHaveBeenCalledWith(
+      "https://api.cal.com/v2/organizations/org-id/teams/team-id/conferencing/zoom/oauth/callback",
+      expect.objectContaining({
+        headers: {
+          Authorization: "Bearer dummy-access-token",
+        },
+      })
+    );
+    expect(response.url).toBe("https://app.cal.com/apps/installed/conferencing");
+    expect(conferencingService.connectOauthApps).not.toHaveBeenCalled();
+  });
+
+  it("sanitizes the proxy error fallback when the upstream request throws", async () => {
+    httpService.axiosRef.get = jest
+      .fn()
+      .mockRejectedValue(new Error("proxy failed")) as unknown as typeof httpService.axiosRef.get;
+
+    const state = JSON.stringify({
+      onErrorReturnTo: "https://evil.com/fallback",
+      fromApp: false,
+      accessToken: "dummy-access-token",
+      teamId: "team-id",
+      orgId: "org-id",
+    });
+
+    const response = await controller.save(state, "zoom", "code", undefined, undefined);
+
+    expect(response.url).toBe("https://app.cal.com/apps/installed/conferencing");
+    expect(conferencingService.connectOauthApps).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed state values", async () => {
     await expect(controller.save("not-json", "zoom", "code", "1", undefined)).rejects.toThrow(
       "Invalid `state` query param"
