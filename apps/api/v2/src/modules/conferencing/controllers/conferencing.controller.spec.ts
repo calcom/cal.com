@@ -53,4 +53,10 @@ describe("ConferencingController", () => {
       "Invalid `state` query param"
     );
   });
+
+  it.each([null, [], "hello", 42, true])("rejects non-object state values: %p", async (state) => {
+    await expect(controller.save(JSON.stringify(state), "zoom", "code", "1", undefined)).rejects.toThrow(
+      "Invalid `state` query param"
+    );
+  });
 });

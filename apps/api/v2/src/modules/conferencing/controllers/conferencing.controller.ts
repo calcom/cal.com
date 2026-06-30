@@ -41,14 +41,9 @@ import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferenci
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import type { UserWithProfile } from "@/modules/users/users.repository";
 
-export type OAuthCallbackState = {
-  accessToken: string;
-  teamId?: string;
-  orgId?: string;
-  fromApp?: boolean;
-  returnTo?: string;
-  onErrorReturnTo?: string;
-};
+function isPlainObject(value: unknown): value is OAuthCallbackState {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 @Controller({
   path: "/v2/conferencing",
@@ -155,6 +150,10 @@ export class ConferencingController {
     try {
       decodedCallbackState = JSON.parse(state);
     } catch {
+      throw new BadRequestException("Invalid `state` query param");
+    }
+
+    if (!isPlainObject(decodedCallbackState)) {
       throw new BadRequestException("Invalid `state` query param");
     }
 
@@ -266,3 +265,12 @@ export class ConferencingController {
     return { status: SUCCESS_STATUS };
   }
 }
+
+export type OAuthCallbackState = {
+  accessToken: string;
+  teamId?: string;
+  orgId?: string;
+  fromApp?: boolean;
+  returnTo?: string;
+  onErrorReturnTo?: string;
+};
