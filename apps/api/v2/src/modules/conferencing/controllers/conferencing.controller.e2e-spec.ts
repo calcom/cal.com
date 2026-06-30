@@ -116,6 +116,23 @@ describe("Conferencing Endpoints", () => {
       return request(app.getHttpServer()).delete(`/v2/conferencing/google-meet/disconnect`).expect(200);
     });
 
+    it("should not redirect to an external onErrorReturnTo value on conferencing oauth callback", async () => {
+      const state = encodeURIComponent(
+        JSON.stringify({
+          onErrorReturnTo: "https://evil.com",
+          fromApp: false,
+          accessToken: "dummy-access-token",
+        })
+      );
+
+      const response = await request(app.getHttpServer())
+        .get(`/v2/conferencing/zoom/oauth/callback?state=${state}&error=1`)
+        .expect(301);
+
+      expect(response.headers.location).toContain("/apps/installed/conferencing");
+      expect(response.headers.location).not.toBe("https://evil.com");
+    });
+
     it("should get all the conferencing apps of the auth user, and not contain google meet", async () => {
       return request(app.getHttpServer())
         .get(`/v2/conferencing`)
