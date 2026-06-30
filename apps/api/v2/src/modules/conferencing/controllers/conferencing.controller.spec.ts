@@ -1,6 +1,7 @@
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { ConferencingService } from "../services/conferencing.service";
+import type { OAuthCallbackState } from "./conferencing.controller";
 import { ConferencingController } from "./conferencing.controller";
 
 describe("ConferencingController", () => {
@@ -22,9 +23,10 @@ describe("ConferencingController", () => {
     }),
   } as unknown as ConfigService;
 
+  const axiosGet = jest.fn();
   const httpService = {
     axiosRef: {
-      get: jest.fn(),
+      get: axiosGet,
     },
   } as unknown as HttpService;
 
@@ -35,35 +37,43 @@ describe("ConferencingController", () => {
   });
 
   it("falls back to a safe internal redirect when onErrorReturnTo is external", async () => {
-    const state = JSON.stringify({
-      onErrorReturnTo: "https://evil.com",
-      fromApp: false,
-      accessToken: "dummy-access-token",
-    });
-
-    const response = await controller.save(state, "zoom", "code", "1", undefined);
+    const response = await controller.save(
+      buildState({
+        onErrorReturnTo: "https://evil.com",
+        fromApp: false,
+        accessToken: "dummy-access-token",
+      }),
+      "zoom",
+      "code",
+      "1",
+      undefined
+    );
 
     expect(response.url).toBe("https://app.cal.com/apps/installed/conferencing");
-    expect(httpService.axiosRef.get).not.toHaveBeenCalled();
+    expect(axiosGet).not.toHaveBeenCalled();
     expect(conferencingService.connectOauthApps).not.toHaveBeenCalled();
   });
 
   it("sanitizes the proxy success redirect when the upstream returns an external url", async () => {
-    httpService.axiosRef.get = jest.fn().mockResolvedValue({
+    axiosGet.mockResolvedValueOnce({
       data: { url: "https://evil.com" },
-    }) as unknown as typeof httpService.axiosRef.get;
-
-    const state = JSON.stringify({
-      onErrorReturnTo: "https://evil.com/fallback",
-      fromApp: false,
-      accessToken: "dummy-access-token",
-      teamId: "team-id",
-      orgId: "org-id",
     });
 
-    const response = await controller.save(state, "zoom", "code", undefined, undefined);
+    const response = await controller.save(
+      buildState({
+        onErrorReturnTo: "https://evil.com/fallback",
+        fromApp: false,
+        accessToken: "dummy-access-token",
+        teamId: "team-id",
+        orgId: "org-id",
+      }),
+      "zoom",
+      "code",
+      undefined,
+      undefined
+    );
 
-    expect(httpService.axiosRef.get).toHaveBeenCalledWith(
+    expect(axiosGet).toHaveBeenCalledWith(
       "https://api.cal.com/v2/organizations/org-id/teams/team-id/conferencing/zoom/oauth/callback",
       expect.objectContaining({
         headers: {
@@ -76,19 +86,21 @@ describe("ConferencingController", () => {
   });
 
   it("sanitizes the proxy error fallback when the upstream request throws", async () => {
-    httpService.axiosRef.get = jest
-      .fn()
-      .mockRejectedValue(new Error("proxy failed")) as unknown as typeof httpService.axiosRef.get;
+    axiosGet.mockRejectedValueOnce(new Error("proxy failed"));
 
-    const state = JSON.stringify({
-      onErrorReturnTo: "https://evil.com/fallback",
-      fromApp: false,
-      accessToken: "dummy-access-token",
-      teamId: "team-id",
-      orgId: "org-id",
-    });
-
-    const response = await controller.save(state, "zoom", "code", undefined, undefined);
+    const response = await controller.save(
+      buildState({
+        onErrorReturnTo: "https://evil.com/fallback",
+        fromApp: false,
+        accessToken: "dummy-access-token",
+        teamId: "team-id",
+        orgId: "org-id",
+      }),
+      "zoom",
+      "code",
+      undefined,
+      undefined
+    );
 
     expect(response.url).toBe("https://app.cal.com/apps/installed/conferencing");
     expect(conferencingService.connectOauthApps).not.toHaveBeenCalled();
@@ -106,3 +118,11 @@ describe("ConferencingController", () => {
     );
   });
 });
+
+function buildState(state: Partial<OAuthCallbackState>): string {
+  return JSON.stringify({
+    fromApp: false,
+    accessToken: "dummy-access-token",
+    ...state,
+  });
+}
