@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+# Combined scorer: merges rubric.json + review.json into eval.json.
+# Usage: harness/eval/score --issue <n>
+#
+# Reads:
+#   .harness/runs/<issue>/rubric.json   (deterministic checks)
+#   .harness/runs/<issue>/review.json   (LLM judge output)
+#
+# Writes:
+#   .harness/runs/<issue>/eval.json
+#
+# Exit 0 = combined verdict PASS, exit 1 = FAIL or malformed input.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+ISSUE=""
+THRESHOLD=70  # minimum combined score to PASS
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --issue)     ISSUE="$2";     shift 2 ;;
+    --threshold) THRESHOLD="$2"; shift 2 ;;
+    *) echo "Unknown option: $1" >&2; exit 1 ;;
+  esac
+done
+
+if [[ -z "$ISSUE" ]]; then
+  echo "Usage: $0 --issue <n>" >&2
+  exit 1
+fi
+
+RUN_DIR="${REPO_ROOT}/.harness/runs/${ISSUE}"
+RUBRIC_FILE="${RUN_DIR}/rubric.json"
+REVIEW_FILE="${RUN_DIR}/review.json"
+EVAL_FILE="${RUN_DIR}/eval.json"
+
+# ── Validate rubric.json ──────────────────────────────────────────────────────
+
+if [[ ! -f "$RUBRIC_FILE" ]]; then
+  echo "ERROR: rubric.json not found at ${RUBRIC_FILE}" >&2
+  echo "Run: bash harness/eval/rubric --issue ${ISSUE}" >&2
+  exit 1
+fi
+
+rubric_verdict=$(python3 -c "import json; d=json.load(open('${RUBRIC_FILE}')); print(d['verdict'])" 2>/dev/null || echo "MALFORMED")
+if [[ "$rubric_verdict" == "MALFORMED" ]]; then
+  echo "ERROR: rubric.json is malformed" >&2
+  exit 1
+fi
+
+rubric_pass=$(python3 -c "import json; d=json.load(open('${RUBRIC_FILE}')); print(d['summary']['pass'])" 2>/dev/null || echo 0)
+rubric_fail=$(python3 -c "import json; d=json.load(open('${RUBRIC_FILE}')); print(d['summary']['fail'])" 2>/dev/null || echo 0)
+rubric_total=$(( rubric_pass + rubric_fail ))
+rubric_score=$(( rubric_total > 0 ? rubric_pass * 100 / rubric_total : 0 ))
+
+# ── Validate review.json ──────────────────────────────────────────────────────
+
+review_score=0
+review_verdict="MISSING"
+review_error=""
+
+if [[ ! -f "$REVIEW_FILE" ]]; then
+  review_error="review.json not found — LLM judge has not run"
+  review_verdict="FAIL"
+else
+  # Validate JSON and required fields
+  review_ok=$(python3 - <<'PYEOF' 2>/dev/null || echo "invalid"
+import json, sys
+try:
+    d = json.load(open("${REVIEW_FILE}"))
+    required = {"issue", "verdict", "score", "criteria", "convention_violations", "summary"}
+    missing = required - d.keys()
+    if missing:
+        print("missing fields: " + ", ".join(sorted(missing)))
+    elif not isinstance(d["criteria"], list):
+        print("criteria must be an array")
+    elif not isinstance(d["score"], (int, float)):
+        print("score must be a number")
+    else:
+        print("ok")
+except Exception as e:
+    print(f"parse error: {e}")
+PYEOF
+)
+  # Re-run with proper variable substitution
+  review_ok=$(python3 -c "
+import json, sys
+try:
+    d = json.load(open('${REVIEW_FILE}'))
+    required = {'issue', 'verdict', 'score', 'criteria', 'convention_violations', 'summary'}
+    missing = required - d.keys()
+    if missing:
+        print('missing fields: ' + ', '.join(sorted(missing)))
+    elif not isinstance(d['criteria'], list):
+        print('criteria must be an array')
+    elif not isinstance(d['score'], (int, float)):
+        print('score must be a number')
+    else:
+        print('ok')
+except Exception as e:
+    print(f'parse error: {e}')
+" 2>/dev/null || echo "parse error")
+
+  if [[ "$review_ok" != "ok" ]]; then
+    review_error="malformed review.json: ${review_ok}"
+    review_verdict="FAIL"
+  else
+    review_score=$(python3 -c "import json; d=json.load(open('${REVIEW_FILE}')); print(int(d['score']))" 2>/dev/null || echo 0)
+    review_verdict=$(python3 -c "import json; d=json.load(open('${REVIEW_FILE}')); print(d['verdict'])" 2>/dev/null || echo "FAIL")
+  fi
+fi
+
+# ── Combine scores ────────────────────────────────────────────────────────────
+
+# Weighted average: rubric 40%, LLM judge 60%
+combined_score=$(python3 -c "print(round(${rubric_score} * 0.4 + ${review_score} * 0.6))" 2>/dev/null || echo 0)
+
+combined_verdict="FAIL"
+if [[ "$rubric_verdict" == "PASS" && "$review_verdict" == "PASS" && "$combined_score" -ge "$THRESHOLD" ]]; then
+  combined_verdict="PASS"
+fi
+
+# ── Write eval.json ───────────────────────────────────────────────────────────
+
+timestamp() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
+
+mkdir -p "$RUN_DIR"
+cat > "$EVAL_FILE" <<EOF
+{
+  "issue": ${ISSUE},
+  "verdict": "${combined_verdict}",
+  "score": ${combined_score},
+  "threshold": ${THRESHOLD},
+  "scored_at": "$(timestamp)",
+  "components": {
+    "rubric": {
+      "verdict": "${rubric_verdict}",
+      "score": ${rubric_score},
+      "weight": 0.4
+    },
+    "review": {
+      "verdict": "${review_verdict}",
+      "score": ${review_score},
+      "weight": 0.6,
+      "error": $(python3 -c "import json; print(json.dumps('${review_error}'))" 2>/dev/null || echo "\"\"")
+    }
+  }
+}
+EOF
+
+# ── Print summary ─────────────────────────────────────────────────────────────
+
+echo ""
+echo "════════════════════════════════════════"
+echo "EVAL for issue #${ISSUE}"
+echo "  Rubric:  ${rubric_verdict} (score: ${rubric_score}/100)"
+echo "  Review:  ${review_verdict} (score: ${review_score}/100)"
+echo "  Combined: ${combined_score}/100 (threshold: ${THRESHOLD})"
+echo "  Verdict: ${combined_verdict}"
+if [[ -n "$review_error" ]]; then
+  echo "  Review error: ${review_error}"
+fi
+echo "  Report: ${EVAL_FILE}"
+echo "════════════════════════════════════════"
+
+[[ "$combined_verdict" == "PASS" ]] && exit 0 || exit 1

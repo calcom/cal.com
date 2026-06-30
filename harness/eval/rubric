@@ -1,0 +1,218 @@
+#!/usr/bin/env bash
+# Deterministic rubric checks for the harness eval.
+# Usage: harness/eval/rubric [--base <ref>] [--issue <n>]
+#
+# Checks:
+#   1. quality-gate PASS (delegates to harness/scripts/quality-gate)
+#   2. Diff size within limits (<500 lines added+deleted, <10 code files)
+#   3. Tests added for new code (every new .ts/.tsx file has a .test.ts sibling or counterpart)
+#   4. Commit message follows Conventional Commits
+#
+# Exit 0 = all checks pass, exit 1 = one or more failed.
+# Writes results to .harness/runs/<issue>/rubric.json (if --issue given),
+# or stdout-only if not.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+BASE_REF="main"
+ISSUE=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --base)  BASE_REF="$2"; shift 2 ;;
+    --issue) ISSUE="$2";    shift 2 ;;
+    *) echo "Unknown option: $1" >&2; exit 1 ;;
+  esac
+done
+
+cd "${REPO_ROOT}"
+
+timestamp() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
+started_at=$(timestamp)
+
+PASS_COUNT=0
+FAIL_COUNT=0
+CHECKS=()
+
+record() {
+  local name="$1" status="$2" message="$3"
+  local escaped
+  escaped=$(printf '%s' "${message}" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
+  CHECKS+=("{\"name\":\"${name}\",\"status\":\"${status}\",\"message\":${escaped}}")
+  if [[ "$status" == "pass" ]]; then
+    PASS_COUNT=$((PASS_COUNT + 1))
+    echo "  ✓ ${name}"
+  else
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    echo "  ✗ ${name}: ${message}"
+  fi
+}
+
+echo "==> Rubric checks (base: ${BASE_REF})"
+
+# ── 1. Quality gate ───────────────────────────────────────────────────────────
+
+echo "--> quality-gate"
+qg_exit=0
+bash "${REPO_ROOT}/harness/scripts/quality-gate" --base "${BASE_REF}" >/dev/null 2>&1 || qg_exit=$?
+if [[ "$qg_exit" -eq 0 ]]; then
+  record "quality-gate" "pass" "all quality-gate checks passed"
+else
+  # Pull failure detail from the report if it exists
+  qg_report="${REPO_ROOT}/.harness/reports/quality-gate.json"
+  if [[ -f "$qg_report" ]]; then
+    failed_checks=$(python3 -c "
+import json, sys
+d = json.load(open('${qg_report}'))
+fails = [c['name'] + ': ' + c['message'] for c in d.get('checks', []) if c['status'] != 'pass']
+print('; '.join(fails))
+" 2>/dev/null || echo "see .harness/reports/quality-gate.json")
+    record "quality-gate" "fail" "${failed_checks}"
+  else
+    record "quality-gate" "fail" "quality-gate script exited ${qg_exit}"
+  fi
+fi
+
+# ── 2. Diff size ──────────────────────────────────────────────────────────────
+
+echo "--> diff-size"
+
+# Count lines changed (additions + deletions), excluding non-code files
+EXCLUDED_PATTERNS='(\.lock$|\.json$|\.generated\.|\.md$|yarn\.lock)'
+code_files=$(git diff --name-only "${BASE_REF}...HEAD" 2>/dev/null \
+  | grep -v -E "${EXCLUDED_PATTERNS}" || true)
+code_file_count=$(echo "$code_files" | grep -c '.' || true)
+
+lines_changed=$(git diff --stat "${BASE_REF}...HEAD" 2>/dev/null \
+  | grep -E '^\s*[0-9]+ files? changed' \
+  | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo 0)
+lines_deleted=$(git diff --stat "${BASE_REF}...HEAD" 2>/dev/null \
+  | grep -E '^\s*[0-9]+ files? changed' \
+  | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo 0)
+total_lines=$(( ${lines_changed:-0} + ${lines_deleted:-0} ))
+
+size_ok=true
+size_msg=""
+if [[ "$code_file_count" -gt 10 ]]; then
+  size_ok=false
+  size_msg="${code_file_count} code files changed (limit: 10)"
+fi
+if [[ "$total_lines" -gt 500 ]]; then
+  size_ok=false
+  if [[ -n "$size_msg" ]]; then size_msg="${size_msg}; "; fi
+  size_msg="${size_msg}${total_lines} lines changed (limit: 500)"
+fi
+
+if [[ "$size_ok" == "true" ]]; then
+  record "diff-size" "pass" "${code_file_count} code files, ${total_lines} lines"
+else
+  record "diff-size" "fail" "${size_msg}"
+fi
+
+# ── 3. Tests added for new code ───────────────────────────────────────────────
+
+echo "--> tests-added"
+
+# New .ts/.tsx files that are not themselves test/spec files
+new_code_files=$(git diff --name-only --diff-filter=A "${BASE_REF}...HEAD" 2>/dev/null \
+  | grep -E '\.(ts|tsx)$' \
+  | grep -vE '\.(test|spec)\.(ts|tsx)$' \
+  | grep -v '\.d\.ts$' || true)
+
+missing_tests=()
+while IFS= read -r f; do
+  [[ -z "$f" ]] && continue
+  base="${f%.*}"       # strip extension
+  base="${base%.tsx}"  # also handle .tsx
+  # Accept test file as: same dir with .test.ts/.spec.ts, or under __tests__/
+  dir="$(dirname "$f")"
+  stem="$(basename "$f" .ts)"
+  stem="${stem%.tsx}"
+  found=false
+  for ext in test.ts spec.ts test.tsx spec.tsx; do
+    if [[ -f "${dir}/${stem}.${ext}" ]]; then found=true; break; fi
+  done
+  if [[ "$found" == "false" ]]; then
+    # Also accept a matching file anywhere under a __tests__ dir in the same package
+    pkg_root="$(echo "$dir" | sed 's|/src/.*||; s|/lib/.*||')"
+    if find "${pkg_root}" -name "${stem}.test.ts" -o -name "${stem}.spec.ts" 2>/dev/null | grep -q .; then
+      found=true
+    fi
+  fi
+  if [[ "$found" == "false" ]]; then
+    missing_tests+=("$f")
+  fi
+done <<< "$new_code_files"
+
+if [[ ${#missing_tests[@]} -eq 0 ]]; then
+  record "tests-added" "pass" "all new code files have corresponding tests"
+else
+  record "tests-added" "fail" "missing tests for: ${missing_tests[*]}"
+fi
+
+# ── 4. Conventional commit format ─────────────────────────────────────────────
+
+echo "--> conventional-commits"
+
+# Check the most recent commit on this branch (not in base)
+commit_msgs=$(git log "${BASE_REF}..HEAD" --format="%s" 2>/dev/null || true)
+bad_commits=()
+while IFS= read -r msg; do
+  [[ -z "$msg" ]] && continue
+  # Conventional commit: type(scope): description  OR  type: description
+  if ! echo "$msg" | grep -qE '^(feat|fix|refactor|chore|docs|test|perf|ci|build|revert)(\([^)]+\))?: .+'; then
+    bad_commits+=("$msg")
+  fi
+done <<< "$commit_msgs"
+
+if [[ ${#bad_commits[@]} -eq 0 ]]; then
+  record "conventional-commits" "pass" "all commits follow conventional format"
+else
+  record "conventional-commits" "fail" "non-conforming: ${bad_commits[*]}"
+fi
+
+# ── Write output ──────────────────────────────────────────────────────────────
+
+finished_at=$(timestamp)
+overall="PASS"
+[[ "$FAIL_COUNT" -gt 0 ]] && overall="FAIL"
+
+checks_json="["
+first=true
+for c in "${CHECKS[@]}"; do
+  [[ "$first" == "true" ]] && checks_json+="${c}" || checks_json+=",${c}"
+  first=false
+done
+checks_json+="]"
+
+json=$(cat <<EOF
+{
+  "verdict": "${overall}",
+  "started_at": "${started_at}",
+  "finished_at": "${finished_at}",
+  "base_ref": "${BASE_REF}",
+  "summary": { "pass": ${PASS_COUNT}, "fail": ${FAIL_COUNT} },
+  "checks": ${checks_json}
+}
+EOF
+)
+
+echo ""
+echo "────────────────────────────────────────"
+if [[ "$overall" == "PASS" ]]; then
+  echo "RUBRIC PASS  (${PASS_COUNT} checks)"
+else
+  echo "RUBRIC FAIL  (${PASS_COUNT} passed, ${FAIL_COUNT} failed)"
+fi
+
+if [[ -n "$ISSUE" ]]; then
+  out_dir="${REPO_ROOT}/.harness/runs/${ISSUE}"
+  mkdir -p "$out_dir"
+  echo "$json" > "${out_dir}/rubric.json"
+  echo "Report: ${out_dir}/rubric.json"
+fi
+echo "────────────────────────────────────────"
+
+[[ "$overall" == "PASS" ]] && exit 0 || exit 1
