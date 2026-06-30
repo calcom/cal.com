@@ -1,0 +1,195 @@
+#!/usr/bin/env bash
+# Eval retry loop: runs the full eval pipeline and hands feedback back to
+# the implementer on failure, stopping after MAX_ATTEMPTS.
+#
+# Usage: harness/eval/run-with-retry --issue <n> [--base <ref>] [--max-attempts <n>]
+#
+# Flow per attempt:
+#   1. bash harness/eval/rubric --issue <n> --base <ref>
+#   2. (reviewer agent expected to have already written review.json;
+#      if missing, counts as a failed attempt)
+#   3. bash harness/eval/score --issue <n>
+#   4. If PASS → write approval token + exit 0
+#   5. If FAIL and attempts remain → print combined feedback, increment counter
+#   6. If FAIL and no attempts remain → halt, surface report, exit 1
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+ISSUE=""
+BASE_REF="main"
+MAX_ATTEMPTS=3
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --issue)        ISSUE="$2";        shift 2 ;;
+    --base)         BASE_REF="$2";     shift 2 ;;
+    --max-attempts) MAX_ATTEMPTS="$2"; shift 2 ;;
+    *) echo "Unknown option: $1" >&2; exit 1 ;;
+  esac
+done
+
+if [[ -z "$ISSUE" ]]; then
+  echo "Usage: $0 --issue <n> [--base <ref>] [--max-attempts <n>]" >&2
+  exit 1
+fi
+
+RUN_DIR="${REPO_ROOT}/.harness/runs/${ISSUE}"
+ATTEMPTS_FILE="${RUN_DIR}/eval-attempts"
+EVAL_FILE="${RUN_DIR}/eval.json"
+APPROVAL_DIR="${RUN_DIR}/approvals"
+
+mkdir -p "$RUN_DIR"
+
+# Read or initialise attempt counter
+attempt=1
+if [[ -f "$ATTEMPTS_FILE" ]]; then
+  attempt=$(cat "$ATTEMPTS_FILE")
+  attempt=$(( attempt + 1 ))
+fi
+
+echo ""
+echo "╔══════════════════════════════════════════╗"
+echo "  Eval attempt ${attempt} / ${MAX_ATTEMPTS}  (issue #${ISSUE})"
+echo "╚══════════════════════════════════════════╝"
+
+# Persist attempt counter before running (so a crash still counts)
+echo "$attempt" > "$ATTEMPTS_FILE"
+
+# ── Step 1: deterministic rubric ─────────────────────────────────────────────
+
+echo ""
+echo "── Step 1: deterministic rubric ──"
+rubric_exit=0
+bash "${SCRIPT_DIR}/rubric" --issue "${ISSUE}" --base "${BASE_REF}" || rubric_exit=$?
+
+# ── Step 2: combined score ────────────────────────────────────────────────────
+
+echo ""
+echo "── Step 2: combined score ──"
+score_exit=0
+bash "${SCRIPT_DIR}/score" --issue "${ISSUE}" || score_exit=$?
+
+# ── Step 3: evaluate outcome ──────────────────────────────────────────────────
+
+verdict=$(python3 -c "import json; d=json.load(open('${EVAL_FILE}')); print(d['verdict'])" 2>/dev/null || echo "FAIL")
+
+if [[ "$verdict" == "PASS" ]]; then
+  echo ""
+  echo "✅  PASS on attempt ${attempt}/${MAX_ATTEMPTS}"
+  echo ""
+  # Write the PR approval token so the hook allows git push / gh pr create
+  mkdir -p "$APPROVAL_DIR"
+  touch "${APPROVAL_DIR}/pr"
+  echo "Approval token written: ${APPROVAL_DIR}/pr"
+  echo "You may now run: git push && gh pr create"
+  exit 0
+fi
+
+# ── FAIL path ─────────────────────────────────────────────────────────────────
+
+echo ""
+echo "❌  FAIL on attempt ${attempt}/${MAX_ATTEMPTS}"
+
+if [[ "$attempt" -ge "$MAX_ATTEMPTS" ]]; then
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "  MAX ATTEMPTS REACHED — halting, human review needed"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "Eval report:   ${EVAL_FILE}"
+  echo "Rubric report: ${RUN_DIR}/rubric.json"
+  echo "Review report: ${RUN_DIR}/review.json"
+  echo ""
+  # Print combined feedback for the human
+  echo "── Rubric failures ──"
+  python3 -c "
+import json
+d = json.load(open('${RUN_DIR}/rubric.json'))
+fails = [c for c in d.get('checks', []) if c['status'] != 'pass']
+if not fails:
+    print('  (none)')
+for c in fails:
+    print(f\"  ✗ {c['name']}: {c['message']}\")
+" 2>/dev/null || true
+  echo ""
+  echo "── Review failures ──"
+  python3 -c "
+import json, os
+p = '${RUN_DIR}/review.json'
+if not os.path.exists(p):
+    print('  (review.json missing)')
+else:
+    d = json.load(open(p))
+    fails = [c for c in d.get('criteria', []) if c['result'] != 'PASS']
+    if not fails:
+        print('  (none)')
+    for c in fails:
+        print(f\"  ✗ {c['text']} ({c['result']}, score {c['score']})\")
+        for f in c.get('findings', []):
+            print(f'      • {f}')
+    viols = d.get('convention_violations', [])
+    if viols:
+        print('')
+        print('  Convention violations:')
+        for v in viols:
+            print(f\"    {v['file']}:{v['line']} [{v['rule']}] {v['detail']}\")
+" 2>/dev/null || true
+  exit 1
+fi
+
+# ── Print feedback for the implementer and prompt retry ───────────────────────
+
+remaining=$(( MAX_ATTEMPTS - attempt ))
+echo ""
+echo "── Feedback for implementer (${remaining} attempt(s) remaining) ──"
+echo ""
+python3 -c "
+import json, os
+
+print('=== RUBRIC FAILURES ===')
+d = json.load(open('${RUN_DIR}/rubric.json'))
+fails = [c for c in d.get('checks', []) if c['status'] != 'pass']
+if not fails:
+    print('  (none)')
+for c in fails:
+    print(f\"  ✗ {c['name']}: {c['message']}\")
+
+print('')
+print('=== REVIEW FAILURES ===')
+p = '${RUN_DIR}/review.json'
+if not os.path.exists(p):
+    print('  review.json is missing — reviewer agent must run before next attempt')
+else:
+    d = json.load(open(p))
+    err = d.get('error', '')
+    if err:
+        print(f'  review.json error: {err}')
+    fails = [c for c in d.get('criteria', []) if c['result'] != 'PASS']
+    if not fails:
+        print('  (none)')
+    for c in fails:
+        print(f\"  ✗ {c['text']} ({c['result']}, score {c['score']})\")
+        for f in c.get('findings', []):
+            print(f'      • {f}')
+    viols = d.get('convention_violations', [])
+    if viols:
+        print('')
+        print('  Convention violations:')
+        for v in viols:
+            print(f\"    {v['file']}:{v['line']} [{v['rule']}] {v['detail']}\")
+
+print('')
+print(f'=== SCORES ===')
+e = json.load(open('${EVAL_FILE}'))
+print(f\"  Rubric:   {e['components']['rubric']['score']}/100\")
+print(f\"  Review:   {e['components']['review']['score']}/100\")
+print(f\"  Combined: {e['score']}/100 (threshold: {e['threshold']})\")
+" 2>/dev/null || echo "  (could not parse reports)"
+
+echo ""
+echo "Fix the issues above, then re-run:"
+echo "  bash harness/eval/run-with-retry --issue ${ISSUE} --base ${BASE_REF}"
+exit 1
