@@ -129,8 +129,10 @@ describe("Conferencing Endpoints", () => {
         .get(`/v2/conferencing/zoom/oauth/callback?state=${state}&error=1`)
         .expect(301);
 
-      expect(response.headers.location).toContain("/apps/installed/conferencing");
-      expect(response.headers.location).not.toBe("https://evil.com");
+      const redirectUrl = new URL(response.headers.location);
+      expect(redirectUrl.origin).toBe("https://app.cal.com");
+      expect(redirectUrl.pathname).toBe("/apps/installed/conferencing");
+      expect(redirectUrl.href).not.toBe("https://evil.com");
     });
 
     it("should get all the conferencing apps of the auth user, and not contain google meet", async () => {
