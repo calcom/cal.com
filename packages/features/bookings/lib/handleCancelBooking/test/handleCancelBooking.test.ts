@@ -142,7 +142,21 @@ describe("Cancel Booking", () => {
         },
       },
     });
+  });
 
+  test("Should throw when cancelling a non-existing booking", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          id: 99999,
+          uid: "non-existing-uid",
+          cancelledBy: "someone@example.com",
+          cancellationReason: "No reason",
+        },
+      })
+    ).rejects.toThrow("Booking not found.");
   });
 
   test("Should call processPaymentRefund", async () => {
