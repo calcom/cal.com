@@ -83,6 +83,15 @@ type GetAvailabilityUserWithDelegationCredentials = Omit<NonNullable<GetAvailabi
   credentials: CredentialForCalendarService[];
 };
 
+export function getBookingPrefetchWindow(startDate: Date, endDate: Date) {
+  const maxBuffer = Math.max(...getDefinedBufferTimes());
+
+  return {
+    startDate: dayjs(startDate).subtract(maxBuffer, "minute").toDate(),
+    endDate: dayjs(endDate).add(maxBuffer, "minute").toDate(),
+  };
+}
+
 export type GetAvailableSlotsResponse = Awaited<
   ReturnType<(typeof AvailableSlotsService)["prototype"]["_getAvailableSlots"]>
 >;
@@ -730,12 +739,15 @@ export class AvailableSlotsService {
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     const bookingRepo = this.dependencies.bookingRepo;
-    const maxBuffer = Math.max(...getDefinedBufferTimes());
+    const { startDate: prefetchedStartDate, endDate: prefetchedEndDate } = getBookingPrefetchWindow(
+      startTimeDate,
+      endTimeDate
+    );
 
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
-        startDate: dayjs(startTimeDate).subtract(maxBuffer, "minute").toDate(),
-        endDate: dayjs(endTimeDate).add(maxBuffer, "minute").toDate(),
+        startDate: prefetchedStartDate,
+        endDate: prefetchedEndDate,
         eventTypeId: eventType.id,
         seatedEvent: Boolean(eventType.seatsPerTimeSlot),
         userIdAndEmailMap,
