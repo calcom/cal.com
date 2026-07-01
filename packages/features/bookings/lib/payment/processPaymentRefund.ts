@@ -26,7 +26,10 @@ export const processPaymentRefund = async ({
   const { startTime, eventType, payment } = booking;
   if (!teamId && !eventType?.owner) return;
 
-  const successPayment = payment.find((p) => p.success);
+  // A paid seated booking creates one Payment per seat on the same bookingId, so refund every
+  // successful (not-yet-refunded) payment — not just the first — otherwise the other seats stay charged.
+  const successfulPayments = payment.filter((p) => p.success && !p.refunded);
+  const [successPayment] = successfulPayments;
   if (!successPayment) return;
 
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata);
@@ -80,5 +83,7 @@ export const processPaymentRefund = async ({
           dayjs(startTime).businessDaysSubtract(refundDaysCount);
     if (dayjs().isAfter(refundDeadline)) return;
   }
-  await handlePaymentRefund(successPayment.id, paymentAppCredential);
+  for (const paymentToRefund of successfulPayments) {
+    await handlePaymentRefund(paymentToRefund.id, paymentAppCredential);
+  }
 };

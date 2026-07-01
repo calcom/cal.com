@@ -116,6 +116,31 @@ describe("processPaymentRefund", () => {
     );
   });
 
+  it("should refund every successful payment on a multi-seat booking, not just the first", async () => {
+    mockedGetPaymentAppData.mockReturnValue(mockAppData);
+    await prismock.app.create({ data: mockApp });
+    await prismock.credential.create({ data: mockCredential });
+
+    // A paid seated booking fans out into one Payment row per seat on the same bookingId.
+    const multiSeatBooking = {
+      ...mockBooking,
+      payment: [
+        { ...mockPayment[0], id: 1, uid: "seat-1-pay", externalId: "ext-seat-1" },
+        { ...mockPayment[0], id: 2, uid: "seat-2-pay", externalId: "ext-seat-2", amount: 5000 },
+      ],
+    };
+
+    const mockNow = dayjs(mockStartTime).subtract(8, "days").toDate();
+    vi.useFakeTimers();
+    vi.setSystemTime(mockNow);
+
+    await processPaymentRefund({ booking: multiSeatBooking, teamId: 1 });
+
+    expect(handlePaymentRefund).toHaveBeenCalledTimes(2);
+    expect(handlePaymentRefund).toHaveBeenCalledWith(1, expect.objectContaining({ appId: "123" }));
+    expect(handlePaymentRefund).toHaveBeenCalledWith(2, expect.objectContaining({ appId: "123" }));
+  });
+
   it("should not process refund if past the refund deadline", async () => {
     mockedGetPaymentAppData.mockReturnValueOnce(mockAppData);
     await prismock.app.create({ data: mockApp });
