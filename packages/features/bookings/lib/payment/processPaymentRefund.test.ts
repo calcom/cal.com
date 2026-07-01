@@ -130,7 +130,7 @@ describe("processPaymentRefund", () => {
       ],
     };
 
-    const mockNow = dayjs(mockStartTime).subtract(8, "days").toDate();
+    const mockNow = new Date(mockStartTime.getTime() - 8 * 24 * 60 * 60 * 1000);
     vi.useFakeTimers();
     vi.setSystemTime(mockNow);
 
@@ -139,6 +139,32 @@ describe("processPaymentRefund", () => {
     expect(handlePaymentRefund).toHaveBeenCalledTimes(2);
     expect(handlePaymentRefund).toHaveBeenCalledWith(1, expect.objectContaining({ appId: "123" }));
     expect(handlePaymentRefund).toHaveBeenCalledWith(2, expect.objectContaining({ appId: "123" }));
+  });
+
+  it("should attempt every refund even when one fails, then surface an aggregate error", async () => {
+    mockedGetPaymentAppData.mockReturnValue(mockAppData);
+    await prismock.app.create({ data: mockApp });
+    await prismock.credential.create({ data: mockCredential });
+    vi.mocked(handlePaymentRefund)
+      .mockRejectedValueOnce(new Error("provider down"))
+      .mockResolvedValueOnce(undefined);
+
+    const multiSeatBooking = {
+      ...mockBooking,
+      payment: [
+        { ...mockPayment[0], id: 1, uid: "seat-1-pay", externalId: "ext-seat-1" },
+        { ...mockPayment[0], id: 2, uid: "seat-2-pay", externalId: "ext-seat-2", amount: 5000 },
+      ],
+    };
+
+    const mockNow = new Date(mockStartTime.getTime() - 8 * 24 * 60 * 60 * 1000);
+    vi.useFakeTimers();
+    vi.setSystemTime(mockNow);
+
+    await expect(processPaymentRefund({ booking: multiSeatBooking, teamId: 1 })).rejects.toThrow();
+
+    // Both seats are attempted even though the first refund failed.
+    expect(handlePaymentRefund).toHaveBeenCalledTimes(2);
   });
 
   it("should not process refund if past the refund deadline", async () => {

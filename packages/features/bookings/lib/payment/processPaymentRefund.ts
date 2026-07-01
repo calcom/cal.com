@@ -83,7 +83,22 @@ export const processPaymentRefund = async ({
           dayjs(startTime).businessDaysSubtract(refundDaysCount);
     if (dayjs().isAfter(refundDeadline)) return;
   }
+  // Attempt every refund independently so one provider failure doesn't leave the remaining seats
+  // charged, then surface an aggregate error for the caller to log/report.
+  const refundErrors: unknown[] = [];
   for (const paymentToRefund of successfulPayments) {
-    await handlePaymentRefund(paymentToRefund.id, paymentAppCredential);
+    try {
+      await handlePaymentRefund(paymentToRefund.id, paymentAppCredential);
+    } catch (error) {
+      refundErrors.push(error);
+    }
+  }
+
+  if (refundErrors.length) {
+    throw new Error(
+      `Failed to refund ${refundErrors.length} of ${successfulPayments.length} payment(s): ${refundErrors
+        .map((error) => (error instanceof Error ? error.message : String(error)))
+        .join("; ")}`
+    );
   }
 };
