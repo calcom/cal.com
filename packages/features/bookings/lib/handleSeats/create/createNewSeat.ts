@@ -275,6 +275,8 @@ const createNewSeat = async (
       bookerName: fullName,
       bookerEmail,
       bookerPhoneNumber,
+      bookingFields: eventType.bookingFields,
+      locale: attendeeLanguage ?? "en",
     });
 
     resultBooking = { ...foundBooking };
