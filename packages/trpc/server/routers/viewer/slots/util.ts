@@ -730,8 +730,7 @@ export class AvailableSlotsService {
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     const bookingRepo = this.dependencies.bookingRepo;
-    const definedBufferTimes = getDefinedBufferTimes();
-    const maxBuffer = definedBufferTimes[definedBufferTimes.length - 1];
+    const maxBuffer = Math.max(...getDefinedBufferTimes());
 
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
