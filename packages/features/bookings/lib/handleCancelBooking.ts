@@ -49,6 +49,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { getBookingToDelete } from "./getBookingToDelete";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
+import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -102,7 +103,19 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     skipCancellationReasonValidation = false,
     skipCalendarSyncTaskCancellation = false,
   } = bookingCancelInput.parse(body);
-  const bookingToDelete = await getBookingToDelete(id, uid);
+  let bookingToDelete: BookingToDelete
+  try {
+    bookingToDelete = await getBookingToDelete(id, uid);
+  } catch (error) {
+    if (isPrismaError(error) && error.code === "P2025") // Record not found
+    {
+      throw new HttpError({
+        statusCode: 404,
+        message: "Booking not found.",
+      });
+    }
+    throw error;
+  }
   const {
     userId,
     platformBookingUrl,
