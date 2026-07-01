@@ -5,7 +5,7 @@ on:
     types: [labeled]
 
 permissions:
-  actions: write
+  actions: read
   contents: read
 
 jobs:
