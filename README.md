@@ -17,9 +17,6 @@
     <br />
     <a href="https://github.com/calcom/cal.diy"><strong>GitHub</strong></a>
     <br />
-    <br />
-    <a href="https://github.com/calcom/cal.diy/discussions">Discussions</a>
-    &middot;
     <a href="https://github.com/calcom/cal.diy/issues">Issues</a>
     &middot;
     <a href="./CONTRIBUTING.md">Contributing</a>
@@ -795,7 +792,6 @@ We welcome contributions! Whether it's fixing a typo, improving documentation, o
 > **Important:** Cal.diy is a community fork. Contributions to this repo do **not** flow to Cal.com's production platform. See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - Check out our [Contributing Guide](./CONTRIBUTING.md) for detailed steps.
-- Join the discussion on [GitHub Discussions](https://github.com/calcom/cal.diy/discussions).
 - Please follow our coding standards and commit message conventions to keep the project consistent.
 
 Even small improvements matter — thank you for helping us grow!
@@ -816,7 +812,7 @@ We have a list of [help wanted](https://github.com/calcom/cal.diy/issues?q=is:is
 
 ### Translations
 
-Don't code but still want to contribute? Join our [Discussions](https://github.com/calcom/cal.diy/discussions) and help translate Cal.diy into your language.
+Don't code but still want to contribute? help translate Cal.diy into your language.
 
 <!-- ACKNOWLEDGEMENTS -->
 
