@@ -23,8 +23,8 @@ export function applyMarkdownHtmlFormatting(html: string): string {
     .replace(/<h5>/g, "<h5 class='text-sm font-semibold mb-1'>")
     .replace(/<h6>/g, "<h6 class='text-xs font-semibold mb-1'>");
 
-  // Match: <li>Some text </li><li><ul>...</ul></li>
-  // Convert to: <li>Some text <ul>...</ul></li>
+  // Some markdown renderers emit a sibling <li><ul>…</ul></li> after text-only list items.
+  // Nest that inner list inside the preceding item so bullets render correctly in booking UI.
   formatted = formatted.replace(
     /<li>([^<]+|<strong>.*?<\/strong>)<\/li>\s*<li>\s*<ul([^>]*)>([\s\S]*?)<\/ul>\s*<\/li>/g,
     "<li>$1<ul$2>$3</ul></li>"
