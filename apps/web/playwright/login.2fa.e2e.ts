@@ -7,6 +7,7 @@ import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import { prisma } from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
+import { getDefaultPassword } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -23,7 +24,7 @@ test.describe("2FA Tests", async () => {
     const user = await test.step("Enable 2FA", async () => {
       const user = await users.create();
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const userPassword = user.username!;
+      const userPassword = getDefaultPassword(user.username!);
       await user.apiLogin();
 
       // expects the home page for an authorized user
@@ -90,7 +91,7 @@ test.describe("2FA Tests", async () => {
     const user = await test.step("Enable 2FA", async () => {
       const user = await users.create();
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const userPassword = user.username!;
+      const userPassword = getDefaultPassword(user.username!);
       await user.apiLogin();
 
       // expects the home page for an authorized user
@@ -129,7 +130,7 @@ test.describe("2FA Tests", async () => {
 
     await test.step("Disable 2FA", async () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const userPassword = user.username!;
+      const userPassword = getDefaultPassword(user.username!);
 
       // expects the home page for an authorized user
       await page.goto("/settings/security/two-factor-auth");
