@@ -1,15 +1,15 @@
 "use client";
 
+import { useHitPayDropIn } from "@calcom/app-store/hitpay/components/HitPayDropIn";
+import { getCheckoutIframeDomain } from "@calcom/app-store/hitpay/lib/getCheckoutIframeDomain";
 import { useRouter } from "next/navigation";
 import qs from "qs";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
-
-import { useHitPayDropIn } from "@calcom/app-store/hitpay/components/HitPayDropIn";
 
 const PaymentHitpayDataSchema = z.object({
   id: z.string(),
-  url: z.string(),
+  url: z.string().url(),
   defaultLink: z.string(),
   eventTypeSlug: z.string(),
   bookingUid: z.string(),
@@ -26,6 +26,7 @@ interface IPaymentComponentProps {
 export const HitpayPaymentComponent = (props: IPaymentComponentProps) => {
   const { isInitialized, init } = useHitPayDropIn();
   const isSucceeded = useRef<boolean>(false);
+  const [hasUntrustedDomain, setHasUntrustedDomain] = useState(false);
   const router = useRouter();
   const { payment } = props;
   const { data } = payment;
@@ -41,9 +42,12 @@ export const HitpayPaymentComponent = (props: IPaymentComponentProps) => {
     if (parsedData.success) {
       if (window.self !== window.top && window.top) {
         if (!isInitialized) {
-          const subUrl = parsedData.data.url.substring("https://securecheckout.".length);
-          const arr = subUrl.split("/");
-          const domain = arr[0];
+          const domain = getCheckoutIframeDomain(parsedData.data.url);
+
+          if (!domain) {
+            setHasUntrustedDomain(true);
+            return;
+          }
 
           init(
             parsedData.data.defaultLink || "",
@@ -95,7 +99,7 @@ export const HitpayPaymentComponent = (props: IPaymentComponentProps) => {
     }
   };
 
-  if (!parsedData.success || !parsedData.data?.url) {
+  if (!parsedData.success || !parsedData.data?.url || hasUntrustedDomain) {
     return wrongUrl;
   }
 
