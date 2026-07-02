@@ -65,6 +65,13 @@ harness/
 |--------|---------|
 | `harness/scripts/can-start.sh <n>` | Exits 0 if issue `n` has no open blockers, 1 otherwise |
 
+## Skills
+
+| Skill | Trigger | Purpose |
+|-------|---------|---------|
+| `/work-on-issue [n]` | User says "work on issue N" | End-to-end orchestrator |
+| `/quality-gate` | After implementation step | Deterministic lint/type/test check |
+
 ## GitHub MCP
 
 The official GitHub MCP remote server is configured in `.mcp.json`. It is used **read-only** (list/read issues). All writes (comments, PR creation) use the `gh` CLI so the token scope is clear and auditable.
@@ -74,3 +81,21 @@ The server authenticates via the `GITHUB_TOKEN` env var. Supply it at session st
 ```bash
 export GITHUB_TOKEN=$(gh auth token)
 ```
+
+---
+
+## Demo run — issue #18 (2026-06-30)
+
+End-to-end run of `/work-on-issue 18` against the seeded demo issue [fix: mobile UI overflow in 'Avoid meeting overload / Notice and buffers' card](https://github.com/fernandodof/cal.diy/issues/18). Draft PR: https://github.com/fernandodof/cal.diy/pull/23.
+
+| Step | Outcome |
+|------|---------|
+| `can-start.sh 18` | STARTABLE |
+| Researcher | Identified root cause in `EventLimitsTab.tsx`; wrote plan |
+| **Gate 1** | Human **approved** plan |
+| Implementer | Applied Tailwind fix (4 lines, 1 file) |
+| Eval attempt 1 | Rubric FAIL (pre-existing repo-wide biome on `main`); Review PASS 88/100; Combined 83/100 |
+| **Gate 2** | Human **approved** — confirmed biome failure pre-dates this change |
+| Push + PR | Draft PR #23 opened, closes #18 |
+
+**Gate rejection path demonstrated**: Gate 2 surfaced the rubric failure with context. The human inspected the eval report, confirmed the biome issue was pre-existing, and approved. This exercises the "reject → review → re-approve" decision point without requiring a full re-implementation loop.
