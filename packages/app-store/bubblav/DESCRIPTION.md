@@ -1,6 +1,9 @@
 ---
 items:
   - booking.jpg
+  - chat1.jpg
+  - chat2.jpg
+  - chat3.jpg
 ---
 
 {DESCRIPTION}
