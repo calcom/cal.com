@@ -115,16 +115,21 @@ export const getUserFieldsResponses = (
     return "";
   }
   const responsesString = Object.keys(labelValueMap)
-    .map((key) => {
-      if (!labelValueMap) return "";
-      if (labelValueMap[key] !== "") {
-        return `
+  .map((key) => {
+    if (!labelValueMap) return "";
+
+    const value = labelValueMap[key];
+
+    if (value !== undefined && value !== null && value !== "") {
+      return `
 ${t(key)}:
-${labelValueMap[key]}
+${value}
   `;
-      }
-    })
-    .join("");
+    }
+
+    return "";
+  })
+  .join("");
 
   return responsesString;
 };

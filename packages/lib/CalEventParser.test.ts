@@ -84,4 +84,22 @@ describe("getRichDescription", () => {
     expect(description).toContain("what:");
     expect(description).toContain("who:");
   });
+
+  it("should not render undefined for unanswered optional booking questions", () => {
+    const eventWithOptionalQuestion = {
+      ...mockCalEvent,
+      userFieldsResponses: {
+        company: {
+          label: "Company",
+          value: undefined,
+          isHidden: false,
+        },
+      },
+    };
+    const description = getRichDescription(
+      eventWithOptionalQuestion as CalendarEvent,
+      t
+    );
+    expect(description).not.toContain("undefined");
+  });
 });
