@@ -51,7 +51,7 @@ export function TableActions({
           : t("membership_paused_successfully"),
         "success"
       );
-      // Let the component reload naturally or rely on the parent
+      utils.viewer.users.get.invalidate();
     },
     onError: (err) => {
       showToast(err.message || t("error_updating_membership"), "error");

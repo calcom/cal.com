@@ -4774,5 +4774,6 @@
   "membership_paused_successfully": "Membership paused successfully",
   "unpause_membership": "Unpause Membership",
   "pause_membership": "Pause Membership",
-  "error_updating_membership": "Error updating membership"
-}
+  "error_updating_membership": "Error updating membership",
+  "paused": "Paused"
+}\n

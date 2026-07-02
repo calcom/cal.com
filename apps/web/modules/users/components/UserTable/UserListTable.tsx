@@ -338,7 +338,7 @@ function UserListTableContent({
                   data-testid={`member-${username}-username`}
                   className="font-medium text-emphasis text-sm leading-none flex items-center gap-2">
                   {displayName}
-                  {status === "PAUSED" && <Badge variant="gray">Paused</Badge>}
+                  {status === "PAUSED" && <Badge variant="gray">{t("paused")}</Badge>}
                 </div>
                 <div
                   data-testid={`member-${username}-email`}
