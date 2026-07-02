@@ -24,8 +24,8 @@ export function markdownToSafeHTML(markdown: string | null) {
       "<ol style='list-style-type: decimal; list-style-position: inside; margin-left: 12px; margin-bottom: 4px'>"
     )
     .replace(/<a\s+href=/g, "<a target='_blank' class='text-blue-500 hover:text-blue-600' href=")
-    .replace(/<h1/g, "<h1 class='mt-6 mb-4 text-2xl font-semibold'")
-    .replace(/<h2/g, "<h2 class='mt-5 mb-3 text-xl font-semibold'");
+    .replace(/<h1[^>]*>/g, "<h1 style='font-size: 25px; font-weight: bold; margin-bottom: 8px'>")
+    .replace(/<h2[^>]*>/g, "<h2 style='font-size: 20px; font-weight: bold; margin-bottom: 8px'>");
 
   // Match: <li>Some text </li><li><ul>...</ul></li>
   // Convert to: <li>Some text <ul>...</ul></li>
