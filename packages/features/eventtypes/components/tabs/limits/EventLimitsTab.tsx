@@ -352,8 +352,8 @@ const MinimumBookingNoticeInput = function MinimumBookingNoticeInput({
   }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
   return (
-    <div className="flex items-end justify-end">
-      <div className="w-1/2 md:w-full">
+    <div className="flex flex-col items-start sm:flex-row sm:items-end">
+      <div className="w-full">
         <InputField
           required
           disabled={passThroughProps.disabled}
@@ -376,7 +376,7 @@ const MinimumBookingNoticeInput = function MinimumBookingNoticeInput({
         isSearchable={false}
         isDisabled={passThroughProps.disabled}
         className={classNames(
-          "mb-0 ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
+          "mb-0 ml-2 min-w-0 w-full capitalize sm:min-w-[150px] sm:max-w-[200px]",
           customClassNames?.select
         )}
         innerClassNames={customClassNames?.innerClassNames}
@@ -456,7 +456,11 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   };
 
   const shouldLockIndicator = (_field: string): null => null;
-  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
+  const shouldLockDisableProps = (_field: string) => ({
+    disabled: false,
+    LockedIcon: false as const,
+    isLocked: false,
+  });
 
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
