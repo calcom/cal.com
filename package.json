@@ -208,7 +208,8 @@
     "ajv@^6.12.5": "6.14.0",
     "brace-expansion@^5.0.2": "5.0.5",
     "brace-expansion@^2.0.1": "2.0.3",
-    "brace-expansion@^2.0.2": "2.0.3"
+    "brace-expansion@^2.0.2": "2.0.3",
+    "i18next-fs-backend": "^2.6.6"
   },
   "packageExtensions": {
     "ink@3.2.0": {
