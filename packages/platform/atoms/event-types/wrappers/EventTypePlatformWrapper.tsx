@@ -185,10 +185,7 @@ const EventType = forwardRef<
       } else {
         form.handleSubmit(async (data) => {
           try {
-            const submitted = await handleSubmit(data);
-            if (submitted) {
-              customCallbacks?.onSuccess?.();
-            }
+            await handleSubmit(data);
           } catch (error) {
             customCallbacks?.onError?.(error as Error);
           }
