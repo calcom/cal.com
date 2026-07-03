@@ -5,7 +5,6 @@ import EmailHead from "./EmailHead";
 import EmailScheduledBodyHeaderContent from "./EmailScheduledBodyHeaderContent";
 import EmailSchedulingBodyDivider from "./EmailSchedulingBodyDivider";
 import type { BodyHeadType } from "./EmailSchedulingBodyHeader";
-import EmailSchedulingBodyHeader from "./EmailSchedulingBodyHeader";
 import RawHtml from "./RawHtml";
 import Row from "./Row";
 
@@ -33,22 +32,7 @@ export const BaseEmailHtml = (props: {
           <RawHtml
             html={`<!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->`}
           />
-          <div style={{ margin: "0px auto", maxWidth: 600 }}>
-            <Row align="center" border="0" style={{ width: "100%" }}>
-              <td
-                style={{
-                  direction: "ltr",
-                  fontSize: "0px",
-                  padding: "0px",
-                  paddingTop: "40px",
-                  textAlign: "center",
-                }}>
-                <RawHtml
-                  html={`<!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr></tr></table><![endif]-->`}
-                />
-              </td>
-            </Row>
-          </div>
+          {!Boolean(props.hideLogo) && <EmailBodyLogo />}
           <div
             style={{
               margin: "0px auto",
@@ -58,9 +42,6 @@ export const BaseEmailHtml = (props: {
               padding: "2px",
               backgroundColor: "#FFFFFF",
             }}>
-            {props.headerType && (
-              <EmailSchedulingBodyHeader headerType={props.headerType} headStyles={{ border: 0 }} />
-            )}
             {props.title && (
               <EmailScheduledBodyHeaderContent
                 headStyles={{ border: 0 }}
@@ -68,7 +49,7 @@ export const BaseEmailHtml = (props: {
                 subtitle={props.subtitle}
               />
             )}
-            {(props.headerType || props.title || props.subtitle) && (
+            {(props.title || props.subtitle) && (
               <EmailSchedulingBodyDivider headStyles={{ border: 0 }} />
             )}
 
@@ -173,21 +154,6 @@ export const BaseEmailHtml = (props: {
                               {props.callToAction}
                             </td>
                           </tr>
-                          <tr>
-                            <td
-                              align="left"
-                              style={{ fontSize: 0, padding: "10px 25px", wordBreak: "break-word" }}>
-                              <div
-                                style={{
-                                  fontFamily: "Roboto, Helvetica, sans-serif",
-                                  fontSize: 13,
-                                  lineHeight: 1,
-                                  textAlign: "left",
-                                  color: "#000000",
-                                }}
-                              />
-                            </td>
-                          </tr>
                         </tbody>
                       </BaseTable>
                     </div>
@@ -197,7 +163,6 @@ export const BaseEmailHtml = (props: {
               </Row>
             </div>
           </div>
-          {!Boolean(props.hideLogo) && <EmailBodyLogo />}
           <RawHtml html="<!--[if mso | IE]></td></tr></table><![endif]-->" />
         </div>
       </body>
