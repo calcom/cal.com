@@ -615,6 +615,10 @@ docker-calcom-1  | @calcom/web:start:   message: 'request to http://testing.loca
 docker-calcom-1  | @calcom/web:start: }
 ```
 
+### Zenith
+
+[![Deploy with Zenith](https://cdn.zenith.hosting/buttons/deploy-with-zenith.svg)](https://zenith.hosting/host/cal-com?ref=gh)
+
 ### Railway
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/cal)
