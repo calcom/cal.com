@@ -33,6 +33,17 @@ export const BaseEmailHtml = (props: {
             html={`<!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->`}
           />
           {!Boolean(props.hideLogo) && <EmailBodyLogo />}
+          <div style={{ margin: "0px auto", maxWidth: 600 }}>
+            <div
+              style={{
+                height: "3px",
+                lineHeight: "3px",
+                fontSize: "1px",
+                backgroundColor: "#F28C38",
+              }}>
+              {"\u00A0"}
+            </div>
+          </div>
           <div
             style={{
               margin: "0px auto",
@@ -186,13 +197,13 @@ export const BaseEmailHtml = (props: {
                       Sunset Services U.S.
                     </div>
                     <div style={{ fontSize: "12px", lineHeight: "1.7", color: "#C9D6CF" }}>
-                      <a
+                      
                         href="https://sunsetservices.us"
                         style={{ color: "#C9D6CF", textDecoration: "none" }}>
                         sunsetservices.us
                       </a>
                       {"  \u00B7  "}
-                      <a
+                      
                         href="mailto:bookings@sunsetservices.us"
                         style={{ color: "#C9D6CF", textDecoration: "none" }}>
                         bookings@sunsetservices.us
