@@ -15,8 +15,8 @@ const querySchema = z.object({
   uid: z.string(),
 });
 
-function hasStringProp<T extends string>(x: unknown, key: T): x is { [key in T]: string } {
-  return !!x && typeof x === "object" && key in x;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function getClientSecretFromPayment(
@@ -24,12 +24,12 @@ function getClientSecretFromPayment(
 ) {
   if (
     payment.paymentOption === "HOLD" &&
-    hasStringProp(payment.data, "setupIntent") &&
-    hasStringProp(payment.data.setupIntent, "client_secret")
+    isRecord(payment.data.setupIntent) &&
+    typeof payment.data.setupIntent.client_secret === "string"
   ) {
     return payment.data.setupIntent.client_secret;
   }
-  if (hasStringProp(payment.data, "client_secret")) {
+  if (typeof payment.data.client_secret === "string") {
     return payment.data.client_secret;
   }
   return "";
@@ -55,7 +55,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const payment = {
     ...restPayment,
-    data: data as Record<string, unknown>,
+    data: isRecord(data) ? data : {},
   };
 
   if (!_booking) return { notFound: true } as const;
@@ -63,13 +63,26 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { startTime, endTime, eventType, ...restBooking } = _booking;
   const booking = {
     ...restBooking,
-    startTime: startTime.toString(),
-    endTime: endTime.toString(),
+    startTime: startTime.toISOString(),
+    endTime: endTime.toISOString(),
   };
 
   if (!eventType) return { notFound: true } as const;
 
   if (eventType.users.length === 0 && !eventType.team) return { notFound: true } as const;
+
+  if (
+    ([BookingStatus.CANCELLED, BookingStatus.REJECTED] as BookingStatus[]).includes(
+      booking.status as BookingStatus
+    )
+  ) {
+    return {
+      redirect: {
+        destination: `/booking/${booking.uid}`,
+        permanent: false,
+      },
+    };
+  }
 
   const [user] = eventType.users.length
     ? eventType.users
@@ -85,19 +98,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
     }),
   };
-
-  if (
-    ([BookingStatus.CANCELLED, BookingStatus.REJECTED] as BookingStatus[]).includes(
-      booking.status as BookingStatus
-    )
-  ) {
-    return {
-      redirect: {
-        destination: `/booking/${booking.uid}`,
-        permanent: false,
-      },
-    };
-  }
 
   return {
     props: {
