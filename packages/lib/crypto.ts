@@ -29,13 +29,21 @@ export const symmetricEncrypt = function (text: string, key: string) {
  * @param key Key used to decrypt value must be 32 bytes for AES256 encryption algorithm
  */
 export const symmetricDecrypt = function (text: string, key: string) {
-  const _key = Buffer.from(key, "base64");
-
-  const components = text.split(":");
-  const iv_from_ciphertext = Buffer.from(components.shift() || "", OUTPUT_ENCODING);
-  const decipher = crypto.createDecipheriv(ALGORITHM, _key, iv_from_ciphertext);
-  let deciphered = decipher.update(components.join(":"), OUTPUT_ENCODING, INPUT_ENCODING);
-  deciphered += decipher.final(INPUT_ENCODING);
-
-  return deciphered;
+  try {
+    const _key = Buffer.from(key, "base64");
+    const components = text.split(":");
+    const iv_from_ciphertext = Buffer.from(components.shift() || "", OUTPUT_ENCODING);
+    const decipher = crypto.createDecipheriv(ALGORITHM, _key, iv_from_ciphertext);
+    let deciphered = decipher.update(components.join(":"), OUTPUT_ENCODING, INPUT_ENCODING);
+    deciphered += decipher.final(INPUT_ENCODING);
+    return deciphered;
+  } catch (error) {
+    const _key = Buffer.from(key, "latin1");
+    const components = text.split(":");
+    const iv_from_ciphertext = Buffer.from(components.shift() || "", OUTPUT_ENCODING);
+    const decipher = crypto.createDecipheriv(ALGORITHM, _key, iv_from_ciphertext);
+    let deciphered = decipher.update(components.join(":"), OUTPUT_ENCODING, INPUT_ENCODING);
+    deciphered += decipher.final(INPUT_ENCODING);
+    return deciphered;
+  }
 };
