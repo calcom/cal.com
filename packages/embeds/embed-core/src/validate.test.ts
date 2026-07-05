@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { validate } from "./validate";
 
 describe("validate()", () => {
@@ -108,6 +107,18 @@ describe("validate()", () => {
 
     it("should reject a calLink with a custom URI scheme", () => {
       expect(() => validate({ calLink: "vscode://extension" }, calLinkSchema)).toThrow(
+        '"calLink" is of wrong type.Expected type "calLink"'
+      );
+    });
+
+    it("should reject a calLink starting with a backslash", () => {
+      expect(() => validate({ calLink: "\\john-doe/30min" }, calLinkSchema)).toThrow(
+        '"calLink" is of wrong type.Expected type "calLink"'
+      );
+    });
+
+    it("should reject a calLink starting with double backslashes", () => {
+      expect(() => validate({ calLink: "\\\\evil.com" }, calLinkSchema)).toThrow(
         '"calLink" is of wrong type.Expected type "calLink"'
       );
     });

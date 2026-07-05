@@ -25,7 +25,7 @@ export function validate(data: Record<string, unknown>, schema: ValidationSchema
     if (expectedType === "calLink") {
       const trimmed = typeof value === "string" ? value.trim() : "";
 
-      return trimmed.length > 0 && !/^(?:\/|[a-z][a-z0-9+.-]*:)/i.test(trimmed);
+      return trimmed.length > 0 && !/^(?:[\\/]|[a-z][a-z0-9+.-]*:)/i.test(trimmed);
     }
 
     if (typeof expectedType === "string") {
