@@ -107,6 +107,9 @@ type ValidationSchema = {
  */
 function validate(data: Record<string, unknown>, schema: ValidationSchema) {
   function checkType(value: unknown, expectedType: ValidationSchemaPropType) {
+    if (expectedType === "calLink") {
+      return typeof value === "string" && !/^\/|https?:\/\//.test(value);
+    }
     if (typeof expectedType === "string") {
       return typeof value == expectedType;
     } else {
@@ -908,9 +911,8 @@ class CalApi {
       required: true,
       props: {
         calLink: {
-          // TODO: Add a special type calLink for it and validate that it doesn't start with / or https?://
           required: true,
-          type: "string",
+          type: "calLink",
         },
         elementOrSelector: {
           required: true,
