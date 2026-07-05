@@ -6,7 +6,7 @@ export type ValidationSchema = {
   props?: Record<
     string,
     ValidationSchema & {
-      type: ValidationSchemaPropType | ValidationSchemaPropType[];
+      type: ValidationSchemaPropType | readonly ValidationSchemaPropType[];
     }
   >;
 };
@@ -16,15 +16,18 @@ export type ValidationSchema = {
  * Extend the functionality of it as required by the embed.
  *
  * Special types supported:
- * - "calLink": Validates that the value is a string that does NOT start with `/` or `http(s)://`
- *   (case-insensitive), preventing full URLs or absolute paths from being passed as cal links.
+ * - "calLink": Validates a non-empty relative Cal link identifier.
+ *   Rejects absolute paths (starting with `/`) and any URI scheme
+ *   such as `https:`, `http:`, `ftp:`, `mailto:`, or `javascript:`.
  */
 export function validate(data: Record<string, unknown>, schema: ValidationSchema): void {
   function checkType(value: unknown, expectedType: ValidationSchemaPropType): boolean {
     if (expectedType === "calLink") {
-      // Validate: must be a string and must NOT start with / or http(s):// (case-insensitive)
-      return typeof value === "string" && !/^(?:\/|https?:\/\/)/i.test(value);
+      const trimmed = typeof value === "string" ? value.trim() : "";
+
+      return trimmed.length > 0 && !/^(?:\/|[a-z][a-z0-9+.-]*:)/i.test(trimmed);
     }
+
     if (typeof expectedType === "string") {
       return typeof value === expectedType;
     } else {
@@ -40,18 +43,20 @@ export function validate(data: Record<string, unknown>, schema: ValidationSchema
     throw new Error("Argument is required");
   }
 
-  for (const [prop, propSchema] of Object.entries(schema.props || {})) {
+  const props = schema.props || {};
+  for (const prop in props) {
+    const propSchema = props[prop];
     if (propSchema.required && isUndefined(data[prop])) {
       throw new Error(`"${prop}" is required`);
     }
     let typeCheck = true;
     if (propSchema.type && !isUndefined(data[prop])) {
-      if (propSchema.type instanceof Array) {
-        propSchema.type.forEach((type) => {
-          typeCheck = typeCheck || checkType(data[prop], type);
+      if (Array.isArray(propSchema.type)) {
+        typeCheck = propSchema.type.some((type: ValidationSchemaPropType) => {
+          return checkType(data[prop], type);
         });
       } else {
-        typeCheck = checkType(data[prop], propSchema.type);
+        typeCheck = checkType(data[prop], propSchema.type as ValidationSchemaPropType);
       }
     }
     if (!typeCheck) {

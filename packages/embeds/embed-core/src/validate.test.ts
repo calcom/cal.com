@@ -59,6 +59,58 @@ describe("validate()", () => {
         '"calLink" is of wrong type.Expected type "calLink"'
       );
     });
+
+    it("should reject a calLink with ftp:// scheme", () => {
+      expect(() => validate({ calLink: "ftp://cal.com/john" }, calLinkSchema)).toThrow(
+        '"calLink" is of wrong type.Expected type "calLink"'
+      );
+    });
+
+    it("should reject a calLink with mailto: scheme", () => {
+      expect(() => validate({ calLink: "mailto:john@example.com" }, calLinkSchema)).toThrow(
+        '"calLink" is of wrong type.Expected type "calLink"'
+      );
+    });
+
+    it("should reject a calLink with javascript: scheme", () => {
+      expect(() => validate({ calLink: "javascript:alert(1)" }, calLinkSchema)).toThrow(
+        '"calLink" is of wrong type.Expected type "calLink"'
+      );
+    });
+
+    it("should reject an empty string calLink", () => {
+      expect(() => validate({ calLink: "" }, calLinkSchema)).toThrow(
+        '"calLink" is of wrong type.Expected type "calLink"'
+      );
+    });
+
+    it("should reject a whitespace-only calLink", () => {
+      expect(() => validate({ calLink: "   " }, calLinkSchema)).toThrow(
+        '"calLink" is of wrong type.Expected type "calLink"'
+      );
+    });
+
+    it("should accept a valid calLink with leading and trailing whitespace", () => {
+      expect(() => validate({ calLink: "  john-doe/30min  " }, calLinkSchema)).not.toThrow();
+    });
+
+    it("should reject a calLink with leading whitespace before a URL", () => {
+      expect(() => validate({ calLink: "   https://cal.com/john" }, calLinkSchema)).toThrow(
+        '"calLink" is of wrong type.Expected type "calLink"'
+      );
+    });
+
+    it("should reject a calLink with leading whitespace before an absolute path", () => {
+      expect(() => validate({ calLink: "   /john-doe/30min" }, calLinkSchema)).toThrow(
+        '"calLink" is of wrong type.Expected type "calLink"'
+      );
+    });
+
+    it("should reject a calLink with a custom URI scheme", () => {
+      expect(() => validate({ calLink: "vscode://extension" }, calLinkSchema)).toThrow(
+        '"calLink" is of wrong type.Expected type "calLink"'
+      );
+    });
   });
 
   describe("required field validation", () => {
@@ -111,6 +163,32 @@ describe("validate()", () => {
     it("should reject a non-string value", () => {
       expect(() => validate({ theme: 123 }, stringSchema)).toThrow(
         '"theme" is of wrong type.Expected type "string"'
+      );
+    });
+  });
+
+  describe("union type (array) validation", () => {
+    const unionSchema = {
+      required: true,
+      props: {
+        value: {
+          required: true,
+          type: ["string", "function"] as const,
+        },
+      },
+    };
+
+    it("should accept a value matching the first type in the union", () => {
+      expect(() => validate({ value: "test string" }, unionSchema)).not.toThrow();
+    });
+
+    it("should accept a value matching the second type in the union", () => {
+      expect(() => validate({ value: () => {} }, unionSchema)).not.toThrow();
+    });
+
+    it("should reject a value that matches neither type in the union", () => {
+      expect(() => validate({ value: 123 }, unionSchema)).toThrow(
+        '"value" is of wrong type.Expected type "string,function"'
       );
     });
   });
