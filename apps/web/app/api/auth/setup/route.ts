@@ -36,6 +36,14 @@ async function handler(req: NextRequest) {
         });
     }
 
+    const initialUserCount = await prisma.user.count();
+    if (initialUserCount !== 0) {
+        throw new HttpError({
+            statusCode: 400,
+            message: "No setup needed.",
+        });
+    }
+
     const username = slugify(parsedQuery.data.username.trim());
     const userEmail = parsedQuery.data.email_address.toLowerCase();
 
