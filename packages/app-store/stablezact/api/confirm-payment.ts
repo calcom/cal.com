@@ -1,8 +1,12 @@
 import process from "node:process";
+import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
+import appConfig from "../config.json";
 import { appKeysSchema } from "../zod";
 
 /**
@@ -32,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: true,
         amount: true,
         data: true,
+        success: true,
         booking: {
           select: {
             userId: true,
@@ -42,6 +47,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!payment) {
       return res.status(404).json({ error: "Payment not found" });
+    }
+
+    // Idempotency: if this payment is already confirmed, don't re-run confirmation
+    // (which would re-send emails and re-fire webhooks).
+    if (payment.success) {
+      return res.status(200).json({ success: true, message: "Payment already confirmed" });
     }
 
     // Check if booking exists and has a user
@@ -129,35 +140,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(409).json({ error: "This payment has already been used to confirm a booking" });
     }
 
-    // Confirm the payment and mark the booking paid atomically, so we never record a
-    // paid payment while leaving the booking unaccepted (or vice versa).
-    await prisma.$transaction([
-      prisma.payment.update({
-        where: { id: payment.id },
+    // Persist the on-chain transaction hash on the payment record before confirming.
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        externalId: paymentId,
         data: {
-          success: true,
-          externalId: paymentId,
-          data: {
-            ...(payment.data as object),
-            transactionHash,
-            status: "confirmed",
-            confirmedAt: new Date().toISOString(),
-          } as unknown as Prisma.InputJsonValue,
-        },
-      }),
-      prisma.booking.update({
-        where: { id: parseInt(bookingId, 10) },
-        data: {
-          paid: true,
-          status: "ACCEPTED",
-        },
-      }),
-    ]);
-
-    return res.status(200).json({
-      success: true,
-      message: "Payment confirmed",
+          ...(payment.data as object),
+          transactionHash,
+          confirmedAt: new Date().toISOString(),
+        } as unknown as Prisma.InputJsonValue,
+      },
     });
+
+    // Confirm through cal.com's shared handler: it marks the payment succeeded and
+    // the booking paid, creates the calendar event, sends confirmation emails, and
+    // fires BOOKING_PAID webhooks. Success is signalled by throwing HttpCode 200.
+    try {
+      await handlePaymentSuccess({
+        paymentId: payment.id,
+        bookingId: parseInt(bookingId, 10),
+        appSlug: appConfig.slug,
+        traceContext: distributedTracing.createTrace("stablezact_confirm_payment", {
+          meta: { paymentId: payment.id, bookingId: parseInt(bookingId, 10) },
+        }),
+      });
+    } catch (err) {
+      if (err instanceof HttpCode && err.statusCode >= 200 && err.statusCode < 300) {
+        return res.status(200).json({ success: true, message: "Payment confirmed" });
+      }
+      console.error("[Stablezact] Failed to confirm booking", err);
+      return res.status(500).json({ error: "Failed to confirm booking" });
+    }
+
+    return res.status(200).json({ success: true, message: "Payment confirmed" });
   } catch {
     return res.status(500).json({
       error: "Internal server error",

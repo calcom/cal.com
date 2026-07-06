@@ -1,4 +1,11 @@
 {
+  "stablezact_payment_confirming": "Payment successful! Confirming your booking...",
+  "stablezact_booking_confirmed_redirecting": "Booking confirmed! Redirecting...",
+  "stablezact_confirmation_failed": "Payment successful but confirmation failed. Please contact support with your transaction details.",
+  "stablezact_payment_failed": "Payment failed",
+  "stablezact_gateway_load_failed": "Failed to load payment gateway",
+  "stablezact_payment_data_error": "Couldn't obtain payment data",
+  "stablezact_gateway_not_configured": "Payment gateway not configured. Please contact support.",
   "stablezact_add_wallet_addresses": "Add wallet addresses for the networks you want to accept",
   "stablezact_before_connecting": "Before connecting",
   "stablezact_benefit_direct_wallet": "Direct wallet payments - no intermediary holds your funds",

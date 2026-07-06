@@ -100,7 +100,6 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
   const { t } = useLocale();
   const stablezactInstanceRef = useRef<unknown>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isRetryingRef = useRef(false); // Track if we're in retry mode to prevent cleanup closing modal
   const [isInitialized, setIsInitialized] = useState(false);
   const [hasOpened, setHasOpened] = useState(false); // Prevent reopening
   const [isProcessing, setIsProcessing] = useState(false); // Track payment processing
@@ -174,7 +173,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
         instance.close();
       }
 
-      showToast("Payment successful! Confirming your booking...", "success");
+      showToast(t("stablezact_payment_confirming"), "success");
 
       try {
         // Extract paymentId from object if needed
@@ -222,7 +221,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
         const result = await response.json();
         debugLog("[Stablezact] ✅ Booking updated successfully:", result);
 
-        showToast("Booking confirmed! Redirecting...", "success");
+        showToast(t("stablezact_booking_confirmed_redirecting"), "success");
 
         const params: {
           uid: string;
@@ -258,10 +257,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
         }, 1000);
       } catch (error) {
         console.error("[Stablezact] ❌ Error confirming payment:", error);
-        showToast(
-          "Payment successful but confirmation failed. Please contact support with your transaction details.",
-          "error"
-        );
+        showToast(t("stablezact_confirmation_failed"), "error");
         setIsProcessing(false);
       }
     },
@@ -269,10 +265,13 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
   );
 
   // Handle payment errors
-  const handlePaymentError = useCallback((error: string) => {
-    console.error("[Stablezact] ❌ Payment error:", error);
-    showToast(error || "Payment failed", "error");
-  }, []);
+  const handlePaymentError = useCallback(
+    (error: string) => {
+      console.error("[Stablezact] ❌ Payment error:", error);
+      showToast(error || t("stablezact_payment_failed"), "error");
+    },
+    [t]
+  );
 
   // Handle payment modal close
   const handlePaymentClose = useCallback(() => {
@@ -286,9 +285,6 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
   // Handle retry payment
   const handleRetryPayment = useCallback(() => {
     debugLog("[Stablezact] 🔄 Retrying payment...");
-
-    // Set retry flag BEFORE any state changes to prevent cleanup from closing modal
-    isRetryingRef.current = true;
 
     // Close old modal if exists (but don't destroy - SDK might not support it)
     const oldInstance = stablezactInstanceRef.current as { close?: () => void } | null;
@@ -341,17 +337,14 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
       setIsInitialized(true);
       setHasOpened(true);
 
-      // Clear retry flag after successful initialization
-      isRetryingRef.current = false;
-
       debugLog("[Stablezact] Modal opened successfully");
       return true;
     } catch (error) {
       console.error("[Stablezact] Failed to initialize:", error);
-      showToast("Failed to load payment gateway", "error");
+      showToast(t("stablezact_gateway_load_failed"), "error");
       return false;
     }
-  }, [credentials, apiUrl, paymentConfig, handlePaymentSuccess, handlePaymentError, handlePaymentClose]);
+  }, [credentials, apiUrl, paymentConfig, handlePaymentSuccess, handlePaymentError, handlePaymentClose, t]);
 
   // Load Stablezact CDN script and initialize (moved to top level before conditional returns)
   useEffect(() => {
@@ -373,11 +366,23 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
       return;
     }
 
-    // Check if script is already loading
+    // A script tag already exists (a concurrent mount or an earlier attempt).
+    // Attach handlers so we still initialise once it loads, and clear it on error
+    // so a retry can start fresh instead of getting stuck on "already loading".
     const existingScript = document.getElementById("stablezact-sdk-script");
     if (existingScript) {
-      debugLog("[Stablezact] Script already loading, waiting...");
-      return;
+      debugLog("[Stablezact] Script tag present, waiting for it to load...");
+      const onExistingLoad = () => initializeAndOpen();
+      const onExistingError = () => {
+        existingScript.remove();
+        showToast(t("stablezact_gateway_load_failed"), "error");
+      };
+      existingScript.addEventListener("load", onExistingLoad);
+      existingScript.addEventListener("error", onExistingError);
+      return () => {
+        existingScript.removeEventListener("load", onExistingLoad);
+        existingScript.removeEventListener("error", onExistingError);
+      };
     }
 
     debugLog("[Stablezact] Loading SDK from CDN...");
@@ -416,40 +421,24 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
     };
     script.onerror = () => {
       console.error("[Stablezact] Failed to load CDN script");
-      showToast("Failed to load payment gateway", "error");
+      script.remove(); // allow a retry to re-add the script
+      showToast(t("stablezact_gateway_load_failed"), "error");
     };
 
     document.head.appendChild(script);
+    // NOTE: the modal is closed on unmount by the dedicated effect below — never in
+    // this effect's cleanup. Opening the modal flips hasOpened (a dependency here);
+    // closing on every dep change would tear the modal down right after it opens.
+  }, [credentials, paymentConfig, hasOpened, isProcessing, initializeAndOpen, t]);
 
-    // Cleanup - but don't remove global script/styles, just close modal
+  // Close the SDK modal only when the component unmounts.
+  useEffect(() => {
     return () => {
-      debugLog("[Stablezact] Cleanup effect triggered, isRetrying:", isRetryingRef.current);
-
-      // Skip cleanup if we're retrying - the modal should stay open
-      if (isRetryingRef.current) {
-        debugLog("[Stablezact] Skipping cleanup - retry in progress");
-        return;
-      }
-
       const instance = stablezactInstanceRef.current as { close?: () => void } | null;
-      if (instance && instance.close) {
-        instance.close();
-      }
-      // Don't remove script/styles as they might be needed for other instances
-      // Only reset the instance ref
+      instance?.close?.();
       stablezactInstanceRef.current = null;
     };
-  }, [
-    credentials,
-    apiUrl,
-    paymentConfig,
-    handlePaymentSuccess,
-    handlePaymentError,
-    handlePaymentClose,
-    hasOpened,
-    isProcessing,
-    initializeAndOpen,
-  ]); // Dependencies properly listed
+  }, []);
 
   // Handle data validation errors
   if (!parsedData.success || !parsedData.data?.payment?.id) {
@@ -459,7 +448,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
     );
     return (
       <>
-        <p className="mt-3 text-center">Couldn&apos;t obtain payment data</p>
+        <p className="mt-3 text-center">{t("stablezact_payment_data_error")}</p>
       </>
     );
   }
@@ -468,9 +457,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
     console.error("[Stablezact] Missing public key");
     return (
       <>
-        <p className="mt-3 text-center text-red-600">
-          Payment gateway not configured. Please contact support.
-        </p>
+        <p className="mt-3 text-center text-red-600">{t("stablezact_gateway_not_configured")}</p>
       </>
     );
   }

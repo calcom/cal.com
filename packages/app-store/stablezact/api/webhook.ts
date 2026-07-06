@@ -1,9 +1,13 @@
 import crypto from "node:crypto";
 import process from "node:process";
+import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
+import appConfig from "../config.json";
 
 // Disable body parser to access raw body for signature verification
 export const config = {
@@ -157,6 +161,7 @@ async function handlePaymentConfirmed(event: {
       id: true,
       data: true,
       bookingId: true,
+      success: true,
     },
   });
 
@@ -165,40 +170,52 @@ async function handlePaymentConfirmed(event: {
     return;
   }
 
-  // Confirm the payment and mark the booking paid atomically.
-  await prisma.$transaction([
-    prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        success: true,
-        data: {
-          ...(payment.data as object),
-          transactionHash,
-          status: "confirmed",
-          confirmations,
-          network,
-          blockNumber,
-        } as unknown as Prisma.InputJsonValue,
-      },
-    }),
-    prisma.booking.update({
-      where: { id: payment.bookingId },
-      data: {
-        paid: true,
-        status: "ACCEPTED",
-      },
-    }),
-  ]);
+  // Idempotency: a re-delivered webhook (or a payment already confirmed via the
+  // client confirm-payment route) must not re-send emails or re-fire webhooks.
+  if (payment.success) {
+    console.log("[Stablezact Webhook] Payment already confirmed:", paymentId);
+    return;
+  }
 
-  console.log("[Stablezact Webhook] Payment confirmed:", {
-    paymentId,
-    transactionHash,
-    bookingId: payment.bookingId,
-    confirmations,
+  if (!payment.bookingId) {
+    console.error("[Stablezact Webhook] Payment has no booking:", paymentId);
+    return;
+  }
+
+  // Persist the on-chain transaction details on the payment record.
+  await prisma.payment.update({
+    where: { id: payment.id },
+    data: {
+      data: {
+        ...(payment.data as object),
+        transactionHash,
+        status: "confirmed",
+        confirmations,
+        network,
+        blockNumber,
+      } as unknown as Prisma.InputJsonValue,
+    },
   });
 
-  // TODO: Trigger Cal.com webhooks
-  // TODO: Send booking confirmation email
+  // Confirm through cal.com's shared handler: marks the payment succeeded and the
+  // booking paid, creates the calendar event, sends confirmation emails, and fires
+  // BOOKING_PAID webhooks. It signals success by throwing HttpCode 200.
+  const traceContext = distributedTracing.createTrace("stablezact_webhook", {
+    meta: { paymentId: payment.id, bookingId: payment.bookingId },
+  });
+  try {
+    await handlePaymentSuccess({
+      paymentId: payment.id,
+      bookingId: payment.bookingId,
+      appSlug: appConfig.slug,
+      traceContext,
+    });
+  } catch (err) {
+    if (err instanceof HttpCode && err.statusCode >= 200 && err.statusCode < 300) {
+      return;
+    }
+    throw err;
+  }
 }
 
 /**
