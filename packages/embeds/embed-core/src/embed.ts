@@ -941,7 +941,6 @@ class CalApi {
     calOrigin?: string;
     config?: PrefillAndIframeAttrsConfig;
   }) {
-    // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
       required: true,
       props: {
@@ -996,7 +995,7 @@ class CalApi {
     __prerender?: boolean;
     prerenderOptions?: ModalPrerenderOptions;
   }) {
-    // eslint-disable-next-line prefer-rest-params
+   
     validate(arguments[0], {
       required: true,
       props: {
