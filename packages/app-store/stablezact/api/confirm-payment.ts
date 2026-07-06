@@ -21,8 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { bookingId, paymentId, transactionHash } = req.body;
 
-    // Validate required fields
-    if (!bookingId || !paymentId) {
+    // paymentId must be a string: it is interpolated into the Stablezact API URL below and
+    // persisted as externalId, so a non-string (object/array) from the JSON body is rejected.
+    if (!bookingId || !paymentId || typeof paymentId !== "string") {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -84,8 +85,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const apiUrl = baseURL.endsWith("/api") ? baseURL : `${baseURL}/api`;
 
     try {
-      // Verify payment status using public endpoint
-      const statusResponse = await axios.get(`${apiUrl}/payments/public/${paymentId}`, {
+      // Encode paymentId — it is caller-supplied, so encoding prevents path/query injection.
+      const statusResponse = await axios.get(`${apiUrl}/payments/public/${encodeURIComponent(paymentId)}`, {
         timeout: 10000,
       });
 

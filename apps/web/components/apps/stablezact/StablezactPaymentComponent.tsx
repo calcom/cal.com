@@ -2,6 +2,7 @@
 
 import process from "node:process";
 import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui/components/toast";
@@ -136,7 +137,10 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
       merchantName: paymentPageProps.profile.name || "Cal.com Event",
       preferredNetwork: paymentInfo.network.toLowerCase(),
       preferredCurrency: paymentInfo.currency.toUpperCase(),
-      callbackUrl: "https://google.com", // Not used - frontend handles confirmation
+      // Server-to-server status callback. Frontend confirmation (onSuccess → confirm-payment)
+      // is the primary path; this points async callbacks at our own signed webhook endpoint
+      // rather than a placeholder domain so booking metadata is never sent to a third party.
+      callbackUrl: `${WEBAPP_URL}/api/integrations/stablezact/webhook`,
       metadata: {
         bookingId: paymentPageProps.booking.id,
         bookingUid: paymentPageProps.booking.uid,
