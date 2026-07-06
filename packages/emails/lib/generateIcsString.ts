@@ -61,7 +61,7 @@ const generateIcsString = ({
   const location = getVideoCallUrlFromCalEvent(event) || event.location;
 
   // Taking care of recurrence rule
-  let recurrenceRule: string | undefined = undefined;
+  let recurrenceRule: string | undefined;
   const icsRole: ParticipationRole = "REQ-PARTICIPANT";
   if (event.recurringEvent?.count) {
     // ics appends "RRULE:" already, so removing it from RRule generated string
@@ -107,7 +107,7 @@ const generateIcsString = ({
         : []),
     ],
     location: location ?? undefined,
-    method: "REQUEST",
+    method: status === "CANCELLED" ? "CANCEL" : "REQUEST",
     status,
     ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
     busyStatus: "BUSY",
