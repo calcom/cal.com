@@ -148,8 +148,10 @@ async function handlePaymentConfirmed(event: {
 }) {
   const { paymentId, transactionHash, confirmations, network, blockNumber, metadata } = event.data;
 
-  // Find payment in database by externalId OR by bookingId from metadata
-  let payment = await prisma.payment.findUnique({
+  // Match strictly on externalId (the Stablezact payment id persisted at create()).
+  // We deliberately do NOT fall back to metadata.bookingId: that would let a webhook
+  // confirm a booking whose Cal.com payment record was never matched to this payment.
+  const payment = await prisma.payment.findUnique({
     where: { externalId: paymentId },
     select: {
       id: true,
@@ -158,56 +160,35 @@ async function handlePaymentConfirmed(event: {
     },
   });
 
-  // If payment not found by externalId, try finding by booking metadata
-  if (!payment && metadata?.bookingId) {
-    const booking = await prisma.booking.findUnique({
-      where: { id: parseInt(metadata.bookingId) },
-      select: {
-        payment: {
-          select: {
-            id: true,
-            data: true,
-            bookingId: true,
-          },
-        },
-      },
-    });
-
-    if (booking?.payment?.[0]) {
-      payment = booking.payment[0];
-    }
-  }
-
   if (!payment) {
     console.error("[Stablezact Webhook] Payment not found:", paymentId, metadata);
     return;
   }
 
-  // Update payment status and externalId
-  await prisma.payment.update({
-    where: { id: payment.id },
-    data: {
-      success: true,
-      externalId: paymentId, // Update externalId to match SDK payment
+  // Confirm the payment and mark the booking paid atomically.
+  await prisma.$transaction([
+    prisma.payment.update({
+      where: { id: payment.id },
       data: {
-        ...(payment.data as object),
-        transactionHash,
-        status: "confirmed",
-        confirmations,
-        network,
-        blockNumber,
-      } as unknown as Prisma.InputJsonValue,
-    },
-  });
-
-  // Update booking status
-  await prisma.booking.update({
-    where: { id: payment.bookingId },
-    data: {
-      paid: true,
-      status: "ACCEPTED",
-    },
-  });
+        success: true,
+        data: {
+          ...(payment.data as object),
+          transactionHash,
+          status: "confirmed",
+          confirmations,
+          network,
+          blockNumber,
+        } as unknown as Prisma.InputJsonValue,
+      },
+    }),
+    prisma.booking.update({
+      where: { id: payment.bookingId },
+      data: {
+        paid: true,
+        status: "ACCEPTED",
+      },
+    }),
+  ]);
 
   console.log("[Stablezact Webhook] Payment confirmed:", {
     paymentId,

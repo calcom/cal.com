@@ -62,8 +62,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           data-testid="stablezact-price-input"
           onChange={(e) => {
             const value = Number(e.target.value);
-            // Store price in cents for consistency with other payment apps
-            setAppData("price", Math.round(value * 100));
+            // Store price in cents for consistency with other payment apps.
+            // Clamp to >= 0 — min="0.01" only affects HTML validity, not typed input.
+            setAppData("price", Math.max(0, Math.round(value * 100)));
           }}
           value={price > 0 ? price / 100 : undefined}
         />
@@ -75,6 +76,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           {t("payment_option")}
         </label>
         <Select<Option>
+          inputId="payment-option"
           data-testid="stablezact-payment-option-select"
           defaultValue={
             paymentOptionSelectValue

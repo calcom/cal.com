@@ -30,6 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       select: {
         id: true,
+        amount: true,
         data: true,
         booking: {
           select: {
@@ -99,17 +100,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(403).json({ error: "Payment does not belong to this booking" });
       }
 
-      // Defense in depth: the confirmed amount must also equal what this booking's payment
-      // was created for. Lenient when the stored amount is unavailable so it never rejects
-      // an otherwise-valid, ownership-verified payment.
-      const storedData = (payment.data ?? {}) as Record<string, unknown>;
-      const expectedAmount = Number(storedData.amount);
+      // Defense in depth: the confirmed amount must equal what this booking's payment was
+      // created for. We compare against the canonical payment.amount column (stored in
+      // cents), not the provider payload. Lenient only when the provider omits an amount.
+      const expectedAmount = payment.amount / 100;
       const actualAmount = Number(paymentData?.amount);
-      if (
-        Number.isFinite(expectedAmount) &&
-        Number.isFinite(actualAmount) &&
-        Math.abs(expectedAmount - actualAmount) > 1e-9
-      ) {
+      if (Number.isFinite(actualAmount) && Math.abs(expectedAmount - actualAmount) > 1e-9) {
         return res.status(403).json({ error: "Payment amount does not match this booking" });
       }
     } catch {
@@ -133,29 +129,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(409).json({ error: "This payment has already been used to confirm a booking" });
     }
 
-    // Update payment record
-    await prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        success: true,
-        externalId: paymentId,
+    // Confirm the payment and mark the booking paid atomically, so we never record a
+    // paid payment while leaving the booking unaccepted (or vice versa).
+    await prisma.$transaction([
+      prisma.payment.update({
+        where: { id: payment.id },
         data: {
-          ...(payment.data as object),
-          transactionHash,
-          status: "confirmed",
-          confirmedAt: new Date().toISOString(),
-        } as unknown as Prisma.InputJsonValue,
-      },
-    });
-
-    // Mark booking as paid
-    await prisma.booking.update({
-      where: { id: parseInt(bookingId, 10) },
-      data: {
-        paid: true,
-        status: "ACCEPTED",
-      },
-    });
+          success: true,
+          externalId: paymentId,
+          data: {
+            ...(payment.data as object),
+            transactionHash,
+            status: "confirmed",
+            confirmedAt: new Date().toISOString(),
+          } as unknown as Prisma.InputJsonValue,
+        },
+      }),
+      prisma.booking.update({
+        where: { id: parseInt(bookingId, 10) },
+        data: {
+          paid: true,
+          status: "ACCEPTED",
+        },
+      }),
+    ]);
 
     return res.status(200).json({
       success: true,

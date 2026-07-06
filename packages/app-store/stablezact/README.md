@@ -5,7 +5,7 @@ Accept cryptocurrency payments for your Cal.com bookings with Stablezact. Suppor
 ## Features
 
 - 🔐 **Direct to Wallet** - Payments go directly to your wallet via smart contracts, no intermediaries
-- ⛓️ **Multi-Chain Support** - Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base (Solana coming soon)
+- ⛓️ **Multi-Chain Support** - Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base
 - 💰 **Stablecoins Only** - USDT and USDC supported across 8 EVM networks
 - 🚀 **Instant Settlement** - Funds arrive after blockchain confirmation (typically 1-5 minutes)
 - 💵 **Competitive Fees** - 1.5% per transaction with automatic smart contract splitting

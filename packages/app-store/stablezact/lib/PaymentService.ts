@@ -259,10 +259,15 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error("Payment already refunded");
       }
 
-      const paymentData = payment.data as unknown as StablezactPaymentDetails;
+      // create() persists the Stablezact payment id in externalId; payment.data holds
+      // the original intent (whose id is nested at data.payment.id, not data.paymentId).
+      const stablezactPaymentId = payment.externalId;
+      if (!stablezactPaymentId) {
+        throw new Error("Payment has no external ID - cannot refund");
+      }
 
       // Create refund via Stablezact API
-      await this.client.post(`/payments/${paymentData.paymentId}/refund`, {
+      await this.client.post(`/payments/${stablezactPaymentId}/refund`, {
         amount: payment.amount / 100, // Convert cents to dollars
         reason: "Booking cancelled by merchant",
       });
@@ -295,10 +300,13 @@ export class PaymentService implements IAbstractPaymentService {
 
     try {
       const payment = await this.getPayment(paymentId);
-      const paymentData = payment.data as unknown as StablezactPaymentDetails;
+      const stablezactPaymentId = payment.externalId;
+      if (!stablezactPaymentId) {
+        return false;
+      }
 
       // Cancel payment with Stablezact API
-      await this.client.post(`/payments/${paymentData.paymentId}/cancel`);
+      await this.client.post(`/payments/${stablezactPaymentId}/cancel`);
 
       // Delete from database
       await prisma.payment.delete({

@@ -86,6 +86,12 @@ const PaymentStablezactDataSchema = z.object({
     .optional(),
 });
 
+// Payment details (booking/payment ids, wallet config, tx hashes, raw callbacks)
+// must never reach the browser console in production. Gate debug output to dev.
+const debugLog = (...args: unknown[]) => {
+  if (process.env.NODE_ENV !== "production") console.info(...args);
+};
+
 export const StablezactPaymentComponent = (props: IStablezactPaymentComponentProps) => {
   const { payment, paymentPageProps } = props;
   const { data } = payment;
@@ -115,7 +121,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
   const paymentConfig = useMemo(() => {
     if (!paymentInfo) return null;
 
-    console.log("[Stablezact] Payment configuration:", {
+    debugLog("[Stablezact] Payment configuration:", {
       amount: paymentInfo.amount,
       network: paymentInfo.network,
       currency: paymentInfo.currency,
@@ -147,7 +153,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
   // Handle successful payment - update booking directly like WooCommerce does
   const handlePaymentSuccess = useCallback(
     async (paymentId: unknown, transactionHash?: unknown, paymentDetails?: unknown) => {
-      console.log("[Stablezact] ✅ Payment successful - Raw callback data:", {
+      debugLog("[Stablezact] ✅ Payment successful - Raw callback data:", {
         paymentId,
         paymentIdType: typeof paymentId,
         transactionHash,
@@ -156,7 +162,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
 
       // Prevent multiple processing
       if (isProcessing) {
-        console.log("[Stablezact] ⚠️ Already processing payment, skipping duplicate call");
+        debugLog("[Stablezact] ⚠️ Already processing payment, skipping duplicate call");
         return;
       }
       setIsProcessing(true);
@@ -164,7 +170,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
       // Close the modal immediately
       const instance = stablezactInstanceRef.current as { close?: () => void } | null;
       if (instance && instance.close) {
-        console.log("[Stablezact] Closing modal...");
+        debugLog("[Stablezact] Closing modal...");
         instance.close();
       }
 
@@ -188,7 +194,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
           actualPaymentId = String(paymentId);
         }
 
-        console.log("[Stablezact] Updating booking directly with payment info:", {
+        debugLog("[Stablezact] Updating booking directly with payment info:", {
           bookingId: paymentPageProps.booking.id,
           paymentId: actualPaymentId,
           transactionHash,
@@ -214,7 +220,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
         }
 
         const result = await response.json();
-        console.log("[Stablezact] ✅ Booking updated successfully:", result);
+        debugLog("[Stablezact] ✅ Booking updated successfully:", result);
 
         showToast("Booking confirmed! Redirecting...", "success");
 
@@ -270,7 +276,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
 
   // Handle payment modal close
   const handlePaymentClose = useCallback(() => {
-    console.log("[Stablezact] ℹ️ Payment modal closed");
+    debugLog("[Stablezact] ℹ️ Payment modal closed");
     // Only set cancelled if not processing (user manually closed)
     if (!isProcessing) {
       setIsCancelled(true);
@@ -279,7 +285,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
 
   // Handle retry payment
   const handleRetryPayment = useCallback(() => {
-    console.log("[Stablezact] 🔄 Retrying payment...");
+    debugLog("[Stablezact] 🔄 Retrying payment...");
 
     // Set retry flag BEFORE any state changes to prevent cleanup from closing modal
     isRetryingRef.current = true;
@@ -290,7 +296,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
       try {
         oldInstance.close();
       } catch (e) {
-        console.log("[Stablezact] Error closing old modal:", e);
+        debugLog("[Stablezact] Error closing old modal:", e);
       }
     }
 
@@ -318,10 +324,10 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
         publicKey: credentials.public_key,
         apiUrl: apiUrl,
         theme: "light",
-        debug: true,
+        debug: process.env.NODE_ENV !== "production",
       });
 
-      console.log("[Stablezact] SDK initialized, opening modal...");
+      debugLog("[Stablezact] SDK initialized, opening modal...");
 
       // Open payment modal
       const instance = stablezactInstanceRef.current as {
@@ -338,7 +344,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
       // Clear retry flag after successful initialization
       isRetryingRef.current = false;
 
-      console.log("[Stablezact] Modal opened successfully");
+      debugLog("[Stablezact] Modal opened successfully");
       return true;
     } catch (error) {
       console.error("[Stablezact] Failed to initialize:", error);
@@ -356,13 +362,13 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
 
     // Skip if we already have an active instance
     if (stablezactInstanceRef.current) {
-      console.log("[Stablezact] Already have active instance, skipping");
+      debugLog("[Stablezact] Already have active instance, skipping");
       return;
     }
 
     // Check if CoinleyVanilla is already on window (from previous load or retry)
     if (typeof window !== "undefined" && "CoinleyVanilla" in window) {
-      console.log("[Stablezact] CoinleyVanilla already available, reusing...");
+      debugLog("[Stablezact] CoinleyVanilla already available, reusing...");
       initializeAndOpen();
       return;
     }
@@ -370,11 +376,11 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
     // Check if script is already loading
     const existingScript = document.getElementById("stablezact-sdk-script");
     if (existingScript) {
-      console.log("[Stablezact] Script already loading, waiting...");
+      debugLog("[Stablezact] Script already loading, waiting...");
       return;
     }
 
-    console.log("[Stablezact] Loading SDK from CDN...");
+    debugLog("[Stablezact] Loading SDK from CDN...");
 
     // Load CSS first if not already present
     const existingLink = document.getElementById("stablezact-sdk-styles");
@@ -405,7 +411,7 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
     script.src = "https://unpkg.com/stablezact-pay@0.66.0/dist/coinley-vanilla.min.js";
     script.async = true;
     script.onload = () => {
-      console.log("[Stablezact] SDK loaded successfully");
+      debugLog("[Stablezact] SDK loaded successfully");
       initializeAndOpen();
     };
     script.onerror = () => {
@@ -417,11 +423,11 @@ export const StablezactPaymentComponent = (props: IStablezactPaymentComponentPro
 
     // Cleanup - but don't remove global script/styles, just close modal
     return () => {
-      console.log("[Stablezact] Cleanup effect triggered, isRetrying:", isRetryingRef.current);
+      debugLog("[Stablezact] Cleanup effect triggered, isRetrying:", isRetryingRef.current);
 
       // Skip cleanup if we're retrying - the modal should stay open
       if (isRetryingRef.current) {
-        console.log("[Stablezact] Skipping cleanup - retry in progress");
+        debugLog("[Stablezact] Skipping cleanup - retry in progress");
         return;
       }
 

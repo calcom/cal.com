@@ -11,7 +11,8 @@
     "@calcom/types": "workspace:*",
     "@calcom/ui": "workspace:*",
     "axios": "^1.6.0",
-    "react": "^18.2.0"
+    "react": "^18.2.0",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",

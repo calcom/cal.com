@@ -3102,6 +3102,7 @@ __metadata:
     axios: "npm:^1.6.0"
     react: "npm:^18.2.0"
     typescript: "npm:^5.3.0"
+    zod: "npm:3.25.76"
   languageName: unknown
   linkType: soft
 
