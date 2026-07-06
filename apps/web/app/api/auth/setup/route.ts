@@ -26,37 +26,50 @@ const querySchema = z.object({
 });
 
 async function handler(req: NextRequest) {
-  const userCount = await prisma.user.count();
-  if (userCount !== 0) {
-    throw new HttpError({ statusCode: 400, message: "No setup needed." });
-  }
-  const body = await parseRequestData(req);
+    const body = await parseRequestData(req);
 
-  const parsedQuery = querySchema.safeParse(body);
-  if (!parsedQuery.success) {
-    throw new HttpError({ statusCode: 422, message: parsedQuery.error.message });
-  }
+    const parsedQuery = querySchema.safeParse(body);
+    if (!parsedQuery.success) {
+        throw new HttpError({
+            statusCode: 422,
+            message: parsedQuery.error.message,
+        });
+    }
 
-  const username = slugify(parsedQuery.data.username.trim());
-  const userEmail = parsedQuery.data.email_address.toLowerCase();
+    const username = slugify(parsedQuery.data.username.trim());
+    const userEmail = parsedQuery.data.email_address.toLowerCase();
 
-  const hashedPassword = await hashPassword(parsedQuery.data.password);
+    const hashedPassword = await hashPassword(parsedQuery.data.password);
 
-  await prisma.user.create({
-    data: {
-      username,
-      email: userEmail,
-      password: { create: { hash: hashedPassword } },
-      role: "ADMIN",
-      name: parsedQuery.data.full_name,
-      emailVerified: new Date(),
-      locale: "en", // TODO: We should revisit this
-      identityProvider: IdentityProvider.CAL,
-      creationSource: CreationSource.WEBAPP,
-    },
-  });
+    await prisma.$transaction(async (tx) => {
+        await tx.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(123456789);`);
 
-  return NextResponse.json({ message: "First admin user created successfully." });
+        const userCount = await tx.user.count();
+        if (userCount !== 0) {
+            throw new HttpError({
+                statusCode: 400,
+                message: "No setup needed.",
+            });
+        }
+
+        await tx.user.create({
+            data: {
+                username,
+                email: userEmail,
+                password: { create: { hash: hashedPassword } },
+                role: "ADMIN",
+                name: parsedQuery.data.full_name,
+                emailVerified: new Date(),
+                locale: "en",
+                identityProvider: IdentityProvider.CAL,
+                creationSource: CreationSource.WEBAPP,
+            },
+        });
+    });
+
+    return NextResponse.json({
+        message: "First admin user created successfully.",
+    });
 }
 
 export const POST = defaultResponderForAppDir(handler);
