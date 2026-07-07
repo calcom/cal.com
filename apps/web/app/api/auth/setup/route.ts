@@ -10,6 +10,7 @@ import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 
@@ -30,8 +31,8 @@ async function handler(req: NextRequest) {
   if (userCount !== 0) {
     throw new HttpError({ statusCode: 400, message: "No setup needed." });
   }
-  const body = await parseRequestData(req);
 
+  const body = await parseRequestData(req);
   const parsedQuery = querySchema.safeParse(body);
   if (!parsedQuery.success) {
     throw new HttpError({ statusCode: 422, message: parsedQuery.error.message });
@@ -39,22 +40,33 @@ async function handler(req: NextRequest) {
 
   const username = slugify(parsedQuery.data.username.trim());
   const userEmail = parsedQuery.data.email_address.toLowerCase();
-
   const hashedPassword = await hashPassword(parsedQuery.data.password);
 
-  await prisma.user.create({
-    data: {
-      username,
-      email: userEmail,
-      password: { create: { hash: hashedPassword } },
-      role: "ADMIN",
-      name: parsedQuery.data.full_name,
-      emailVerified: new Date(),
-      locale: "en", // TODO: We should revisit this
-      identityProvider: IdentityProvider.CAL,
-      creationSource: CreationSource.WEBAPP,
-    },
-  });
+  try {
+    await prisma.user.create({
+      data: {
+        username,
+        email: userEmail,
+        password: { create: { hash: hashedPassword } },
+        role: "ADMIN",
+        name: parsedQuery.data.full_name,
+        emailVerified: new Date(),
+        locale: "en", // TODO: We should revisit this
+        identityProvider: IdentityProvider.CAL,
+        creationSource: CreationSource.WEBAPP,
+      },
+    });
+  } catch (err) {
+    // A concurrent request already created the first admin between our
+    // userCount check above and this insert. The partial unique index on
+    // role = 'ADMIN' (see migration only_one_admin_unique_index) is what
+    // actually closes the race; this just returns the same 400 a normal
+    // sequential second request would get, instead of leaking a 500.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      throw new HttpError({ statusCode: 400, message: "No setup needed." });
+    }
+    throw err;
+  }
 
   return NextResponse.json({ message: "First admin user created successfully." });
 }
