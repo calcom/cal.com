@@ -152,6 +152,8 @@ export class HashedLinkService { ... }
 
 [See README](https://github.com/calcom/cal.diy#development)
 
+If you run into setup problems, check the [Troubleshooting Guide](./docs/TROUBLESHOOTING.md).
+
 ## Building
 
 You can build the project with:

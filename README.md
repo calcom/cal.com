@@ -308,6 +308,10 @@ Run `npx playwright install` to download test browsers and resolve the error bel
 Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1048/chrome-mac/Chromium.app/Contents/MacOS/Chromium
 ```
 
+### Troubleshooting
+
+Running into problems? See the [Troubleshooting Guide](./docs/TROUBLESHOOTING.md) for solutions to common local development issues.
+
 ### Upgrading from earlier versions
 
 1. Pull the current version:
