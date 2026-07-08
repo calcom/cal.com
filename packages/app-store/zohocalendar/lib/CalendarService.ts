@@ -126,6 +126,7 @@ class ZohoCalendarService implements Calendar {
     try {
       const query = stringify({
         eventdata: JSON.stringify(this.translateEvent(event)),
+        notify: false,
       });
 
       const eventResponse = await this.fetcher(`/calendars/${calendarId}/events?${query}`, {
