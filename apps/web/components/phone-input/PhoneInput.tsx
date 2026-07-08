@@ -117,7 +117,7 @@ function BasePhoneInputWeb({
     <PhoneInput
       {...rest}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
-      country={value ? undefined : defaultCountry}
+      country={defaultCountry}
       enableSearch
       disableSearchIcon
       masks={CUSTOM_PHONE_MASKS}
