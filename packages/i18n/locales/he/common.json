@@ -1705,7 +1705,7 @@
   "day_timeUnit": "ימים",
   "hour_timeUnit": "שעות",
   "minute_timeUnit": "דקות",
-  "minute_short": "דק'",
+  "minute_short": " דק'",
   "hour_short": "ש'",
   "new_workflow_heading": "יצירת תהליך העבודה הראשון שלך",
   "new_workflow_description": "תהליכי עבודה מאפשרים להפוך את פעולת השליחה של תזכורות ועדכונים לאוטומטית.",
