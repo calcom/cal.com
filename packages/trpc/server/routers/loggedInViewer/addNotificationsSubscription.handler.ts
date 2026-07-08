@@ -9,6 +9,7 @@ const subscriptionSchema = z.object({
 });
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
 import logger from "@calcom/lib/logger";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -65,7 +66,7 @@ export const addNotificationsSubscriptionHandler = async ({ ctx, input }: AddSec
     },
     title: "Test Notification",
     body: "Push Notifications activated successfully",
-    url: "https://app.cal.com/",
+    url: WEBAPP_URL,
     requireInteraction: false,
     type: "TEST_NOTIFICATION",
   });
