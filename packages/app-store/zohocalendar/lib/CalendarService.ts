@@ -180,6 +180,7 @@ class ZohoCalendarService implements Calendar {
           ...this.translateEvent(event),
           etag: existingEventData.events[0].etag,
         }),
+        notify: false,
       });
 
       const eventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}?${query}`, {
