@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { getRichDescription } from "./CalEventParser";
+import { getRichDescription, getUserFieldsResponses } from "./CalEventParser";
 
 describe("getRichDescription", () => {
   const t = ((key: string, _args?: Record<string, unknown>) => key) as TFunction;
@@ -83,5 +83,34 @@ describe("getRichDescription", () => {
     // Should still contain required fields
     expect(description).toContain("what:");
     expect(description).toContain("who:");
+  });
+});
+
+describe("getUserFieldsResponses", () => {
+  const t = ((key: string) => key) as TFunction;
+
+  it("does not render null values for unanswered optional booking questions", () => {
+    // When an optional booking question is left unanswered, customInputs may store null
+    // for that field. Before the fix, null coerced to the string "null" in the template
+    // literal, polluting the calendar event description.
+    const result = getUserFieldsResponses(
+      { customInputs: { "Phone Number": null, Name: "Alice" } },
+      t
+    );
+
+    expect(result).not.toContain("null");
+    expect(result).toContain("Name");
+    expect(result).toContain("Alice");
+  });
+
+  it("does not render empty string values for booking questions", () => {
+    const result = getUserFieldsResponses(
+      { customInputs: { "Phone Number": "", Name: "Bob" } },
+      t
+    );
+
+    expect(result).not.toContain("Phone Number");
+    expect(result).toContain("Name");
+    expect(result).toContain("Bob");
   });
 });

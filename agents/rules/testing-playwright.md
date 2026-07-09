@@ -1,4 +1,9 @@
 ---
+paths:
+  - "apps/web/playwright/**"
+  - "packages/embeds/**/playwright/**"
+  - "apps/**/*.e2e.ts"
+  - "apps/api/**/e2e/**"
 title: Playwright E2E Testing
 impact: HIGH
 impactDescription: E2E tests catch integration issues before production
