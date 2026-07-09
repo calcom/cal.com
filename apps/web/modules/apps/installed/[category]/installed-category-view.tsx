@@ -12,7 +12,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import type { Icon } from "@calcom/ui/components/icon";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
 import AppListCardWebWrapper from "@calcom/web/modules/apps/components/AppListCardWebWrapper";
@@ -21,12 +20,17 @@ import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 import { QueryCell } from "@lib/QueryCell";
 import { useReducer } from "react";
+import { APP_CATEGORY_ENTRIES, ActiveAppCategoryKeys } from "@calcom/app-store/_utils/getAppCategories";
 
 interface IntegrationsContainerProps {
   variant?: AppCategories;
   exclude?: AppCategories[];
   handleDisconnect: HandleDisconnect;
 }
+
+const LEGACY_CATEGORY_MAP: Partial<Record<AppCategories, ActiveAppCategoryKeys>> = {
+  video: "conferencing",
+};
 
 const IntegrationsContainer = ({
   variant,
@@ -47,6 +51,14 @@ const IntegrationsContainer = ({
   const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
+
+  const isActiveCategory = (v: AppCategories): v is ActiveAppCategoryKeys => v in APP_CATEGORY_ENTRIES;
+
+  const resolveEmptyStateVariant = (v?: AppCategories): ActiveAppCategoryKeys => {
+    if (!v) return "other";
+    if (isActiveCategory(v)) return v;
+    return LEGACY_CATEGORY_MAP[v] || "other";
+  };
 
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
     trpc.viewer.eventTypes.bulkEventFetch.useQuery();
@@ -95,41 +107,28 @@ const IntegrationsContainer = ({
     utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
-  // TODO: Refactor and reuse getAppCategories?
-  const emptyIcon: Record<AppCategories, React.ComponentProps<typeof Icon>["name"]> = {
-    calendar: "calendar",
-    conferencing: "video",
-    automation: "share-2",
-    analytics: "chart-bar",
-    payment: "credit-card",
-    other: "grid-3x3",
-    web3: "credit-card", // deprecated
-    video: "video", // deprecated
-    messaging: "mail",
-    crm: "contact",
-  };
-
   return (
     <QueryCell
       query={query}
       customLoader={<SkeletonLoader />}
       success={({ data }) => {
         if (!data.items.length) {
-          const emptyHeaderCategory = getAppCategoryTitle(variant || "other", true);
+          const resolvedVariant = resolveEmptyStateVariant(variant);
+          const emptyHeaderCategory = getAppCategoryTitle(resolvedVariant, true);
 
           return (
             <EmptyScreen
-              Icon={emptyIcon[variant || "other"]}
+              Icon={APP_CATEGORY_ENTRIES[resolvedVariant].icon}
               headline={t("no_category_apps", {
                 category: emptyHeaderCategory,
               })}
-              description={t(`no_category_apps_description_${variant || "other"}`)}
+              description={t(`no_category_apps_description_${resolvedVariant}`)}
               buttonRaw={
                 <Button
                   color="secondary"
-                  data-testid={`connect-${variant || "other"}-apps`}
-                  href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
-                  {t(`connect_${variant || "other"}_apps`)}
+                  data-testid={`connect-${resolvedVariant}-apps`}
+                  href={`/apps/categories/${resolvedVariant}`}>
+                  {t(`connect_${resolvedVariant}_apps`)}
                 </Button>
               }
             />
