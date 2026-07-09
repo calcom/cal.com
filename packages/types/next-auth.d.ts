@@ -14,6 +14,7 @@ declare module "next-auth" {
     profileId?: number | null;
     upId: string;
     user: User & { uuid: PrismaUser["uuid"] };
+    error?: "SessionInvalidated";
   }
 
   interface User extends Omit<DefaultUser, "id"> {
@@ -78,5 +79,6 @@ declare module "next-auth/jwt" {
     orgAwareUsername?: PrismaUser["username"];
     organizationId?: number | null;
     locale?: string;
+    error?: "SessionInvalidated";
   }
 }

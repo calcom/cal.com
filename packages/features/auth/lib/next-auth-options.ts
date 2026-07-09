@@ -12,6 +12,7 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { isJwtIssuedBeforePasswordChange } from "@calcom/lib/auth/isJwtIssuedBeforePasswordChange";
 import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
@@ -428,6 +429,33 @@ export const getOptions = ({
       account,
     }) {
       log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
+
+      // Password-change session revocation, enforced once here for every refresh/update
+      // of an existing session, BEFORE NextAuth re-encodes the token (encode rotates the
+      // token's `iat` forward, so the raw-iat checks on getToken-based paths can only
+      // rely on this flag once that happens). Keyed by the stable user id (token.sub),
+      // not the mutable email, so a token with a stale email is still revoked. The flag
+      // is sticky: once set it short-circuits all later refreshes. Fresh sign-in calls
+      // have no token.iat yet, so they skip this and are unaffected.
+      if (token.error === "SessionInvalidated") {
+        return token;
+      }
+      if (token.sub && token.iat) {
+        const revocationUserId = Number(token.sub);
+        if (!Number.isNaN(revocationUserId) && revocationUserId > 0) {
+          const userForRevocationCheck = await prisma.user.findUnique({
+            where: { id: revocationUserId },
+            select: { passwordChangedAt: true },
+          });
+          if (
+            userForRevocationCheck &&
+            isJwtIssuedBeforePasswordChange(token.iat, userForRevocationCheck.passwordChangedAt)
+          ) {
+            return { ...token, error: "SessionInvalidated" } as JWT;
+          }
+        }
+      }
+
       // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
         return {
@@ -762,6 +790,11 @@ export const getOptions = ({
     },
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
+      // If the JWT was invalidated (e.g. password changed), surface the error to the client
+      // so it can redirect to sign-in rather than serving a stale session.
+      if (token.error === "SessionInvalidated") {
+        return { ...session, error: "SessionInvalidated" };
+      }
       const hasValidLicense = false;
       const profileId = token.profileId;
       const calendsoSession: Session = {

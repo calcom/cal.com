@@ -1,4 +1,5 @@
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { isJwtIssuedBeforePasswordChange } from "@calcom/lib/auth/isJwtIssuedBeforePasswordChange";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -54,18 +55,51 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const cachedSession = CACHE.get(JSON.stringify(token));
-
-  if (cachedSession) {
-    log.debug("Returning cached session", safeStringify(cachedSession));
-    return cachedSession;
-  }
-
   const userId = token.sub ? Number(token.sub) : null;
 
   if (!userId || userId <= 0) {
     log.warn("Invalid or missing user ID in token", { sub: token.sub });
     return null;
+  }
+
+  // The NextAuth jwt callback stamps revoked tokens with error: "SessionInvalidated"
+  // and that flag is sticky across refreshes. Honor it first: NextAuth rotates a
+  // token's `iat` forward every time /api/auth/session re-encodes the cookie, so a
+  // warm/polling session can carry an `iat` later than passwordChangedAt while still
+  // being revoked — the raw-iat check below would miss it, but the flag won't.
+  if (token.error === "SessionInvalidated") {
+    log.debug("Session invalidated (error flag)", { userId });
+    CACHE.delete(JSON.stringify(token));
+    return null;
+  }
+
+  // Session revocation on password change. A JWT issued before the user's last
+  // password change must not authenticate, even when a session for this exact
+  // token is already cached (the cache is keyed by the token, which doesn't
+  // change on password change). This check runs BEFORE the cache lookup so a
+  // stolen pre-change token can't ride a warm cache entry. Cost is one indexed
+  // primary-key lookup per authenticated request.
+  const userForRevocationCheck = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { passwordChangedAt: true },
+  });
+
+  if (!userForRevocationCheck) {
+    log.warn("No user found for valid token", { userId });
+    return null;
+  }
+
+  if (isJwtIssuedBeforePasswordChange(token.iat, userForRevocationCheck.passwordChangedAt)) {
+    log.debug("Session invalidated by password change", { userId });
+    CACHE.delete(JSON.stringify(token));
+    return null;
+  }
+
+  const cachedSession = CACHE.get(JSON.stringify(token));
+
+  if (cachedSession) {
+    log.debug("Returning cached session", safeStringify(cachedSession));
+    return cachedSession;
   }
 
   const userFromDb = await prisma.user.findUnique({

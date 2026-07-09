@@ -119,9 +119,12 @@ describe("getServerSession", () => {
 
       await getServerSession({ req: createMockRequest() });
 
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 999 },
-      });
+      // The first DB touch is now the password-change revocation lookup, which
+      // selects passwordChangedAt. When that user is missing we return early, so
+      // assert the id was resolved from token.sub without over-specifying the projection.
+      expect(prismaMock.user.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 999 } })
+      );
     });
 
     it("returns user data from database lookup", async () => {
@@ -157,6 +160,73 @@ describe("getServerSession", () => {
         expect(whereClause).toHaveProperty("id");
         expect(whereClause).not.toHaveProperty("email");
       }
+    });
+  });
+
+  describe("Session revocation on password change", () => {
+    const iat = 1_700_000_000;
+
+    it("returns null when the token was issued before the password change", async () => {
+      setupGetTokenMock({ ...createMockToken({ sub: "5" }), iat });
+      prismaMock.user.findUnique.mockResolvedValue(
+        createMockUser({ id: 5, passwordChangedAt: new Date((iat + 60) * 1000) })
+      );
+
+      const result = await getServerSession({ req: createMockRequest() });
+
+      expect(result).toBeNull();
+    });
+
+    it("returns null when the token was issued in the same second as the change", async () => {
+      setupGetTokenMock({ ...createMockToken({ sub: "5" }), iat });
+      prismaMock.user.findUnique.mockResolvedValue(
+        createMockUser({ id: 5, passwordChangedAt: new Date(iat * 1000) })
+      );
+
+      const result = await getServerSession({ req: createMockRequest() });
+
+      expect(result).toBeNull();
+    });
+
+    it("returns a session when the token was issued after the password change", async () => {
+      setupGetTokenMock({ ...createMockToken({ sub: "5" }), iat });
+      prismaMock.user.findUnique.mockResolvedValue(
+        createMockUser({ id: 5, passwordChangedAt: new Date((iat - 60) * 1000) })
+      );
+
+      const result = await getServerSession({ req: createMockRequest() });
+
+      expect(result).not.toBeNull();
+      expect(result?.user.id).toBe(5);
+    });
+
+    it("returns a session when the user never changed their password", async () => {
+      setupGetTokenMock({ ...createMockToken({ sub: "5" }), iat });
+      prismaMock.user.findUnique.mockResolvedValue(
+        createMockUser({ id: 5, passwordChangedAt: null })
+      );
+
+      const result = await getServerSession({ req: createMockRequest() });
+
+      expect(result).not.toBeNull();
+      expect(result?.user.id).toBe(5);
+    });
+
+    it("returns null when the token carries the SessionInvalidated flag even if iat is newer than passwordChangedAt", async () => {
+      // NextAuth rotates iat forward on session refresh, so a revoked-but-refreshed
+      // token can have iat > passwordChangedAt. The sticky error flag must still revoke it.
+      setupGetTokenMock({
+        ...createMockToken({ sub: "5" }),
+        iat: iat + 100_000,
+        error: "SessionInvalidated",
+      });
+      prismaMock.user.findUnique.mockResolvedValue(
+        createMockUser({ id: 5, passwordChangedAt: new Date(iat * 1000) })
+      );
+
+      const result = await getServerSession({ req: createMockRequest() });
+
+      expect(result).toBeNull();
     });
   });
 });
