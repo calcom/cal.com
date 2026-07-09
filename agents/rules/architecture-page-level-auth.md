@@ -1,4 +1,7 @@
 ---
+paths:
+  - "apps/**/page.tsx"
+  - "apps/**/layout.tsx"
 title: Page-Level Authorization Checks in Next.js
 impact: CRITICAL
 impactDescription: Prevents unauthorized access to sensitive data

@@ -5,6 +5,7 @@ import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthServic
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
+import { getDefaultPassword } from "./lib/testUtils";
 
 import { test } from "./lib/fixtures";
 
@@ -158,7 +159,7 @@ test.describe("OAuth Provider", () => {
     await expect(page.getByRole("heading", { name: "Cal.diy" })).toBeVisible();
     await expect(page.getByTestId("login-subtitle")).toBeVisible();
     await page.locator("#email").fill(user.email);
-    await page.locator("#password").fill(user.username || "");
+    await page.locator("#password").fill(getDefaultPassword(user.username!));
     await page.locator('[type="submit"]').click();
 
     await page.waitForSelector('[data-testid="allow-button"]');
