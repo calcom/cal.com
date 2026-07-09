@@ -1,5 +1,6 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CreationSource, RedirectType } from "@calcom/prisma/enums";
+import Prisma from "@calcom/prisma";
 import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
 import { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
@@ -65,13 +66,21 @@ export const userAdminRouter = router({
     try {
       const user = await prisma.user.create({ data: { ...input, creationSource: CreationSource.WEBAPP } });
       return { user, message: "User with id: " + user.id + " added successfully" };
-    } catch (error) {
-      if ((error as any)?.code === "P2002") {
-        const target = (error as any)?.meta?.target as string[] | undefined;
-        const field = target?.[0] || "field";
-        throw new TRPCError({ code: "CONFLICT", message: "A user with this " + field + " already exists." });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === "P2002") {
+          const target = e.meta?.target as string[] | undefined;
+          const field = target?.[0] || "unknown";
+          const message =
+            field === "email"
+              ? "A user with this email address already exists."
+              : field === "username"
+                ? "A user with this username already exists."
+                : "A user with this " + field + " already exists.";
+          throw new TRPCError({ code: "CONFLICT", message });
+        }
       }
-      throw error;
+      throw e;
     }
   }),
   delete: authedAdminProcedureWithRequestedUser.input(userIdSchema).mutation(async ({ ctx }) => {
