@@ -67,14 +67,15 @@ test("refresh request only sends the documented refresh params and omits redirec
   await refreshAccessToken(credential);
 
   expect(fetchMock).toHaveBeenCalledOnce();
-  const requestedUrl = fetchMock.mock.calls[0][0] as string;
+  const url = new URL(fetchMock.mock.calls[0][0] as string);
 
-  expect(requestedUrl).toContain("https://launchpad.37signals.com/authorization/token");
-  expect(requestedUrl).toContain("type=refresh");
-  expect(requestedUrl).toContain(`refresh_token=${basecampKey.refresh_token}`);
-  expect(requestedUrl).toContain("client_id=test-client-id");
-  expect(requestedUrl).toContain("client_secret=test-client-secret");
-  expect(requestedUrl).not.toContain("redirect_uri");
+  expect(url.origin + url.pathname).toBe("https://launchpad.37signals.com/authorization/token");
+  expect(Object.fromEntries(url.searchParams)).toEqual({
+    type: "refresh",
+    refresh_token: basecampKey.refresh_token,
+    client_id: "test-client-id",
+    client_secret: "test-client-secret",
+  });
 });
 
 test("persists the refreshed token back to the existing credential", async () => {
