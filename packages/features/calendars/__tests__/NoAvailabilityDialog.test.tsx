@@ -14,6 +14,8 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
         return `Scheduling is only available up to ${vars?.days} in advance. Please check again soon.`;
       if (key === "no_availability_range")
         return `Scheduling ended on ${vars?.date}. Please check again soon.`;
+      if (key === "no_availability_range_not_started")
+        return `Scheduling opens on ${vars?.date}. Please check again soon.`;
       if (key === "close") return "Close";
       if (key === "view_next_month") return "View next month";
       if (key === "calendar_days") return "calendar days";
@@ -81,6 +83,33 @@ describe("NoAvailabilityOverlay", () => {
     );
     expect(screen.getByRole("dialog")).toHaveTextContent(
       `Scheduling ended on ${endDate.format("MMMM D YYYY")}. Please check again soon.`
+    );
+    const nextMonthButton = screen.queryAllByTestId("view_next_month");
+    const closeButton = screen.getAllByTestId("close_dialog_button");
+    expect(nextMonthButton).toHaveLength(0);
+    expect(closeButton).toHaveLength(1);
+  });
+
+  test("Displays range not-started description when period type is RANGE and the booking window opens after the next month", () => {
+    // Booking window opens 2 months out, so browsing the current month is before the window starts.
+    // The dialog must say "Scheduling opens on ..." rather than the misleading "Scheduling ended on ...".
+    // Build the dates in UTC so the test matches the component's dayjs.utc formatting in any local timezone.
+    const startDate = dayjs.utc().add(2, "month").startOf("day");
+    const endDate = dayjs.utc().add(4, "month").startOf("day");
+    render(
+      <NoAvailabilityDialog
+        {...defaultProps}
+        browsingDate={dayjs()}
+        periodData={{
+          ...defaultProps.periodData,
+          periodType: "RANGE",
+          periodStartDate: startDate.toDate(),
+          periodEndDate: endDate.toDate(),
+        }}
+      />
+    );
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      `Scheduling opens on ${dayjs.utc(startDate.toDate()).format("MMMM D YYYY")}. Please check again soon.`
     );
     const nextMonthButton = screen.queryAllByTestId("view_next_month");
     const closeButton = screen.getAllByTestId("close_dialog_button");
