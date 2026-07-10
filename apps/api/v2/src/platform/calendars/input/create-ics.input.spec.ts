@@ -17,8 +17,8 @@ describe("CreateIcsFeedInputDto", () => {
     expect(errors).toHaveLength(0);
   });
 
-  it("accepts valid feed URLs without a .ics suffix", async () => {
-    const errors = await validateUrls(["https://caldav.example.com/calendars/MyCalendar?export"]);
+  it.each(["http", "https"])("accepts valid %s feed URLs without a .ics suffix", async (protocol) => {
+    const errors = await validateUrls([`${protocol}://caldav.example.com/calendars/MyCalendar?export`]);
 
     expect(errors).toHaveLength(0);
   });
