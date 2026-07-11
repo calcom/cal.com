@@ -1,5 +1,6 @@
 import { isValidPhoneNumber, parsePhoneNumberFromString } from "libphonenumber-js/max";
 import { describe, expect, it } from "vitest";
+import { inferCountryFromPhoneValue } from "./PhoneInput";
 import { CUSTOM_PHONE_MASKS } from "./phone-masks";
 
 /** Count the digit placeholders (dots) in a react-phone-input-2 mask */
@@ -49,5 +50,19 @@ describe("CUSTOM_PHONE_MASKS", () => {
         );
       }
     });
+  });
+});
+
+describe("inferCountryFromPhoneValue", () => {
+  it("infers a country from a unique calling code", () => {
+    expect(inferCountryFromPhoneValue("+371")).toBe("lv");
+    expect(inferCountryFromPhoneValue("+37122")).toBe("lv");
+    expect(inferCountryFromPhoneValue("+91")).toBe("in");
+    expect(inferCountryFromPhoneValue("+919999999999")).toBe("in");
+    expect(inferCountryFromPhoneValue("919999999999")).toBe("in");
+  });
+
+  it("does not infer ambiguous calling codes", () => {
+    expect(inferCountryFromPhoneValue("+1")).toBeUndefined();
   });
 });
