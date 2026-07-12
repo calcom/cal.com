@@ -11,6 +11,7 @@ export const REDIRECT_APPS = [
   "chatbase",
   "clic",
   "cron",
+  "currency-crypto-converter",
   "deel",
   "elevenlabs",
   "famulor",

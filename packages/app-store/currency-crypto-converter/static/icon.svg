@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Currency and Crypto Converter">
+  <rect width="256" height="256" rx="56" fill="#f7931a"/>
+  <path d="M64 96h104l-22-22a10 10 0 0 1 14-14l40 40a10 10 0 0 1 0 14l-40 40a10 10 0 0 1-14-14l22-22H64a10 10 0 0 1 0-20z" fill="#ffffff" opacity="0.28"/>
+  <text x="78" y="150" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="72" font-weight="700" fill="#ffffff" text-anchor="middle">€</text>
+  <text x="178" y="196" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="72" font-weight="700" fill="#ffffff" text-anchor="middle">₿</text>
+</svg>

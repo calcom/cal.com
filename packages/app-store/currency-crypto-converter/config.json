@@ -1,0 +1,22 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Currency & Crypto Converter",
+  "slug": "currency-crypto-converter",
+  "type": "currency-crypto-converter_other",
+  "logo": "icon.svg",
+  "url": "https://kryptoboersen.net",
+  "variant": "other",
+  "categories": [
+    "other"
+  ],
+  "publisher": "kryptoboersen.net",
+  "email": "team@geschaeftskonto.io",
+  "description": "Quickly convert between euros, US dollars, pounds, Swiss francs and the major cryptocurrencies (BTC, ETH, USDC) with live exchange rates. A handy reference tool for anyone who works with crypto pricing.",
+  "__createdUsingCli": true,
+  "dirName": "currency-crypto-converter",
+  "isOAuth": false,
+  "externalLink": {
+    "url": "https://kryptoboersen.net",
+    "newTab": true
+  }
+}
