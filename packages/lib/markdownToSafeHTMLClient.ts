@@ -15,7 +15,7 @@ export function markdownToSafeHTMLClient(markdown: string | null) {
   const safeHTML = DOMPurify.sanitize(html);
 
   const nestedListInSiblingLiPattern =
-    /<li>([^<]+|<strong>.*?<\/strong>)<\/li>\s*<li>\s*<ul([^>]*)>([\s\S]*?)<\/ul>\s*<\/li>/g;
+    /<li>((?:[^<]|<(?!\/li>)[^>]*>)*)<\/li>\s*<li>\s*<ul([^>]*)>([\s\S]*?)<\/ul>\s*<\/li>/g;
 
   let safeHTMLWithListFormatting = safeHTML;
 
