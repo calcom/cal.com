@@ -12,12 +12,10 @@ describe("markdownToSafeHTML", () => {
 
     const html = markdownToSafeHTML(markdown);
 
-    expect(html).toContain("<ol");
-    expect(html).toContain("<ul");
-    expect(html).toContain("Bullet one");
-    expect(html).toContain("Bullet two");
-    expect(html.match(/<li[^>]*>[\s\S]*?Bullet one/g)?.length).toBeGreaterThanOrEqual(1);
-    expect(html.match(/<li[^>]*>[\s\S]*?Bullet two/g)?.length).toBeGreaterThanOrEqual(1);
+    expect(html).toMatch(/<ol[^>]*>[\s\S]*?<\/ol>[\s\S]*?<ul[^>]*>/);
+    expect(html).toMatch(
+      /<ul[^>]*>[\s\S]*?<li[^>]*>\s*Bullet one[\s\S]*?<\/li>[\s\S]*?<li[^>]*>\s*Bullet two[\s\S]*?<\/li>[\s\S]*?<\/ul>/
+    );
   });
 
   it("renders numbered list with trailing unordered sub-bullets inside the last item", () => {
@@ -57,9 +55,9 @@ What's included:
     const html = markdownToSafeHTML(markdown);
 
     expect(html).toContain("What's included:");
-    expect(html).toContain("Item A");
-    expect(html).toContain("Item B");
     expect(html).toContain("list-style-position: outside");
-    expect(html.match(/Item A[\s\S]*Item B/)?.[0]).toBeTruthy();
+    expect(html).toMatch(
+      /<ul[^>]*>[\s\S]*?<li[^>]*>\s*Item A[\s\S]*?<\/li>[\s\S]*?<li[^>]*>\s*Item B[\s\S]*?<\/li>[\s\S]*?<\/ul>/
+    );
   });
 });
