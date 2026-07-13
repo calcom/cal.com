@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import type { EventLocationType, LocationObject } from "@calcom/app-store/locations";
 import {
-  getEventLocationType,
+  getLocationByType,
   getHumanReadableLocationValue,
   getMessageForOrganizer,
   isAttendeeInputRequired,
@@ -168,7 +168,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     name: "locationAddress",
   });
 
-  const eventLocationType = getEventLocationType(selectedLocation);
+  const eventLocationType = getLocationByType(selectedLocation);
 
   const defaultLocation = defaultValues?.find(
     (location: { type: EventLocationType["type"]; address?: string }) => {

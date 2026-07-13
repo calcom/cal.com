@@ -117,7 +117,7 @@ export const getUserFieldsResponses = (
   const responsesString = Object.keys(labelValueMap)
     .map((key) => {
       if (!labelValueMap) return "";
-      if (labelValueMap[key] !== "") {
+      if (labelValueMap[key] != null && labelValueMap[key] !== "") {
         return `
 ${t(key)}:
 ${labelValueMap[key]}

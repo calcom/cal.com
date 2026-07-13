@@ -289,6 +289,111 @@ describe("Cancel Booking", () => {
     expect(processPaymentRefund).toHaveBeenCalled();
   });
 
+  test("Should pass all seat payments to processPaymentRefund when fully cancelling a paid seated booking", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "seated-multi-pay-cancel";
+    const idOfBookingToBeCancelled = 1099;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+    const booking = {
+      id: idOfBookingToBeCancelled,
+      uid: uidOfBookingToBeCancelled,
+      eventTypeId: 1,
+      userId: 101,
+      responses: {
+        email: booker.email,
+        name: booker.name,
+        location: { optionValue: "", value: BookingLocations.CalVideo },
+      },
+      status: BookingStatus.ACCEPTED,
+      startTime: `${plus1DateString}T05:00:00.000Z`,
+      endTime: `${plus1DateString}T05:15:00.000Z`,
+      metadata: {
+        videoCallUrl: "https://existing-daily-video-call-url.example.com",
+      },
+      attendees: [{ timeZone: "Asia/Kolkata", email: booker.email }],
+    };
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            seatsPerTimeSlot: 3,
+            users: [{ id: 101 }],
+          },
+        ],
+        // Two seats on the same booking → two Payment rows sharing one bookingId.
+        payment: [
+          {
+            amount: 1000,
+            bookingId: idOfBookingToBeCancelled,
+            currency: "usd",
+            data: {},
+            externalId: "ext_seat_1",
+            fee: 0,
+            refunded: false,
+            success: true,
+            uid: "seat-1-pay",
+          },
+          {
+            amount: 5000,
+            bookingId: idOfBookingToBeCancelled,
+            currency: "usd",
+            data: {},
+            externalId: "ext_seat_2",
+            fee: 0,
+            refunded: false,
+            success: true,
+            uid: "seat-2-pay",
+          },
+        ],
+        bookings: [booking],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+      videoMeetingData: { id: "MOCK_ID", password: "MOCK_PASS", url: `http://mock-dailyvideo.example.com/meeting-1` },
+    });
+    mockCalendarToHaveNoBusySlots("googlecalendar", {
+      create: { id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID" },
+    });
+
+    // Full cancel (no seatReferenceUid) by the host. Clear first so the count is order-independent.
+    vi.mocked(processPaymentRefund).mockClear();
+    await handleCancelBooking({
+      bookingData: {
+        id: idOfBookingToBeCancelled,
+        uid: uidOfBookingToBeCancelled,
+        cancelledBy: organizer.email,
+        cancellationReason: "No reason",
+      },
+    });
+
+    expect(processPaymentRefund).toHaveBeenCalledTimes(1);
+    const refundArg = vi.mocked(processPaymentRefund).mock.calls[0][0];
+    expect(refundArg.booking.payment).toHaveLength(2);
+    expect(refundArg.booking.payment.map((p) => p.externalId).sort()).toEqual(["ext_seat_1", "ext_seat_2"]);
+  });
+
   test("Should block cancelling past bookings", async () => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 

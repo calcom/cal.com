@@ -10,7 +10,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import {
   defaultLocations,
   getAppSlugFromLocationType,
-  getEventLocationType,
+  getLocationByType,
   isCalVideoLocation,
   isStaticLocationType,
 } from "@calcom/app-store/locations";
@@ -84,7 +84,7 @@ const filterOutBookerInputLocations = (options: TLocationOptions): TLocationOpti
     .map((group) => ({
       ...group,
       options: group.options.filter((opt) => {
-        const locationType = getEventLocationType(opt.value);
+        const locationType = getLocationByType(opt.value);
         return !locationType?.attendeeInputType;
       }),
     }))
@@ -111,7 +111,7 @@ const LocationInputDialog = ({
   initialValue = "",
 }: LocationInputDialogProps) => {
   const { t } = useLocale();
-  const eventLocationType = locationOption ? getEventLocationType(locationOption.value) : null;
+  const eventLocationType = locationOption ? getLocationByType(locationOption.value) : null;
   const [inputValue, setInputValue] = useState(initialValue);
 
   useEffect(() => {
@@ -211,7 +211,7 @@ const buildHostLocation = (
   hostData: HostWithLocationOptions | undefined,
   inputValue?: string
 ): HostLocation => {
-  const eventLocationType = getEventLocationType(locationOption.value);
+  const eventLocationType = getLocationByType(locationOption.value);
   const credential = findHostCredential(hostData, locationOption.value);
 
   const location: HostLocation = {
@@ -287,7 +287,7 @@ const HostLocationRow = ({
     [currentLocation, hostData, locationOptions]
   );
 
-  const currentLocationEventType = currentLocation ? getEventLocationType(currentLocation.type) : null;
+  const currentLocationEventType = currentLocation ? getLocationByType(currentLocation.type) : null;
   const hasOrganizerInput = !!currentLocationEventType?.organizerInputType;
 
   const currentLocationValue = useMemo(() => {
@@ -303,7 +303,7 @@ const HostLocationRow = ({
       onLocationChange(host.userId, null);
       return;
     }
-    if (getEventLocationType(option.value)?.organizerInputType) {
+    if (getLocationByType(option.value)?.organizerInputType) {
       setPendingLocationOption(option);
       setIsDialogOpen(true);
       return;
@@ -454,13 +454,13 @@ const MassApplyLocationDialog = ({ isOpen, onClose, onApply, isApplying }: MassA
   const { selectedType, setSelectedType, inputValue, setInputValue, reset } = useMassApplyDialogState(isOpen);
   const allLocationOptions = useMemo(() => {
     return getAllLocationOptions().filter((opt) => {
-      const locationType = getEventLocationType(opt.value);
+      const locationType = getLocationByType(opt.value);
       return !locationType?.attendeeInputType;
     });
   }, []);
 
   const selectedOption = allLocationOptions.find((o) => o.value === selectedType);
-  const eventLocationType = selectedType ? getEventLocationType(selectedType) : null;
+  const eventLocationType = selectedType ? getLocationByType(selectedType) : null;
   const needsInput = eventLocationType?.organizerInputType;
 
   const handleClose = () => {
@@ -551,7 +551,7 @@ const MassApplyLocationDialog = ({ isOpen, onClose, onApply, isApplying }: MassA
 };
 
 type LocationInputFieldProps = {
-  eventLocationType: ReturnType<typeof getEventLocationType>;
+  eventLocationType: ReturnType<typeof getLocationByType>;
   inputValue: string;
   setInputValue: (value: string) => void;
 };
@@ -620,7 +620,7 @@ const buildFullLocationOptions = (
     const locationData = app.appData?.location;
     if (!locationData || existingValues.has(locationData.type)) continue;
 
-    const locationType = getEventLocationType(locationData.type);
+    const locationType = getLocationByType(locationData.type);
     if (locationType?.attendeeInputType) continue;
 
     existingValues.add(locationData.type);
@@ -789,7 +789,7 @@ const useMassApplyMutation = (
   });
 
   const handleMassApply = (locationType: string, inputValue?: string) => {
-    const evtLocType = getEventLocationType(locationType);
+    const evtLocType = getLocationByType(locationType);
     const link = evtLocType?.defaultValueVariable === "link" ? inputValue : undefined;
     const address = evtLocType?.defaultValueVariable === "address" ? inputValue : undefined;
     const phoneNumber = evtLocType?.organizerInputType === "phone" ? inputValue : undefined;
