@@ -13,114 +13,45 @@ describe("validate()", () => {
       },
     };
 
-    it("should accept a valid simple calLink (username/event-type)", () => {
-      expect(() => validate({ calLink: "john-doe/30min" }, calLinkSchema)).not.toThrow();
+    it("should pass for valid calLinks", () => {
+      const validLinks = [
+        "john-doe/30min",
+        "team/event-type",
+        // Regression check: old regex wrongly rejected links with `https://` in query params
+        "team/link?redirect=https://example.com",
+        // Leading/trailing whitespace around a valid slug should be trimmed and accepted
+        "  john-doe/30min  ",
+      ];
+
+      validLinks.forEach((calLink) => {
+        expect(() => validate({ calLink }, calLinkSchema)).not.toThrow();
+      });
     });
 
-    it("should accept a valid team calLink", () => {
-      expect(() => validate({ calLink: "team/event-type" }, calLinkSchema)).not.toThrow();
-    });
+    it("should throw for invalid calLinks", () => {
+      const invalidLinks = [
+        "/john-doe/30min", // absolute path
+        "http://cal.com/john", // http scheme
+        "https://cal.com/john", // https scheme
+        "HTTPS://cal.com/john", // uppercase HTTPS (case-insensitive check)
+        "HTTP://cal.com/john", // uppercase HTTP (case-insensitive check)
+        "ftp://cal.com/john", // ftp scheme
+        "mailto:john@example.com", // mailto scheme
+        "javascript:alert(1)", // javascript scheme (XSS vector)
+        "", // empty string
+        "   ", // whitespace-only
+        "   https://cal.com/john", // whitespace before URL
+        "   /john-doe/30min", // whitespace before absolute path
+        "vscode://extension", // custom URI scheme
+        "\\john-doe/30min", // backslash
+        "\\\\evil.com", // double backslash
+      ];
 
-    it("should accept a calLink with query params (false positive regression check)", () => {
-      // The old regex /^\/|https?:\/\// would wrongly reject this because it matched `https://` anywhere
-      expect(() =>
-        validate({ calLink: "team/link?redirect=https://example.com" }, calLinkSchema)
-      ).not.toThrow();
-    });
-
-    it("should reject a calLink starting with /", () => {
-      expect(() => validate({ calLink: "/john-doe/30min" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink starting with http://", () => {
-      expect(() => validate({ calLink: "http://cal.com/john" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink starting with https://", () => {
-      expect(() => validate({ calLink: "https://cal.com/john" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink starting with HTTPS:// (case-insensitive check)", () => {
-      // The old regex was case-sensitive and would let HTTPS:// bypass the check
-      expect(() => validate({ calLink: "HTTPS://cal.com/john" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink starting with HTTP:// (case-insensitive check)", () => {
-      expect(() => validate({ calLink: "HTTP://cal.com/john" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink with ftp:// scheme", () => {
-      expect(() => validate({ calLink: "ftp://cal.com/john" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink with mailto: scheme", () => {
-      expect(() => validate({ calLink: "mailto:john@example.com" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink with javascript: scheme", () => {
-      expect(() => validate({ calLink: "javascript:alert(1)" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject an empty string calLink", () => {
-      expect(() => validate({ calLink: "" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a whitespace-only calLink", () => {
-      expect(() => validate({ calLink: "   " }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should accept a valid calLink with leading and trailing whitespace", () => {
-      expect(() => validate({ calLink: "  john-doe/30min  " }, calLinkSchema)).not.toThrow();
-    });
-
-    it("should reject a calLink with leading whitespace before a URL", () => {
-      expect(() => validate({ calLink: "   https://cal.com/john" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink with leading whitespace before an absolute path", () => {
-      expect(() => validate({ calLink: "   /john-doe/30min" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink with a custom URI scheme", () => {
-      expect(() => validate({ calLink: "vscode://extension" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink starting with a backslash", () => {
-      expect(() => validate({ calLink: "\\john-doe/30min" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
-    });
-
-    it("should reject a calLink starting with double backslashes", () => {
-      expect(() => validate({ calLink: "\\\\evil.com" }, calLinkSchema)).toThrow(
-        '"calLink" is of wrong type.Expected type "calLink"'
-      );
+      invalidLinks.forEach((calLink) => {
+        expect(() => validate({ calLink }, calLinkSchema)).toThrow(
+          '"calLink" is of wrong type.Expected type "calLink"'
+        );
+      });
     });
   });
 
@@ -167,14 +98,22 @@ describe("validate()", () => {
       },
     };
 
-    it("should accept a valid string", () => {
-      expect(() => validate({ theme: "dark" }, stringSchema)).not.toThrow();
+    it("should pass for valid string values", () => {
+      const validValues = ["dark", "light", "auto"];
+
+      validValues.forEach((theme) => {
+        expect(() => validate({ theme }, stringSchema)).not.toThrow();
+      });
     });
 
-    it("should reject a non-string value", () => {
-      expect(() => validate({ theme: 123 }, stringSchema)).toThrow(
-        '"theme" is of wrong type.Expected type "string"'
-      );
+    it("should throw for non-string values", () => {
+      const invalidValues = [123, true, {}, []];
+
+      invalidValues.forEach((theme) => {
+        expect(() => validate({ theme }, stringSchema)).toThrow(
+          '"theme" is of wrong type.Expected type "string"'
+        );
+      });
     });
   });
 
@@ -189,18 +128,22 @@ describe("validate()", () => {
       },
     };
 
-    it("should accept a value matching the first type in the union", () => {
-      expect(() => validate({ value: "test string" }, unionSchema)).not.toThrow();
+    it("should pass for values matching any type in the union", () => {
+      const validValues = ["test string", () => {}];
+
+      validValues.forEach((value) => {
+        expect(() => validate({ value }, unionSchema)).not.toThrow();
+      });
     });
 
-    it("should accept a value matching the second type in the union", () => {
-      expect(() => validate({ value: () => {} }, unionSchema)).not.toThrow();
-    });
+    it("should throw for values matching neither type in the union", () => {
+      const invalidValues = [123, true, {}, []];
 
-    it("should reject a value that matches neither type in the union", () => {
-      expect(() => validate({ value: 123 }, unionSchema)).toThrow(
-        '"value" is of wrong type.Expected type "string,function"'
-      );
+      invalidValues.forEach((value) => {
+        expect(() => validate({ value }, unionSchema)).toThrow(
+          '"value" is of wrong type.Expected type "string,function"'
+        );
+      });
     });
   });
 });
