@@ -245,7 +245,10 @@ export class StripeService {
       if (customersResponse.data[0] && customersResponse.data[0].id) {
         customerId = customersResponse.data[0].id;
       } else {
-        const customer = await stripe.customers.create({ email: user.email });
+        const customer = await stripe.customers.create(
+          { email: user.email },
+          { idempotencyKey: `stripe-customer-${user.email.toLowerCase()}` }
+        );
         customerId = customer.id;
       }
     } catch {
