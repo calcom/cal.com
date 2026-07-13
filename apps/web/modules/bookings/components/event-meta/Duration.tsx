@@ -37,6 +37,27 @@ export const getDurationFormatted = (mins: number | undefined, t: TFunction) => 
   return hourStr || minStr;
 };
 
+/** Returns the full expanded duration text for screen readers (e.g. "30 minutes", "1 hour 30 minutes") */
+export const getDurationAccessibilityLabel = (mins: number | undefined, t: TFunction) => {
+  if (!mins) return null;
+
+  const hours = Math.floor(mins / 60);
+  mins %= 60;
+
+  let minStr = "";
+  if (mins > 0) {
+    minStr = mins === 1 ? t("minute_one", { count: 1 }) : t("minute_other", { count: mins });
+  }
+
+  let hourStr = "";
+  if (hours > 0) {
+    hourStr = hours === 1 ? t("hour_one", { count: 1 }) : t("hour_other", { count: hours });
+  }
+
+  if (hourStr && minStr) return `${hourStr} ${minStr}`;
+  return hourStr || minStr;
+};
+
 export const EventDuration = ({
   event,
 }: {
@@ -90,7 +111,7 @@ export const EventDuration = ({
   }, [selectedDuration, isEmbed]);
 
   if (!event?.metadata?.multipleDuration && !isDynamicEvent)
-    return <>{getDurationFormatted(event.length, t)}</>;
+    return <span aria-label={getDurationAccessibilityLabel(event.length, t)}>{getDurationFormatted(event.length, t)}</span>;
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
   const hideDurationSelector = event?.metadata?.hideDurationSelectorInBookingPage;
@@ -98,7 +119,7 @@ export const EventDuration = ({
   // When duration selector is hidden, show only the selected/default duration as text
   // URL params can still set the duration, but the user cannot change it via UI
   if (hideDurationSelector) {
-    return <>{getDurationFormatted(selectedDuration || event.length, t)}</>;
+    return <span aria-label={getDurationAccessibilityLabel(selectedDuration || event.length, t)}>{getDurationFormatted(selectedDuration || event.length, t)}</span>;
   }
 
   return selectedDuration ? (
@@ -124,6 +145,7 @@ export const EventDuration = ({
               key={index}
               onClick={() => setSelectedDuration(duration)}
               ref={(el) => (itemRefs.current[duration] = el)}
+              aria-label={getDurationAccessibilityLabel(duration, t)}
               className={classNames(
                 selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
                 "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition"
