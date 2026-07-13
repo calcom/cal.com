@@ -12,9 +12,47 @@ Cal.diy sends webhook payloads when subscribed events occur. Webhook payloads us
 - `organizer`, `attendees`, `responses`, `location`
 - `eventTypeId`, `status`, `metadata`
 
+Example `BOOKING_CREATED` payload:
+
+```json
+{
+  "triggerEvent": "BOOKING_CREATED",
+  "createdAt": "2024-01-15T10:00:00Z",
+  "payload": {
+    "bookingId": 1,
+    "uid": "booking-uid-123",
+    "title": "Test Meeting",
+    "startTime": "2024-01-15T10:00:00Z",
+    "endTime": "2024-01-15T10:30:00Z",
+    "status": "ACCEPTED",
+    "organizer": { "email": "organizer@test.com", "name": "Test Organizer", "utcOffset": 0 },
+    "attendees": [{ "email": "attendee@test.com", "name": "Test Attendee", "utcOffset": 0 }],
+    "location": "https://cal.com/video/123",
+    "eventTitle": "Test Event",
+    "price": 0,
+    "currency": "USD"
+  }
+}
+```
+
 ### Payment events
 
-`BOOKING_PAYMENT_INITIATED` and `BOOKING_PAID` use payment-specific payloads with booking and payment metadata.
+`BOOKING_PAYMENT_INITIATED` and `BOOKING_PAID` use the same booking payload shape with additional `paymentId` and `paymentData` fields.
+
+Example `BOOKING_PAID` payload:
+
+```json
+{
+  "triggerEvent": "BOOKING_PAID",
+  "createdAt": "2024-01-15T10:00:00Z",
+  "payload": {
+    "bookingId": 1,
+    "status": "ACCEPTED",
+    "paymentId": 123,
+    "paymentData": { "stripeId": "stripe_123" }
+  }
+}
+```
 
 ### Meeting events
 
@@ -59,9 +97,40 @@ The `payload` for meeting events contains the full booking object (same fields a
 
 `FORM_SUBMITTED` fires when a routing form is submitted.
 
+Example payload:
+
+```json
+{
+  "triggerEvent": "FORM_SUBMITTED",
+  "createdAt": "2024-01-01T12:00:00.000Z",
+  "payload": {
+    "formId": "form-abc",
+    "formName": "Contact Form",
+    "responses": { "email": "user@example.com" }
+  }
+}
+```
+
 ### Out-of-office events
 
 `OOO_CREATED` fires when an out-of-office entry is created.
+
+Example payload:
+
+```json
+{
+  "triggerEvent": "OOO_CREATED",
+  "createdAt": "2024-01-15T10:00:00Z",
+  "payload": {
+    "oooEntry": {
+      "id": 1,
+      "start": "2024-01-20T00:00:00Z",
+      "end": "2024-01-25T00:00:00Z",
+      "reason": "Vacation"
+    }
+  }
+}
+```
 
 ## Testing webhooks locally
 
