@@ -14,25 +14,33 @@ export function markdownToSafeHTML(markdown: string | null) {
 
   const safeHTML = sanitizeHtml(html);
 
-  let safeHTMLWithListFormatting = safeHTML
-    .replace(
-      /<ul>/g,
-      "<ul style='list-style-type: disc; list-style-position: inside; margin-left: 12px; margin-bottom: 4px'>"
-    )
-    .replace(
-      /<ol>/g,
-      "<ol style='list-style-type: decimal; list-style-position: inside; margin-left: 12px; margin-bottom: 4px'>"
-    )
-    .replace(/<a\s+href=/g, "<a target='_blank' class='text-blue-500 hover:text-blue-600' href=")
-    .replace(/<h1[^>]*>/g, "<h1 style='font-size: 25px; font-weight: bold; margin-bottom: 8px'>")
-    .replace(/<h2[^>]*>/g, "<h2 style='font-size: 20px; font-weight: bold; margin-bottom: 8px'>");
+  const nestedListInSiblingLiPattern =
+    /<li>([^<]+|<strong>.*?<\/strong>)<\/li>\s*<li>\s*<ul([^>]*)>([\s\S]*?)<\/ul>\s*<\/li>/g;
+
+  let safeHTMLWithListFormatting = safeHTML;
 
   // Match: <li>Some text </li><li><ul>...</ul></li>
   // Convert to: <li>Some text <ul>...</ul></li>
-  safeHTMLWithListFormatting = safeHTMLWithListFormatting.replace(
-    /<li>([^<]+|<strong>.*?<\/strong>)<\/li>\s*<li>\s*<ul([^>]*)>([\s\S]*?)<\/ul>\s*<\/li>/g,
-    "<li>$1<ul$2>$3</ul></li>"
-  );
+  while (nestedListInSiblingLiPattern.test(safeHTMLWithListFormatting)) {
+    safeHTMLWithListFormatting = safeHTMLWithListFormatting.replace(
+      nestedListInSiblingLiPattern,
+      "<li>$1<ul$2>$3</ul></li>"
+    );
+  }
+
+  safeHTMLWithListFormatting = safeHTMLWithListFormatting
+    .replace(
+      /<ul>/g,
+      "<ul style='list-style-type: disc; list-style-position: outside; margin-left: 12px; margin-bottom: 4px; padding-left: 4px'>"
+    )
+    .replace(
+      /<ol>/g,
+      "<ol style='list-style-type: decimal; list-style-position: outside; margin-left: 12px; margin-bottom: 4px; padding-left: 4px'>"
+    )
+    .replace(/<li>/g, "<li style='display: list-item'>")
+    .replace(/<a\s+href=/g, "<a target='_blank' class='text-blue-500 hover:text-blue-600' href=")
+    .replace(/<h1[^>]*>/g, "<h1 style='font-size: 25px; font-weight: bold; margin-bottom: 8px'>")
+    .replace(/<h2[^>]*>/g, "<h2 style='font-size: 20px; font-weight: bold; margin-bottom: 8px'>");
 
   return safeHTMLWithListFormatting;
 }
