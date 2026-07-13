@@ -13,6 +13,8 @@ import { useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
+import { shouldHideDuplicatePhoneField } from "./phoneFieldUtils";
+
 type TouchedFields = {
   responses?: Record<string, boolean>;
 };
@@ -151,11 +153,7 @@ export const BookingFields = ({
           readOnly = false;
         }
 
-        if (
-          field.type === "phone" &&
-          field.name !== SystemField.Enum.location &&
-          locationResponse?.value === "phone"
-        ) {
+        if (shouldHideDuplicatePhoneField(field, locationResponse?.value)) {
           // Phone booking questions duplicate the attendee-phone location field — sync from location and hide.
           const phone = (locationResponse?.optionValue ?? "").trim();
           if (phone) {
