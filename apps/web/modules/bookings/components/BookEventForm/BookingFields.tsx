@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { FormBuilderField } from "@calcom/web/modules/form-builder/components/FormBuilderField";
-import { useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -54,30 +54,33 @@ export const BookingFields = ({
   // Track last synced value to avoid redundant updates
   const lastSyncedPhoneRef = useRef<string | null>(null);
 
-  // Event-driven sync function
-  const syncPhoneFields = (locationValue: unknown) => {
-    const parsed = PhoneLocationSchema.safeParse(locationValue);
-    if (!parsed.success) return;
-    const { optionValue } = parsed.data;
-    const phone = (optionValue ?? "").trim();
+  const syncPhoneFromLocation = useCallback(
+    (locationValue: unknown) => {
+      const parsed = PhoneLocationSchema.safeParse(locationValue);
+      if (!parsed.success) return;
+      const phone = (parsed.data.optionValue ?? "").trim();
 
-    // Skip if empty or same as last sync (avoid redundant updates during typing)
-    if (!phone || phone === lastSyncedPhoneRef.current) return;
+      if (!phone || phone === lastSyncedPhoneRef.current) return;
 
-    // Copy phone to other phone fields (only if user hasn't manually touched them)
-    otherPhoneFieldNames.forEach((name) => {
-      const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
+      otherPhoneFieldNames.forEach((name) => {
+        const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
 
-      if (!targetTouched) {
-        setValue(`responses.${name}`, phone, {
-          shouldDirty: false,
-          shouldValidate: false,
-        });
-      }
-    });
+        if (!targetTouched) {
+          setValue(`responses.${name}`, phone, {
+            shouldDirty: false,
+            shouldValidate: false,
+          });
+        }
+      });
 
-    lastSyncedPhoneRef.current = phone;
-  };
+      lastSyncedPhoneRef.current = phone;
+    },
+    [otherPhoneFieldNames, formState.touchedFields, setValue]
+  );
+
+  useEffect(() => {
+    syncPhoneFromLocation(locationResponse);
+  }, [locationResponse, syncPhoneFromLocation]);
 
   const getPriceFormattedLabel = (label: string, price: number) =>
     `${label} (${Intl.NumberFormat(i18n.language, {
@@ -154,14 +157,6 @@ export const BookingFields = ({
         }
 
         if (shouldHideDuplicatePhoneField(field, locationResponse?.value)) {
-          // Phone booking questions duplicate the attendee-phone location field — sync from location and hide.
-          const phone = (locationResponse?.optionValue ?? "").trim();
-          if (phone) {
-            setValue(`responses.${field.name}`, phone, {
-              shouldDirty: false,
-              shouldValidate: false,
-            });
-          }
           return null;
         }
 
@@ -251,7 +246,7 @@ export const BookingFields = ({
             key={index}
             {...(field.name === SystemField.Enum.location && {
               onValueChange: ({ value }) => {
-                syncPhoneFields(value);
+                syncPhoneFromLocation(value);
               },
             })}
           />
