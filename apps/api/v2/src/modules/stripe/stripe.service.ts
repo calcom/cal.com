@@ -242,10 +242,16 @@ export class StripeService {
         limit: 1,
       });
 
-      customerId = customersResponse.data[0].id;
-    } catch (error) {
-      const customer = await stripe.customers.create({ email: user.email });
-      customerId = customer.id;
+      if (customersResponse.data[0] && customersResponse.data[0].id) {
+        customerId = customersResponse.data[0].id;
+      } else {
+        const customer = await stripe.customers.create({ email: user.email });
+        customerId = customer.id;
+      }
+    } catch {
+      throw new InternalServerErrorException({
+        message: "Failed to create Stripe customer.",
+      });
     }
 
     await this.usersRepository.updateByEmail(user.email, {
