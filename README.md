@@ -708,19 +708,20 @@ following
 ### Obtaining Zoom Client ID and Secret
 
 1. Open [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
-2. On the upper right, click "Develop" => "Build App".
-3. Select "General App" , click "Create".
-4. Name your App.
-5. Choose "User-managed app" for "Select how the app is managed".
-6. De-select the option to publish the app on the Zoom App Marketplace, if asked.
-7. Now copy the Client ID and Client Secret to your `.env` file into the `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` fields.
-8. Set the "OAuth Redirect URL" under "OAuth Information" as `<Cal.diy URL>/api/integrations/zoomvideo/callback` replacing Cal.diy URL with the URI at which your application runs.
-9. Also add the redirect URL given above as an allow list URL and enable "Subdomain check". Make sure, it says "saved" below the form.
-10. You don't need to provide basic information about your app. Instead click on "Scopes" and then on "+ Add Scopes". On the left,
-    1. click the category "Meeting" and check the scope `meeting:write:meeting`.
-    2. click the category "User" and check the scope `user:read:settings`.
-11. Click "Done".
-12. You're good to go. Now you can easily add your Zoom integration in the Cal.diy settings.
+2. On the upper right, click **Develop** → **Build App**.
+3. Select **General App** and click **Create**.
+4. Name your app.
+5. Under **Select how the app is managed**, choose **User-managed app**.
+6. Click **Create** to proceed.
+7. Use the **Development** tab credentials for self-hosted Cal.diy. Copy **Client ID** and **Client Secret** into `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` in your `.env` file. You do not need to publish the app to the Zoom App Marketplace or activate Production for self-hosted use.
+8. Set the **OAuth Redirect URL** under **OAuth Information** to `<Cal.diy URL>/api/integrations/zoomvideo/callback`, replacing `<Cal.diy URL>` with your application URL.
+9. Add the same URL to the **OAuth Allow List** and enable **Subdomain check**. Confirm it shows **saved** below the form.
+10. Go to **Scopes** → **+ Add Scopes**:
+    1. **Meeting** → `meeting:write:meeting`
+    2. **User** → `user:read:settings`
+11. Click **Done**.
+12. If Zoom prompts **Add App Now**, you can skip it for Cal.diy — OAuth from Cal.diy settings is sufficient.
+13. Restart Cal.diy after updating `.env`, then connect Zoom from **Settings → Conferencing apps**.
 
 ### Obtaining Daily API Credentials
 
