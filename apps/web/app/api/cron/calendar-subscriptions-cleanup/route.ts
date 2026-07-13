@@ -16,7 +16,10 @@ import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderF
 async function getHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
-  if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
+  if (
+    !process.env.CRON_SECRET ||
+    ![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)
+  ) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
