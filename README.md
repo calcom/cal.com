@@ -715,7 +715,7 @@ following
 6. Click **Create** to proceed.
 7. Use the **Development** tab credentials for self-hosted Cal.diy. Copy **Client ID** and **Client Secret** into your `.env` file:
 
-   ```
+   ```dotenv
    ZOOM_CLIENT_ID=your_zoom_client_id
    ZOOM_CLIENT_SECRET=your_zoom_client_secret
    ```
