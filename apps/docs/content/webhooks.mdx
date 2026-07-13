@@ -1,0 +1,92 @@
+# Webhooks
+
+Cal.diy sends webhook payloads when subscribed events occur. Webhook payloads use the `2021-10-20` format unless a subscriber specifies a different version.
+
+## Payload structure by trigger
+
+### Booking events
+
+`BOOKING_CREATED`, `BOOKING_RESCHEDULED`, `BOOKING_CANCELLED`, `BOOKING_REQUESTED`, `BOOKING_REJECTED`, and `BOOKING_NO_SHOW_UPDATED` share the booking payload shape. The `payload` object includes booking details such as:
+
+- `uid`, `title`, `startTime`, `endTime` (ISO 8601 strings)
+- `organizer`, `attendees`, `responses`, `location`
+- `eventTypeId`, `status`, `metadata`
+
+### Payment events
+
+`BOOKING_PAYMENT_INITIATED` and `BOOKING_PAID` use payment-specific payloads with booking and payment metadata.
+
+### Meeting events
+
+`MEETING_STARTED` and `MEETING_ENDED` are **scheduled triggers**, not real-time call events.
+
+| Trigger | When it fires |
+|---------|----------------|
+| `MEETING_STARTED` | At the booking `startTime` |
+| `MEETING_ENDED` | At the booking `endTime` |
+
+These triggers do **not** fire when a host presses an in-call "end meeting" button. They are queued when the webhook is created or updated, based on upcoming bookings.
+
+The `payload` for meeting events contains the full booking object (same fields as stored on the booking record).
+
+### Recording events
+
+`RECORDING_READY` uses a minimal payload:
+
+```json
+{
+  "triggerEvent": "RECORDING_READY",
+  "createdAt": "2024-01-01T12:00:00.000Z",
+  "payload": {
+    "downloadLink": "https://example.com/recording.mp4"
+  }
+}
+```
+
+`RECORDING_TRANSCRIPTION_GENERATED` returns:
+
+```json
+{
+  "payload": {
+    "downloadLinks": {
+      "transcription": "https://example.com/transcript.vtt"
+    }
+  }
+}
+```
+
+### Form events
+
+`FORM_SUBMITTED` fires when a routing form is submitted.
+
+### Out-of-office events
+
+`OOO_CREATED` fires when an out-of-office entry is created.
+
+## Testing webhooks locally
+
+1. Start Cal.diy locally (`yarn dev` or `yarn dx`).
+2. Use a tunneling tool (e.g. [ngrok](https://ngrok.com/)) to expose your machine:
+
+   ```bash
+   ngrok http 3000
+   ```
+
+3. In **Settings → Developer → Webhooks**, create a subscriber URL pointing to your tunnel (e.g. `https://abc123.ngrok.io/api/webhook`).
+4. Subscribe to the events you want to test.
+5. Trigger the event (create a booking, wait for meeting start/end time, etc.).
+6. Inspect the POST body at your endpoint. The top-level shape is:
+
+   ```json
+   {
+     "triggerEvent": "BOOKING_CREATED",
+     "createdAt": "2024-01-01T12:00:00.000Z",
+     "payload": { }
+   }
+   ```
+
+For `MEETING_STARTED` / `MEETING_ENDED`, create a short test booking (1–2 minutes) and wait until the scheduled time, or temporarily adjust the booking times in the database for faster verification.
+
+## Source of truth
+
+Payload builders live in `packages/features/webhooks/lib/factory/`. When in doubt, refer to the versioned builders under `versioned/v2021-10-20/` for the exact fields each trigger returns.

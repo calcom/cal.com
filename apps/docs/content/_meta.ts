@@ -9,6 +9,7 @@ export default {
   upgrading: "Upgrading",
   docker: "Docker",
   apps: "Apps",
+  webhooks: "Webhooks",
   "-- deployments": {
     type: "separator",
     title: "Deployments",
