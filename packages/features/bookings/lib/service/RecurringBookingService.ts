@@ -8,6 +8,17 @@ export type BookingHandlerInput = {
   bookingData: CreateRecurringBookingData;
 } & CreateBookingMeta;
 
+function getThirdPartyRecurringEventId(
+  references: { thirdPartyRecurringEventId?: string | null }[] | null | undefined
+): string | null {
+  for (const reference of references ?? []) {
+    if (reference.thirdPartyRecurringEventId) {
+      return reference.thirdPartyRecurringEventId;
+    }
+  }
+  return null;
+}
+
 export const handleNewRecurringBooking = async function (
   this: RecurringBookingService,
   {
@@ -30,7 +41,7 @@ export const handleNewRecurringBooking = async function (
 
   const numSlotsToCheckForAvailability = 1;
 
-  let thirdPartyRecurringEventId = null;
+  let thirdPartyRecurringEventId: string | null = null;
 
   // for round robin, the first slot needs to be handled first to define the lucky user
   const firstBooking = data[0];
@@ -72,13 +83,8 @@ export const handleNewRecurringBooking = async function (
 
     // The first round-robin slot creates the third-party recurring series; carry its id forward so the
     // remaining slots join the same series instead of each creating a new one (mirrors the loop below).
-    if (!thirdPartyRecurringEventId && firstBookingResult.references && firstBookingResult.references.length > 0) {
-      for (const reference of firstBookingResult.references) {
-        if (reference.thirdPartyRecurringEventId) {
-          thirdPartyRecurringEventId = reference.thirdPartyRecurringEventId;
-          break;
-        }
-      }
+    if (!thirdPartyRecurringEventId) {
+      thirdPartyRecurringEventId = getThirdPartyRecurringEventId(firstBookingResult.references);
     }
   }
 
@@ -128,14 +134,7 @@ export const handleNewRecurringBooking = async function (
     createdBookings.push(eachRecurringBooking);
 
     if (!thirdPartyRecurringEventId) {
-      if (eachRecurringBooking.references && eachRecurringBooking.references.length > 0) {
-        for (const reference of eachRecurringBooking.references) {
-          if (reference.thirdPartyRecurringEventId) {
-            thirdPartyRecurringEventId = reference.thirdPartyRecurringEventId;
-            break;
-          }
-        }
-      }
+      thirdPartyRecurringEventId = getThirdPartyRecurringEventId(eachRecurringBooking.references);
     }
   }
 
