@@ -713,7 +713,14 @@ following
 4. Name your app.
 5. Under **Select how the app is managed**, choose **User-managed app**.
 6. Click **Create** to proceed.
-7. Use the **Development** tab credentials for self-hosted Cal.diy. Copy **Client ID** and **Client Secret** into `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` in your `.env` file. You do not need to publish the app to the Zoom App Marketplace or activate Production for self-hosted use.
+7. Use the **Development** tab credentials for self-hosted Cal.diy. Copy **Client ID** and **Client Secret** into your `.env` file:
+
+   ```
+   ZOOM_CLIENT_ID=your_zoom_client_id
+   ZOOM_CLIENT_SECRET=your_zoom_client_secret
+   ```
+
+   **Development credentials** work for Zoom users on the app owner's account (typical for a single self-hosted instance you operate). To let other Zoom accounts connect, activate the **Production** version and complete Zoom's app publishing review.
 8. Set the **OAuth Redirect URL** under **OAuth Information** to `<Cal.diy URL>/api/integrations/zoomvideo/callback`, replacing `<Cal.diy URL>` with your application URL.
 9. Add the same URL to the **OAuth Allow List** and enable **Subdomain check**. Confirm it shows **saved** below the form.
 10. Go to **Scopes** → **+ Add Scopes**:

@@ -17,11 +17,11 @@
 7. **Use Development Credentials** — Zoom shows **Development** and **Production** tabs. For self-hosted Cal.diy, use the **Development** tab and copy the **Client ID** and **Client Secret** into your `.env` file:
 
 ```
-ZOOM_CLIENT_ID
-ZOOM_CLIENT_SECRET
+ZOOM_CLIENT_ID=your_zoom_client_id
+ZOOM_CLIENT_SECRET=your_zoom_client_secret
 ```
 
-   You do not need to publish the app to the Zoom App Marketplace or activate a Production version for self-hosted use.
+   **Development credentials** work for Zoom users on the app owner's account (typical for a single self-hosted instance you operate). To let other Zoom accounts connect, activate the **Production** version and complete Zoom's app publishing review.
 
 8. **Set the Redirect URL for OAuth** — Under **OAuth Information**, set the redirect URL to:
 
