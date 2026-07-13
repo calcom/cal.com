@@ -236,14 +236,14 @@ export class StripeService {
     let customerId: string;
 
     const stripe = this.getStripe();
-    try {
-      const customersResponse = await stripe.customers.list({
-        email: user.email,
-        limit: 1,
-      });
+    const customersResponse = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
 
+    if (customersResponse.data.length > 0) {
       customerId = customersResponse.data[0].id;
-    } catch (error) {
+    } else {
       const customer = await stripe.customers.create({ email: user.email });
       customerId = customer.id;
     }
