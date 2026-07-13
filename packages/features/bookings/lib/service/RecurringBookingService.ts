@@ -69,6 +69,17 @@ export const handleNewRecurringBooking = async function (
       },
     });
     luckyUsers = firstBookingResult.luckyUsers;
+
+    // The first round-robin slot creates the third-party recurring series; carry its id forward so the
+    // remaining slots join the same series instead of each creating a new one (mirrors the loop below).
+    if (!thirdPartyRecurringEventId && firstBookingResult.references && firstBookingResult.references.length > 0) {
+      for (const reference of firstBookingResult.references) {
+        if (reference.thirdPartyRecurringEventId) {
+          thirdPartyRecurringEventId = reference.thirdPartyRecurringEventId;
+          break;
+        }
+      }
+    }
   }
 
   for (let key = isRoundRobin ? 1 : 0; key < data.length; key++) {

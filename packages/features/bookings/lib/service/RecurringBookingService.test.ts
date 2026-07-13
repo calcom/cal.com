@@ -19,13 +19,17 @@ import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenari
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { v4 as uuidv4 } from "uuid";
-import { describe, expect } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import type { CreateRecurringBookingData } from "@calcom/features/bookings/lib/dto/types";
 import { getRecurringBookingService } from "@calcom/features/bookings/di/RecurringBookingService.container";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
+
+import type { RegularBookingService } from "./RegularBookingService";
+import { RecurringBookingService } from "./RecurringBookingService";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
@@ -266,4 +270,45 @@ describe("handleNewRecurringBooking", () => {
     const freq = type === "yearly" ? 0 : type === "monthly" ? 1 : 2;
     return { freq, count: numberOfOccurrences, interval: 1 };
   }
+});
+
+describe("RecurringBookingService — round-robin third-party recurring series id", () => {
+  it("threads the third-party recurring event id from the first ROUND_ROBIN slot into later slots", async () => {
+    // The first (round-robin) slot creates the third-party recurring series and returns its id on the
+    // booking's references. Every later slot must receive that id so it joins the same series instead
+    // of creating a separate one.
+    const createBooking = vi
+      .fn()
+      .mockResolvedValueOnce({
+        luckyUsers: [101],
+        references: [{ thirdPartyRecurringEventId: "GCAL_SERIES_1" }],
+      })
+      .mockResolvedValue({
+        references: [{ thirdPartyRecurringEventId: "GCAL_SERIES_1" }],
+      });
+
+    const service = new RecurringBookingService({
+      regularBookingService: { createBooking } as unknown as RegularBookingService,
+    });
+
+    const slot = (start: string) => ({
+      start,
+      end: undefined,
+      eventTypeId: 1,
+      schedulingType: SchedulingType.ROUND_ROBIN,
+    });
+
+    await service.createBooking({
+      bookingData: [
+        slot("2026-01-15T10:00:00.000Z"),
+        slot("2026-01-22T10:00:00.000Z"),
+      ] as unknown as CreateRecurringBookingData,
+      creationSource: "WEBAPP",
+    });
+
+    expect(createBooking).toHaveBeenCalledTimes(2);
+    // The second slot must reuse the first slot's third-party recurring series id, not create a new one.
+    const secondSlotData = createBooking.mock.calls[1][0].bookingData;
+    expect(secondSlotData.thirdPartyRecurringEventId).toBe("GCAL_SERIES_1");
+  });
 });
