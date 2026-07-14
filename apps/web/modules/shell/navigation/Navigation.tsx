@@ -23,6 +23,12 @@ const getNavigationItems = (): NavigationItemType[] => [
     icon: "calendar",
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
+    child: [
+      {
+        name: "clients",
+        href: "/bookings/clients",
+      },
+    ],
   },
   {
     name: "availability",

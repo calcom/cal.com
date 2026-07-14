@@ -17,6 +17,7 @@ import { eventTypesRouter } from "./eventTypes/_router";
 import { eventTypesRouter as heavyEventTypesRouter } from "./eventTypes/heavy/_router";
 import { feedbackRouter } from "./feedback/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
+import { clientsRouter } from "./clients/_router";
 import { holidaysRouter } from "./holidays/_router";
 import { i18nRouter } from "./i18n/_router";
 import { meRouter } from "./me/_router";
@@ -37,6 +38,7 @@ export const viewerRouter = router({
   bookings: bookingsRouter,
   calendars: calendarsRouter,
   calVideo: calVideoRouter,
+  clients: clientsRouter,
   credentials: credentialsRouter,
   eventTypes: eventTypesRouter,
   eventTypesHeavy: heavyEventTypesRouter,
