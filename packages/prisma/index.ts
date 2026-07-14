@@ -7,7 +7,14 @@ import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
-const connectionString = process.env.DATABASE_URL || "";
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error(
+    "DATABASE_URL environment variable is missing. Please set it in your .env file. Example: DATABASE_URL=\"postgresql://user:password@localhost:5432/calendso\""
+  );
+}
+
 const pool =
   process.env.USE_POOL === "true" || process.env.USE_POOL === "1"
     ? new Pool({
