@@ -242,7 +242,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     }
 
     const isKeyExpired =
-      keyData.expiresAt && new Date() > new Date(keyData.expiresAt);
+      keyData.expiresAt && new Date() >= new Date(keyData.expiresAt);
     if (isKeyExpired) {
       throw new UnauthorizedException("ApiAuthStrategy - api key - Your api key is expired");
     }
