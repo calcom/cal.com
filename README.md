@@ -214,6 +214,7 @@ for Logger level to be set at info, for example.
    </details>
 
    If you don't want to create a local DB. Then you can also consider using services like railway.app, Northflank or render.
+   
 
    - [Setup postgres DB with railway.app](https://docs.railway.app/guides/postgresql)
    - [Setup postgres DB with Northflank](https://northflank.com/guides/deploy-postgres-database-on-northflank)
@@ -235,6 +236,15 @@ for Logger level to be set at info, for example.
    yarn workspace @calcom/prisma db-deploy
    ```
 
+  **Note for Windows/PowerShell users:** If running the database deployment scripts fails with an error stating `Environment variable not found: DATABASE_DIRECT_URL`, Turbo might be failing to inject the root `.env` variables. You can bypass this by executing the commands directly from the prisma package directory in PowerShell:
+
+```powershell
+cd packages/prisma
+$env:DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/postgres"; $env:DATABASE_DIRECT_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/postgres"
+npx prisma db push
+cd ../..
+```
+   
 4. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
 
    > **_NOTE:_** Required when `E2E_TEST_MAILHOG_ENABLED` is "1"

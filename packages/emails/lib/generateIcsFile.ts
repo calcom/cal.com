@@ -36,6 +36,6 @@ export default function generateIcsFile({
       status,
       t,
     }),
-    method: "REQUEST",
+    method: status === "CANCELLED" ? "CANCEL" : "REQUEST",
   };
 }
