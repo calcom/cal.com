@@ -1,5 +1,5 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
-import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
+import { getLocationByType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
@@ -243,7 +243,7 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   }
 
   const location = defaultConferencingAppLocationType;
-  const locationType = getEventLocationType(location);
+  const locationType = getLocationByType(location);
   if (!locationType) {
     throw new SystemError(`Location type not found: ${location}`);
   }
