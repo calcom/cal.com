@@ -637,10 +637,12 @@ export const InfiniteEventTypeList = ({
                                     color="secondary"
                                     variant="icon"
                                     StartIcon="link"
-                                    onClick={() => {
-                                      showToast(t("link_copied"), "success");
-                                      copyToClipboard(calLink);
-                                    }}
+                                    onClick={() =>
+                                      copyToClipboard(calLink, {
+                                        onSuccess: () => showToast(t("link_copied"), "success"),
+                                        onFailure: () => showToast(t("copy_failed"), "error"),
+                                      })
+                                    }
                                   />
                                 </Tooltip>
 
@@ -650,18 +652,22 @@ export const InfiniteEventTypeList = ({
                                       color="secondary"
                                       variant="icon"
                                       StartIcon="venetian-mask"
-                                      onClick={() => {
-                                        showToast(t("private_link_copied"), "success");
-                                        copyToClipboard(placeholderHashedLink);
-                                        setPrivateLinkCopyIndices((prev) => {
-                                          const prevIndex = prev[type.slug] ?? 0;
-                                          const nextIndex = (prevIndex + 1) % activeHashedLinks.length;
-                                          return {
-                                            ...prev,
-                                            [type.slug]: nextIndex,
-                                          };
-                                        });
-                                      }}
+                                      onClick={() =>
+                                        copyToClipboard(placeholderHashedLink, {
+                                          onSuccess: () => {
+                                            showToast(t("private_link_copied"), "success");
+                                            setPrivateLinkCopyIndices((prev) => {
+                                              const prevIndex = prev[type.slug] ?? 0;
+                                              const nextIndex = (prevIndex + 1) % activeHashedLinks.length;
+                                              return {
+                                                ...prev,
+                                                [type.slug]: nextIndex,
+                                              };
+                                            });
+                                          },
+                                          onFailure: () => showToast(t("copy_failed"), "error"),
+                                        })
+                                      }
                                     />
                                   </Tooltip>
                                 )}
