@@ -189,19 +189,73 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
   }
 
-  const payment = await prisma.payment.findFirst({
-    where: {
-      bookingId: bookingInfo.id,
-    },
-    select: {
-      appId: true,
-      success: true,
-      refunded: true,
-      currency: true,
-      amount: true,
-      paymentOption: true,
-    },
-  });
+  type PaymentResult = {
+    appId: string | null;
+    success: boolean;
+    refunded: boolean;
+    currency: string;
+    amount: number;
+    paymentOption: "ON_BOOKING" | "HOLD" | null;
+  } | null;
+
+  let payment: PaymentResult = null;
+  if (seatReferenceUid && eventType.seatsPerTimeSlot) {
+    const seat = await prisma.bookingSeat.findUnique({
+      where: { referenceUid: seatReferenceUid },
+      select: { attendee: { select: { email: true } } },
+    });
+
+    if (seat) {
+      const allPayments = await prisma.payment.findMany({
+        where: { bookingId: bookingInfo.id },
+        select: {
+          appId: true,
+          success: true,
+          refunded: true,
+          currency: true,
+          amount: true,
+          paymentOption: true,
+          data: true,
+        },
+      });
+
+      const matchedPayment = allPayments.find((p) => {
+        const data = p.data as Record<string, unknown>;
+        const metadata =
+          data?.metadata && typeof data.metadata === "object"
+            ? (data.metadata as Record<string, unknown>)
+            : undefined;
+        const emailCandidates = [
+          data?.bookerEmail,
+          metadata?.bookerEmail,
+          data?.buyerEmail,
+          data?.customerEmail,
+        ].filter(Boolean) as string[];
+        return emailCandidates.some((e) => e.toLowerCase() === seat.attendee.email.toLowerCase());
+      });
+
+      if (matchedPayment) {
+        const { data: _data, ...paymentWithoutData } = matchedPayment;
+        payment = paymentWithoutData;
+      }
+    }
+  }
+
+  if (!payment) {
+    payment = await prisma.payment.findFirst({
+      where: {
+        bookingId: bookingInfo.id,
+      },
+      select: {
+        appId: true,
+        success: true,
+        refunded: true,
+        currency: true,
+        amount: true,
+        paymentOption: true,
+      },
+    });
+  }
 
   if (!canViewHiddenData) {
     for (const key in bookingInfo.responses) {
