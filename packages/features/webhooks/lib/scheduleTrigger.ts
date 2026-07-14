@@ -622,15 +622,11 @@ export async function cancelNoShowTasksForBooking({
 
     if (bookings.length === 0) return;
 
-    const promises = bookings.map(async (booking) => {
-      return await prisma.task.deleteMany({
-        where: {
-          referenceUid: booking.uid,
-        },
-      });
+    await prisma.task.deleteMany({
+      where: {
+        referenceUid: { in: bookings.map((booking) => booking.uid) },
+      },
     });
-
-    await Promise.all(promises);
   }
 }
 
