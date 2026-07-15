@@ -3,7 +3,7 @@ export const downloadAsCsv = (data: string | Record<string, any>[], filename: st
   const csvString = typeof data === "string" ? data : objectsToCsv(data);
 
   // Create a Blob from the text data
-  const blob = new Blob([csvString], { type: "text/plain" });
+  const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" });
 
   // Create an Object URL for the Blob
   const url = window.URL.createObjectURL(blob);
@@ -50,11 +50,11 @@ export const sanitizeValue = (value: string) => {
   // handling three cases:
   // 1. quotes - we need to double quotes for CSV
   // 2. commas
-  // 3. newlines
+  // 3. line breaks (LF, CR, CRLF — per RFC 4180, CR and CRLF are valid record separators)
   if (value.includes('"')) {
     return `"${value.replace(/"/g, '""')}"`;
   }
-  if (value.includes(",") || value.includes("\n")) {
+  if (value.includes(",") || value.includes("\n") || value.includes("\r")) {
     return `"${value}"`;
   }
   return value;
