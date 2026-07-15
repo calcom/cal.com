@@ -769,10 +769,12 @@ export const InfiniteEventTypeList = ({
                               <DropdownMenuItem className="outline-none">
                                 <DropdownItem
                                   data-testid={`event-type-duplicate-${type.id}`}
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(calLink);
-                                    showToast(t("link_copied"), "success");
-                                  }}
+                                  onClick={() =>
+                                    copyToClipboard(calLink, {
+                                      onSuccess: () => showToast(t("link_copied"), "success"),
+                                      onFailure: () => showToast(t("copy_failed"), "error"),
+                                    })
+                                  }
                                   StartIcon="clipboard"
                                   className="w-full rounded-none text-left">
                                   {t("copy_link")}
