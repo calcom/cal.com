@@ -24,7 +24,7 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="bg-cal-muted/50 border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b px-4 py-1.5 backdrop-blur-lg sm:p-4 md:hidden">
+        className="border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-cal-muted px-4 py-1.5 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <Logo />
         </Link>
