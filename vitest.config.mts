@@ -74,6 +74,7 @@ export default defineConfig({
       { find: "~", replacement: path.resolve(__dirname, "apps/api/v1") },
       // apps/web path aliases
       { find: "@lib", replacement: path.resolve(__dirname, "apps/web/lib") },
+      { find: "@components", replacement: path.resolve(__dirname, "apps/web/components") },
       { find: "app", replacement: path.resolve(__dirname, "apps/web/app") },
       { find: "@calcom/web", replacement: path.resolve(__dirname, "apps/web") },
       // Platform packages that need to be resolved from source in CI

@@ -181,7 +181,15 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
                 id="password"
                 required
                 value={password}
-                onInput={(e) => setPassword(e.currentTarget.value)}
+                onInput={(e) => {
+                  // A non-empty customValidity keeps the field invalid until it is
+                  // cleared, so drop the message set by onInvalid on every edit.
+                  e.currentTarget.setCustomValidity("");
+                  setPassword(e.currentTarget.value);
+                }}
+                // The browser renders constraint-validation messages in its own
+                // locale, which ignores the user's language setting.
+                onInvalid={(e) => e.currentTarget.setCustomValidity(t("field_required"))}
               />
               {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
             </div>
