@@ -767,18 +767,18 @@ export const InfiniteEventTypeList = ({
                                 </DropdownItem>
                               </DropdownMenuItem>
                               <DropdownMenuItem className="outline-none">
-                                <DropdownItem
-                                  data-testid={`event-type-duplicate-${type.id}`}
-                                  onClick={() =>
-                                    copyToClipboard(calLink, {
-                                      onSuccess: () => showToast(t("link_copied"), "success"),
-                                      onFailure: () => showToast(t("copy_failed"), "error"),
-                                    })
-                                  }
-                                  StartIcon="clipboard"
-                                  className="w-full rounded-none text-left">
-                                  {t("copy_link")}
-                                </DropdownItem>
+                              <DropdownItem
+  data-testid={`event-type-copy-link-${type.id}`}
+  onClick={() =>
+    copyToClipboard(calLink, {
+      onSuccess: () => showToast(t("link_copied"), "success"),
+      onFailure: () => showToast(t("copy_failed"), "error"),
+    })
+  }
+  StartIcon="clipboard"
+  className="w-full rounded-none text-left">
+  {t("copy_link")}
+</DropdownItem>
                               </DropdownMenuItem>
                             </>
                           )}
