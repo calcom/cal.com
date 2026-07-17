@@ -22,6 +22,7 @@ import kebabCase from "lodash/kebabCase";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useColumnResizing } from "~/data-table/hooks/useColumnResizing";
 import { useColumnSizingVars } from "~/data-table/hooks/useColumnSizingVars";
+import { SeparatorRowRenderer } from "./SeparatorRowRenderer";
 
 export type DataTablePropsFromWrapper<TData> = {
   table: ReactTableType<TData>;
@@ -280,19 +281,6 @@ type RowToRender<TData> = {
   row: Row<TData>;
   virtualItem?: VirtualItem;
 };
-
-function SeparatorRowRenderer({ separator, className }: { separator: SeparatorRow; className?: string }) {
-  return (
-    <div
-      className={classNames(
-        "bg-cal-muted text-emphasis w-full px-3 py-2 font-semibold",
-        separator.className,
-        className
-      )}>
-      {separator.label}
-    </div>
-  );
-}
 
 function DataTableBody<TData>({
   table,
