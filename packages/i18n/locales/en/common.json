@@ -3011,6 +3011,7 @@
   "access_event_type": "Read, edit, delete your event-types",
   "access_availability": "Read, edit, delete your availability",
   "access_bookings": "Read, edit, delete your bookings",
+  "oauth_scope_org_attributes_read_write": "Read and write organization attributes",
   "allow_client_to_do": "Allow {{clientName}} to do this?",
   "oauth_access_information": "By clicking allow, you allow this app to use your information in accordance with their terms of service and privacy policy.",
   "allow": "Allow",
