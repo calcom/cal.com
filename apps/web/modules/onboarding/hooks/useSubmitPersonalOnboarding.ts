@@ -61,9 +61,16 @@ export const useSubmitPersonalOnboarding = () => {
       const redirectUrl = localStorage.getItem(ONBOARDING_REDIRECT_KEY);
       if (redirectUrl) {
         localStorage.removeItem(ONBOARDING_REDIRECT_KEY);
-        router.push(redirectUrl);
-        return;
+        const safeRedirect =
+          redirectUrl.startsWith("/") && !redirectUrl.startsWith("//")
+            ? redirectUrl
+            : null;
+        if (safeRedirect) {
+          router.push(safeRedirect);
+          return;
+        }
       }
+      // fall through to existing event-types redirects
 
       // Check if org modal flag is set - if so, don't show personal modal
       // Organization onboarding takes precedence

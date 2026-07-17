@@ -906,6 +906,7 @@
   "user_from_team": "{{user}} from {{team}}",
   "preview": "Preview",
   "link_copied": "Link copied!",
+  "copy_failed": "Could not copy to clipboard",
   "copied": "Copied!",
   "private_link_copied": "Private link copied!",
   "link_shared": "Link shared!",
