@@ -1,6 +1,6 @@
 import type { SeparatorRow } from "@calcom/features/data-table/lib/separator";
 import classNames from "@calcom/ui/classNames";
-import { TableCell } from "@calcom/ui/components/table";
+import { TableCell } from "@calcom/ui/components/table/TableNew";
 
 export function SeparatorRowRenderer({
   separator,
