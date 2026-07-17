@@ -1,11 +1,28 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import { isSafeUrlToLoadResourceFrom } from "./getSafeRedirectUrl";
+import { getSafeAppRedirectUrl, isSafeUrlToLoadResourceFrom } from "./getSafeRedirectUrl";
 
 vi.mock("./constants", () => ({
   WEBAPP_URL: "https://app.cal.com",
+  WEBSITE_URL: "https://cal.com",
+  CONSOLE_URL: "https://console.cal.com",
   EMBED_LIB_URL: "https://embed.com",
 }));
+
+describe("getSafeAppRedirectUrl", () => {
+  it("rejects missing and protocol-relative URLs", () => {
+    expect(getSafeAppRedirectUrl(null)).toBeNull();
+    expect(getSafeAppRedirectUrl("")).toBeNull();
+    expect(getSafeAppRedirectUrl("//evil.com")).toBeNull();
+    expect(getSafeAppRedirectUrl("/\\evil.com")).toBeNull();
+    expect(getSafeAppRedirectUrl("https://evil.com")).toBe("https://app.cal.com/");
+  });
+
+  it("accepts root-relative paths and allowlisted absolute URLs", () => {
+    expect(getSafeAppRedirectUrl("/event-types")).toBe("/event-types");
+    expect(getSafeAppRedirectUrl("https://app.cal.com/bookings")).toBe("https://app.cal.com/bookings");
+  });
+});
 
 describe("isSafeUrlToLoadResourceFrom", () => {
   beforeEach(() => {

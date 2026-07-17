@@ -2,6 +2,7 @@
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { APP_NAME } from "@calcom/lib/constants";
+import { getSafeAppRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { extractHostTimezone, filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -767,18 +768,18 @@ export const InfiniteEventTypeList = ({
                                 </DropdownItem>
                               </DropdownMenuItem>
                               <DropdownMenuItem className="outline-none">
-                              <DropdownItem
-  data-testid={`event-type-copy-link-${type.id}`}
-  onClick={() =>
-    copyToClipboard(calLink, {
-      onSuccess: () => showToast(t("link_copied"), "success"),
-      onFailure: () => showToast(t("copy_failed"), "error"),
-    })
-  }
-  StartIcon="clipboard"
-  className="w-full rounded-none text-left">
-  {t("copy_link")}
-</DropdownItem>
+                                <DropdownItem
+                                  data-testid={`event-type-copy-link-${type.id}`}
+                                  onClick={() =>
+                                    copyToClipboard(calLink, {
+                                      onSuccess: () => showToast(t("link_copied"), "success"),
+                                      onFailure: () => showToast(t("copy_failed"), "error"),
+                                    })
+                                  }
+                                  StartIcon="clipboard"
+                                  className="w-full rounded-none text-left">
+                                  {t("copy_link")}
+                                </DropdownItem>
                               </DropdownMenuItem>
                             </>
                           )}
@@ -938,9 +939,7 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
         }}
         placeholder={t("search")}
       />
-      <Button
-        data-testid="new-event-type"
-        href={`?dialog=new&eventPage=${profileOptions[0]?.slug ?? ""}`}>
+      <Button data-testid="new-event-type" href={`?dialog=new&eventPage=${profileOptions[0]?.slug ?? ""}`}>
         {t("new")}
       </Button>
       <CreateEventTypeDialog profileOptions={profileOptions} />
@@ -1064,12 +1063,9 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
      */
     const redirectUrl = localStorage.getItem("onBoardingRedirect");
     localStorage.removeItem("onBoardingRedirect");
-    if (
-      redirectUrl &&
-      redirectUrl.startsWith("/") &&
-      !redirectUrl.startsWith("//")
-    ) {
-      router.push(redirectUrl);
+    const safeRedirect = getSafeAppRedirectUrl(redirectUrl);
+    if (safeRedirect) {
+      router.push(safeRedirect);
     }
   }, [router]);
 

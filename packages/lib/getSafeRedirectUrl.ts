@@ -1,4 +1,4 @@
-import { CONSOLE_URL, WEBAPP_URL, WEBSITE_URL, EMBED_LIB_URL } from "@calcom/lib/constants";
+import { CONSOLE_URL, EMBED_LIB_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getTldPlus1 } from "@calcom/lib/getTldPlus1";
 
 // It ensures that redirection URL safe where it is accepted through a query params or other means where user can change it.
@@ -20,6 +20,23 @@ export const getSafeRedirectUrl = (url = "") => {
   }
 
   return url;
+};
+
+/** Safe redirect for untrusted input (e.g. localStorage): root-relative paths or allowlisted absolute URLs. */
+export const getSafeAppRedirectUrl = (url: string | null | undefined): string | null => {
+  if (!url) {
+    return null;
+  }
+
+  if (url.startsWith("/") && !url.startsWith("//") && !url.startsWith("/\\")) {
+    return url;
+  }
+
+  try {
+    return getSafeRedirectUrl(url);
+  } catch {
+    return null;
+  }
 };
 
 // There is a copy of this fn at packages/embed/embed-core/src/preview.ts as that can't import this function. Keep it in sync

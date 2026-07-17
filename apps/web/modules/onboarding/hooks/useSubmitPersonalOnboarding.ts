@@ -1,10 +1,10 @@
-import { useRouter } from "next/navigation";
-
+import { getSafeAppRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sessionStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 import { setShowWelcomeToCalcomModalFlag } from "@calcom/web/modules/shell/hooks/useWelcomeToCalcomModal";
+import { useRouter } from "next/navigation";
 
 const ONBOARDING_REDIRECT_KEY = "onBoardingRedirect";
 const ORG_MODAL_STORAGE_KEY = "showNewOrgModal";
@@ -61,16 +61,12 @@ export const useSubmitPersonalOnboarding = () => {
       const redirectUrl = localStorage.getItem(ONBOARDING_REDIRECT_KEY);
       if (redirectUrl) {
         localStorage.removeItem(ONBOARDING_REDIRECT_KEY);
-        const safeRedirect =
-          redirectUrl.startsWith("/") && !redirectUrl.startsWith("//")
-            ? redirectUrl
-            : null;
+        const safeRedirect = getSafeAppRedirectUrl(redirectUrl);
         if (safeRedirect) {
           router.push(safeRedirect);
           return;
         }
       }
-      // fall through to existing event-types redirects
 
       // Check if org modal flag is set - if so, don't show personal modal
       // Organization onboarding takes precedence
