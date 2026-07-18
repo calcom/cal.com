@@ -50,6 +50,30 @@ describe("getAggregatedAvailability", () => {
     expect(isAvailable(result, timeRangeToCheckAvailable)).toBe(true);
   });
 
+  it("does not offer slots for a ROUND_ROBIN event when a mandatory fixed host is unavailable", () => {
+    const userAvailability = [
+      {
+        // mandatory fixed host is fully busy → no availability
+        dateRanges: [],
+        oooExcludedDateRanges: [],
+        user: { isFixed: true },
+      },
+      {
+        // round-robin host is available 11:00–12:00
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T12:00:00.000Z") },
+        ],
+        user: { isFixed: false },
+      },
+    ];
+
+    const result = getAggregatedAvailability(userAvailability, "ROUND_ROBIN");
+
+    // A slot must not be offered when the mandatory fixed host cannot attend.
+    expect(result).toEqual([]);
+  });
+
   it("it returns the right amount of date ranges even if the end time is before the start time", () => {
     const userAvailability = [
       {

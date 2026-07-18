@@ -42,7 +42,10 @@ export const getAggregatedAvailability = (
   const fixedDateRanges = mergeOverlappingDateRanges(
     intersect(fixedHosts.map((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges)))
   );
-  const dateRangesToIntersect = fixedDateRanges.length ? [fixedDateRanges] : [];
+  // When fixed (mandatory) hosts exist but have no common availability, force the aggregate empty
+  // instead of dropping the constraint — otherwise round-robin hosts alone would leak bookable slots
+  // that the booking layer then rejects (FixedHostsUnavailableForBooking).
+  const dateRangesToIntersect = fixedHosts.length ? [fixedDateRanges] : [];
   const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
   if (roundRobinHosts.length) {
     // Group round robin hosts by their groupId
