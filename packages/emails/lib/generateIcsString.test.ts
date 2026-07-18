@@ -46,6 +46,9 @@ const testIcsStringContains = ({
   }
   expect(icsString).toEqual(expect.stringContaining(`DTEND:${DTEND}`));
   expect(icsString).toEqual(expect.stringContaining(`STATUS:${status}`));
+  expect(icsString).toEqual(
+    expect.stringContaining(`METHOD:${status === "CANCELLED" ? "CANCEL" : "REQUEST"}`)
+  );
   //   Getting an error expected icsString to deeply equal stringMatching
   //   for (const attendee of event.attendees) {
   //     expect(icsString).toEqual(
