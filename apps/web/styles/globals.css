@@ -148,6 +148,18 @@ html.todesktop.dark {
     --tw-ring-color: var(--brand-color);
     border-color: var(--brand-color);
   }
+
+  /* Override browser autofill styles that bypass CSS variables.
+     Browsers inject -webkit-text-fill-color and a colored background on autofill,
+     which ignores our theme tokens and causes black text on dark backgrounds. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--cal-text) !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--cal-bg) inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
 }
 
 @layer components {
