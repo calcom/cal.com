@@ -18,7 +18,7 @@ import {
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { AtomEventTypeListItem } from "../types";
-import { formatEventTypeDuration } from "../lib/formatEventTypeDuration";
+import { formatEventTypeDuration, formatEventTypeDurationAriaLabel } from "../lib/formatEventTypeDuration";
 
 const EventTypeContent = ({ eventType }: { eventType: AtomEventTypeListItem }) => {
   return (
@@ -29,7 +29,9 @@ const EventTypeContent = ({ eventType }: { eventType: AtomEventTypeListItem }) =
       <div className="text-subtle mt-1">
         {eventType.description && <span className="block">{eventType.description}</span>}
         <Badge variant="gray" className="text-xs">
-          {formatEventTypeDuration(eventType.length)}
+          <span aria-label={formatEventTypeDurationAriaLabel(eventType.length)}>
+            {formatEventTypeDuration(eventType.length)}
+          </span>
         </Badge>
       </div>
     </div>

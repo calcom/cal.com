@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatEventTypeDuration } from "../lib/formatEventTypeDuration";
+import { formatEventTypeDuration, formatEventTypeDurationAriaLabel } from "../lib/formatEventTypeDuration";
 
 describe("formatEventTypeDuration", () => {
   it("should format single digit minutes", () => {
@@ -43,5 +43,36 @@ describe("formatEventTypeDuration", () => {
 
   it("should handle zero minutes", () => {
     expect(formatEventTypeDuration(0)).toBe("0m");
+  });
+});
+
+describe("formatEventTypeDurationAriaLabel", () => {
+  it("should return minutes label for sub-hour durations", () => {
+    expect(formatEventTypeDurationAriaLabel(30)).toBe("30 minutes");
+    expect(formatEventTypeDurationAriaLabel(15)).toBe("15 minutes");
+    expect(formatEventTypeDurationAriaLabel(45)).toBe("45 minutes");
+  });
+
+  it("should return singular minute label for 1 minute", () => {
+    expect(formatEventTypeDurationAriaLabel(1)).toBe("1 minute");
+  });
+
+  it("should return singular hour label for exactly 1 hour", () => {
+    expect(formatEventTypeDurationAriaLabel(60)).toBe("1 hour");
+  });
+
+  it("should return plural hours label for multiple hours", () => {
+    expect(formatEventTypeDurationAriaLabel(120)).toBe("2 hours");
+    expect(formatEventTypeDurationAriaLabel(180)).toBe("3 hours");
+  });
+
+  it("should combine hours and minutes", () => {
+    expect(formatEventTypeDurationAriaLabel(90)).toBe("1 hour 30 minutes");
+    expect(formatEventTypeDurationAriaLabel(75)).toBe("1 hour 15 minutes");
+    expect(formatEventTypeDurationAriaLabel(150)).toBe("2 hours 30 minutes");
+  });
+
+  it("should handle singular minute in combined label", () => {
+    expect(formatEventTypeDurationAriaLabel(61)).toBe("1 hour 1 minute");
   });
 });

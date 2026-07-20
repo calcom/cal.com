@@ -69,14 +69,16 @@ export const EventTypeDescription = ({
             metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
                 <Badge variant="gray" startIcon="clock">
-                  {dur}m
+                  <span aria-label={t(dur === 1 ? "minute_one" : "minute_other", { count: dur })}>{dur}m</span>
                 </Badge>
               </li>
             ))
           ) : (
             <li>
               <Badge variant="gray" startIcon="clock">
-                {eventType.length}m
+                <span aria-label={t(eventType.length === 1 ? "minute_one" : "minute_other", { count: eventType.length })}>
+                  {eventType.length}m
+                </span>
               </Badge>
             </li>
           )}

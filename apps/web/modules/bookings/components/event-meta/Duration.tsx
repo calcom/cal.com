@@ -37,6 +37,20 @@ export const getDurationFormatted = (mins: number | undefined, t: TFunction) => 
   return hourStr || minStr;
 };
 
+/** Returns a screen-reader-friendly label for a duration, e.g. "30 minutes" or "1 hour 30 minutes". */
+export const getDurationAriaLabel = (mins: number | undefined, t: TFunction): string => {
+  if (!mins) return "";
+
+  const hours = Math.floor(mins / 60);
+  const remainingMins = mins % 60;
+
+  const minLabel = remainingMins > 0 ? t(remainingMins === 1 ? "minute_one" : "minute_other", { count: remainingMins }) : "";
+  const hourLabel = hours > 0 ? t(hours === 1 ? "hour_one" : "hour_other", { count: hours }) : "";
+
+  if (hourLabel && minLabel) return `${hourLabel} ${minLabel}`;
+  return hourLabel || minLabel;
+};
+
 export const EventDuration = ({
   event,
 }: {
@@ -90,7 +104,9 @@ export const EventDuration = ({
   }, [selectedDuration, isEmbed]);
 
   if (!event?.metadata?.multipleDuration && !isDynamicEvent)
-    return <>{getDurationFormatted(event.length, t)}</>;
+    return (
+      <span aria-label={getDurationAriaLabel(event.length, t)}>{getDurationFormatted(event.length, t)}</span>
+    );
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
   const hideDurationSelector = event?.metadata?.hideDurationSelectorInBookingPage;
@@ -98,7 +114,10 @@ export const EventDuration = ({
   // When duration selector is hidden, show only the selected/default duration as text
   // URL params can still set the duration, but the user cannot change it via UI
   if (hideDurationSelector) {
-    return <>{getDurationFormatted(selectedDuration || event.length, t)}</>;
+    const dur = selectedDuration || event.length;
+    return (
+      <span aria-label={getDurationAriaLabel(dur, t)}>{getDurationFormatted(dur, t)}</span>
+    );
   }
 
   return selectedDuration ? (
@@ -128,7 +147,9 @@ export const EventDuration = ({
                 selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
                 "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition"
               )}>
-              <div className="w-max">{getDurationFormatted(duration, t)}</div>
+              <div className="w-max">
+                <span aria-label={getDurationAriaLabel(duration, t)}>{getDurationFormatted(duration, t)}</span>
+              </div>
             </li>
           ))}
       </ul>
