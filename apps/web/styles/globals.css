@@ -150,6 +150,27 @@ html.todesktop.dark {
   }
 }
 
+/*
+ * Browser autofill applies a UA `:-webkit-autofill` rule that sets
+ * `-webkit-text-fill-color` and a pale background (Chrome/Edge/Safari),
+ * ignoring our theme variables — autofilled text renders black even in
+ * dark mode. Only `-webkit-text-fill-color` can win against the UA text
+ * color, and the UA background can only be covered with an inset
+ * box-shadow (without it, theme-colored light text would sit on the UA's
+ * pale-blue background in dark mode and be unreadable).
+ */
+@layer base {
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: var(--cal-text);
+    caret-color: var(--cal-text);
+    box-shadow: inset 0 0 0 1000px var(--cal-bg);
+  }
+}
+
 @layer components {
   .scroll-bar {
     @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
