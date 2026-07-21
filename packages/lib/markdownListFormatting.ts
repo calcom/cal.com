@@ -139,17 +139,18 @@ function mergeSiblingLiPairs(listInner: string): string {
   let index = 0;
 
   while (index < items.length) {
-    const current = items[index];
-    const next = items[index + 1];
+    let current = items[index];
+    index += 1;
 
-    if (next && isOrphanUlOnlyLi(next) && !isOrphanUlOnlyLi(current)) {
-      const ulBlock = extractSingleUlFromLi(next);
-      merged.push(current.replace(/<\/li>\s*$/i, `${ulBlock}</li>`));
-      index += 2;
-    } else {
-      merged.push(current);
-      index += 1;
+    if (!isOrphanUlOnlyLi(current)) {
+      while (index < items.length && isOrphanUlOnlyLi(items[index])) {
+        const ulBlock = extractSingleUlFromLi(items[index]);
+        current = current.replace(/<\/li>\s*$/i, `${ulBlock}</li>`);
+        index += 1;
+      }
     }
+
+    merged.push(current);
   }
 
   return merged.join("");
@@ -185,14 +186,14 @@ export function applyListFormatting(safeHTML: string): string {
 
   html = html
     .replace(
-      /<ul>/g,
-      "<ul style='list-style-type: disc; list-style-position: outside; margin-left: 12px; margin-bottom: 4px; padding-left: 4px'>"
+      /<ul([^>]*)>/g,
+      "<ul$1 style='list-style-type: disc; list-style-position: outside; margin-left: 12px; margin-bottom: 4px; padding-left: 4px'>"
     )
     .replace(
-      /<ol>/g,
-      "<ol style='list-style-type: decimal; list-style-position: outside; margin-left: 12px; margin-bottom: 4px; padding-left: 4px'>"
+      /<ol([^>]*)>/g,
+      "<ol$1 style='list-style-type: decimal; list-style-position: outside; margin-left: 12px; margin-bottom: 4px; padding-left: 4px'>"
     )
-    .replace(/<li>/g, "<li style='display: list-item'>")
+    .replace(/<li([^>]*)>/g, "<li$1 style='display: list-item'>")
     .replace(/<a\s+href=/g, "<a target='_blank' class='text-blue-500 hover:text-blue-600' href=")
     .replace(/<h1[^>]*>/g, "<h1 style='font-size: 25px; font-weight: bold; margin-bottom: 8px'>")
     .replace(/<h2[^>]*>/g, "<h2 style='font-size: 20px; font-weight: bold; margin-bottom: 8px'>");
