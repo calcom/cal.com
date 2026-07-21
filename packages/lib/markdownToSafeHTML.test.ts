@@ -28,7 +28,6 @@ describe("markdownToSafeHTML", () => {
 
     expect(html).toContain("Detail A");
     expect(html).toContain("Detail B");
-    // Nested ul should not be a separate top-level list item sibling
     expect(html).not.toMatch(/<li[^>]*>\s*<ul[^>]*>[\s\S]*Detail A/);
   });
 
@@ -42,6 +41,17 @@ describe("markdownToSafeHTML", () => {
     expect(html).toContain("Sub A");
     expect(html).toContain("Sub B");
     expect(html).not.toMatch(/<li[^>]*>\s*<ul[^>]*>[\s\S]*Sub A/);
+  });
+
+  it("renders deeply nested sub-bullets under a numbered item", () => {
+    const markdown = `1. Parent
+   - Child
+     - Grandchild`;
+
+    const html = markdownToSafeHTML(markdown);
+
+    expect(html).toContain("Grandchild");
+    expect(html).not.toMatch(/<li[^>]*>\s*<ul[^>]*>[\s\S]*Grandchild/);
   });
 
   it("renders mixed numbered list, paragraph, and trailing bullets", () => {
