@@ -26,7 +26,10 @@ export const processPaymentRefund = async ({
   const { startTime, eventType, payment } = booking;
   if (!teamId && !eventType?.owner) return;
 
-  const successPayment = payment.find((p) => p.success);
+  // A paid seated booking creates one Payment per seat on the same bookingId, so refund every
+  // successful (not-yet-refunded) payment — not just the first — otherwise the other seats stay charged.
+  const successfulPayments = payment.filter((p) => p.success && !p.refunded);
+  const [successPayment] = successfulPayments;
   if (!successPayment) return;
 
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata);
@@ -80,5 +83,22 @@ export const processPaymentRefund = async ({
           dayjs(startTime).businessDaysSubtract(refundDaysCount);
     if (dayjs().isAfter(refundDeadline)) return;
   }
-  await handlePaymentRefund(successPayment.id, paymentAppCredential);
+  // Attempt every refund independently so one provider failure doesn't leave the remaining seats
+  // charged, then surface an aggregate error for the caller to log/report.
+  const refundErrors: unknown[] = [];
+  for (const paymentToRefund of successfulPayments) {
+    try {
+      await handlePaymentRefund(paymentToRefund.id, paymentAppCredential);
+    } catch (error) {
+      refundErrors.push(error);
+    }
+  }
+
+  if (refundErrors.length) {
+    throw new Error(
+      `Failed to refund ${refundErrors.length} of ${successfulPayments.length} payment(s): ${refundErrors
+        .map((error) => (error instanceof Error ? error.message : String(error)))
+        .join("; ")}`
+    );
+  }
 };
