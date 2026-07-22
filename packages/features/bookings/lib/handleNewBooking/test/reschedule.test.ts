@@ -289,6 +289,149 @@ describe("handleNewBooking", () => {
       );
 
       test(
+        `should preserve delegationCredentialId and thirdPartyRecurringEventId on the booking references of the rescheduled booking
+          1. Should carry both fields from the original booking's references onto the new booking
+          2. Guards against losing the delegation-credential/recurring-event linkage needed for future cancel/reschedule
+    `,
+        async () => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.diy`;
+          const delegationCredentialId = "delegation-credential-abc";
+          const thirdPartyRecurringEventId = "third-party-recurring-xyz";
+
+          await createBookingScenario(
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 15,
+                  length: 15,
+                  users: [
+                    {
+                      id: 101,
+                    },
+                  ],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                  references: [
+                    {
+                      type: appStoreMetadata.dailyvideo.type,
+                      uid: "MOCK_ID",
+                      meetingId: "MOCK_ID",
+                      meetingPassword: "MOCK_PASS",
+                      meetingUrl: "http://mock-dailyvideo.example.com",
+                      credentialId: null,
+                    },
+                    {
+                      type: appStoreMetadata.googlecalendar.type,
+                      uid: "MOCK_ID",
+                      meetingId: "MOCK_ID",
+                      meetingPassword: "MOCK_PASSWORD",
+                      meetingUrl: "https://UNUSED_URL",
+                      externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                      credentialId: null,
+                      delegationCredentialId,
+                      thirdPartyRecurringEventId,
+                    },
+                  ],
+                  iCalUID,
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+            },
+            update: {
+              uid: "UPDATED_MOCK_ID",
+              iCalUID,
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T04:00:00.000Z`,
+              end: `${plus1DateString}T04:15:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+              rescheduledBy: organizer.email,
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          await expectBookingInDBToBeRescheduledFromTo({
+            from: {
+              uid: uidOfBookingToBeRescheduled,
+            },
+            to: {
+              description: "",
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              uid: createdBooking.uid!,
+              eventTypeId: mockBookingData.eventTypeId,
+              status: BookingStatus.ACCEPTED,
+              location: BookingLocations.CalVideo,
+              responses: expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              }),
+              references: [
+                {
+                  type: appStoreMetadata.googlecalendar.type,
+                  uid: "MOCK_ID",
+                  externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                  delegationCredentialId,
+                  thirdPartyRecurringEventId,
+                },
+              ],
+            },
+          });
+        },
+        timeout
+      );
+
+      test(
         `should reschedule a booking successfully and update the event in the same externalCalendarId as was used in the booking earlier.
           1. Should cancel the existing booking
           2. Should create a new booking in the database
