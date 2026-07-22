@@ -750,6 +750,87 @@ describe("Booking Validation Specifications", () => {
       expect(verifyCodeUnAuthenticated).toHaveBeenCalledWith("user@example.com", "valid-code-123");
     });
 
+    test("should validate a plus-addressed booker code against the address used to generate it", async () => {
+      const handleNewBooking = getNewBookingHandler();
+      const { verifyCodeUnAuthenticated } = await import(
+        "@calcom/features/auth/lib/verifyCodeUnAuthenticated"
+      );
+
+      vi.mocked(verifyCodeUnAuthenticated).mockResolvedValue(true);
+
+      const booker = getBooker({
+        email: "user+verification@example.com",
+        name: "User",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        emailVerified: new Date(),
+      });
+
+      const userWithVerificationRequired = getOrganizer({
+        name: "User",
+        email: "user@example.com",
+        id: 201,
+        schedules: [TestData.schedules.IstWorkHours],
+        emailVerified: new Date(),
+        requiresBookerEmailVerification: true,
+      });
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          usersApartFromOrganizer: [userWithVerificationRequired],
+          apps: [TestData.apps["google-calendar"]],
+        })
+      );
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar", {});
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+          verificationCode: "valid-code-123",
+        },
+      });
+
+      const createdBooking = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      expect(createdBooking).toEqual(
+        expect.objectContaining({
+          id: expect.any(Number),
+          uid: expect.any(String),
+          status: BookingStatus.ACCEPTED,
+        })
+      );
+
+      expect(verifyCodeUnAuthenticated).toHaveBeenCalledWith(booker.email, "valid-code-123");
+    });
+
     test("should require verification when secondary email of user with verification setting is used as main booker", async () => {
       const handleNewBooking = getNewBookingHandler();
 

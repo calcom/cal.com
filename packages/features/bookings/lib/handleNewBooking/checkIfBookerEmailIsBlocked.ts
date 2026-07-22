@@ -70,7 +70,7 @@ export const checkIfBookerEmailIsBlocked = async ({
       let isValid = false;
 
       try {
-        isValid = await verifyCodeUnAuthenticated(baseEmail, verificationCode);
+        isValid = await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
       } catch {
         throw new ErrorWithCode(
           ErrorCode.UnableToValidateVerificationCode,
