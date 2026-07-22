@@ -596,6 +596,8 @@
   "please_allow_notifications": "Please allow notifications from the prompt",
   "push_notifications": "Push notifications",
   "push_notifications_description": "Receive push notifications when booker submits instant meeting booking.",
+  "test_notification_title": "Test Notification",
+  "test_notification_body": "Push notifications activated successfully",
   "browser_notifications_not_supported": "Your browser does not support Push Notifications. If you are Brave user then enable `Use Google services for push messaging` Option on brave://settings/?search=push+messaging",
   "email": "Email",
   "email_placeholder": "jdoe@example.com",
