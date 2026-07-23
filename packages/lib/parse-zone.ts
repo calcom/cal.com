@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 
-const ISO8601_OFFSET_FORMAT = /^(.*)([+-])(\d{2}):(\d{2})|(Z)$/;
+const ISO8601_OFFSET_FORMAT = /^(.*?)\s*(?:([+-])(\d{2}):(\d{2})|(Z))$/;
 
 // @see https://github.com/iamkun/dayjs/issues/651#issuecomment-763033265
 // decorates dayjs in order to keep the utcOffset of the given date string

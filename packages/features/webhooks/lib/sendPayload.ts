@@ -195,11 +195,11 @@ function applyTemplate(
 
 export function jsonParse(jsonString: string) {
   try {
-    return JSON.parse(jsonString);
+    JSON.parse(jsonString);
+    return true;
   } catch {
-    // don't do anything.
+    return false;
   }
-  return false;
 }
 
 export function isOOOEntryPayload(data: WebhookPayloadType): data is OOOEntryPayloadType {
