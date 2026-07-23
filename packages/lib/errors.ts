@@ -64,7 +64,7 @@ export async function handleErrorsJson<Type>(response: Response): Promise<Type> 
     return new Promise((resolve) => resolve({} as Type));
   }
 
-  if (!response.ok && (response.status < 200 || response.status >= 300)) {
+  if (!response.ok) {
     response.json().then(console.log);
     throw Error(response.statusText);
   }

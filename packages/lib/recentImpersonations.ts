@@ -21,6 +21,7 @@ export function getRecentImpersonations(): RecentImpersonation[] {
 export function addRecentImpersonation(usernameRaw: string): void {
   try {
     const recent = getRecentImpersonations();
+    if (!Array.isArray(recent)) return;
     const username = usernameRaw.trim().toLowerCase();
     if (!username) return;
     const filtered = recent.filter((item) => item.username !== username);

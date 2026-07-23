@@ -24,7 +24,7 @@ export const useInViewObserver = (onInViewCallback: () => void, root?: Element |
         },
         {
           // We want to accept null as root
-          root: root !== undefined ? root : document.body,
+          root: root !== undefined ? root : null,
         }
       );
       observer.observe(node);

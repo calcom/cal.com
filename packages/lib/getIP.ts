@@ -52,7 +52,12 @@ export function isIpInBanlist(request: Request | NextApiRequest) {
 
 export function isIpInBanListString(identifer: string) {
   const rawBanListJson = process.env.IP_BANLIST || "[]";
-  const banList = banlistSchema.parse(JSON.parse(rawBanListJson));
+  let banList: string[] = [];
+  try {
+    banList = banlistSchema.parse(JSON.parse(rawBanListJson));
+  } catch {
+    logger.error("Invalid IP_BANLIST JSON; treating as empty banlist");
+  }
   if (banList.includes(identifer)) {
     logger.warn(`Found banned IP: ${identifer} in IP_BANLIST`);
     return true;
