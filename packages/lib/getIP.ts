@@ -37,7 +37,12 @@ const banlistSchema = z.array(z.string());
 export function isIpInBanlist(request: Request | NextApiRequest) {
   const IP = getIP(request);
   const rawBanListJson = process.env.IP_BANLIST || "[]";
-  const banList = banlistSchema.parse(JSON.parse(rawBanListJson));
+  let banList: string[] = [];
+  try {
+    banList = banlistSchema.parse(JSON.parse(rawBanListJson));
+  } catch {
+    logger.error("Invalid IP_BANLIST JSON; treating as empty banlist");
+  }
   if (banList.includes(IP)) {
     logger.warn(`Found banned IP: ${IP} in IP_BANLIST`);
     return true;

@@ -32,11 +32,12 @@ export class IntervalTree<T> {
   private buildTree(nodes: IntervalNode<T>[]): IntervalNode<T> | undefined {
     if (nodes.length === 0) return undefined;
 
-    const mid = Math.floor(nodes.length / 2);
-    const node = nodes[mid];
+    const sorted = [...nodes].sort((a, b) => a.start - b.start);
+    const mid = Math.floor(sorted.length / 2);
+    const node = sorted[mid];
 
-    const leftNodes = nodes.slice(0, mid);
-    const rightNodes = nodes.slice(mid + 1);
+    const leftNodes = sorted.slice(0, mid);
+    const rightNodes = sorted.slice(mid + 1);
 
     node.left = this.buildTree(leftNodes);
     node.right = this.buildTree(rightNodes);

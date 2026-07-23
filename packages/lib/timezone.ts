@@ -29,7 +29,8 @@ const formatOffset = (offset: string) =>
 
 export const handleOptionLabel = (option: ITimezoneOption, timezones: Timezones) => {
   const offsetUnit = option.label.split(/[-+]/)[0].substring(1);
-  const cityName = option.label.split(") ")[1];
+  const parts = option.label.split(") ");
+  const cityName = parts.length > 1 ? parts[1] : option.value.replace(/_/g, " ");
 
   const timezoneValue = ` ${offsetUnit} ${formatOffset(dayjs.tz(undefined, option.value).format("Z"))}`;
   return timezones.length > 0
