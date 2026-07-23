@@ -1433,7 +1433,6 @@ describe("Cancel Booking", () => {
       },
     });
 
-    // Cancel the MIDDLE occurrence + all subsequent ones.
     await handleCancelBooking({
       bookingData: {
         id: middleId,
