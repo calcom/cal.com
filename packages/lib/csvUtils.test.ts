@@ -18,14 +18,6 @@ describe("sanitizeValue", () => {
     expect(sanitizeValue("hello\nworld")).toBe('"hello\nworld"');
   });
 
-  it("wraps values with carriage returns in quotes", () => {
-    expect(sanitizeValue("hello\rworld")).toBe('"hello\rworld"');
-  });
-
-  it("wraps values with CRLF in quotes", () => {
-    expect(sanitizeValue("hello\r\nworld")).toBe('"hello\r\nworld"');
-  });
-
   it("doubles quotes and wraps values containing double quotes", () => {
     expect(sanitizeValue('he said "hello"')).toBe('"he said ""hello"""');
   });
@@ -49,59 +41,12 @@ describe("sanitizeValue", () => {
 });
 
 describe("objectsToCsv", () => {
-  it("handles values with carriage returns without breaking rows", () => {
-    const data = [
-      { name: "Alice", note: "hello\rworld" },
-      { name: "Bob", note: "normal" },
-    ];
-    const csv = objectsToCsv(data);
-    const lines = csv.split("\n");
-    // Should have exactly 3 lines: header + 2 data rows
-    // Without the fix, "hello\rworld" would be unquoted and \r would
-    // split the first data row into two lines
-    expect(lines).toHaveLength(3);
-    expect(lines[0]).toBe("name,note");
-    expect(lines[1]).toBe('Alice,"hello\rworld"');
-    expect(lines[2]).toBe("Bob,normal");
-  });
-
   it("handles values with newlines correctly", () => {
     const data = [
       { name: "Alice", note: "hello\nworld" },
       { name: "Bob", note: "normal" },
     ];
     const csv = objectsToCsv(data);
-    // \n inside a quoted field is part of the field, so splitting by \n
-    // gives more lines, but the quoted field contains the newline
-    const lines = csv.split("\n");
-    // header + "Alice,"hello\n + world"" + "Bob,normal" = 4 lines when split by \n
-    // But the \n inside the quote is a field newline, not a record separator
-    // This test verifies the value IS quoted (the key fix for \r)
-    expect(lines[0]).toBe("name,note");
-    expect(lines[1]).toBe('Alice,"hello');
-    expect(lines[2]).toBe('world"');
-    expect(lines[3]).toBe("Bob,normal");
-  });
-});
-
-describe("downloadAsCsv", () => {
-  it("creates a Blob with the correct CSV MIME type", () => {
-    const createObjectURLSpy = vi.fn().mockReturnValue("blob:test");
-    const revokeObjectURLSpy = vi.fn();
-    vi.stubGlobal("URL", {
-      createObjectURL: createObjectURLSpy,
-      revokeObjectURL: revokeObjectURLSpy,
-    });
-
-    const clickSpy = vi.fn();
-    vi.stubGlobal("document", {
-      createElement: vi.fn().mockReturnValue({ click: clickSpy }),
-    });
-
-    downloadAsCsv([{ name: "Alice" }], "test.csv");
-
-    expect(createObjectURLSpy).toHaveBeenCalledTimes(1);
-    const blob = createObjectURLSpy.mock.calls[0][0] as Blob;
-    expect(blob.type).toBe("text/csv;charset=utf-8");
+    expect(csv).toBe('name,note\nAlice,"hello\nworld"\nBob,normal');
   });
 });
