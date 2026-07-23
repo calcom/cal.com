@@ -200,7 +200,7 @@ async function superRefineField({
     }
 
     const emails = emailsParsed.data;
-    emails.sort().some((item, i) => {
+    [...emails].sort().some((item, i) => {
       if (item === emails[i + 1]) {
         zodCtx.addIssue({ code: z.ZodIssueCode.custom, message: m("duplicate_email") });
         return true;

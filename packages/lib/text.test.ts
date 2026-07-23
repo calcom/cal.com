@@ -1,8 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { truncate } from "./text";
+import { truncate, truncateOnWord } from "./text";
 
 describe("Text util tests", () => {
+  describe("fn: truncateOnWord", () => {
+    it("should respect the maxLength parameter instead of a hardcoded constant", () => {
+      const text = "a".repeat(200);
+      expect(truncateOnWord(text, 158).length).toBeLessThanOrEqual(158 + 3);
+      expect(truncateOnWord(text, 100).length).toBeLessThanOrEqual(100 + 3);
+    });
+
+    it("should return the original text when shorter than maxLength", () => {
+      expect(truncateOnWord("short", 100)).toBe("short");
+    });
+  });
+
   describe("fn: truncate", () => {
     it("should return the original text when it is shorter than the max length", () => {
       const cases = [

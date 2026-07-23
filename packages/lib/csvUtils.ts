@@ -57,5 +57,11 @@ export const sanitizeValue = (value: string) => {
   if (value.includes(",") || value.includes("\n")) {
     return `"${value}"`;
   }
+  // Protect against formula injection (OWASP). Values starting with =, +, -, @
+  // are interpreted as formulas by Excel/Sheets. Prefix with a single quote to
+  // force text rendering, which is invisible in most spreadsheet apps.
+  if (/^[=+\-@]/.test(value)) {
+    return `'${value}`;
+  }
   return value;
 };
