@@ -1,27 +1,63 @@
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { usePathname } from "next/navigation";
 
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-// TODO: This approach of checking booking page isn't correct.
-// app.cal.com/rick is a booking page but useIsBookingPage won't return true. This is because all unregistered router in Next.js could technically be a booking page throw catch all routes.
-// The only way to confirm it is by actually checking if we actually rendered a booking route.
+const bookingRootPaths: string[] = [
+  "/booking",
+  "/cancel",
+  "/reschedule",
+  "/instant-meeting",
+  "/team",
+  "/d",
+  "/router",
+];
+
+const bookingsListPaths: string[] = ["/upcoming", "/unconfirmed", "/recurring", "/cancelled", "/past"];
+
+const reservedRootPaths: string[] = [
+  "/_next",
+  "/api",
+  "/apps",
+  "/auth",
+  "/availability",
+  "/bookings",
+  "/cache",
+  "/e2e",
+  "/enterprise",
+  "/event-types",
+  "/getting-started",
+  "/icons",
+  "/maintenance",
+  "/members",
+  "/more",
+  "/onboarding",
+  "/payment",
+  "/refer",
+  "/settings",
+  "/signup",
+  "/upgrade",
+  "/video",
+];
+
+function matchesPathSegment(pathname: string, route: string): boolean {
+  return pathname === route || pathname.startsWith(`${route}/`);
+}
+
+export function isBookingPath(pathname: string | null): boolean {
+  if (!pathname || pathname === "/") return false;
+
+  const isKnownBookingPage = bookingRootPaths.some((route) => matchesPathSegment(pathname, route));
+  const isBookingsListPage = bookingsListPaths.some((route) => pathname.endsWith(route));
+
+  if (isKnownBookingPage) return !isBookingsListPage;
+
+  return !reservedRootPaths.some((route) => matchesPathSegment(pathname, route));
+}
+
 export default function useIsBookingPage(): boolean {
   const pathname = usePathname();
-  const isBookingPage = [
-    "/booking",
-    "/cancel",
-    "/reschedule",
-    "/instant-meeting", // Instant booking page
-    "/team", // Team booking pages
-    "/d", // Private Link of booking page
-    "/router", // Headless router page - Loads as a page when redirect type is customPageMessage
-  ].some((route) => pathname?.startsWith(route));
-  const isBookingsListPage = ["/upcoming", "/unconfirmed", "/recurring", "/cancelled", "/past"].some(
-    (route) => pathname?.endsWith(route)
-  );
-
   const searchParams = useCompatSearchParams();
   const isUserBookingPage = Boolean(searchParams?.get("user"));
   const isUserBookingTypePage = Boolean(searchParams?.get("user") && searchParams?.get("type"));
 
-  return (isBookingPage && !isBookingsListPage) || isUserBookingPage || isUserBookingTypePage;
+  return isBookingPath(pathname) || isUserBookingPage || isUserBookingTypePage;
 }
