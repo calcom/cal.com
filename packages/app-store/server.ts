@@ -2,11 +2,10 @@ import type { TFunction } from "i18next";
 
 import { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/app-store/delegationCredential";
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
-import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { PrismaCredentialRepository } from "./repositories/PrismaCredentialRepository";
 
 import getEnabledAppsFromCredentials from "./_utils/getEnabledAppsFromCredentials";
 import { defaultLocations } from "./locations";
@@ -62,23 +61,10 @@ export async function getLocationGroupedOptions(
     });
   }
 
-  const nonDelegationCredentials = await prisma.credential.findMany({
-    where: {
-      ...idToSearchObject,
-      app: {
-        categories: {
-          hasSome: defaultVideoAppCategories,
-        },
-      },
-    },
-    select: {
-      ...credentialForCalendarServiceSelect,
-      team: {
-        select: {
-          name: true,
-        },
-      },
-    },
+  const credentialRepository = new PrismaCredentialRepository(prisma);  
+  const nonDelegationCredentials = await credentialRepository.findNonDelegationCredentialsByAppCategories({  
+    idToSearchObject,
+    appCategories: defaultVideoAppCategories,  
   });
 
   let credentials;
@@ -94,8 +80,7 @@ export async function getLocationGroupedOptions(
     );
     credentials = allCredentials;
   } else {
-    // TODO: We can avoid calling buildNonDelegationCredentials here by moving the above prisma query to the repository and doing it there
-    credentials = buildNonDelegationCredentials(nonDelegationCredentials);
+    credentials = nonDelegationCredentials;  
   }
 
   const integrations = await getEnabledAppsFromCredentials(credentials, { filterOnCredentials: true });
