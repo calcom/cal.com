@@ -11,6 +11,6 @@ export function safeStringify(obj: unknown) {
     // Avoid crashing on circular references
     return JSON.stringify(obj);
   } catch (e) {
-    return obj;
+    return "[object could not be stringified]";
   }
 }

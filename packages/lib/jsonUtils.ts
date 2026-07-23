@@ -1,11 +1,8 @@
 export const validJson = (jsonString: string) => {
   try {
-    const o = JSON.parse(jsonString);
-    if (o && typeof o === "object") {
-      return o;
-    }
+    return JSON.parse(jsonString);
   } catch (e) {
     console.log("Invalid JSON:", e);
+    return false;
   }
-  return false;
 };
