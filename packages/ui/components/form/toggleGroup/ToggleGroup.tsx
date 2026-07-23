@@ -63,11 +63,12 @@ export const ToggleGroup = ({
           }
           onValueChange?.(value);
         }}
-        style={{
-          // @ts-expect-error --toggle-group-shadow is not a valid CSS property but can be a variable
-          "--toggle-group-shadow":
-            "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
-        }}
+        style={
+          {
+            "--toggle-group-shadow":
+              "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
+          } as React.CSSProperties
+        }
         className={classNames(
           `bg-muted rounded-[10px] p-0.5`,
           orientation === "horizontal" && "inline-flex gap-0.5 rtl:flex-row-reverse",
