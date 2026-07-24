@@ -39,4 +39,4 @@ British English, German, Spanish, French, Italian, Portuguese, Hindi, Japanese, 
 2. Paste your Cal.com API key and pick the meeting type you want Clara to book.
 3. Clara starts turning visitors into confirmed Cal.com bookings.
 
-Get started at [claraconverts.com](https://claraconverts.com).
+Get started at [claraconverts.com/guide/cal-com](https://claraconverts.com/guide/cal-com).
