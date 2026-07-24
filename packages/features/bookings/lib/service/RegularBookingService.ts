@@ -1019,6 +1019,10 @@ async function handler(
       const luckyUsers: typeof users = [];
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
+      // `users` is constant for this whole block, so build the id set once instead of
+      // rebuilding it on every iteration of the inner while-loop.
+      const userIdsSet = new Set(users.map((user) => user.id));
+
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
         let luckUserFound = false;
         while (luckyUserPool.length > 0 && !luckUserFound) {
@@ -1030,7 +1034,6 @@ async function handler(
           assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too with an assertion; the error will never be thrown.
           // freeUsers is ensured
 
-          const userIdsSet = new Set(users.map((user) => user.id));
           const newLuckyUser = await deps.luckyUserService.getLuckyUser({
             availableUsers: freeUsers,
             allRRHosts: eventTypeWithUsers.hosts.filter(
