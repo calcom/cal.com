@@ -1,0 +1,22 @@
+{
+  "name": "Tavily AI",
+  "slug": "tavily",
+  "type": "tavily_ai_other",
+  "logo": "icon.svg",
+  "url": "https://tavily.com",
+  "variant": "other",
+  "categories": [
+    "other",
+    "ai"
+  ],
+  "publisher": "Tavily",
+  "email": "support@tavily.com",
+  "description": "Integrate Tavily AI search and real-time web research to ground Cal.com booking assistants and invitee research workflows.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app",
+  "externalLink": {
+    "url": "https://tavily.com",
+    "newTab": true
+  }
+}
