@@ -200,22 +200,23 @@ export class BookingEmailSmsHandler {
       ...copyEvent.attendees,
     ];
 
-    const matchOriginalMemberWithNewMember = (originalMember: Person, newMember: Person) =>
-      originalMember.email === newMember.email;
+    // Members are matched purely on email, so build lookup sets once instead of
+    // re-scanning the arrays for every member (O(n*m) -> O(n+m)).
+    const originalMemberEmailSet = new Set(originalBookingMemberEmails.map((member) => member.email));
+    const newMemberEmailSet = new Set(newBookingMemberEmails.map((member) => member.email));
 
     const newBookedMembers = newBookingMemberEmails.filter(
-      (member) => !originalBookingMemberEmails.some((om) => matchOriginalMemberWithNewMember(om, member))
+      (member) => !originalMemberEmailSet.has(member.email)
     );
     const cancelledMembers = originalBookingMemberEmails.filter(
-      (member) => !newBookingMemberEmails.some((nm) => matchOriginalMemberWithNewMember(member, nm))
+      (member) => !newMemberEmailSet.has(member.email)
     );
     const rescheduledMembers = newBookingMemberEmails.filter((member) =>
-      originalBookingMemberEmails.some((om) => matchOriginalMemberWithNewMember(om, member))
+      originalMemberEmailSet.has(member.email)
     );
 
-    const reassignedTo = users.find(
-      (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
-    );
+    const newBookedMemberEmailSet = new Set(newBookedMembers.map((member) => member.email));
+    const reassignedTo = users.find((user) => !user.isFixed && newBookedMemberEmailSet.has(user.email));
 
     const {
       sendRoundRobinRescheduledEmailsAndSMS,
