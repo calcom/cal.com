@@ -95,8 +95,14 @@ describe("scheduleNoShowTriggers Integration", () => {
 
   test("scheduling a webhook creates the correct Tasker jobs for no-show webhooks", async () => {
     const currentDate = new Date("2023-01-01T10:00:00.000Z");
-    const bookingData: Partial<Booking> & { startTime: Date; id: number; location: string } = {
+    const bookingData: Partial<Booking> & {
+      startTime: Date;
+      id: number;
+      location: string;
+      uid: string;
+    } = {
       id: testBookingIds[0],
+      uid: "test-uid-no-show-tasks",
       startTime: currentDate,
       endTime: new Date("2023-01-01T10:30:00.000Z"),
       location: DailyLocationType,
@@ -126,8 +132,14 @@ describe("scheduleNoShowTriggers Integration", () => {
 
   test("created task payloads for no-show webhooks are correct", async () => {
     const currentDate = new Date("2023-01-01T11:00:00.000Z");
-    const bookingData: Partial<Booking> & { startTime: Date; id: number; location: string } = {
+    const bookingData: Partial<Booking> & {
+      startTime: Date;
+      id: number;
+      location: string;
+      uid: string;
+    } = {
       id: testBookingIds[1],
+      uid: "test-uid-no-show-payloads",
       startTime: currentDate,
       endTime: new Date("2023-01-01T11:30:00.000Z"),
       location: DailyLocationType,
@@ -194,6 +206,52 @@ describe("scheduleNoShowTriggers Integration", () => {
         timeUnit: TimeUnit.MINUTE,
       }),
     });
+  });
+
+  test("schedules a task for every subscriber sharing the same no-show trigger", async () => {
+    const secondHostWebhook = await prisma.webhook.create({
+      data: {
+        id: "test-host-webhook-id-2",
+        userId: testUser.id,
+        subscriberUrl: "https://example.com/host-webhook-2",
+        eventTriggers: [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
+        active: true,
+        time: 15,
+        timeUnit: TimeUnit.MINUTE,
+      },
+    });
+
+    const bookingUid = "test-uid-multiple-subscribers";
+
+    await scheduleNoShowTriggers({
+      booking: {
+        id: 98770,
+        uid: bookingUid,
+        startTime: new Date("2023-01-01T12:00:00.000Z"),
+        location: DailyLocationType,
+      },
+      organizerUser: { id: testUser.id },
+      eventTypeId: testEventTypeId,
+      triggerForUser: true,
+    });
+
+    const hostTasks = await prisma.task.findMany({
+      where: {
+        type: "triggerHostNoShowWebhook",
+        referenceUid: { startsWith: bookingUid },
+      },
+    });
+
+    expect(hostTasks).toHaveLength(2);
+    expect(new Set(hostTasks.map((task) => task.referenceUid)).size).toBe(2);
+
+    const subscriberUrls = hostTasks.map((task) => JSON.parse(task.payload).webhook.subscriberUrl).sort();
+    expect(subscriberUrls).toEqual([
+      "https://example.com/host-webhook",
+      "https://example.com/host-webhook-2",
+    ]);
+
+    await prisma.webhook.delete({ where: { id: secondHostWebhook.id } });
   });
 
   test("task handler runs properly with the correct payload", async () => {

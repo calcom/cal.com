@@ -14,6 +14,7 @@ import type { Prisma, Webhook, Booking, ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { DEFAULT_WEBHOOK_VERSION, type WebhookVersion } from "./interface/IWebhookRepository";
+import { getNoShowTaskReferenceUid, getNoShowTaskReferenceUidFilter } from "./noShowTaskReference";
 
 const SCHEDULING_TRIGGER: WebhookTriggerEvents[] = [
   WebhookTriggerEvents.MEETING_ENDED,
@@ -526,6 +527,7 @@ export async function updateTriggerForExistingBookings(
           cancelNoShowTasksForBooking({
             bookingUid: booking.uid,
             triggerEvent,
+            webhookId: webhook.id,
           })
         ),
       ];
@@ -598,24 +600,32 @@ export async function cancelNoShowTasksForBooking({
   bookingUid,
   triggerEvent,
   webhook,
+  webhookId,
 }: {
   bookingUid?: string;
   triggerEvent?: WebhookTriggerEvents;
   webhook?: Pick<Webhook, "id" | "userId" | "teamId" | "eventTypeId">;
+  webhookId?: string;
 }) {
   if (bookingUid) {
     if (triggerEvent && !NO_SHOW_TRIGGERS.includes(triggerEvent)) return;
 
+    // A booking now holds one no-show task per subscriber, so cancelling for the whole booking has
+    // to match every subscriber's reference while a single subscriber only cancels its own task.
+    const referenceFilter = webhookId
+      ? { referenceUid: getNoShowTaskReferenceUid({ bookingUid, webhookId }) }
+      : getNoShowTaskReferenceUidFilter(bookingUid);
+
     if (triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW) {
-      await tasker.cancelWithReference(bookingUid, "triggerHostNoShowWebhook");
-    } else if (triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW) {
-      await tasker.cancelWithReference(bookingUid, "triggerGuestNoShowWebhook");
-    } else {
       await prisma.task.deleteMany({
-        where: {
-          referenceUid: bookingUid,
-        },
+        where: { ...referenceFilter, type: "triggerHostNoShowWebhook" },
       });
+    } else if (triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW) {
+      await prisma.task.deleteMany({
+        where: { ...referenceFilter, type: "triggerGuestNoShowWebhook" },
+      });
+    } else {
+      await prisma.task.deleteMany({ where: referenceFilter });
     }
   } else if (webhook) {
     const bookings = await fetchBookingsFromWebhook(webhook);
@@ -625,7 +635,10 @@ export async function cancelNoShowTasksForBooking({
     const promises = bookings.map(async (booking) => {
       return await prisma.task.deleteMany({
         where: {
-          referenceUid: booking.uid,
+          OR: [
+            { referenceUid: booking.uid },
+            { referenceUid: getNoShowTaskReferenceUid({ bookingUid: booking.uid, webhookId: webhook.id }) },
+          ],
         },
       });
     });
@@ -673,7 +686,7 @@ export async function scheduleNoShowTaskForBooking(
     },
     {
       scheduledAt,
-      referenceUid: booking.uid,
+      referenceUid: getNoShowTaskReferenceUid({ bookingUid: booking.uid, webhookId: webhook.id }),
     }
   );
 }
