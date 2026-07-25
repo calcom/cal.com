@@ -1,5 +1,5 @@
 import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
 
 import classNames from "@calcom/ui/classNames";
@@ -67,7 +67,7 @@ export const ToggleGroup = ({
           {
             "--toggle-group-shadow":
               "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
-          } as React.CSSProperties
+          } as CSSProperties
         }
         className={classNames(
           `bg-muted rounded-[10px] p-0.5`,
