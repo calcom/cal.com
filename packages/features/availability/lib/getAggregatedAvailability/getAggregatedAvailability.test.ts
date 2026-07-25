@@ -469,4 +469,62 @@ describe("getAggregatedAvailability", () => {
     };
     expect(isAvailable(result, timeRangeNotAvailable)).toBe(false);
   });
+
+  // Regression: empty fixed-host intersection must still constrain RR hosts (#29800).
+  // Previously `fixedDateRanges.length ? ... : []` treated "fixed host busy" like "no fixed hosts",
+  // so RR-only slots were offered and booking later failed with FixedHostsUnavailableForBooking.
+  it("does not offer RR slots when a mandatory fixed host has no overlapping availability", () => {
+    const userAvailability = [
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [], // fixed host fully busy / no availability
+        user: { isFixed: true },
+      },
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
+        ],
+        user: { isFixed: false },
+      },
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-23T12:00:00.000Z"), end: dayjs("2025-01-23T12:30:00.000Z") },
+        ],
+        user: { isFixed: false },
+      },
+    ];
+
+    const result = getAggregatedAvailability(userAvailability, "ROUND_ROBIN");
+
+    expect(result).toEqual([]);
+    expect(
+      isAvailable(result, {
+        start: dayjs("2025-01-23T11:00:00.000Z"),
+        end: dayjs("2025-01-23T11:30:00.000Z"),
+      })
+    ).toBe(false);
+  });
+
+  it("still offers RR-only slots when there are no fixed hosts", () => {
+    const userAvailability = [
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
+        ],
+        user: { isFixed: false },
+      },
+    ];
+
+    const result = getAggregatedAvailability(userAvailability, "ROUND_ROBIN");
+
+    expect(
+      isAvailable(result, {
+        start: dayjs("2025-01-23T11:00:00.000Z"),
+        end: dayjs("2025-01-23T11:30:00.000Z"),
+      })
+    ).toBe(true);
+  });
 });

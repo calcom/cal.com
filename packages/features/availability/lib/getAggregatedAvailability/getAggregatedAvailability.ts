@@ -42,7 +42,11 @@ export const getAggregatedAvailability = (
   const fixedDateRanges = mergeOverlappingDateRanges(
     intersect(fixedHosts.map((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges)))
   );
-  const dateRangesToIntersect = fixedDateRanges.length ? [fixedDateRanges] : [];
+  // Use fixedHosts.length (not fixedDateRanges.length): an empty intersection means
+  // mandatory fixed hosts are busy, which must still constrain RR hosts. Treating an
+  // empty fixedDateRanges as "no constraint" offered bookable slots that later fail
+  // with FixedHostsUnavailableForBooking.
+  const dateRangesToIntersect = fixedHosts.length ? [fixedDateRanges] : [];
   const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
   if (roundRobinHosts.length) {
     // Group round robin hosts by their groupId
