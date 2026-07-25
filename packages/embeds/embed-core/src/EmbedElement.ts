@@ -176,8 +176,13 @@ export class EmbedElement extends HTMLElement {
     }
     this.layout = newLayout;
 
-    // We can't accidentaly show skeleton if it isn't showing
+    // After load the skeleton is hidden. Never revive it on breakpoint changes —
+    // rewriting styles via setAttribute used to wipe `display:none` and leave the
+    // skeleton container visible after resize (#21015).
     if (!this.isSkeletonLoaderVisible()) {
+      if (!this.isModal) {
+        this.getSkeletonContainerElement().style.display = "none";
+      }
       return;
     }
 
@@ -189,10 +194,18 @@ export class EmbedElement extends HTMLElement {
     const skeletonContainerEl = this.getSkeletonContainerElement();
     const skeletonEl = this.getSkeletonElement();
 
+    // Preserve display while refreshing layout-specific positioning styles.
+    const previousSkeletonDisplay = skeletonEl.style.display;
+    const previousContainerDisplay = skeletonContainerEl.style.display;
     skeletonContainerEl.setAttribute("style", skeletonContainerStyle);
     skeletonEl.setAttribute("style", skeletonStyle);
+    skeletonEl.style.display = previousSkeletonDisplay || "block";
+    if (previousContainerDisplay) {
+      skeletonContainerEl.style.display = previousContainerDisplay;
+    }
 
     skeletonEl.innerHTML = skeletonContent;
+    this.ensureContainerTakesSkeletonHeightWhenVisible();
   }
 
   public setTheme(theme: EmbedThemeConfig | null) {

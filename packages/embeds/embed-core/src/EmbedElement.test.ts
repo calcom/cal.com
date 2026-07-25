@@ -434,6 +434,27 @@ describe("EmbedElement", () => {
         window.dispatchEvent(new Event("resize"));
         expectLayoutToBe("month_view", element);
       });
+
+      it("should keep skeleton hidden after load when layout changes on resize", () => {
+        fakeDeviceMatchesMediaQuery("(max-width: 800px)");
+        element = createTestEmbedElement({
+          dataset: {
+            pageType: "user.event.booking.slots",
+            layout: "month_view",
+          },
+        });
+
+        expectSkeletonLoader(element);
+        element.toggleLoader(false);
+        expectLoaderToBeHidden(element);
+
+        fakeDeviceMatchesMediaQuery("(max-width: 768px)");
+        window.dispatchEvent(new Event("resize"));
+
+        expectLayoutToBe("mobile", element);
+        expectLoaderToBeHidden(element);
+        expect(element.getSkeletonContainerElement().style.display).toBe("none");
+      });
     });
 
     describe("Cleanup Behavior", () => {
