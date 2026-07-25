@@ -26,7 +26,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     token,
   });
 
-  const response = await fetch(`${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`, {
+  const response = await fetch(`${process.env.WEBAPP_URL_INTERNAL || WEBAPP_URL}/api/auth/verify-email?${params.toString()}`, {
     method: "POST",
   });
 
