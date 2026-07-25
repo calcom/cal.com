@@ -11,6 +11,7 @@ import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 
 import type { AppRouter } from "../types/server/routers/_app";
 import { ENDPOINTS } from "./shared";
+import { WEBAPP_URL_INTERNAL } from "@calcom/lib/constants";
 
 type Maybe<T> = T | null | undefined;
 
@@ -52,7 +53,7 @@ export const trpc: CreateTRPCNext<AppRouter, NextPageContext, null> = createTRPC
   NextPageContext
 >({
   config() {
-    const internalUrl = process.env.WEBAPP_URL_INTERNAL ? `${process.env.WEBAPP_URL_INTERNAL}/api/trpc` : null;
+    const internalUrl = WEBAPP_URL_INTERNAL ? `${WEBAPP_URL_INTERNAL}/api/trpc` : null;
     const url =
       typeof window !== "undefined"
         ? "/api/trpc"
