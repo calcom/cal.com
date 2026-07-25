@@ -76,7 +76,7 @@ describe("Post-Booking Events - Hashed Link Usage", () => {
     test(
       `should increment hashed link usage when booking is created with hashed link
           1. Should create a booking in the database
-          2. Should increment hashed link usage count via BookingEventHandler.onBookingCreated
+          2. Should consume/increment hashed link usage before booking creation
     `,
       async () => {
         const handleNewBooking = getNewBookingHandler();
@@ -365,10 +365,9 @@ describe("Post-Booking Events - Hashed Link Usage", () => {
     );
 
     test(
-      `should handle hashed link service errors gracefully without failing booking creation
-          1. Should create a booking successfully
-          2. Should handle hashed link service errors gracefully in BookingEventHandler
-          3. Should log errors but continue booking flow
+      `should reject booking when private link has already reached max usage
+          1. Should not create a booking
+          2. Should throw PrivateLinkExpired
     `,
       async () => {
         const handleNewBooking = getNewBookingHandler();
@@ -388,8 +387,8 @@ describe("Post-Booking Events - Hashed Link Usage", () => {
 
         const hashedLinkData = createHashedLinkTestData({
           eventTypeId: 1,
-          usageLimit: 5,
-          currentUsage: 2,
+          usageLimit: 1,
+          currentUsage: 1, // already exhausted
         });
 
         await createBookingScenario(
@@ -404,7 +403,6 @@ describe("Post-Booking Events - Hashed Link Usage", () => {
                     id: 101,
                   },
                 ],
-                // hashedLink will be created separately in database
               },
             ],
             users: [organizer],
@@ -413,23 +411,12 @@ describe("Post-Booking Events - Hashed Link Usage", () => {
 
         mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
-            uid: "ERROR_HANDLING_BOOKING_UID",
-          },
-          update: {
-            iCalUID: "ERROR_HANDLING_BOOKING_UID",
-            uid: "ERROR_HANDLING_BOOKING_UID",
+            uid: "EXPIRED_LINK_BOOKING_UID",
           },
         });
 
-        // Create an invalid hashed link that will cause validation to fail
-        // (maxUsageCount = 0 means it should be expired)
-        const invalidHashedLinkData = {
-          ...hashedLinkData,
-          maxUsageCount: 0, // This will cause validation to fail
-        };
-
         await prismaMock.hashedLink.create({
-          data: invalidHashedLinkData,
+          data: hashedLinkData,
         });
 
         const mockBookingRequest = getMockRequestDataForBooking({
@@ -445,27 +432,16 @@ describe("Post-Booking Events - Hashed Link Usage", () => {
           },
         });
 
-        const bookingResponse = await handleNewBooking({
-          bookingData: mockBookingRequest,
+        await expect(
+          handleNewBooking({
+            bookingData: mockBookingRequest,
+          })
+        ).rejects.toMatchObject({
+          statusCode: 404,
+          message: "private_link_expired",
         });
 
-        // Booking should still be created successfully despite hashed link error
-        await expectBookingToBeInDatabase({
-          description: "",
-          uid: bookingResponse.uid,
-          location: BookingLocations.CalVideo,
-          responses: expect.objectContaining({
-            email: booker.email,
-            name: booker.name,
-          }),
-          status: BookingStatus.ACCEPTED,
-        });
-
-        // Verify that even though hashed link processing failed,
-        await expectHashedLinkUsageToBe(hashedLinkData.link, invalidHashedLinkData.usageCount);
-
-        expect(bookingResponse.status).toEqual(BookingStatus.ACCEPTED);
-        expect(bookingResponse.uid).toBeDefined();
+        await expectHashedLinkUsageToBe(hashedLinkData.link, 1);
       },
       timeout
     );

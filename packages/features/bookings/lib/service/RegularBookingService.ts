@@ -571,6 +571,21 @@ async function handler(
     ...reqBody
   } = bookingData;
 
+  // Consume private links before creating the booking so expire-after-N-uses cannot
+  // be bypassed via back/bfcache, concurrent tabs, or a swallowed post-booking increment.
+  // Reschedules keep the existing post-booking increment path.
+  if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun && !rawBookingData.rescheduleUid) {
+    try {
+      await deps.hashedLinkService.validateAndIncrementUsage(reqBody.hashedLink);
+    } catch (error) {
+      tracingLogger.error("Private link validation/consume failed", safeStringify(error));
+      throw new HttpError({
+        statusCode: 404,
+        message: ErrorCode.PrivateLinkExpired,
+      });
+    }
+  }
+
   let troubleshooterData = buildTroubleshooterData({
     eventType,
   });
@@ -2220,7 +2235,10 @@ async function handler(
       userEmail: booking.user?.email ?? null,
     },
     organizerUser,
-    hashedLink: hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null,
+    // New bookings already consumed the private link above; only reschedules still
+    // increment via BookingEventHandler (existing behavior / tests).
+    hashedLink:
+      hasHashedBookingLink && rawBookingData.rescheduleUid ? (reqBody.hashedLink ?? null) : null,
     isDryRun,
     bookerEmail,
     bookerName: fullName,
