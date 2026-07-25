@@ -835,3 +835,44 @@ Cal.diy is built on the foundation created by [Cal.com](https://cal.com) and the
 - [Day.js](https://day.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
+
+
+
+## 🚀 Quick Start & Contributor Onboarding
+
+### Prerequisites
+Before setting up Cal.com locally, ensure you have the following installed:
+- **Node.js**: `v20.x` or higher
+- **pnpm**: `v9.x` (`npm i -g pnpm`)
+- **PostgreSQL**: `v15+` or **Docker**
+
+### Local Setup Instructions
+
+```bash
+# 1. Clone your fork
+git clone https://github.com/DanTheC0der/cal.com.git
+cd cal.com
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Copy environment variables
+cp .env.example .env
+
+# 4. Initialize database & seed data
+pnpm db:setup
+
+# 5. Start development server
+pnpm dev
+```
+
+### Development Architecture & Monorepo Layout
+- `apps/web`: Main Next.js web application & booking workflow.
+- `packages/prisma`: Database schema and migrations.
+- `packages/trpc`: End-to-end type-safe API router layer.
+- `packages/features`: Reusable feature components and integrations.
+
+### Running Tests & Linting
+- Run unit tests: `pnpm test`
+- Run linter: `pnpm lint`
+- Build production bundle: `pnpm build`
