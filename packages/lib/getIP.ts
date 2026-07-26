@@ -4,7 +4,12 @@ import z from "zod";
 import logger from "./logger";
 
 export function parseIpFromHeaders(value: string | string[]) {
-  return Array.isArray(value) ? value[0] : value.split(",")[0];
+  // X-Forwarded-For allows optional whitespace around the commas, and the value
+  // is used as an exact-match security identifier (IP banlist, rate limit key),
+  // so an untrimmed IP would silently miss its ban and get its own bucket.
+  const first = Array.isArray(value) ? value[0] : value;
+
+  return first.split(",")[0].trim();
 }
 
 /**

@@ -22,6 +22,29 @@ describe("parseIpFromHeaders", () => {
   it("returns the first element when given an array", () => {
     expect(parseIpFromHeaders(["1.2.3.4", "5.6.7.8"])).toBe("1.2.3.4");
   });
+
+  it("trims whitespace around the IP", () => {
+    // X-Forwarded-For allows optional whitespace around the commas, and the
+    // result is used as an exact-match banlist / rate-limit identifier.
+    expect(parseIpFromHeaders("1.2.3.4 , 5.6.7.8")).toBe("1.2.3.4");
+    expect(parseIpFromHeaders(" 1.2.3.4, 5.6.7.8")).toBe("1.2.3.4");
+    expect(parseIpFromHeaders("  1.2.3.4  ")).toBe("1.2.3.4");
+    expect(parseIpFromHeaders("\t1.2.3.4\t")).toBe("1.2.3.4");
+  });
+
+  it("splits a comma-separated array entry too", () => {
+    expect(parseIpFromHeaders(["1.2.3.4, 5.6.7.8"])).toBe("1.2.3.4");
+  });
+
+  it("gives one identifier for the same client regardless of proxy spacing", () => {
+    const spellings = ["1.2.3.4,5.6.7.8", "1.2.3.4, 5.6.7.8", "1.2.3.4 , 5.6.7.8", " 1.2.3.4 ,5.6.7.8"];
+
+    const parsed = new Set(spellings.map((value) => parseIpFromHeaders(value)));
+
+    // More than one entry means the same client would get separate rate-limit
+    // buckets and could miss an exact-match ban.
+    expect(parsed).toEqual(new Set(["1.2.3.4"]));
+  });
 });
 
 describe("getIP", () => {
@@ -70,6 +93,11 @@ describe("getIP", () => {
 
     it("extracts first IP from comma-separated x-forwarded-for", () => {
       const req = buildRequest({ "x-forwarded-for": "9.9.9.9, 10.0.0.1, 172.16.0.1" });
+      expect(getIP(req)).toBe("9.9.9.9");
+    });
+
+    it("extracts a trimmed IP from a padded x-forwarded-for", () => {
+      const req = buildRequest({ "x-forwarded-for": "9.9.9.9 , 10.0.0.1" });
       expect(getIP(req)).toBe("9.9.9.9");
     });
   });
