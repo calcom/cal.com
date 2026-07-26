@@ -29,6 +29,26 @@ export const getTimeFormatStringFromUserTimeFormat = (timeFormat: number | null 
 };
 
 /**
+ * Asks Intl whether the given locale (undefined = the browser's own) uses a
+ * 12-hour clock.
+ *
+ * We deliberately do NOT sniff the formatted output for "AM"/"PM": locales that
+ * write their day period in their own script (ar "ص", el "π.μ.", zh-TW "上午")
+ * contain no Latin M and were misdetected as 24-hour.
+ */
+export const resolveIs24h = (locale?: string): boolean => {
+  const resolved = new Intl.DateTimeFormat(locale, { hour: "numeric" }).resolvedOptions();
+
+  // hourCycle is the precise signal (h11/h12 are 12-hour, h23/h24 are 24-hour);
+  // hour12 is the widely available fallback.
+  if (resolved.hourCycle) {
+    return resolved.hourCycle === "h23" || resolved.hourCycle === "h24";
+  }
+
+  return !resolved.hour12;
+};
+
+/**
  * Retrieves the browsers time format preference, checking local storage first
  * for a user set preference. If no preference is found, it will use the browser
  * locale to determine the time format and store it in local storage.
@@ -41,14 +61,13 @@ export const isBrowserLocale24h = () => {
   } else if (localStorageTimeFormat === false) {
     return false;
   }
-  // Intl.DateTimeFormat with value=undefined uses local browser settings.
-  if (!!new Intl.DateTimeFormat(undefined, { hour: "numeric" }).format(0).match(/M/i)) {
-    setIs24hClockInLocalStorage(false);
-    return false;
-  } else {
-    setIs24hClockInLocalStorage(true);
-    return true;
-  }
+
+  // Intl.DateTimeFormat with locale=undefined uses local browser settings.
+  const is24h = resolveIs24h();
+
+  setIs24hClockInLocalStorage(is24h);
+
+  return is24h;
 };
 
 /**
