@@ -33,9 +33,8 @@ export function HavingTroubleFindingTime(props: Props) {
         <InfoIcon className="text-default h-4 w-4" />
         <p className="w-full  leading-none">{t("having_trouble_finding_time")}</p>
       </div>
-      {/* TODO: we should give this more of a touch target on mobile */}
       <button
-        className="inline-flex items-center gap-2 font-medium"
+        className="inline-flex items-center gap-2 font-medium p-2 sm:p-0 -m-2 sm:m-0"
         onClick={(e) => {
           e.preventDefault();
           props.onButtonClick();
