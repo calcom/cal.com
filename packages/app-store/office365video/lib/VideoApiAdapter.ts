@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import {
   CalendarAppDelegationCredentialConfigurationError,
@@ -11,7 +9,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
-
+import { z } from "zod";
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
@@ -108,12 +106,12 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         body: new URLSearchParams(params),
       });
     },
-    isTokenObjectUnusable: async function () {
+    isTokenObjectUnusable: async () => {
       // TODO: Implement this. As current implementation of CalendarService doesn't handle it. It hasn't been handled in the OAuthManager implementation as well.
       // This is a placeholder for future implementation.
       return null;
     },
-    isAccessTokenUnusable: async function () {
+    isAccessTokenUnusable: async () => {
       // TODO: Implement this
       return null;
     },
@@ -230,9 +228,9 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
       try {
         const response = await auth.requestRaw({
-          url: `${await getUserEndpoint()}/onlineMeetings`,
+          url: `${await getUserEndpoint()}/onlineMeetings/${bookingRef.uid}`,
           options: {
-            method: "POST",
+            method: "PATCH",
             body: JSON.stringify(translateEvent(event)),
           },
         });
@@ -264,8 +262,31 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         });
       }
     },
-    deleteMeeting:() => {
-      return Promise.resolve([]);
+    deleteMeeting: async (uid: string): Promise<void> => {
+      try {
+        const response = await auth.requestRaw({
+          url: `${await getUserEndpoint()}/onlineMeetings/${uid}`,
+          options: {
+            method: "DELETE",
+          },
+        });
+
+        if (!response.ok) {
+          throw new HttpError({
+            statusCode: response.status,
+            message: response.statusText,
+          });
+        }
+      } catch (error) {
+        log.error(`Error deleting MS Teams meeting ${uid}`, error);
+        if (error instanceof HttpError) {
+          throw error;
+        }
+        throw new HttpError({
+          statusCode: 500,
+          message: `Error deleting MS Teams meeting ${uid}`,
+        });
+      }
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       const url = `${await getUserEndpoint()}/onlineMeetings`;

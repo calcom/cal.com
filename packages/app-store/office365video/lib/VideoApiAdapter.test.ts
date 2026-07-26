@@ -1,11 +1,11 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { expect, test, vi, describe } from "vitest";
-
+import { describe, expect, test, vi } from "vitest";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
-import { internalServerErrorResponse, successResponse } from "../../_utils/testUtils";
+import { generateTextResponse, internalServerErrorResponse, successResponse } from "../../_utils/testUtils";
 import config from "../config.json";
 import VideoApiAdapter from "./VideoApiAdapter";
+
+const MEETING_ID = "MEETING_ID";
 
 const URLS = {
   CREATE_MEETING: {
@@ -13,9 +13,19 @@ const URLS = {
     method: "POST",
   },
   UPDATE_MEETING: {
-    url: "https://graph.microsoft.com/v1.0/me/onlineMeetings",
-    method: "POST",
+    url: `https://graph.microsoft.com/v1.0/me/onlineMeetings/${MEETING_ID}`,
+    method: "PATCH",
   },
+  DELETE_MEETING: {
+    url: `https://graph.microsoft.com/v1.0/me/onlineMeetings/${MEETING_ID}`,
+    method: "DELETE",
+  },
+};
+
+const bookingRef = {
+  type: config.type,
+  uid: MEETING_ID,
+  meetingId: MEETING_ID,
 };
 
 vi.mock("../../_utils/getParsedAppKeysFromSlug", () => ({
@@ -34,7 +44,7 @@ vi.mock("../../_utils/getParsedAppKeysFromSlug", () => ({
 
 const mockRequestRaw = vi.fn();
 vi.mock("../../_utils/oauth/OAuthManager", () => ({
-  OAuthManager: vi.fn().mockImplementation(function() {
+  OAuthManager: vi.fn().mockImplementation(function () {
     return { requestRaw: mockRequestRaw };
   }),
 }));
@@ -61,7 +71,6 @@ const testCredential = {
 
 describe("createMeeting", () => {
   test("Successful `createMeeting` call", async () => {
-
     const videoApi = VideoApiAdapter(testCredential);
 
     mockRequestRaw.mockImplementation(({ url }) => {
@@ -109,7 +118,6 @@ describe("createMeeting", () => {
   });
 
   test(" `createMeeting` when there is no joinWebUrl and only joinUrl", async () => {
-
     const videoApi = VideoApiAdapter(testCredential);
 
     mockRequestRaw.mockImplementation(({ url }) => {
@@ -195,15 +203,15 @@ describe("createMeeting", () => {
 });
 
 describe("updateMeeting", () => {
-  test("Successful `updateMeeting` call", async () => {
+  test("`updateMeeting` patches the existing meeting instead of creating a new one", async () => {
     const videoApi = VideoApiAdapter(testCredential);
 
     mockRequestRaw.mockImplementation(({ url }) => {
-      if (url === URLS.CREATE_MEETING.url) {
+      if (url === URLS.UPDATE_MEETING.url) {
         return Promise.resolve(
           successResponse({
             json: {
-              id: 1,
+              id: MEETING_ID,
               joinWebUrl: "https://join_web_url.example.com",
               joinUrl: "https://join_url.example.com",
             },
@@ -220,12 +228,12 @@ describe("updateMeeting", () => {
       endTime: new Date(),
     };
 
-    const updatedMeeting = await videoApi?.updateMeeting(null, event);
+    const updatedMeeting = await videoApi?.updateMeeting(bookingRef, event);
     expect(OAuthManager).toHaveBeenCalled();
     expect(mockRequestRaw).toHaveBeenCalledWith({
-      url: URLS.CREATE_MEETING.url,
+      url: URLS.UPDATE_MEETING.url,
       options: {
-        method: "POST",
+        method: "PATCH",
         body: JSON.stringify({
           startDateTime: event.startTime,
           endDateTime: event.endTime,
@@ -234,7 +242,7 @@ describe("updateMeeting", () => {
       },
     });
     expect(updatedMeeting).toEqual({
-      id: 1,
+      id: MEETING_ID,
       password: "",
       type: config.type,
       url: "https://join_web_url.example.com",
@@ -245,11 +253,11 @@ describe("updateMeeting", () => {
     const videoApi = VideoApiAdapter(testCredential);
 
     mockRequestRaw.mockImplementation(({ url }) => {
-      if (url === URLS.CREATE_MEETING.url) {
+      if (url === URLS.UPDATE_MEETING.url) {
         return Promise.resolve(
           internalServerErrorResponse({
             json: {
-              id: 1,
+              id: MEETING_ID,
               joinWebUrl: "https://join_web_url.example.com",
               joinUrl: "https://join_url.example.com",
             },
@@ -266,17 +274,61 @@ describe("updateMeeting", () => {
       endTime: new Date(),
     };
 
-    await expect(() => videoApi?.updateMeeting(null, event)).rejects.toThrowError("Internal Server Error");
+    await expect(() => videoApi?.updateMeeting(bookingRef, event)).rejects.toThrowError(
+      "Internal Server Error"
+    );
     expect(OAuthManager).toHaveBeenCalled();
     expect(mockRequestRaw).toHaveBeenCalledWith({
-      url: URLS.CREATE_MEETING.url,
+      url: URLS.UPDATE_MEETING.url,
       options: {
-        method: "POST",
+        method: "PATCH",
         body: JSON.stringify({
           startDateTime: event.startTime,
           endDateTime: event.endTime,
           subject: event.title,
         }),
+      },
+    });
+  });
+});
+
+describe("deleteMeeting", () => {
+  test("`deleteMeeting` deletes the meeting on Microsoft's side", async () => {
+    const videoApi = VideoApiAdapter(testCredential);
+
+    mockRequestRaw.mockImplementation(({ url }) => {
+      if (url === URLS.DELETE_MEETING.url) {
+        return Promise.resolve(generateTextResponse({ text: "", status: 204, statusText: "No Content" }));
+      }
+      throw new Error("Unexpected URL");
+    });
+
+    await videoApi?.deleteMeeting(MEETING_ID);
+
+    expect(OAuthManager).toHaveBeenCalled();
+    expect(mockRequestRaw).toHaveBeenCalledWith({
+      url: URLS.DELETE_MEETING.url,
+      options: {
+        method: "DELETE",
+      },
+    });
+  });
+
+  test("Failing `deleteMeeting` call", async () => {
+    const videoApi = VideoApiAdapter(testCredential);
+
+    mockRequestRaw.mockImplementation(({ url }) => {
+      if (url === URLS.DELETE_MEETING.url) {
+        return Promise.resolve(internalServerErrorResponse({ json: {} }));
+      }
+      throw new Error("Unexpected URL");
+    });
+
+    await expect(() => videoApi?.deleteMeeting(MEETING_ID)).rejects.toThrowError("Internal Server Error");
+    expect(mockRequestRaw).toHaveBeenCalledWith({
+      url: URLS.DELETE_MEETING.url,
+      options: {
+        method: "DELETE",
       },
     });
   });
