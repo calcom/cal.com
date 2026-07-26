@@ -1,19 +1,43 @@
 import { prisma } from "@calcom/prisma";
 import type {
-  Booking,
-  EventType,
-  BookingReference,
   Attendee,
-  Credential,
+  Booking,
+  BookingReference,
   DestinationCalendar,
+  EventType,
   User,
 } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import authedProcedure from "../../../procedures/authedProcedure";
 import { commonBookingSchema } from "./types";
+
+export const bookingInclude = {
+  attendees: true,
+  eventType: {
+    include: {
+      team: {
+        select: {
+          id: true,
+          name: true,
+          parentId: true,
+        },
+      },
+    },
+  },
+  destinationCalendar: true,
+  references: true,
+  user: {
+    include: {
+      destinationCalendar: true,
+      profiles: {
+        select: {
+          organizationId: true,
+        },
+      },
+    },
+  },
+};
 
 export const bookingsProcedure = authedProcedure
   .input(commonBookingSchema)
@@ -21,33 +45,6 @@ export const bookingsProcedure = authedProcedure
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
     const { bookingId } = input;
     const loggedInUser = ctx.user;
-    const bookingInclude = {
-      attendees: true,
-      eventType: {
-        include: {
-          team: {
-            select: {
-              id: true,
-              name: true,
-              parentId: true,
-            },
-          },
-        },
-      },
-      destinationCalendar: true,
-      references: true,
-      user: {
-        include: {
-          destinationCalendar: true,
-          credentials: true,
-          profiles: {
-            select: {
-              organizationId: true,
-            },
-          },
-        },
-      },
-    };
 
     const bookingByBeingAdmin = await prisma.booking.findFirst({
       where: {
@@ -68,7 +65,7 @@ export const bookingsProcedure = authedProcedure
       include: bookingInclude,
     });
 
-    if (!!bookingByBeingAdmin) {
+    if (bookingByBeingAdmin) {
       return next({ ctx: { booking: bookingByBeingAdmin } });
     }
 
@@ -114,7 +111,6 @@ export type BookingsProcedureContext = {
     user:
       | (User & {
           destinationCalendar: DestinationCalendar | null;
-          credentials: Credential[];
           profiles: { organizationId: number }[];
         })
       | null;
