@@ -1,3 +1,8 @@
+// Excel, LibreOffice and Google Sheets evaluate a cell as a formula when it
+// starts with any of these. Leading whitespace is skipped by the parsers, so
+// it has to be skipped here too.
+const FORMULA_TRIGGER = /^[\s]*[=+\-@\t\r]/;
+
 export const downloadAsCsv = (data: string | Record<string, any>[], filename: string) => {
   // If data is an array of objects, convert it to CSV string
   const csvString = typeof data === "string" ? data : objectsToCsv(data);
@@ -47,15 +52,21 @@ export const objectsToCsv = (data: Record<string, any>[]): string => {
 };
 
 export const sanitizeValue = (value: string) => {
+  // Spreadsheet apps evaluate a leading =, +, -, @, tab or CR as a formula, and
+  // they do so *after* stripping the CSV quotes - so quoting alone is not enough.
+  // Prefix with a single quote to neutralise it (OWASP CSV injection guidance).
+  const neutralized = FORMULA_TRIGGER.test(value) ? `'${value}` : value;
+
   // handling three cases:
   // 1. quotes - we need to double quotes for CSV
   // 2. commas
-  // 3. newlines
-  if (value.includes('"')) {
-    return `"${value.replace(/"/g, '""')}"`;
+  // 3. line breaks - CR, LF and CRLF are all record separators per RFC 4180,
+  //    so a bare \r has to be quoted too or it splits the row
+  if (neutralized.includes('"')) {
+    return `"${neutralized.replace(/"/g, '""')}"`;
   }
-  if (value.includes(",") || value.includes("\n")) {
-    return `"${value}"`;
+  if (neutralized.includes(",") || /[\r\n]/.test(neutralized)) {
+    return `"${neutralized}"`;
   }
-  return value;
+  return neutralized;
 };
