@@ -1,3 +1,5 @@
+const ELLIPSIS = "...";
+
 export const truncate = (text: string, maxLength: number, ellipsis = true) => {
   if (text.length <= maxLength) return text;
 
@@ -7,16 +9,17 @@ export const truncate = (text: string, maxLength: number, ellipsis = true) => {
 export const truncateOnWord = (text: string, maxLength: number, ellipsis = true) => {
   if (text.length <= maxLength) return text;
 
-  const suffix = ellipsis ? "..." : "";
-  // Reserve room for the ellipsis so the result never exceeds maxLength.
-  const budget = Math.max(maxLength - suffix.length, 0);
+  if (maxLength <= 0) return "";
+
+  // Only spend characters on the ellipsis if it leaves room for actual text.
+  const suffix = ellipsis && maxLength > ELLIPSIS.length ? ELLIPSIS : "";
+  const budget = maxLength - suffix.length;
 
   const hardCut = text.slice(0, budget);
 
-  // Then split on the last space, this way we split on the last word,
-  // which looks just a bit nicer. Languages that don't separate words with
-  // spaces (ja, ko, zh, th) have no boundary to break on, so fall back to the
-  // hard cut rather than dropping the whole string.
+  // Prefer breaking at a complete word, but keep the text when there is no word
+  // boundary to break on — languages that don't separate words with spaces
+  // (ja, ko, zh, th) would otherwise lose the whole string.
   const lastSpace = hardCut.lastIndexOf(" ");
   const truncatedText = lastSpace > 0 ? hardCut.slice(0, lastSpace) : hardCut;
 

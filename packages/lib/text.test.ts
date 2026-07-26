@@ -100,6 +100,28 @@ describe("Text util tests", () => {
       expect(truncateOnWord(text, 10, false).length).toEqual(10);
     });
 
+    it("should stay within maxLength even when it is shorter than the ellipsis", () => {
+      const text = "a".repeat(500);
+
+      // There is no room for "..." and any text, so the ellipsis is dropped
+      // rather than returned on its own and blowing the limit.
+      expect(truncateOnWord(text, 0)).toEqual("");
+      expect(truncateOnWord(text, 1)).toEqual("a");
+      expect(truncateOnWord(text, 2)).toEqual("aa");
+      expect(truncateOnWord(text, 3)).toEqual("aaa");
+      expect(truncateOnWord(text, 4)).toEqual("a...");
+
+      for (const maxLength of [0, 1, 2, 3, 4, 5]) {
+        expect(truncateOnWord(text, maxLength).length, `maxLength=${maxLength}`).toBeLessThanOrEqual(
+          maxLength
+        );
+        expect(
+          truncateOnWord(text, maxLength, false).length,
+          `maxLength=${maxLength}, no ellipsis`
+        ).toBeLessThanOrEqual(maxLength);
+      }
+    });
+
     it("should fall back to a hard cut for languages without spaces", () => {
       const cases = [
         { input: "予約ページの説明文です。".repeat(30), label: "ja" },
