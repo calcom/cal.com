@@ -441,6 +441,10 @@ describe("Post-Booking Events - Hashed Link Usage", () => {
           message: "private_link_expired",
         });
 
+        // Ensure rejection happens before any booking persistence (not just after a write).
+        const bookings = await prismaMock.booking.findMany();
+        expect(bookings).toHaveLength(0);
+
         await expectHashedLinkUsageToBe(hashedLinkData.link, 1);
       },
       timeout
