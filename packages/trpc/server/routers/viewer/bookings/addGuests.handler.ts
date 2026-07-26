@@ -208,10 +208,18 @@ export async function sanitizeAndFilterGuests(
   const guestEmailsLowerCase = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
   const emailToRequiresVerification = await getEmailVerificationRequirements(guestEmailsLowerCase);
 
-  // Create a map of email to guest object for easy lookup
-  const emailToGuestMap = new Map(
-    guests.map((guest) => [extractBaseEmail(guest.email).toLowerCase(), guest])
-  );
+  // Create a map of email to guest object for easy lookup.
+  // deduplicateGuestEmails keeps the FIRST occurrence of a base email, so this
+  // map has to keep the first one too - `new Map(entries)` would let a later
+  // duplicate overwrite it and we'd return a guest whose email didn't survive
+  // deduplication.
+  const emailToGuestMap = new Map<string, (typeof guests)[number]>();
+  for (const guest of guests) {
+    const baseEmail = extractBaseEmail(guest.email).toLowerCase();
+    if (!emailToGuestMap.has(baseEmail)) {
+      emailToGuestMap.set(baseEmail, guest);
+    }
+  }
 
   const uniqueGuestEmails = deduplicatedGuests.filter((email) => {
     const baseGuestEmail = extractBaseEmail(email).toLowerCase();
