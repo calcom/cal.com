@@ -68,6 +68,11 @@ export class EmbedElement extends HTMLElement {
   }
 
   private ensureContainerTakesSkeletonHeightWhenVisible() {
+    // Cancel any in-flight rAF chain so resize/toggle cannot stack independent loops.
+    if (this.skeletonContainerHeightTimer !== null) {
+      cancelAnimationFrame(this.skeletonContainerHeightTimer);
+      this.skeletonContainerHeightTimer = null;
+    }
     const skeletonEl = this.getSkeletonElement();
     const skeletonContainerEl = this.getSkeletonContainerElement();
     const isModal = this.isModal;
@@ -130,11 +135,12 @@ export class EmbedElement extends HTMLElement {
     } else {
       skeletonEl.style.display = show ? "block" : "none";
       loaderEl.style.display = "none";
-      if (!this.isModal && !show) {
+      if (!this.isModal) {
         const skeletonContainerNotContainingIframe = skeletonContainerEl;
         // In non-modal layout, skeletonContainerEl is static positioned before the slot(i.e. iframe) and it takes space even if its content is hidden. So, we explicitly set display to none
         // Also, it doesn't contain anything other than skeleton, so it is safe to set display to none
-        skeletonContainerNotContainingIframe.style.display = "none";
+        // When showing again, clear display:none so the skeleton can take space.
+        skeletonContainerNotContainingIframe.style.display = show ? "" : "none";
       }
     }
     this.ensureContainerTakesSkeletonHeightWhenVisible();

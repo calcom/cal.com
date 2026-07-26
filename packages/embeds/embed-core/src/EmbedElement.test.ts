@@ -291,6 +291,22 @@ describe("EmbedElement", () => {
         expect(skeletonContainerEl.style.height).toBe("");
         expect(skeletonContainerEl.style.display).toBe("none");
       });
+
+      it("should restore skeleton container display when loader is shown again", () => {
+        element = createTestEmbedElement({
+          dataset: {
+            pageType: "user.event.booking.slots",
+          },
+        });
+
+        expectSkeletonLoader(element);
+        element.toggleLoader(false);
+        expect(element.getSkeletonContainerElement().style.display).toBe("none");
+
+        element.toggleLoader(true);
+        expectSkeletonLoader(element);
+        expect(element.getSkeletonContainerElement().style.display).toBe("");
+      });
     });
 
     describe("Modal Mode", () => {
@@ -447,6 +463,7 @@ describe("EmbedElement", () => {
         expectSkeletonLoader(element);
         element.toggleLoader(false);
         expectLoaderToBeHidden(element);
+        element.getSkeletonContainerElement().style.display = "block";
 
         fakeDeviceMatchesMediaQuery("(max-width: 768px)");
         window.dispatchEvent(new Event("resize"));
@@ -455,6 +472,7 @@ describe("EmbedElement", () => {
         expectLoaderToBeHidden(element);
         expect(element.getSkeletonContainerElement().style.display).toBe("none");
       });
+
     });
 
     describe("Cleanup Behavior", () => {
