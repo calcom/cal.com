@@ -24,8 +24,10 @@ export const addTimezonesToDropdown = (timezones: Timezones) => {
   );
 };
 
-const formatOffset = (offset: string) =>
-  offset.replace(/^([-+])(0)(\d):00$/, (_, sign, _zero, hour) => `${sign}${hour}:00`);
+// Drop the padding zero from the hour so every zone reads the same way, whether
+// its offset lands on the hour (+9:00) or not (+5:30, +5:45).
+export const formatOffset = (offset: string) =>
+  offset.replace(/^([-+])0(\d):(\d{2})$/, (_, sign, hour, minutes) => `${sign}${hour}:${minutes}`);
 
 export const handleOptionLabel = (option: ITimezoneOption, timezones: Timezones) => {
   const offsetUnit = option.label.split(/[-+]/)[0].substring(1);
