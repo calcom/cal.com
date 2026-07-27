@@ -4,7 +4,8 @@ import z from "zod";
 import logger from "./logger";
 
 export function parseIpFromHeaders(value: string | string[]) {
-  return Array.isArray(value) ? value[0] : value.split(",")[0];
+  const rawIp = Array.isArray(value) ? value[0] : value.split(",")[0];
+  return rawIp.trim();
 }
 
 /**
