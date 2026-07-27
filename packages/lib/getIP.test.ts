@@ -37,6 +37,9 @@ describe("parseIpFromHeaders", () => {
   it("returns an empty string for an empty array instead of throwing", () => {
     expect(parseIpFromHeaders([])).toBe("");
   });
+  it("trims tabs and other whitespace, not just spaces", () => {
+    expect(parseIpFromHeaders("\t1.2.3.4\t, 5.6.7.8")).toBe("1.2.3.4");
+  });
 });
 
 describe("getIP", () => {
