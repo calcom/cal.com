@@ -34,6 +34,9 @@ describe("parseIpFromHeaders", () => {
   it("trims leading/trailing whitespace from a padded array element", () => {
     expect(parseIpFromHeaders(["  1.2.3.4  ", "5.6.7.8"])).toBe("1.2.3.4");
   });
+  it("returns an empty string for an empty array instead of throwing", () => {
+    expect(parseIpFromHeaders([])).toBe("");
+  });
 });
 
 describe("getIP", () => {
@@ -90,7 +93,11 @@ describe("getIP", () => {
     const originalBanlist = process.env.IP_BANLIST;
 
     afterEach(() => {
-      process.env.IP_BANLIST = originalBanlist;
+      if (originalBanlist === undefined) {
+        delete process.env.IP_BANLIST;
+      } else {
+        process.env.IP_BANLIST = originalBanlist;
+      }
     });
 
     it("still detects a banned IP when x-forwarded-for is padded with whitespace", () => {

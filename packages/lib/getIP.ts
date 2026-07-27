@@ -5,8 +5,9 @@ import logger from "./logger";
 
 export function parseIpFromHeaders(value: string | string[]) {
   const rawIp = Array.isArray(value) ? value[0] : value.split(",")[0];
-  return rawIp.trim();
+  return rawIp?.trim() ?? "";
 }
+
 
 /**
  * Tries to extract IP address from a request.
