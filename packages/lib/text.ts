@@ -7,14 +7,15 @@ export const truncate = (text: string, maxLength: number, ellipsis = true) => {
 export const truncateOnWord = (text: string, maxLength: number, ellipsis = true) => {
   if (text.length <= maxLength) return text;
 
-  // First split on maxLength chars
-  let truncatedText = text.substring(0, 148);
+  const ellipsisLength = ellipsis ? 3 : 0;
+  let truncatedText = text.substring(0, maxLength - ellipsisLength);
 
-  // Then split on the last space, this way we split on the last word,
-  // which looks just a bit nicer.
-  truncatedText = truncatedText.substring(0, Math.min(truncatedText.length, truncatedText.lastIndexOf(" ")));
+  // Split on the last word boundary for a cleaner result.
+  // Fall back to the hard character cut when no space is present (CJK, URLs, etc.)
+  const lastSpace = truncatedText.lastIndexOf(" ");
+  if (lastSpace > 0) {
+    truncatedText = truncatedText.substring(0, lastSpace);
+  }
 
-  if (ellipsis) truncatedText += "...";
-
-  return truncatedText;
+  return ellipsis ? truncatedText + "..." : truncatedText;
 };
