@@ -2,10 +2,14 @@ import { ascendingLimitKeys } from "./intervalLimit";
 import type { IntervalLimit } from "./intervalLimitSchema";
 
 export const validateIntervalLimitOrder = (input: IntervalLimit) => {
-  // Sort limits by validationOrder
-  const sorted = Object.entries(input)
-    .sort(([, value], [, valuetwo]) => {
-      return value - valuetwo;
+  const entries = Object.entries(input) as [keyof IntervalLimit, number][];
+
+  // Sort by value; break ties by canonical key order so equal limits are always valid
+  // regardless of object key insertion order.
+  const sorted = entries
+    .sort(([keyA, valueA], [keyB, valueB]) => {
+      if (valueA !== valueB) return valueA - valueB;
+      return ascendingLimitKeys.indexOf(keyA) - ascendingLimitKeys.indexOf(keyB);
     })
     .map(([key]) => key);
 
