@@ -1,18 +1,34 @@
 import { HttpError } from "./http-error";
 
+async function getErrorBody(response: Response): Promise<Record<string, unknown>> {
+  const text = await response.text();
+  if (text.length === 0) {
+    return { message: response.statusText || response.status.toString() };
+  }
+  try {
+    const parsed = JSON.parse(text);
+    if (typeof parsed === "object" && parsed !== null) {
+      return parsed;
+    }
+    return { message: text };
+  } catch {
+    return { message: text };
+  }
+}
+
 async function http<T>(path: string, config: RequestInit): Promise<T> {
   const request = new Request(path, config);
   const response: Response = await fetch(request);
 
   if (!response.ok) {
-    const errJson = await response.json();
+    const errBody = await getErrorBody(response);
     const err = HttpError.fromRequest(
       request,
       {
         ...response,
-        statusText: errJson.message || response.statusText,
+        statusText: (errBody.message as string) || response.statusText,
       },
-      errJson
+      errBody
     );
     throw err;
   }
