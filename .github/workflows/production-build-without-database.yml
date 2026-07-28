@@ -67,9 +67,11 @@ jobs:
       - name: Delete old production build caches for this branch
         if: steps.cache-check.outputs.cache-hit != 'true'
         continue-on-error: true
+        env:
+          BRANCH_KEY: ${{ github.head_ref || github.ref_name }}
         run: |
           gh extension install actions/gh-actions-cache
-          for key in $(gh actions-cache list -R ${{ github.repository }} --key "prod-build-${{ github.head_ref || github.ref_name }}" --limit 100 | cut -f1); do
+          for key in $(gh actions-cache list -R ${{ github.repository }} --key "prod-build-$BRANCH_KEY" --limit 100 | cut -f1); do
             gh actions-cache delete "$key" -R ${{ github.repository }} --confirm
           done
         env:
