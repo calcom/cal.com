@@ -19,6 +19,7 @@ import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { DynamicModals } from "./DynamicModals";
+import { FrogButton } from "./FrogButton";
 import { KBarContent, KBarRoot } from "./Kbar";
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
@@ -205,6 +206,9 @@ function MainContainer({
     <main className="bg-default relative z-0 flex-1 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
+      <div className="flex justify-end px-2 pt-2 sm:px-4 lg:px-6">
+        <FrogButton />
+      </div>
       <div className="max-w-full p-2 sm:p-4 lg:p-6">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
