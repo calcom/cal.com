@@ -170,6 +170,7 @@ export function getHttpStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.EventTypeNotFound:
     case ErrorCode.BookingNotFound:
     case ErrorCode.RestrictionScheduleNotFound:
+    case ErrorCode.PrivateLinkExpired:
       return 404;
     case ErrorCode.UnableToSubscribeToThePlatform:
     case ErrorCode.UpdatingOauthClientError:

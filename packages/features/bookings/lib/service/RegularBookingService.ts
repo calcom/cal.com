@@ -579,10 +579,7 @@ async function handler(
       await deps.hashedLinkService.validateAndIncrementUsage(reqBody.hashedLink);
     } catch (error) {
       tracingLogger.error("Private link validation/consume failed", safeStringify(error));
-      throw new HttpError({
-        statusCode: 404,
-        message: ErrorCode.PrivateLinkExpired,
-      });
+      throw ErrorWithCode.Factory.PrivateLinkExpired(ErrorCode.PrivateLinkExpired);
     }
   }
 

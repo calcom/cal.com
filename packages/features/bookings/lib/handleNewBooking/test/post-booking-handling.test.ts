@@ -437,7 +437,7 @@ describe("Post-Booking Events - Hashed Link Usage", () => {
             bookingData: mockBookingRequest,
           })
         ).rejects.toMatchObject({
-          statusCode: 404,
+          code: "private_link_expired",
           message: "private_link_expired",
         });
 
