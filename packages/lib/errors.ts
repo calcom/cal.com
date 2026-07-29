@@ -78,10 +78,18 @@ async function getResponseBody(response: Response): Promise<string> {
   }
 }
 
+function statusCodeToErrorCode(status: number): ErrorCode {
+  if (status === 400) return ErrorCode.BadRequest;
+  if (status === 401) return ErrorCode.Unauthorized;
+  if (status === 403) return ErrorCode.Forbidden;
+  if (status === 404) return ErrorCode.NotFound;
+  return ErrorCode.InternalServerError;
+}
+
 export async function handleErrorsJson<Type>(response: Response): Promise<Type> {
   if (!response.ok) {
     const body = await getResponseBody(response);
-    throw new ErrorWithCode(ErrorCode.InternalServerError, `HTTP error ${response.status}: ${body}`);
+    throw new ErrorWithCode(statusCodeToErrorCode(response.status), `HTTP error ${response.status}: ${body}`);
   }
 
   if (response.headers.get("content-encoding") === "gzip") {
@@ -109,7 +117,7 @@ export async function handleErrorsRaw(response: Response) {
   }
   if (!response.ok) {
     const body = await getResponseBody(response);
-    throw new ErrorWithCode(ErrorCode.InternalServerError, `HTTP error ${response.status}: ${body}`);
+    throw new ErrorWithCode(statusCodeToErrorCode(response.status), `HTTP error ${response.status}: ${body}`);
   }
   return response.text();
 }

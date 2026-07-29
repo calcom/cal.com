@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getErrorFromUnknown, handleErrorsJson, handleErrorsRaw } from "./errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode, getErrorFromUnknown, handleErrorsJson, handleErrorsRaw } from "./errors";
 
 describe("handleErrorsJson", () => {
   it("should parse a successful JSON response", async () => {
@@ -16,12 +17,36 @@ describe("handleErrorsJson", () => {
 
   it("should throw on error response with JSON body", async () => {
     const response = new Response(JSON.stringify({ message: "Resource not found" }), { status: 404 });
-    await expect(handleErrorsJson(response)).rejects.toThrow("HTTP error 404: Resource not found");
+    const err = await (handleErrorsJson(response).catch((e) => e) as Promise<ErrorWithCode>);
+    expect(err).toBeInstanceOf(ErrorWithCode);
+    expect(err.code).toBe(ErrorCode.NotFound);
+    expect(err.message).toBe("HTTP error 404: Resource not found");
   });
 
   it("should throw on error response with non-JSON body", async () => {
     const response = new Response("Internal Server Error", { status: 500 });
-    await expect(handleErrorsJson(response)).rejects.toThrow("HTTP error 500: Internal Server Error");
+    const err = await (handleErrorsJson(response).catch((e) => e) as Promise<ErrorWithCode>);
+    expect(err).toBeInstanceOf(ErrorWithCode);
+    expect(err.code).toBe(ErrorCode.InternalServerError);
+    expect(err.message).toBe("HTTP error 500: Internal Server Error");
+  });
+
+  it("should throw on 400 with BadRequest error code", async () => {
+    const response = new Response(JSON.stringify({ message: "Invalid input" }), { status: 400 });
+    const err = await (handleErrorsJson(response).catch((e) => e) as Promise<ErrorWithCode>);
+    expect(err.code).toBe(ErrorCode.BadRequest);
+  });
+
+  it("should throw on 401 with Unauthorized error code", async () => {
+    const response = new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
+    const err = await (handleErrorsJson(response).catch((e) => e) as Promise<ErrorWithCode>);
+    expect(err.code).toBe(ErrorCode.Unauthorized);
+  });
+
+  it("should throw on 403 with Forbidden error code", async () => {
+    const response = new Response(JSON.stringify({ message: "Forbidden" }), { status: 403 });
+    const err = await (handleErrorsJson(response).catch((e) => e) as Promise<ErrorWithCode>);
+    expect(err.code).toBe(ErrorCode.Forbidden);
   });
 
   it("should throw when JSON parsing fails on success response", async () => {
@@ -46,7 +71,9 @@ describe("handleErrorsJson", () => {
       status: 404,
       headers: { "content-encoding": "gzip" },
     });
-    await expect(handleErrorsJson(response)).rejects.toThrow("HTTP error 404: Not Found");
+    const err = await (handleErrorsJson(response).catch((e) => e) as Promise<ErrorWithCode>);
+    expect(err.code).toBe(ErrorCode.NotFound);
+    expect(err.message).toBe("HTTP error 404: Not Found");
   });
 });
 

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { get, patch, post, put, remove } from "./fetch-wrapper";
+import { HttpError } from "./http-error";
 
 const mockFetch = vi.fn();
 
@@ -35,6 +36,8 @@ describe("http wrapper functions", () => {
     expect(mockFetch).toHaveBeenCalledWith(
       expect.objectContaining({
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "test" }),
       })
     );
   });
@@ -49,6 +52,8 @@ describe("http wrapper functions", () => {
     expect(mockFetch).toHaveBeenCalledWith(
       expect.objectContaining({
         method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "test" }),
       })
     );
   });
@@ -63,6 +68,8 @@ describe("http wrapper functions", () => {
     expect(mockFetch).toHaveBeenCalledWith(
       expect.objectContaining({
         method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "test" }),
       })
     );
   });
@@ -75,6 +82,8 @@ describe("http wrapper functions", () => {
     expect(mockFetch).toHaveBeenCalledWith(
       expect.objectContaining({
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: 1 }),
       })
     );
   });
@@ -84,7 +93,20 @@ describe("http wrapper functions", () => {
       new Response(JSON.stringify({ message: "Bad Request" }), { status: 400 })
     );
 
-    await expect(get("http://localhost/api/test")).rejects.toThrow("Bad Request");
+    await expect(get("http://localhost/api/test")).rejects.toThrow(HttpError);
+  });
+
+  it("should throw HttpError with statusCode 400 for bad request", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: "Validation failed" }), { status: 400 })
+    );
+
+    const err = await get("http://localhost/api/test").catch((e) => e) as HttpError;
+    expect(err).toBeInstanceOf(HttpError);
+    expect(err.statusCode).toBe(400);
+    expect(err.message).toBe("Validation failed");
+    expect(err.url).toBe("http://localhost/api/test");
+    expect(err.method).toBe("GET");
   });
 
   it("should throw HttpError on error response with non-JSON body", async () => {
@@ -92,7 +114,10 @@ describe("http wrapper functions", () => {
       new Response("Service Unavailable", { status: 503, statusText: "Service Unavailable" })
     );
 
-    await expect(get("http://localhost/api/test")).rejects.toThrow("Service Unavailable");
+    const err = await get("http://localhost/api/test").catch((e) => e) as HttpError;
+    expect(err).toBeInstanceOf(HttpError);
+    expect(err.statusCode).toBe(503);
+    expect(err.message).toBe("Service Unavailable");
   });
 
   it("should throw on network failure", async () => {
