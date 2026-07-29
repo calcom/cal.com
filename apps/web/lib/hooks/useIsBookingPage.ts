@@ -48,7 +48,8 @@ export function isBookingPath(pathname: string | null): boolean {
   const isKnownBookingPage = bookingRootPaths.some((route) => matchesPathSegment(pathname, route));
   const isBookingsListPage = bookingsListPaths.some((route) => pathname.endsWith(route));
 
-  if (isKnownBookingPage) return !isBookingsListPage;
+  if (isBookingsListPage) return false;
+  if (isKnownBookingPage) return true;
 
   return !reservedRootPaths.some((route) => matchesPathSegment(pathname, route));
 }

@@ -25,6 +25,13 @@ describe("isBookingPath", () => {
     expect(isBookingPath(pathname)).toBe(false);
   });
 
+  it.each(["/upcoming", "/unconfirmed", "/recurring", "/cancelled", "/past"])(
+    "does not classify the booking-list path %s as a booking page",
+    (pathname) => {
+      expect(isBookingPath(pathname)).toBe(false);
+    }
+  );
+
   it("matches reserved paths by complete segment", () => {
     expect(isBookingPath("/settings-coach")).toBe(true);
   });
