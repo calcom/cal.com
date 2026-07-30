@@ -18,10 +18,8 @@ export const slugify = (str: string, forDisplayingInput?: boolean) => {
     .replace(/^-+/, "") // Remove dashes from start
     .replace(/\.{2,}/g, ".") // Replace consecutive periods with a single period
     .replace(/^\.+/, "") // Remove periods from the start
-    .replace(
-      /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
-      ""
-    ) // Removes emojis
+    // @ts-ignore - Unicode property escapes require ES6+ target in some TS configs
+    .replace(/\p{Extended_Pictographic}/gu, "") // Remove emojis and pictographic symbols. \p{Emoji} in the filter above intentionally keeps these so they can be stripped here; the previous range-based regex missed low-codepoint symbols like the copyright (U+00A9) and registered (U+00AE) signs.
     .replace(/\s+/g, " ")
     .replace(/-+/g, "-"); // Replace consecutive dashes with a single dash
 

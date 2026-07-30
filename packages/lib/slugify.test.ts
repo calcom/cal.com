@@ -49,14 +49,15 @@ describe("slugify", () => {
     expect(slugify("Hello -  World 123_ !@#  Test    456   789")).toEqual("hello-world-123-test-456-789");
   });
 
-  // This is failing, if we want to fix it, one approach is as used in getValidRhfFieldName
   it("should remove emoji characters", () => {
     expect(slugify("Hello 📚🕯️ There")).toEqual("hello-there");
     expect(slugify("📚🕯️")).toEqual("");
   });
 
-  it.skip("should remove unicode", () => {
+  it("should remove unicode pictographic symbols", () => {
     expect(slugify("Hello ®️ There")).toEqual("hello-there");
     expect(slugify("®️")).toEqual("");
+    expect(slugify("©2026 Team")).toEqual("2026-team");
+    expect(slugify("Coaching™")).toEqual("coaching");
   });
 });
