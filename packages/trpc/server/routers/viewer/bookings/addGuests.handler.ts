@@ -208,10 +208,16 @@ export async function sanitizeAndFilterGuests(
   const guestEmailsLowerCase = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
   const emailToRequiresVerification = await getEmailVerificationRequirements(guestEmailsLowerCase);
 
-  // Create a map of email to guest object for easy lookup
-  const emailToGuestMap = new Map(
-    guests.map((guest) => [extractBaseEmail(guest.email).toLowerCase(), guest])
-  );
+  // Build the map so the first occurrence wins — matching deduplicateGuestEmails behaviour.
+  // new Map(array) lets later entries overwrite earlier ones, so the returned guest object
+  // could come from the wrong duplicate (mismatched name, timeZone, language, etc.).
+  const emailToGuestMap = new Map<string, (typeof guests)[number]>();
+  for (const guest of guests) {
+    const key = extractBaseEmail(guest.email).toLowerCase();
+    if (!emailToGuestMap.has(key)) {
+      emailToGuestMap.set(key, guest);
+    }
+  }
 
   const uniqueGuestEmails = deduplicatedGuests.filter((email) => {
     const baseGuestEmail = extractBaseEmail(email).toLowerCase();
