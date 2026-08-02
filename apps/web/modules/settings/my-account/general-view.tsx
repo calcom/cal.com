@@ -90,13 +90,13 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   ];
 
   const weekStartOptions = [
-    { value: "Sunday", label: nameOfDay(localeProp, 0) },
-    { value: "Monday", label: nameOfDay(localeProp, 1) },
-    { value: "Tuesday", label: nameOfDay(localeProp, 2) },
-    { value: "Wednesday", label: nameOfDay(localeProp, 3) },
-    { value: "Thursday", label: nameOfDay(localeProp, 4) },
-    { value: "Friday", label: nameOfDay(localeProp, 5) },
-    { value: "Saturday", label: nameOfDay(localeProp, 6) },
+    { value: "Sunday", label: nameOfDay(language, 0) },
+    { value: "Monday", label: nameOfDay(language, 1) },
+    { value: "Tuesday", label: nameOfDay(language, 2) },
+    { value: "Wednesday", label: nameOfDay(language, 3) },
+    { value: "Thursday", label: nameOfDay(language, 4) },
+    { value: "Friday", label: nameOfDay(language, 5) },
+    { value: "Saturday", label: nameOfDay(language, 6) },
   ];
 
   const formMethods = useForm<FormValues>({
@@ -278,7 +278,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     <>{t("time_format")}</>
                   </Label>
                   <Select
-                    value={value}
+                    value={timeFormatOptions.find((option) => option.value === (typeof value === "object" ? value?.value : value)) || value}
                     options={timeFormatOptions}
                     onChange={(event) => {
                       if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
@@ -300,7 +300,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     <>{t("start_of_week")}</>
                   </Label>
                   <Select
-                    value={value}
+                    value={weekStartOptions.find((option) => option.value === (typeof value === "object" ? value?.value : value)) || value}
                     options={weekStartOptions}
                     onChange={(event) => {
                       if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
