@@ -31,14 +31,7 @@ export class GoogleCalendarService {
   ) {}
 
   async getEventDetails(eventUid: string, userId: number): Promise<GoogleCalendarEventResponse> {
-    const bookingReference =
-      await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
-
-    // Same "not found" response for a missing reference and one owned by someone
-    // else, so this endpoint can't be used to enumerate other users' event UIDs.
-    if (!bookingReference || bookingReference.booking?.user?.id !== userId) {
-      throw new NotFoundException("Booking reference not found");
-    }
+    const bookingReference = await this.getValidatedBookingReference(eventUid, userId);
 
     const ownerUserEmail = bookingReference?.booking?.user?.email;
 
@@ -70,14 +63,7 @@ export class GoogleCalendarService {
     updateData: UpdateUnifiedCalendarEventInput,
     userId: number
   ): Promise<GoogleCalendarEventResponse> {
-    const bookingReference =
-      await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
-
-    // Same "not found" response for a missing reference and one owned by someone
-    // else, so this endpoint can't be used to enumerate other users' event UIDs.
-    if (!bookingReference || bookingReference.booking?.user?.id !== userId) {
-      throw new NotFoundException("Booking reference not found");
-    }
+    const bookingReference = await this.getValidatedBookingReference(eventUid, userId);
 
     const ownerUserEmail = bookingReference?.booking?.user?.email;
 
@@ -103,6 +89,22 @@ export class GoogleCalendarService {
     } catch (error) {
       throw new NotFoundException("Failed to update meeting details");
     }
+  }
+
+  /**
+   * Looks up the booking reference for an event UID and verifies it belongs to userId.
+   * Returns the same "not found" response for a missing reference and one owned by
+   * someone else, so this endpoint can't be used to enumerate other users' event UIDs.
+   */
+  private async getValidatedBookingReference(eventUid: string, userId: number) {
+    const bookingReference =
+      await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
+
+    if (!bookingReference || bookingReference.booking?.user?.id !== userId) {
+      throw new NotFoundException("Booking reference not found");
+    }
+
+    return bookingReference;
   }
 
   /**
