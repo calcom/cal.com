@@ -1,12 +1,12 @@
 import dayjs from "@calcom/dayjs";
 import type { ITimezoneOption } from "react-timezone-select";
-
 import isProblematicTimezone from "./isProblematicTimezone";
 
 type Timezones = { label: string; timezone: string }[];
 
 const searchTextFilter = (tzOption: Timezones[number], searchText: string): boolean => {
-  return searchText && tzOption.label.toLowerCase().includes(searchText.toLowerCase());
+  if (!searchText) return false;
+  return tzOption.label.toLowerCase().includes(searchText.toLowerCase());
 };
 
 const filterBySearchText = (searchText: string, timezones: Timezones): Timezones => {
