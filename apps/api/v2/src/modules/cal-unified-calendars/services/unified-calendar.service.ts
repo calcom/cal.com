@@ -92,15 +92,20 @@ export class UnifiedCalendarService {
 
   // ─── User-scoped calendar operations ───────────────────────────────────
 
-  async getEventDetails(calendar: string, eventUid: string) {
+  async getEventDetails(calendar: string, eventUid: string, userId: number) {
     this.ensureGoogleCalendar(calendar, "Meeting details");
-    const event = await this.googleCalendarService.getEventDetails(eventUid);
+    const event = await this.googleCalendarService.getEventDetails(eventUid, userId);
     return this.transformEvent(event);
   }
 
-  async updateEventDetails(calendar: string, eventUid: string, updateData: UpdateUnifiedCalendarEventInput) {
+  async updateEventDetails(
+    calendar: string,
+    eventUid: string,
+    updateData: UpdateUnifiedCalendarEventInput,
+    userId: number
+  ) {
     this.ensureGoogleCalendar(calendar, "Event updates");
-    const event = await this.googleCalendarService.updateEventDetails(eventUid, updateData);
+    const event = await this.googleCalendarService.updateEventDetails(eventUid, updateData, userId);
     return this.transformEvent(event);
   }
 

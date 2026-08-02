@@ -1,28 +1,27 @@
 /**
- * POC: IDOR / broken object-level authorization in GoogleCalendarService#getEventDetails
- * and #updateEventDetails.
+ * Regression test for the IDOR / broken object-level authorization fix in
+ * GoogleCalendarService#getEventDetails and #updateEventDetails.
  *
- * Both methods resolve a booking reference by `eventUid` alone
- * (BookingReferencesRepository_2024_08_13#getBookingReferencesIncludeSensitiveCredentials),
- * then authenticate to Google Calendar using the CREDENTIAL OWNER's stored OAuth
- * key/delegation — without ever taking or checking a caller `userId`.
+ * Originally, both methods resolved a booking reference by `eventUid` alone
+ * (BookingReferencesRepository_2024_08_13#getBookingReferencesIncludeSensitiveCredentials)
+ * and authenticated to Google Calendar using the CREDENTIAL OWNER's stored OAuth
+ * key/delegation — without ever taking or checking a caller `userId`. Any
+ * authenticated caller who knew/obtained another user's `eventUid` (e.g. from a
+ * calendar invite, shared calendar, or webhook payload) could read or modify that
+ * user's calendar event using the owner's own credentials.
+ *
+ * The fix threads `userId` from the controller through
+ * UnifiedCalendarService -> GoogleCalendarService, which now compares it against
+ * `bookingReference.booking.user.id` and throws NotFoundException (not
+ * ForbiddenException) on mismatch — deliberately indistinguishable from the
+ * "reference doesn't exist" case, so this endpoint can't be used to confirm
+ * whether a given eventUid belongs to someone else.
  *
  * This test simulates two tenants:
  *   - victim  (userId 1): owns the booking / calendar credential for `eventUid`
  *   - attacker (userId 2): the caller, who knows/guesses `eventUid`
  *
- * It proves that calling the service with only `eventUid` (exactly what the
- * controller does today — see cal-unified-calendars.controller.ts
- * getCalendarEventDetails/updateCalendarEvent) returns and mutates the VICTIM's
- * event using the VICTIM's credentials, with no code path ever comparing the
- * caller's identity to the booking owner.
- *
  * Run: yarn jest google-calendar.idor.poc.spec.ts (from apps/api/v2)
- *
- * Expected AFTER a fix: this file's "vulnerable" tests should start failing
- * once the service requires/validates a userId against the booking owner —
- * at that point convert them into `expect(...).rejects.toThrow(ForbiddenException)`
- * regression tests instead.
  */
 
 const mockDelegationFindById = jest.fn().mockResolvedValue(null);
@@ -67,20 +66,23 @@ jest.mock("@googleapis/calendar", () => ({
   },
 }));
 
+import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { GoogleCalendarService } from "./google-calendar.service";
 import { BookingReferencesRepository_2024_08_13 } from "@/platform/bookings/2024-08-13/repositories/booking-references.repository";
 import { GoogleCalendarService as GCalService } from "@/platform/calendars/services/gcal.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 
-describe("POC: IDOR in GoogleCalendarService.getEventDetails / updateEventDetails", () => {
+describe("Regression: IDOR fix in GoogleCalendarService.getEventDetails / updateEventDetails", () => {
   let service: GoogleCalendarService;
   let mockBookingReferencesRepo: { getBookingReferencesIncludeSensitiveCredentials: jest.Mock };
   let mockGCalService: { getOAuthClient: jest.Mock; redirectUri: string };
   let mockCredentialsRepo: Record<string, jest.Mock>;
 
+  const VICTIM_USER_ID = 1;
+  const ATTACKER_USER_ID = 2;
   const VICTIM_EMAIL = "victim@example.com";
-  const VICTIM_EVENT_UID = "victim-google-event-id-abc123"; // e.g. sequential/guessable Google event id
+  const VICTIM_EVENT_UID = "victim-google-event-id-abc123"; // e.g. leaked via a calendar invite
   const VICTIM_CALENDAR_ID = "victim-primary-calendar";
 
   const victimBookingReference = {
@@ -88,7 +90,7 @@ describe("POC: IDOR in GoogleCalendarService.getEventDetails / updateEventDetail
     externalCalendarId: VICTIM_CALENDAR_ID,
     credential: { key: { access_token: "VICTIM_ACCESS_TOKEN", refresh_token: "VICTIM_REFRESH_TOKEN" } },
     delegationCredential: null,
-    booking: { user: { id: 1, email: VICTIM_EMAIL } },
+    booking: { user: { id: VICTIM_USER_ID, email: VICTIM_EMAIL } },
   };
 
   beforeEach(async () => {
@@ -127,46 +129,60 @@ describe("POC: IDOR in GoogleCalendarService.getEventDetails / updateEventDetail
     service = module.get<GoogleCalendarService>(GoogleCalendarService);
   });
 
-  it("VULNERABLE: attacker with no relation to the victim can read the victim's event by guessing eventUid alone", async () => {
-    // Note the method signature: no userId / attacker identity is passed in or
-    // checked anywhere in the call chain. This is exactly what
-    // CalUnifiedCalendarsController#getCalendarEventDetails does today.
-    const result = await service.getEventDetails(VICTIM_EVENT_UID);
+  it("FIXED: an attacker with no relation to the victim can no longer read the victim's event by guessing eventUid", async () => {
+    await expect(service.getEventDetails(VICTIM_EVENT_UID, ATTACKER_USER_ID)).rejects.toThrow(NotFoundException);
 
-    // The attacker gets the victim's private event content back.
-    expect(result.summary).toBe("Victim's private 1:1 with therapist");
+    // Never reached Google at all — the ownership check short-circuits before
+    // any credential is used.
+    expect(mockEventsGet).not.toHaveBeenCalled();
+  });
 
-    // The lookup was keyed on eventUid only — no userId/tenant filter anywhere.
-    expect(mockBookingReferencesRepo.getBookingReferencesIncludeSensitiveCredentials).toHaveBeenCalledWith(
-      VICTIM_EVENT_UID
-    );
-    expect(mockBookingReferencesRepo.getBookingReferencesIncludeSensitiveCredentials).toHaveBeenCalledTimes(1);
+  it("FIXED: an attacker with no relation to the victim can no longer modify the victim's event by guessing eventUid", async () => {
+    const attackerSuppliedPayload = { title: "PWNED by attacker" };
 
-    // Google was queried using the VICTIM's own calendar, not anything scoped to an attacker.
+    await expect(
+      service.updateEventDetails(VICTIM_EVENT_UID, attackerSuppliedPayload, ATTACKER_USER_ID)
+    ).rejects.toThrow(NotFoundException);
+
+    expect(mockEventsPatch).not.toHaveBeenCalled();
+  });
+
+  it("FIXED: the rejection is identical to the 'reference not found' case, so existence can't be inferred", async () => {
+    mockBookingReferencesRepo.getBookingReferencesIncludeSensitiveCredentials.mockResolvedValueOnce(null);
+    let notFoundError: Error | undefined;
+    try {
+      await service.getEventDetails("does-not-exist", ATTACKER_USER_ID);
+    } catch (e) {
+      notFoundError = e as Error;
+    }
+
+    let ownedByOtherError: Error | undefined;
+    try {
+      await service.getEventDetails(VICTIM_EVENT_UID, ATTACKER_USER_ID);
+    } catch (e) {
+      ownedByOtherError = e as Error;
+    }
+
+    expect(notFoundError).toBeInstanceOf(NotFoundException);
+    expect(ownedByOtherError).toBeInstanceOf(NotFoundException);
+    expect(notFoundError?.message).toBe(ownedByOtherError?.message);
+  });
+
+  it("sanity check: the legitimate owner can still read and update their own event", async () => {
+    const readResult = await service.getEventDetails(VICTIM_EVENT_UID, VICTIM_USER_ID);
+    expect(readResult.summary).toBe("Victim's private 1:1 with therapist");
     expect(mockEventsGet).toHaveBeenCalledWith(
       expect.objectContaining({ calendarId: VICTIM_CALENDAR_ID, eventId: VICTIM_EVENT_UID })
     );
-  });
 
-  it("VULNERABLE: attacker with no relation to the victim can modify the victim's event by guessing eventUid alone", async () => {
-    const attackerSuppliedPayload = { title: "PWNED by attacker" };
-
-    const result = await service.updateEventDetails(VICTIM_EVENT_UID, attackerSuppliedPayload);
-
-    expect(result.summary).toBe("PWNED by attacker");
+    const updateResult = await service.updateEventDetails(
+      VICTIM_EVENT_UID,
+      { title: "Rescheduled by owner" },
+      VICTIM_USER_ID
+    );
+    expect(updateResult.summary).toBe("PWNED by attacker"); // mocked Google response, unrelated to payload
     expect(mockEventsPatch).toHaveBeenCalledWith(
       expect.objectContaining({ calendarId: VICTIM_CALENDAR_ID, eventId: VICTIM_EVENT_UID })
     );
-  });
-
-  it("VULNERABLE: identical eventUid returns identical victim data regardless of which caller identity is asserted", async () => {
-    // Simulates two different authenticated callers (different API keys / userIds)
-    // both hitting the same controller endpoint. Because the controller/service
-    // never thread a userId through, there is no observable difference in behavior —
-    // proving the authorization check that should exist here simply doesn't run.
-    const asAttacker = await service.getEventDetails(VICTIM_EVENT_UID);
-    const asSomeOtherRandomUser = await service.getEventDetails(VICTIM_EVENT_UID);
-
-    expect(asAttacker).toEqual(asSomeOtherRandomUser);
   });
 });

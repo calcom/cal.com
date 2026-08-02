@@ -249,9 +249,10 @@ export class CalUnifiedCalendarsController {
   })
   async getCalendarEventDetails(
     @Param("calendar") calendar: string,
-    @Param("eventUid") eventUid: string
+    @Param("eventUid") eventUid: string,
+    @GetUser("id") userId: number
   ): Promise<GetUnifiedCalendarEventOutput> {
-    const data = await this.unifiedCalendarService.getEventDetails(calendar, eventUid);
+    const data = await this.unifiedCalendarService.getEventDetails(calendar, eventUid, userId);
     return { status: SUCCESS_STATUS, data };
   }
 
@@ -278,9 +279,10 @@ export class CalUnifiedCalendarsController {
   async updateCalendarEvent(
     @Param("calendar") calendar: string,
     @Param("eventUid") eventUid: string,
-    @Body() updateData: UpdateUnifiedCalendarEventInput
+    @Body() updateData: UpdateUnifiedCalendarEventInput,
+    @GetUser("id") userId: number
   ): Promise<GetUnifiedCalendarEventOutput> {
-    const data = await this.unifiedCalendarService.updateEventDetails(calendar, eventUid, updateData);
+    const data = await this.unifiedCalendarService.updateEventDetails(calendar, eventUid, updateData, userId);
     return { status: SUCCESS_STATUS, data };
   }
 

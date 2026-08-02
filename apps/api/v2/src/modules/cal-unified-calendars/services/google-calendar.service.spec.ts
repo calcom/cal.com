@@ -445,7 +445,19 @@ describe("GoogleCalendarService", () => {
     it("should throw NotFoundException when booking reference not found", async () => {
       mockBookingReferencesRepo.getBookingReferencesIncludeSensitiveCredentials.mockResolvedValue(null);
 
-      await expect(service.getEventDetails("non-existent-uid")).rejects.toThrow(NotFoundException);
+      await expect(service.getEventDetails("non-existent-uid", userId)).rejects.toThrow(NotFoundException);
+    });
+
+    it("should throw NotFoundException when booking reference belongs to a different user (IDOR guard)", async () => {
+      mockBookingReferencesRepo.getBookingReferencesIncludeSensitiveCredentials.mockResolvedValue({
+        uid: "some-uid",
+        externalCalendarId: "primary",
+        credential: { key: { access_token: "token" } },
+        delegationCredential: null,
+        booking: { user: { id: userId + 1, email: "owner@example.com" } },
+      });
+
+      await expect(service.getEventDetails("some-uid", userId)).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -453,7 +465,21 @@ describe("GoogleCalendarService", () => {
     it("should throw NotFoundException when booking reference not found", async () => {
       mockBookingReferencesRepo.getBookingReferencesIncludeSensitiveCredentials.mockResolvedValue(null);
 
-      await expect(service.updateEventDetails("non-existent-uid", { title: "test" })).rejects.toThrow(
+      await expect(service.updateEventDetails("non-existent-uid", { title: "test" }, userId)).rejects.toThrow(
+        NotFoundException
+      );
+    });
+
+    it("should throw NotFoundException when booking reference belongs to a different user (IDOR guard)", async () => {
+      mockBookingReferencesRepo.getBookingReferencesIncludeSensitiveCredentials.mockResolvedValue({
+        uid: "some-uid",
+        externalCalendarId: "primary",
+        credential: { key: { access_token: "token" } },
+        delegationCredential: null,
+        booking: { user: { id: userId + 1, email: "owner@example.com" } },
+      });
+
+      await expect(service.updateEventDetails("some-uid", { title: "test" }, userId)).rejects.toThrow(
         NotFoundException
       );
     });

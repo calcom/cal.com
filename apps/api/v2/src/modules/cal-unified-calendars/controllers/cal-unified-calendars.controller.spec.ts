@@ -364,11 +364,15 @@ describe("CalUnifiedCalendarsController", () => {
       };
       mockUnifiedCalendarService.getEventDetails.mockResolvedValue(transformedEvent);
 
-      const result = await controller.getCalendarEventDetails(GOOGLE_CALENDAR, "event-uid");
+      const result = await controller.getCalendarEventDetails(GOOGLE_CALENDAR, "event-uid", userId);
 
       expect(result.status).toBe(SUCCESS_STATUS);
       expect(result.data).toBeDefined();
-      expect(mockUnifiedCalendarService.getEventDetails).toHaveBeenCalledWith(GOOGLE_CALENDAR, "event-uid");
+      expect(mockUnifiedCalendarService.getEventDetails).toHaveBeenCalledWith(
+        GOOGLE_CALENDAR,
+        "event-uid",
+        userId
+      );
     });
 
     it("should propagate BadRequestException for non-Google calendar", async () => {
@@ -376,7 +380,7 @@ describe("CalUnifiedCalendarsController", () => {
         new BadRequestException("Meeting details is currently only available for Google Calendar.")
       );
 
-      await expect(controller.getCalendarEventDetails("office365", "event-uid")).rejects.toThrow(
+      await expect(controller.getCalendarEventDetails("office365", "event-uid", userId)).rejects.toThrow(
         BadRequestException
       );
     });
@@ -393,13 +397,14 @@ describe("CalUnifiedCalendarsController", () => {
       };
       mockUnifiedCalendarService.updateEventDetails.mockResolvedValue(transformedEvent);
 
-      const result = await controller.updateCalendarEvent(GOOGLE_CALENDAR, "event-uid", updateData);
+      const result = await controller.updateCalendarEvent(GOOGLE_CALENDAR, "event-uid", updateData, userId);
 
       expect(result.status).toBe(SUCCESS_STATUS);
       expect(mockUnifiedCalendarService.updateEventDetails).toHaveBeenCalledWith(
         GOOGLE_CALENDAR,
         "event-uid",
-        updateData
+        updateData,
+        userId
       );
     });
 
@@ -408,9 +413,9 @@ describe("CalUnifiedCalendarsController", () => {
         new BadRequestException("Event updates is currently only available for Google Calendar.")
       );
 
-      await expect(controller.updateCalendarEvent("office365", "event-uid", { title: "t" })).rejects.toThrow(
-        BadRequestException
-      );
+      await expect(
+        controller.updateCalendarEvent("office365", "event-uid", { title: "t" }, userId)
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

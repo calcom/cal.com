@@ -30,11 +30,13 @@ export class GoogleCalendarService {
     private readonly credentialsRepository: CredentialsRepository
   ) {}
 
-  async getEventDetails(eventUid: string): Promise<GoogleCalendarEventResponse> {
+  async getEventDetails(eventUid: string, userId: number): Promise<GoogleCalendarEventResponse> {
     const bookingReference =
       await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
 
-    if (!bookingReference) {
+    // Same "not found" response for a missing reference and one owned by someone
+    // else, so this endpoint can't be used to enumerate other users' event UIDs.
+    if (!bookingReference || bookingReference.booking?.user?.id !== userId) {
       throw new NotFoundException("Booking reference not found");
     }
 
@@ -65,12 +67,15 @@ export class GoogleCalendarService {
 
   async updateEventDetails(
     eventUid: string,
-    updateData: UpdateUnifiedCalendarEventInput
+    updateData: UpdateUnifiedCalendarEventInput,
+    userId: number
   ): Promise<GoogleCalendarEventResponse> {
     const bookingReference =
       await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
 
-    if (!bookingReference) {
+    // Same "not found" response for a missing reference and one owned by someone
+    // else, so this endpoint can't be used to enumerate other users' event UIDs.
+    if (!bookingReference || bookingReference.booking?.user?.id !== userId) {
       throw new NotFoundException("Booking reference not found");
     }
 
