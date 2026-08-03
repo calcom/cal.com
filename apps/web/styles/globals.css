@@ -400,6 +400,22 @@ html.todesktop.dark {
   -webkit-appearance: none;
 }
 
+/*
+ * Fix: WebKit/Blink browsers override text color on autofilled inputs via
+ * -webkit-text-fill-color, ignoring theme CSS variables. This causes autofilled
+ * text to render in browser-default black, which is unreadable in dark mode.
+ * Forward the theme's --foreground color so autofilled text matches manually
+ * typed text in both light and dark themes.
+ * @see https://github.com/calcom/cal.diy/issues/29803
+ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--foreground);
+  caret-color: var(--foreground);
+}
+
 .react-tel-input .country-list .country:hover,
 .react-tel-input .country-list .country.highlight {
   @apply bg-emphasis!;
