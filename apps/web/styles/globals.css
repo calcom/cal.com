@@ -400,6 +400,17 @@ html.todesktop.dark {
   -webkit-appearance: none;
 }
 
+/* WebKit overrides text color on autofilled inputs via -webkit-text-fill-color,
+   ignoring theme variables. Forward --foreground so autofilled text matches
+   the theme in both light and dark mode. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--foreground);
+  caret-color: var(--foreground);
+}
+
 .react-tel-input .country-list .country:hover,
 .react-tel-input .country-list .country.highlight {
   @apply bg-emphasis!;
