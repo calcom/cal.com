@@ -1,6 +1,6 @@
 "use client";
 
-import { isSupportedCountry } from "libphonenumber-js";
+import { getCountries, getCountryCallingCode, isSupportedCountry } from "libphonenumber-js";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import PhoneInput from "react-phone-input-2";
@@ -26,6 +26,28 @@ export type PhoneInputProps = {
   flagButtonStyle?: CSSProperties;
 };
 
+const COUNTRY_CALLING_CODES = getCountries()
+  .map((country) => getCountryCallingCode(country).toString())
+  .filter((callingCode, index, allCallingCodes) => allCallingCodes.indexOf(callingCode) === index)
+  .sort((left, right) => right.length - left.length);
+
+export const inferCountryFromPhoneValue = (value?: string): CountryCode | undefined => {
+  if (!value) return undefined;
+
+  const sanitized = value.trim().replace(/[^\d+]/g, "").replace(/^\+?/, "+");
+  if (!/^\+\d+$/.test(sanitized)) return undefined;
+
+  const dialingCode = sanitized.slice(1);
+  const matchingCallingCode = COUNTRY_CALLING_CODES.find((callingCode) => dialingCode.startsWith(callingCode));
+  if (!matchingCallingCode) return undefined;
+
+  const matchingCountries = getCountries().filter(
+    (country) => getCountryCallingCode(country).toString() === matchingCallingCode
+  );
+
+  return matchingCountries.length === 1 ? (matchingCountries[0].toLowerCase() as CountryCode) : undefined;
+};
+
 function BasePhoneInput({
   name,
   className = "",
@@ -36,7 +58,21 @@ function BasePhoneInput({
 }: PhoneInputProps) {
   const isPlatform = useIsPlatform();
   const defaultPhoneCountryFromStore = useBookerStore((state) => state.defaultPhoneCountry);
-  const effectiveDefaultCountry = defaultPhoneCountryFromStore || defaultCountry;
+  const inferredCountry = inferCountryFromPhoneValue(value);
+  const effectiveDefaultCountry = inferredCountry || defaultPhoneCountryFromStore || defaultCountry;
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>(effectiveDefaultCountry);
+
+  useEffect(() => {
+    if (!value) {
+      setSelectedCountry(effectiveDefaultCountry);
+      return;
+    }
+
+    const nextCountry = inferCountryFromPhoneValue(value);
+    if (nextCountry) {
+      setSelectedCountry(nextCountry);
+    }
+  }, [effectiveDefaultCountry, value]);
 
   // This is to trigger validation on prefill value changes
   useEffect(() => {
@@ -67,7 +103,7 @@ function BasePhoneInput({
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
       enableSearch
       disableSearchIcon
-      country={effectiveDefaultCountry}
+      country={selectedCountry}
       masks={CUSTOM_PHONE_MASKS}
       inputProps={{
         name,
@@ -76,7 +112,12 @@ function BasePhoneInput({
         autoComplete: "tel",
       }}
       onChange={(val: string) => {
-        onChange(val.startsWith("+") ? val : `+${val}`);
+        const nextValue = val.startsWith("+") ? val : `+${val}`;
+        const nextCountry = inferCountryFromPhoneValue(nextValue);
+        if (nextCountry) {
+          setSelectedCountry(nextCountry);
+        }
+        onChange(nextValue);
       }}
       containerClass={classNames(
         "hover:border-emphasis focus-within:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-0 focus-within:ring-brand-default disabled:cursor-not-allowed",
@@ -112,12 +153,27 @@ function BasePhoneInputWeb({
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
+  const inferredCountry = inferCountryFromPhoneValue(value);
+  const effectiveDefaultCountry = inferredCountry || defaultCountry;
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>(effectiveDefaultCountry);
+
+  useEffect(() => {
+    if (!value) {
+      setSelectedCountry(effectiveDefaultCountry);
+      return;
+    }
+
+    const nextCountry = inferCountryFromPhoneValue(value);
+    if (nextCountry) {
+      setSelectedCountry(nextCountry);
+    }
+  }, [effectiveDefaultCountry, value]);
 
   return (
     <PhoneInput
       {...rest}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
-      country={value ? undefined : defaultCountry}
+      country={selectedCountry}
       enableSearch
       disableSearchIcon
       masks={CUSTOM_PHONE_MASKS}
@@ -128,7 +184,12 @@ function BasePhoneInputWeb({
         autoComplete: "tel",
       }}
       onChange={(val: string) => {
-        onChange(val.startsWith("+") ? val : `+${val}`);
+        const nextValue = val.startsWith("+") ? val : `+${val}`;
+        const nextCountry = inferCountryFromPhoneValue(nextValue);
+        if (nextCountry) {
+          setSelectedCountry(nextCountry);
+        }
+        onChange(nextValue);
       }}
       containerClass={classNames(
         "hover:border-emphasis focus-within:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-0 focus-within:ring-brand-default disabled:cursor-not-allowed",
