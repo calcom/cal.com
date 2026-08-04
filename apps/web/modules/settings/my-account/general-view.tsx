@@ -151,7 +151,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
 
   return (
     <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={true}>
-      <div>
+       <div className="min-h-[650px]">
         <Form
           form={formMethods}
           handleSubmit={async (values) => {
@@ -163,7 +163,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               weekStart: values.weekStart.value,
             });
           }}>
-          <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
+          <div className="border-subtle border-x border-y-0 min-h-[420px] px-4 py-8 sm:px-6">
             <Controller
               name="locale"
               render={({ field: { value, onChange } }) => (
