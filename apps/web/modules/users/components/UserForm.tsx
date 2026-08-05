@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { formatToLocalizedDate } from "@calcom/lib/dayjs";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -78,15 +79,18 @@ export function UserForm({
     { value: 24, label: t("24_hour") },
   ];
 
-  const weekStartOptions = [
-    { value: "Sunday", label: nameOfDay(language || localeProp, 0) },
-    { value: "Monday", label: nameOfDay(language || localeProp, 1) },
-    { value: "Tuesday", label: nameOfDay(language || localeProp, 2) },
-    { value: "Wednesday", label: nameOfDay(language || localeProp, 3) },
-    { value: "Thursday", label: nameOfDay(language || localeProp, 4) },
-    { value: "Friday", label: nameOfDay(language || localeProp, 5) },
-    { value: "Saturday", label: nameOfDay(language || localeProp, 6) },
-  ];
+  const weekStartOptions = useMemo(
+    () => [
+      { value: "Sunday", label: nameOfDay(language || localeProp, 0) },
+      { value: "Monday", label: nameOfDay(language || localeProp, 1) },
+      { value: "Tuesday", label: nameOfDay(language || localeProp, 2) },
+      { value: "Wednesday", label: nameOfDay(language || localeProp, 3) },
+      { value: "Thursday", label: nameOfDay(language || localeProp, 4) },
+      { value: "Friday", label: nameOfDay(language || localeProp, 5) },
+      { value: "Saturday", label: nameOfDay(language || localeProp, 6) },
+    ],
+    [language, localeProp]
+  );
 
   const userRoleOptions = [
     { value: "USER", label: t("user") },

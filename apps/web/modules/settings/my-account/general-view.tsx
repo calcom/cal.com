@@ -18,7 +18,7 @@ import { TimezoneSelect } from "@calcom/web/modules/timezone/components/Timezone
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
 import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 export type FormValues = {
@@ -89,15 +89,18 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     { value: 24, label: t("24_hour") },
   ];
 
-  const weekStartOptions = [
-    { value: "Sunday", label: nameOfDay(language, 0) },
-    { value: "Monday", label: nameOfDay(language, 1) },
-    { value: "Tuesday", label: nameOfDay(language, 2) },
-    { value: "Wednesday", label: nameOfDay(language, 3) },
-    { value: "Thursday", label: nameOfDay(language, 4) },
-    { value: "Friday", label: nameOfDay(language, 5) },
-    { value: "Saturday", label: nameOfDay(language, 6) },
-  ];
+  const weekStartOptions = useMemo(
+    () => [
+      { value: "Sunday", label: nameOfDay(language || localeProp, 0) },
+      { value: "Monday", label: nameOfDay(language || localeProp, 1) },
+      { value: "Tuesday", label: nameOfDay(language || localeProp, 2) },
+      { value: "Wednesday", label: nameOfDay(language || localeProp, 3) },
+      { value: "Thursday", label: nameOfDay(language || localeProp, 4) },
+      { value: "Friday", label: nameOfDay(language || localeProp, 5) },
+      { value: "Saturday", label: nameOfDay(language || localeProp, 6) },
+    ],
+    [language, localeProp]
+  );
 
   const formMethods = useForm<FormValues>({
     defaultValues: {
