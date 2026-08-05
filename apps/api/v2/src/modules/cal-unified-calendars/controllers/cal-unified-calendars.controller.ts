@@ -238,14 +238,15 @@ export class CalUnifiedCalendarsController {
       "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
     type: String,
   })
-  @Get(["/:calendar/events/:eventUid", "/:calendar/event/:eventUid"])
+  @Get("/:calendar/events/:eventUid")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
+    operationId: "CalUnifiedCalendarsController_getCalendarEventDetails",
     summary: "Get meeting details from calendar",
     description:
-      "Returns detailed information about a meeting including attendance metrics. The singular /event/ path is deprecated \u2014 use /events/ (plural) instead. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
+      "Returns detailed information about a meeting including attendance metrics. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
   })
   async getCalendarEventDetails(
     @Param("calendar") calendar: string,
@@ -266,14 +267,44 @@ export class CalUnifiedCalendarsController {
       "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
     type: String,
   })
-  @Patch(["/:calendar/events/:eventUid", "/:calendar/event/:eventUid"])
+  @Get("/:calendar/event/:eventUid")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
+    operationId: "CalUnifiedCalendarsController_getCalendarEventDetailsDeprecated",
+    deprecated: true,
+    summary: "Get meeting details from calendar (Deprecated)",
+    description:
+      "Returns detailed information about a meeting including attendance metrics. The singular /event/ path is deprecated \u2014 use /events/ (plural) instead. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
+  })
+  async getCalendarEventDetailsDeprecated(
+    @Param("calendar") calendar: string,
+    @Param("eventUid") eventUid: string
+  ): Promise<GetUnifiedCalendarEventOutput> {
+    return this.getCalendarEventDetails(calendar, eventUid);
+  }
+
+  @ApiParam({
+    name: "calendar",
+    enum: [GOOGLE_CALENDAR],
+    type: String,
+  })
+  @ApiParam({
+    name: "eventUid",
+    description:
+      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
+    type: String,
+  })
+  @Patch("/:calendar/events/:eventUid")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ApiAuthGuard, PermissionsGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    operationId: "CalUnifiedCalendarsController_updateCalendarEvent",
     summary: "Update meeting details in calendar",
     description:
-      "Updates event information in the specified calendar provider. The singular /event/ path is deprecated \u2014 use /events/ (plural) instead. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
+      "Updates event information in the specified calendar provider. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
   })
   async updateCalendarEvent(
     @Param("calendar") calendar: string,
@@ -282,6 +313,36 @@ export class CalUnifiedCalendarsController {
   ): Promise<GetUnifiedCalendarEventOutput> {
     const data = await this.unifiedCalendarService.updateEventDetails(calendar, eventUid, updateData);
     return { status: SUCCESS_STATUS, data };
+  }
+
+  @ApiParam({
+    name: "calendar",
+    enum: [GOOGLE_CALENDAR],
+    type: String,
+  })
+  @ApiParam({
+    name: "eventUid",
+    description:
+      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
+    type: String,
+  })
+  @Patch("/:calendar/event/:eventUid")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ApiAuthGuard, PermissionsGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    operationId: "CalUnifiedCalendarsController_updateCalendarEventDeprecated",
+    deprecated: true,
+    summary: "Update meeting details in calendar (Deprecated)",
+    description:
+      "Updates event information in the specified calendar provider. The singular /event/ path is deprecated \u2014 use /events/ (plural) instead. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
+  })
+  async updateCalendarEventDeprecated(
+    @Param("calendar") calendar: string,
+    @Param("eventUid") eventUid: string,
+    @Body() updateData: UpdateUnifiedCalendarEventInput
+  ): Promise<GetUnifiedCalendarEventOutput> {
+    return this.updateCalendarEvent(calendar, eventUid, updateData);
   }
 
   @ApiParam({ name: "calendar", enum: UNIFIED_CALENDAR_PARAM, type: String })
