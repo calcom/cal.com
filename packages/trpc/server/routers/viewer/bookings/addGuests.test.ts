@@ -17,7 +17,7 @@ describe("sanitizeAndFilterGuests deduplication", () => {
 
     const mockBooking = {
       attendees: [],
-    } as any;
+    } as unknown as Parameters<typeof sanitizeAndFilterGuests>[1];
 
     const result = await sanitizeAndFilterGuests(guests, mockBooking);
 
