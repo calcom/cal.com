@@ -209,29 +209,20 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
           ))}
           <Tooltip
             side="right"
-            content={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            content={isCollapsed ? t("expand_sidebar") : t("collapse_sidebar")}
             className={classNames(!isCollapsed && "lg:hidden")}>
             <button
               type="button"
               onClick={() => setIsCollapsed((collapsed) => !collapsed)}
-              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-label={isCollapsed ? t("expand_sidebar") : t("collapse_sidebar")}
               aria-expanded={!isCollapsed}
               className={classNames(
-                "text-default hover:bg-subtle hover:text-emphasis hidden w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition lg:flex",
-                isCollapsed ? "justify-center" : "justify-start"
-              )}>
-              <PanelLeftIcon
-                className={classNames(
-                  "h-4 w-4 shrink-0",
-                  !isCollapsed && "ltr:mr-2 rtl:ml-2"
-                )}
-              />
+              "hidden w-full items-center rounded-md px-2 py-1.5 font-medium text-default text-sm transition hover:bg-subtle hover:text-emphasis focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 lg:flex",
+              isCollapsed ? "justify-center" : "justify-start gap-2"
+            )}>
+              <PanelLeftIcon className="h-4 w-4 shrink-0" />
 
-              {!isCollapsed && (
-                <span>
-                  Collapse sidebar
-                </span>
-              )}
+              {!isCollapsed && <span>{t("collapse_sidebar")}</span>}
             </button>
           </Tooltip>
 

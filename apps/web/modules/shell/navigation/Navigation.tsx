@@ -93,7 +93,11 @@ export const Navigation = ({ isCollapsed }: NavigationProps) => {
   return (
     <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
       {desktopNavigationItems.map((item) => (
-        <NavigationItem key={item.name} item={item} isCollapsed={isCollapsed}/>
+        <NavigationItem
+          key={item.name}
+          item={item}
+          isCollapsed={isCollapsed}
+        />
       ))}
       <div className="mt-0.5 text-subtle lg:hidden">
         <KBarTrigger />
