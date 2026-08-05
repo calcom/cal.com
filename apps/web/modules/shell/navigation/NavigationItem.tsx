@@ -74,7 +74,7 @@ export const NavigationItem: React.FC<{
   isChild?: boolean;
   isCollapsed?: boolean;
 }> = (props) => {
-  const { item, isChild, isCollapsed = false  } = props;
+  const { item, isChild, isCollapsed = false } = props;
   const { t, isLocaleReady } = useLocale();
   const pathname = usePathname();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
