@@ -10,7 +10,7 @@ jest.mock(
 import type { Prisma, User } from "@calcom/prisma/client";
 import { createMock } from "@golevelup/ts-jest";
 import { ConfigService } from "@nestjs/config";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { StripeService } from "./stripe.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
