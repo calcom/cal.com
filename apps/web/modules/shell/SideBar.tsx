@@ -83,16 +83,25 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 </button>
               </Tooltip>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
-          {/* logo icon for tablet and collapsed desktop */}
-          <Link href="/event-types"   className={classNames(
-            "text-center md:inline lg:hidden",
-            isCollapsed && "lg:inline"
-          )}>
-            <Logo small icon />
-          </Link>
+          {/* Tablet sidebar header */}
+          <div className="hidden flex-col items-center gap-2 md:flex lg:hidden">
+            <Link href="/event-types" className="text-center">
+              <Logo small icon />
+            </Link>
+
+            {!user?.org && <UserDropdown iconOnly />}
+          </div>
+          
+
+          {/* Logo for collapsed desktop */}
+          {isCollapsed && (
+            <Link href="/event-types" className="hidden text-center lg:inline">
+              <Logo small icon />
+            </Link>
+          )}
           <header className={classNames(
             "todesktop:-mt-3 todesktop:flex-col-reverse items-center justify-between todesktop:[-webkit-app-region:drag] md:hidden lg:flex",
-            isCollapsed && "lg:flex-col lg:gap-3"
+            isCollapsed && "lg:flex-col lg:gap-1"
           )}>
             {user?.org ? (
               !ENABLE_PROFILE_SWITCHER ? (
@@ -116,19 +125,18 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 data-testid="user-dropdown-trigger"
                 className={classNames(
                   "todesktop:mt-4 w-full",
-                  isCollapsed && "lg:flex lg:justify-center"
+                  isCollapsed && "lg:mt-0 lg:flex lg:justify-center"
                 )}>
+                {/* Expanded desktop */}
                 <div className={classNames("hidden lg:block", isCollapsed && "lg:hidden")}>
                   <UserDropdown />
                 </div>
-
-                <div
-                  className={classNames(
-                    "hidden md:flex md:justify-center lg:hidden",
-                    isCollapsed && "lg:flex"
-                  )}>
-                  <UserDropdown small />
-                </div>
+                {/* Collapsed desktop */}
+                {isCollapsed && (
+                  <div className="hidden justify-center lg:flex">
+                    <UserDropdown iconOnly />
+                  </div>
+                )}
               </div>
             )}
             <div className={classNames(
@@ -166,45 +174,51 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
             !isCollapsed && "lg:p-0"
           )}>
           {bottomNavItems.map((item, index) => (
-            <Tooltip side="right" content={t(item.name)} className={classNames(!isCollapsed && "lg:hidden")}
-            key={item.name}>
-              <ButtonOrLink
-                id={item.name}
-                href={item.href || undefined}
-                aria-label={t(item.name)}
-                target={item.target}
-                className={classNames(
-                  "text-left",
-                  "justify-right group flex items-center rounded-md px-2 py-1.5 font-medium text-default text-sm transition [&[aria-current='page']]:bg-emphasis",
-                  "mt-0.5 w-full text-sm [&[aria-current='page']]:text-emphasis",
-                  isLocaleReady ? "hover:bg-subtle hover:text-emphasis" : "",
-                  index === 0 && "mt-3"
-                )}
-                onClick={item.onClick}>
-                {!!item.icon && (
-                  <Icon
-                    name={item.isLoading ? "rotate-cw" : item.icon}
-                    className={classNames(
-                    "h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit",
-                    "md:mx-auto",
-                    !isCollapsed && "lg:mx-0 lg:ltr:mr-2 lg:rtl:ml-2",
-                    item.isLoading && "animate-spin"
+            <Tooltip
+              side="right"
+              content={t(item.name)}
+              className={classNames(!isCollapsed && "lg:hidden")}
+              key={item.name}>
+              <span className="flex w-full">
+                <ButtonOrLink
+                  id={item.name}
+                  href={item.href || undefined}
+                  aria-label={t(item.name)}
+                  target={item.target}
+                  className={classNames(
+                    "text-left",
+                    "justify-right group flex items-center rounded-md px-2 py-1.5 font-medium text-default text-sm transition [&[aria-current='page']]:bg-emphasis",
+                    "mt-0.5 w-full text-sm [&[aria-current='page']]:text-emphasis",
+                    isLocaleReady ? "hover:bg-subtle hover:text-emphasis" : "",
+                    index === 0 && "mt-3"
                   )}
-                    aria-hidden="true"
-                  />
-                )}
-                {isLocaleReady ? (
-                  <span
-                    className={classNames(
-                      "hidden w-full justify-between",
-                      !isCollapsed && "lg:flex"
-                    )}>
-                    <div className="flex">{t(item.name)}</div>
-                  </span>
-                ) : (
-                  <SkeletonText className="h-[20px] w-full" />
-                )}
-              </ButtonOrLink>
+                  onClick={item.onClick}>
+                  {!!item.icon && (
+                    <Icon
+                      name={item.isLoading ? "rotate-cw" : item.icon}
+                      className={classNames(
+                        "h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit",
+                        "md:mx-auto",
+                        !isCollapsed && "lg:mx-0 lg:ltr:mr-2 lg:rtl:ml-2",
+                        item.isLoading && "animate-spin"
+                      )}
+                      aria-hidden="true"
+                    />
+                  )}
+
+                  {isLocaleReady ? (
+                    <span
+                      className={classNames(
+                        "hidden w-full justify-between",
+                        !isCollapsed && "lg:flex"
+                      )}>
+                      <div className="flex">{t(item.name)}</div>
+                    </span>
+                  ) : (
+                    <SkeletonText className="h-[20px] w-full" />
+                  )}
+                </ButtonOrLink>
+              </span>
             </Tooltip>
           ))}
           {!IS_VISUAL_REGRESSION_TESTING && !isCollapsed && <Credits />}
