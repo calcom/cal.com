@@ -71,7 +71,7 @@ describe("refreshAccessToken", () => {
       json: async () => ({
         access_token: "new-access-token",
         refresh_token: "new-refresh-token",
-        expires_in: 1209600,
+        expires_in: 3600,
       }),
     });
     mockCredentialUpdate.mockImplementation(async ({ data }) => ({ key: data.key }));
@@ -127,6 +127,25 @@ describe("refreshAccessToken", () => {
     expect(mockCredentialUpdate).not.toHaveBeenCalled();
   });
 
+  it("does not update the credential when the refresh response is malformed", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      json: async () => ({
+        access_token: "new-access-token",
+        expires_in: 3600,
+      }),
+    });
+
+    await expect(refreshAccessToken(credential)).rejects.toMatchObject({
+      code: ErrorCode.InternalServerError,
+      message: "Invalid Basecamp token refresh response",
+    });
+
+    expect(mockCredentialUpdate).not.toHaveBeenCalled();
+  });
+
   it("stores the refreshed token data on the existing credential", async () => {
     const refreshedKey = await refreshAccessToken(credential);
 
@@ -134,8 +153,8 @@ describe("refreshAccessToken", () => {
       ...baseCredentialKey,
       access_token: "new-access-token",
       refresh_token: "new-refresh-token",
-      expires_in: 1209600,
-      expires_at: 1710000000000 + 1000 * 3600 * 24 * 14,
+      expires_in: 3600,
+      expires_at: 1710000000000 + 3600 * 1000,
     };
 
     expect(mockCredentialUpdate).toHaveBeenCalledWith({
