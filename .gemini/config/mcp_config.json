@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "hostinger-hosting": {
+      "command": "npx",
+      "args": ["--package=hostinger-api-mcp@latest", "hostinger-hosting-mcp"]
+    },
+    "hostinger-domains": {
+      "command": "npx",
+      "args": ["--package=hostinger-api-mcp@latest", "hostinger-domains-mcp"]
+    },
+    "hostinger-dns": {
+      "command": "npx",
+      "args": ["--package=hostinger-api-mcp@latest", "hostinger-dns-mcp"]
+    },
+    "hostinger-billing": {
+      "command": "npx",
+      "args": ["--package=hostinger-api-mcp@latest", "hostinger-billing-mcp"]
+    },
+    "hostinger-reach": {
+      "command": "npx",
+      "args": ["--package=hostinger-api-mcp@latest", "hostinger-reach-mcp"]
+    },
+    "hostinger-vps": {
+      "command": "npx",
+      "args": ["--package=hostinger-api-mcp@latest", "hostinger-vps-mcp"]
+    },
+  "hostinger-api-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "hostinger-api-mcp"
+      ],
+      "env": {
+        "HOSTINGER_API_TOKEN": "b2jRZHwLXgm9MJdo51kt9uHMcCQswjc0axxTezb4f49dec63"
+      }
+    }
+  }
+}
