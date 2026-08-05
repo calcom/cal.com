@@ -119,6 +119,8 @@
     "vitest-mock-extended": "3.1.0"
   },
   "resolutions": {
+    "@radix-ui/react-slot": "1.1.0",
+    "@radix-ui/react-tooltip": "1.1.2",
     "webpack": "5.104.1",
     "systeminformation": "5.31.0",
     "path-to-regexp@^8.0.0": "8.4.0",

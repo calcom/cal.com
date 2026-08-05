@@ -98,16 +98,16 @@ export const PUBLIC_QUICK_AVAILABILITY_ROLLOUT =
 
 /** @deprecated use `WEBAPP_URL` */
 export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
-export const LOGO = "/calcom-logo-white-word.svg";
-export const LOGO_DARK = "/cal-logo-word-black.svg";
-export const LOGO_ICON = "/cal-com-icon-white.svg";
+export const LOGO = "/swiftcal-logo.png";
+export const LOGO_DARK = "/swiftcal-logo.png";
+export const LOGO_ICON = "/swiftcal-icon.png";
 export const AVATAR_FALLBACK = "/avatar.svg";
-export const FAVICON_16 = "/favicon-16x16.png";
-export const FAVICON_32 = "/favicon-32x32.png";
-export const APPLE_TOUCH_ICON = "/apple-touch-icon.png";
-export const MSTILE_ICON = "/mstile-150x150.png";
-export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
-export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
+export const FAVICON_16 = "/swiftcal-favicon.png";
+export const FAVICON_32 = "/swiftcal-favicon.png";
+export const APPLE_TOUCH_ICON = "/swiftcal-icon.png";
+export const MSTILE_ICON = "/swiftcal-icon.png";
+export const ANDROID_CHROME_ICON_192 = "/swiftcal-icon.png";
+export const ANDROID_CHROME_ICON_256 = "/swiftcal-icon.png";
 export const ROADMAP = "https://cal.com/roadmap";
 export const DESKTOP_APP_LINK = "https://cal.com/download";
 export const JOIN_COMMUNITY = "https://github.com/calcom/cal.diy/discussions";

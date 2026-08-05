@@ -130,6 +130,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
       </head>
       <body
+        suppressHydrationWarning
         className="dark:bg-default bg-subtle antialiased"
         style={
           isEmbed

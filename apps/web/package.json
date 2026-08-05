@@ -112,7 +112,7 @@
     "next-axiom": "0.17.0",
     "next-i18next": "15.4.2",
     "next-seo": "6.1.0",
-    "next-themes": "0.2.0",
+    "next-themes": "^0.4.6",
     "nodemailer": "7.0.12",
     "nuqs": "2.8.2",
     "openid-client": "6.5.0",

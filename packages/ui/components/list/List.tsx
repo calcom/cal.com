@@ -12,7 +12,7 @@ export type ListProps = {
   noBorderTreatment?: boolean;
 } & JSX.IntrinsicElements["ul"];
 
-export function List(props: ListProps) {
+export function List({ roundContainer, noBorderTreatment, className, children, ...props }: ListProps) {
   return (
     <ul
       data-testid="list"
@@ -20,12 +20,12 @@ export function List(props: ListProps) {
       className={classNames(
         "mx-0 rounded-sm sm:overflow-hidden ",
         // Add rounded top and bottom if roundContainer is true
-        props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
-        !props.noBorderTreatment &&
+        roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
+        !noBorderTreatment &&
           "border-subtle divide-subtle divide-y rounded-md border border-l border-r ",
-        props.className
+        className
       )}>
-      {props.children}
+      {children}
     </ul>
   );
 }

@@ -2,7 +2,7 @@
   "name": "Cal.diy",
   "description": "Open Source Scheduling",
   "repository": "https://github.com/calcom/cal.diy",
-  "logo": "https://cal.com/android-chrome-512x512.png",
+  "logo": "https://goldencreative.b-cdn.net/golden/1785941163490_android-chrome-512x512.png",
   "keywords": ["react", "typescript", "node", "nextjs", "prisma", "postgres", "trpc"],
   "addons": [
     {

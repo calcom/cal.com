@@ -12,6 +12,7 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { createSupabaseAdmin } from "@calcom/lib/supabase";
 import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
@@ -151,6 +152,7 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
 export async function authorizeCredentials(
   credentials: Record<"email" | "password" | "totpCode" | "backupCode", string> | undefined
 ): Promise<User | null> {
+  console.log("--> authorizeCredentials called with email:", credentials?.email);
   log.debug("CredentialsProvider:credentials:authorize", safeStringify({ credentials }));
   if (!credentials) {
     console.error(`For some reason credentials are missing`);
@@ -163,8 +165,11 @@ export async function authorizeCredentials(
   });
   // Don't leak information about it being username or password that is invalid
   if (!user) {
+    console.log("--> User not found in local DB!");
     throw new Error(ErrorCode.IncorrectEmailPassword);
   }
+
+  console.log("--> User found in local DB:", user.email);
 
   // Locked users cannot login
   if (user.locked) {
@@ -175,16 +180,31 @@ export async function authorizeCredentials(
     identifier: hashEmail(user.email),
   });
 
-  // Users without a password must use their identity provider (Google/SAML) to login
-  if (!user.password?.hash) {
-    throw new Error(ErrorCode.IncorrectEmailPassword);
-  }
+  console.log("--> checking Supabase auth for:", credentials.email);
+  console.log("--> SUPABASE URL from env:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+  
+  // --- SUPABASE AUTH INTEGRATION ---
+  try {
+    const supabase = createSupabaseAdmin();
+    console.log("--> Supabase client created");
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: credentials.email,
+      password: credentials.password,
+    });
+    
+    console.log("--> Supabase signIn result:", { error: authError?.message, hasUser: !!authData?.user });
 
-  // Always verify password for users who have one
-  const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
-  if (!isCorrectPassword) {
+    if (authError || !authData.user) {
+      console.error("Supabase Auth Error in NextAuth:", authError?.message);
+      throw new Error(ErrorCode.IncorrectEmailPassword);
+    }
+  } catch (err) {
+    console.error("--> Exception caught in Supabase block:", err);
     throw new Error(ErrorCode.IncorrectEmailPassword);
   }
+  
+  const isCorrectPassword = true;
+  // --- END SUPABASE AUTH ---
 
   if (user.twoFactorEnabled && credentials.backupCode) {
     if (!process.env.CALENDSO_ENCRYPTION_KEY) {
