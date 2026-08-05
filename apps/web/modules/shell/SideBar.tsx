@@ -11,6 +11,7 @@ import { Logo } from "@calcom/ui/components/logo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { ArrowLeftIcon, ArrowRightIcon } from "@coss/ui/icons";
+import { PanelLeftIcon } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import type { User as UserAuth } from "next-auth";
@@ -67,21 +68,6 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
           "max-h-screen",
           isCollapsed ? "lg:w-14 lg:px-0" : "lg:w-56 lg:px-3"
         )}>
-          <Tooltip
-                side="right"
-                content={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                className={classNames(!isCollapsed && "lg:hidden")}>
-                <button
-                  type="button"
-                  onClick={() => setIsCollapsed((collapsed) => !collapsed)}
-                  aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                  className="hidden h-8 w-full items-center justify-center rounded-md text-subtle transition hover:bg-subtle hover:text-emphasis lg:flex">
-                  <Icon
-                    name={isCollapsed ? "chevrons-right" : "chevrons-left"}
-                    className="h-4 w-4"
-                  />
-                </button>
-              </Tooltip>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           {/* Tablet sidebar header */}
           <div className="hidden flex-col items-center gap-2 md:flex lg:hidden">
@@ -221,6 +207,34 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
               </span>
             </Tooltip>
           ))}
+          <Tooltip
+            side="right"
+            content={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={classNames(!isCollapsed && "lg:hidden")}>
+            <button
+              type="button"
+              onClick={() => setIsCollapsed((collapsed) => !collapsed)}
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!isCollapsed}
+              className={classNames(
+                "text-default hover:bg-subtle hover:text-emphasis hidden w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition lg:flex",
+                isCollapsed ? "justify-center" : "justify-start"
+              )}>
+              <PanelLeftIcon
+                className={classNames(
+                  "h-4 w-4 shrink-0",
+                  !isCollapsed && "ltr:mr-2 rtl:ml-2"
+                )}
+              />
+
+              {!isCollapsed && (
+                <span>
+                  Collapse sidebar
+                </span>
+              )}
+            </button>
+          </Tooltip>
+
           {!IS_VISUAL_REGRESSION_TESTING && !isCollapsed && <Credits />}
         </div>
       </aside>
