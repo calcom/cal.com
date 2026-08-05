@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { handleOptionLabel } from "./timezone";
 
 describe("timezone handleOptionLabel formatOffset", () => {
-  it("strips leading zeros for single-digit whole-hour and non-whole-hour offsets", () => {
+  it("strips leading zeros for single-digit positive whole-hour and non-whole-hour offsets", () => {
     const mockOptionWholeHour = {
       label: "(GMT+09:00) Tokyo",
       value: "Asia/Tokyo",
@@ -36,5 +36,29 @@ describe("timezone handleOptionLabel formatOffset", () => {
       { label: "Kathmandu", timezone: "Asia/Kathmandu" },
     ]);
     expect(resultQuarter).toContain("+5:45");
+  });
+
+  it("strips leading zeros for single-digit negative whole-hour and non-whole-hour offsets", () => {
+    const mockOptionNegHalfHour = {
+      label: "(GMT-09:30) Marquesas",
+      value: "Pacific/Marquesas",
+      offset: -9.5,
+    };
+
+    const mockOptionNegWholeHour = {
+      label: "(GMT-05:00) New York",
+      value: "America/New_York",
+      offset: -5,
+    };
+
+    const resultNegHalf = handleOptionLabel(mockOptionNegHalfHour, [
+      { label: "Marquesas", timezone: "Pacific/Marquesas" },
+    ]);
+    expect(resultNegHalf).toContain("-9:30");
+
+    const resultNegWhole = handleOptionLabel(mockOptionNegWholeHour, [
+      { label: "New York", timezone: "America/New_York" },
+    ]);
+    expect(resultNegWhole).toContain("-5:00");
   });
 });
