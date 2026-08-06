@@ -15,9 +15,10 @@ describe("sanitizeAndFilterGuests deduplication", () => {
       { email: "john+2@example.com", name: "John Second" },
     ];
 
-    const mockBooking = {
+    type BookingParam = Parameters<typeof sanitizeAndFilterGuests>[1];
+    const mockBooking: BookingParam = {
       attendees: [],
-    } as unknown as Parameters<typeof sanitizeAndFilterGuests>[1];
+    } as BookingParam;
 
     const result = await sanitizeAndFilterGuests(guests, mockBooking);
 
