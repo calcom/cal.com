@@ -107,6 +107,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
     booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+    if (!booking) {
+      return notFound;
+    }
   }
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
