@@ -93,6 +93,8 @@ describe("generateIcsString", () => {
       const assertedIcsString = assertHasIcsString(icsString);
 
       testIcsStringContains({ icsString: assertedIcsString, event, status });
+      expect(assertedIcsString).toContain("METHOD:CANCEL");
+      expect(assertedIcsString).toContain("SEQUENCE:1");
     });
     test("when bookingAction is Reschedule", () => {
       const event = buildCalendarEvent({

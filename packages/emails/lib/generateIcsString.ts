@@ -74,7 +74,7 @@ const generateIcsString = ({
 
   const icsEvent = createEvent({
     uid: event.iCalUID || event.uid!,
-    sequence: event.iCalSequence || 0,
+    sequence: (event.iCalSequence ?? 0) + (status === "CANCELLED" ? 1 : 0),
     start: toICalDateArray(event.startTime),
     end: toICalDateArray(event.endTime),
     startInputType: "utc",
