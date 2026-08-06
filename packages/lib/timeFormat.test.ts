@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
-import { isBrowserLocale24h, setIs24hClockInLocalStorage } from "./timeFormat";
+import { getIs24hClockFromLocalStorage, isBrowserLocale24h, setIs24hClockInLocalStorage } from "./timeFormat";
 
 describe("timeFormat", () => {
   beforeEach(() => {
@@ -21,6 +21,7 @@ describe("timeFormat", () => {
     vi.spyOn(Intl, "DateTimeFormat").mockImplementation((locale) => mockFormat((locale as string) || "ar-EG"));
 
     expect(isBrowserLocale24h()).toBe(false);
+    expect(getIs24hClockFromLocalStorage()).toBe(false);
     vi.restoreAllMocks();
   });
 });
