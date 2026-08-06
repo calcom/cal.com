@@ -42,13 +42,12 @@ export const isBrowserLocale24h = () => {
     return false;
   }
   // Intl.DateTimeFormat with value=undefined uses local browser settings.
-  if (!!new Intl.DateTimeFormat(undefined, { hour: "numeric" }).format(0).match(/M/i)) {
-    setIs24hClockInLocalStorage(false);
-    return false;
-  } else {
-    setIs24hClockInLocalStorage(true);
-    return true;
-  }
+  const formatter = new Intl.DateTimeFormat(undefined, { hour: "numeric" });
+  const hour12 = formatter.resolvedOptions().hour12;
+  const is24h = hour12 !== undefined ? !hour12 : !formatter.format(0).match(/M/i);
+
+  setIs24hClockInLocalStorage(is24h);
+  return is24h;
 };
 
 /**
