@@ -10,6 +10,7 @@ concurrency:
 jobs:
   check-api-key:
     name: Check for lingo.dev API key
+    permissions: {}
     runs-on: ubuntu-latest
     outputs:
       has-api-key: ${{ steps.check.outputs.has-api-key }}
