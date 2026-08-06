@@ -682,6 +682,34 @@ export default abstract class BaseCalendarService implements Calendar {
         // if event status is free or transparent, return
         if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
+        // Skip events where user's PARTSTAT is DECLINED or NEEDS-ACTION (absent defaults to NEEDS-ACTION per RFC 5545 §3.2.12)
+        const userEmail = this.credential.user?.email;
+        if (userEmail) {
+          const userEmailLower = userEmail.toLowerCase();
+          const firstParam = (raw: any) => (Array.isArray(raw) ? raw[0] : raw);
+          const organizer = vevent.getFirstProperty("organizer");
+          const organizerEmail = String(firstParam(organizer?.getParameter("email")) ?? "").toLowerCase();
+          const organizerValue = String(organizer?.getFirstValue() ?? "").toLowerCase();
+          const iAmOrganizer = organizerEmail === userEmailLower || organizerValue === `mailto:${userEmailLower}`;
+
+          if (!iAmOrganizer) {
+            const attendees = vevent.getAllProperties("attendee");
+            const myAttendee = attendees.find((prop) => {
+              const rawVal = prop.getFirstValue();
+              const val = typeof rawVal === "string" ? rawVal.toLowerCase() : "";
+              const emailParam = String(firstParam(prop.getParameter("email")) ?? "").toLowerCase();
+              return val === `mailto:${userEmailLower}` || emailParam === userEmailLower;
+            });
+
+            if (myAttendee) {
+              const partstat = String(
+                firstParam(myAttendee.getParameter("partstat")) ?? "NEEDS-ACTION"
+              ).toUpperCase();
+              if (partstat === "NEEDS-ACTION" || partstat === "DECLINED") return;
+            }
+          }
+        }
+
         const event = new ICAL.Event(vevent);
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;

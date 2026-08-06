@@ -697,6 +697,37 @@ describe("CalendarService - SCHEDULE-AGENT injection", () => {
       expect(unfolded).toContain("SCHEDULE-AGENT=CLIENT");
     });
 
+    it("skips CalDAV events with unanswered (NEEDS-ACTION) or DECLINED invitations for user", async () => {
+      const service = new TestCalendarService();
+      service.credential.user = { email: "user@example.com" } as any;
+
+      const objects = [
+        {
+          data: `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:unanswered-1
+SUMMARY:Unanswered Invite
+DTSTART:20260729T100000Z
+DTEND:20260729T110000Z
+ORGANIZER;EMAIL=organizer@example.com:mailto:organizer@example.com
+ATTENDEE;EMAIL=user@example.com;X-APPLE-NEEDS-REPLY=TRUE:mailto:user@example.com
+END:VEVENT
+END:VCALENDAR`,
+        },
+      ];
+
+      vi.mocked(fetchCalendarObjects).mockResolvedValue(objects as any);
+
+      const busy = await service.getAvailability({
+        dateFrom: "2026-07-29T00:00:00Z",
+        dateTo: "2026-07-29T23:59:59Z",
+        selectedCalendars: [{ externalId: "cal1", integration: "caldav_calendar" }] as any,
+      });
+
+      expect(busy).toHaveLength(0);
+    });
+
     it("should handle ATTENDEE with http URI", async () => {
       const service = new TestCalendarService();
       const mockIcsOutput = `BEGIN:VCALENDAR\r\nATTENDEE;CN=Guest:http://example.com/user\r\nEND:VCALENDAR`;
