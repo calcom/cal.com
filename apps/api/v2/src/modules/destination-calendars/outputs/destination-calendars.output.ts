@@ -1,13 +1,15 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsInt, IsString, ValidateNested, IsEnum } from "class-validator";
+import { IsInt, IsOptional, IsString, ValidateNested, IsEnum } from "class-validator";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
 export class DestinationCalendarsOutputDto {
+  @IsOptional()
   @IsInt()
+  @ApiPropertyOptional({ type: Number, nullable: true })
   @Expose()
-  readonly userId!: number;
+  readonly userId!: number | null;
 
   @IsString()
   @Expose()
