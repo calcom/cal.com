@@ -311,11 +311,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
             </>
           ) : (
             <Icon
+              data-name="end-icon"
               name={EndIcon}
               className={classNames(
                 "shrink-0",
                 loading ? "invisible" : "visible",
-                "group-[:not(div):active]:translate-y-[0.5px]",
+                "button-icon group-[:not(div):active]:translate-y-[0.5px]",
                 variant === "icon" && "h-4 w-4",
                 variant === "button" && "h-4 w-4 stroke-[1.5px] "
               )}
