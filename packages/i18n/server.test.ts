@@ -175,3 +175,17 @@ describe("getTranslation", () => {
     expect(enT("welcome")).not.toBe(frT("welcome"));
   });
 });
+
+describe("i18n translation completeness across all configured locales", () => {
+  const { i18n } = require("./next-i18next.config");
+
+  it("ensures all configured locales load translations without throwing and include fallback keys", async () => {
+    const enResult = await loadTranslations("en", "common");
+    const enKeyCount = Object.keys(enResult).length;
+
+    for (const locale of i18n.locales) {
+      const localeResult = await loadTranslations(locale, "common");
+      expect(Object.keys(localeResult).length).toBeGreaterThanOrEqual(enKeyCount);
+    }
+  });
+});
