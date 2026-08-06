@@ -4,6 +4,10 @@
 @import "../../../packages/coss-ui/src/styles/globals.css";
 @import "./raqb.css";
 
+nextjs-portal {
+  display: none;
+}
+
 ::-moz-selection {
   color: var(--cal-brand-text);
   background: var(--cal-brand);
