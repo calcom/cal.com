@@ -201,6 +201,10 @@ describe("Self-hosted environment behavior", () => {
     expect(validateSelfHosted("http://metadata.google.com/computeMetadata/v1/").isValid).toBe(false);
     // Azure alternate
     expect(validateSelfHosted("http://169.254.169.253/metadata/instance").isValid).toBe(false);
+    // AWS ECS task metadata
+    expect(validateSelfHosted("http://169.254.170.2/v2/metadata").isValid).toBe(false);
+    // Alibaba Cloud metadata
+    expect(validateSelfHosted("http://100.100.100.200/latest/meta-data/").isValid).toBe(false);
   });
 
   it("allows HTTPS URLs for self-hosted", async () => {
