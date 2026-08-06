@@ -2,7 +2,10 @@
   "extends": "../tsconfig/base.json",
   "compilerOptions": {
     "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "node",
     "lib": ["es2022", "dom"],
+    "types": ["node"],
     "jsx": "preserve",
     "resolveJsonModule": true
   },
