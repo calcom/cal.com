@@ -5,8 +5,9 @@ const loadConfig = (): AppConfig => {
   const env = getEnv("NODE_ENV", "development");
   const apiPort = Number(getEnv("API_PORT", "5555"));
   const apiUrl = getEnv("API_URL", "http://localhost");
+
   let portSuffix = "";
-  if (process.env.API_PORT && env === "development") {
+  if (getEnv("API_PORT", "") && env === "development") {
     portSuffix = `:${apiPort}`;
   }
 
@@ -25,10 +26,10 @@ const loadConfig = (): AppConfig => {
     db: {
       readUrl: getEnv("DATABASE_READ_URL"),
       writeUrl: getEnv("DATABASE_WRITE_URL"),
-      readPoolMax: getEnv("DATABASE_READ_POOL_MAX", 9),
-      writePoolMax: getEnv("DATABASE_WRITE_POOL_MAX", 7),
-      workerReadPoolMax: getEnv("DATABASE_READ_WORKER_POOL_MAX", 4),
-      workerWritePoolMax: getEnv("DATABASE_WRITE_WORKER_POOL_MAX", 6),
+      readPoolMax: Number(getEnv("DATABASE_READ_POOL_MAX", "9")),
+      writePoolMax: Number(getEnv("DATABASE_WRITE_POOL_MAX", "7")),
+      workerReadPoolMax: Number(getEnv("DATABASE_READ_WORKER_POOL_MAX", "4")),
+      workerWritePoolMax: Number(getEnv("DATABASE_WRITE_WORKER_POOL_MAX", "6")),
       redisUrl: getEnv("REDIS_URL"),
       usePool: getEnv("USE_POOL", "true") === "true",
     },
@@ -39,7 +40,7 @@ const loadConfig = (): AppConfig => {
       apiKey: getEnv("STRIPE_API_KEY"),
       webhookSecret: getEnv("STRIPE_WEBHOOK_SECRET"),
       teamMonthlyPriceId: getEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "set-team-monthly-price-in-your-env"),
-      isTeamBillingEnabled: getEnv("IS_TEAM_BILLING_ENABLED", true),
+      isTeamBillingEnabled: getEnv("IS_TEAM_BILLING_ENABLED", "true") === "true",
     },
     app: {
       baseUrl: getEnv("WEB_APP_URL", "https://app.cal.com"),
