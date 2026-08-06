@@ -46,8 +46,8 @@ describe("timezone handleOptionLabel formatOffset", () => {
     };
 
     const mockOptionNegWholeHour = {
-      label: "(GMT-05:00) New York",
-      value: "America/New_York",
+      label: "(GMT-05:00) Panama",
+      value: "America/Panama",
       offset: -5,
     };
 
@@ -57,7 +57,7 @@ describe("timezone handleOptionLabel formatOffset", () => {
     expect(resultNegHalf).toContain("-9:30");
 
     const resultNegWhole = handleOptionLabel(mockOptionNegWholeHour, [
-      { label: "New York", timezone: "America/New_York" },
+      { label: "Panama", timezone: "America/Panama" },
     ]);
     expect(resultNegWhole).toContain("-5:00");
   });
