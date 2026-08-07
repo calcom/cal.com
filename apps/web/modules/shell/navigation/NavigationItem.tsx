@@ -81,6 +81,7 @@ export const NavigationItem: React.FC<{
   const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
@@ -93,11 +94,14 @@ export const NavigationItem: React.FC<{
   !isCollapsed && (isExpanded || hasActiveChild || isCurrent({ pathname, isChild, item })); 
   const shouldShowChevron = hasChildren && !hasActiveChild;
   const isParentNavigationItem = hasChildren && !isChild;
+  const shouldUsePopover = isTablet || isCollapsed;
 
   return (
     <Fragment>
       {isParentNavigationItem ? (
-        <Popover>
+        <Popover
+          open={shouldUsePopover && isPopoverOpen}
+          onOpenChange={setIsPopoverOpen}>
           <Tooltip
             side="right"
             content={t(item.name)}
@@ -106,10 +110,10 @@ export const NavigationItem: React.FC<{
               <button
                 data-test-id={item.name}
                 aria-label={t(item.name)}
-                aria-expanded={isExpanded}
+                aria-expanded={shouldUsePopover ? isPopoverOpen : isExpanded}
                 aria-current={current ? "page" : undefined}
                 onClick={() => {
-                  if (!isTablet && !isCollapsed) {
+                  if (!shouldUsePopover) {
                     setIsExpanded(!isExpanded);
                   }
                 }}
@@ -170,7 +174,7 @@ export const NavigationItem: React.FC<{
             </PopoverTrigger>
           </Tooltip>
 
-          {(isTablet || isCollapsed) && (
+          {shouldUsePopover && (
             <PopoverContent
               side="right"
               align="center"
