@@ -62,9 +62,10 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   return (
     <div className="relative">
       <aside
+        id="app-sidebar"
         style={sidebarStylingAttributes}
         className={classNames(
-          "fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-muted border-r bg-cal-muted md:sticky md:flex",
+          "fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-muted border-r bg-cal-muted transition-[width] duration-200 md:sticky md:flex",
           "max-h-screen",
           isCollapsed ? "lg:w-14 lg:px-0" : "lg:w-56 lg:px-3"
         )}>
@@ -216,6 +217,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
               onClick={() => setIsCollapsed((collapsed) => !collapsed)}
               aria-label={isCollapsed ? t("expand_sidebar") : t("collapse_sidebar")}
               aria-expanded={!isCollapsed}
+              aria-controls="app-sidebar"
               className={classNames(
               "hidden w-full items-center rounded-md px-2 py-1.5 font-medium text-default text-sm transition hover:bg-subtle hover:text-emphasis focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 lg:flex",
               isCollapsed ? "justify-center" : "justify-start gap-2"
