@@ -114,16 +114,9 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                   "todesktop:mt-4 w-full",
                   isCollapsed && "lg:mt-0 lg:flex lg:justify-center"
                 )}>
-                {/* Expanded desktop */}
-                <div className={classNames("hidden lg:block", isCollapsed && "lg:hidden")}>
-                  <UserDropdown />
+                <div className={classNames("hidden lg:block", isCollapsed && "lg:flex lg:justify-center")}>
+                  <UserDropdown iconOnly={isCollapsed} />
                 </div>
-                {/* Collapsed desktop */}
-                {isCollapsed && (
-                  <div className="hidden justify-center lg:flex">
-                    <UserDropdown iconOnly />
-                  </div>
-                )}
               </div>
             )}
             <div className={classNames(
