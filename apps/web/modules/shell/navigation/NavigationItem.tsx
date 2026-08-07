@@ -2,7 +2,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { sessionStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
@@ -186,18 +185,12 @@ export const NavigationItem: React.FC<{
                 </span>
 
                 {item.child?.map((childItem) => {
-                  const childIsCurrent =
-                    typeof childItem.isCurrent === "function"
-                      ? childItem.isCurrent({
-                          isChild: true,
-                          item: childItem,
-                          pathname,
-                        })
-                      : defaultIsCurrent({
-                          isChild: true,
-                          item: childItem,
-                          pathname,
-                        });
+                  const resolveIsCurrent = childItem.isCurrent ?? defaultIsCurrent;
+                    const childIsCurrent = resolveIsCurrent({
+                      isChild: true,
+                      item: childItem,
+                      pathname,
+                    });
 
                   return (
                     <Link
