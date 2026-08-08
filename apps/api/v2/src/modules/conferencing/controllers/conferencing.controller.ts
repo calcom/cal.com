@@ -1,45 +1,46 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import {
-  ConferencingAppsOauthUrlOutputDto,
-  GetConferencingAppsOauthUrlResponseDto,
-} from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
-import {
-  ConferencingAppsOutputResponseDto,
-  ConferencingAppOutputResponseDto,
-  ConferencingAppsOutputDto,
-  DisconnectConferencingAppOutputResponseDto,
-} from "@/modules/conferencing/outputs/get-conferencing-apps.output";
-import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
-import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
-import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { CAL_VIDEO, GOOGLE_MEET, OFFICE_365_VIDEO, SUCCESS_STATUS, ZOOM } from "@calcom/platform-constants";
 import { HttpService } from "@nestjs/axios";
-import { Logger } from "@nestjs/common";
 import {
-  Controller,
-  Get,
-  Query,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
-  Post,
-  Param,
   BadRequestException,
+  Controller,
   Delete,
+  Get,
   Headers,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Logger,
+  Param,
+  Post,
+  Query,
   Redirect,
   Req,
-  HttpException,
+  UseGuards,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
-
-import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import {
+  ConferencingAppOutputResponseDto,
+  ConferencingAppsOutputDto,
+  ConferencingAppsOutputResponseDto,
+  DisconnectConferencingAppOutputResponseDto,
+} from "@/modules/conferencing/outputs/get-conferencing-apps.output";
+import {
+  ConferencingAppsOauthUrlOutputDto,
+  GetConferencingAppsOauthUrlResponseDto,
+} from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
+import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
+import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
+import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
+import { JwtService } from "@/modules/jwt/jwt.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -61,7 +62,8 @@ export class ConferencingController {
   constructor(
     private readonly conferencingService: ConferencingService,
     private readonly config: ConfigService,
-    private readonly httpService: HttpService
+    private readonly httpService: HttpService,
+    private readonly jwtService: JwtService
   ) {}
 
   @Post("/:app/connect")
@@ -111,7 +113,10 @@ export class ConferencingController {
       accessToken,
     };
 
-    const credential = await this.conferencingService.generateOAuthUrl(app, state);
+    // Sign the state to prevent tampering
+    const signedState = this.jwtService.sign({ ...state, iat: Math.floor(Date.now() / 1000) });
+
+    const credential = await this.conferencingService.generateOAuthUrl(app, signedState);
 
     return {
       status: SUCCESS_STATUS,
@@ -148,7 +153,28 @@ export class ConferencingController {
       throw new BadRequestException("Missing `state` query param");
     }
 
-    const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
+    // Verify the signed state
+    let decodedCallbackState: OAuthCallbackState & { iat?: number };
+    try {
+      decodedCallbackState = this.jwtService.decode(state);
+    } catch (_err) {
+      throw new BadRequestException("Invalid `state` parameter");
+    }
+
+    // Check token expiry (optional but good practice - e.g., 10 minutes)
+    const iat = decodedCallbackState.iat;
+    if (iat && Math.floor(Date.now() / 1000) - iat > 600) {
+      throw new BadRequestException("`state` parameter expired");
+    }
+
+    // Validate redirect URI against allowed origins
+    const onErrorReturnTo = decodedCallbackState.onErrorReturnTo ?? "";
+    const allowedOrigins = this.config.get<string[]>("allowedOrigins") ?? [];
+    let safeRedirectUrl = "/";
+    if (isOriginAllowed(onErrorReturnTo, allowedOrigins)) {
+      safeRedirectUrl = onErrorReturnTo;
+    }
+
     try {
       if (error) {
         throw new BadRequestException(error_description);
@@ -163,11 +189,13 @@ export class ConferencingController {
         };
         try {
           const response = await this.httpService.axiosRef.get(url, { params, headers });
-          const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
-          return { url: redirectUrl };
-        } catch (err) {
-          const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
-          return { url: fallbackUrl };
+          const redirectUrl = response.data?.url;
+          if (redirectUrl && isOriginAllowed(redirectUrl, allowedOrigins)) {
+            return { url: redirectUrl };
+          }
+          return { url: safeRedirectUrl };
+        } catch (_err) {
+          return { url: safeRedirectUrl };
         }
       }
 
@@ -177,7 +205,7 @@ export class ConferencingController {
         this.logger.error(error.message);
       }
       return {
-        url: decodedCallbackState.onErrorReturnTo ?? "",
+        url: safeRedirectUrl,
       };
     }
   }
