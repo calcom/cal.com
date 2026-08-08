@@ -1,0 +1,19 @@
+<svg width="106" height="86" viewBox="0 0 106 86" fill="none" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M 83.4613,16.1551 V 86 h 11.578 C 101.094,86 106,81.026 106,74.9015 V 2.47101 c 0,-2.09261199 -2.404,-3.23204199 -3.997,-1.89540199 z" fill="url(#paint0_linear_proton)" />
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M 67.3128,29.7407 46.1604,48.6618 c -3.6066,3.2211 -8.9895,3.2978 -12.6827,0.1862 L 0,20.6691 V 2.482 C 0,0.38939001 2.40441,-0.76099599 3.99653,0.57564301 L 45.998,35.8761 c 4.0615,3.4183 9.9534,3.4183 14.0149,0 z" fill="url(#paint1_linear_proton)" />
+  <path d="m 83.4613,16.1661 -16.1485,13.5746 0.0108,-10e-5 -21.1632,18.9212 c -3.6066,3.2211 -8.9895,3.2978 -12.6827,0.1862 L 0,20.6691 V 74.9015 C 0,81.0259 4.9063,86 10.9607,86 h 72.5006 z" fill="url(#paint2_radial_proton)" />
+  <defs>
+    <linearGradient id="paint0_linear_proton" x1="265.97501" y1="141.754" x2="244.3" y2="-73.404099" gradientUnits="userSpaceOnUse">
+      <stop offset="0.271" stop-color="#E3D9FF" />
+      <stop offset="1" stop-color="#7341FF" />
+    </linearGradient>
+    <linearGradient id="paint1_linear_proton" x1="62.634602" y1="86.798401" x2="18.552999" y2="-87.2799" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E3D9FF" />
+      <stop offset="1" stop-color="#7341FF" />
+    </linearGradient>
+    <radialGradient id="paint2_radial_proton" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(123.614,0,0,125.045,105.538,10.5272)">
+      <stop offset="0.5561" stop-color="#6D4AFF" />
+      <stop offset="0.9944" stop-color="#AA8EFF" />
+    </radialGradient>
+  </defs>
+</svg>

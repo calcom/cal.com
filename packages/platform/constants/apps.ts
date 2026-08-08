@@ -9,7 +9,9 @@ export const ICS_CALENDAR = "ics-feed";
 export const ICS_CALENDAR_ID = "ics-feed";
 export const APPLE_CALENDAR_TYPE = "apple_calendar";
 export const ICS_CALENDAR_TYPE = "ics-feed_calendar";
+export const PROTON_CALENDAR_TYPE = "proton_calendar";
 export const APPLE_CALENDAR_ID = "apple-calendar";
+export const PROTON_CALENDAR_ID = "proton-calendar";
 export const CALENDARS = [GOOGLE_CALENDAR, OFFICE_365_CALENDAR, APPLE_CALENDAR] as const;
 export const CREDENTIAL_CALENDARS = [APPLE_CALENDAR] as const;
 
@@ -31,6 +33,8 @@ export const APPS_TYPE_ID_MAPPING = {
   [GOOGLE_CALENDAR_TYPE]: GOOGLE_CALENDAR_ID,
   [OFFICE_365_CALENDAR_TYPE]: OFFICE_365_CALENDAR_ID,
   [APPLE_CALENDAR_TYPE]: APPLE_CALENDAR_ID,
+  [PROTON_CALENDAR_TYPE]: PROTON_CALENDAR_ID,
   [ICS_CALENDAR_TYPE]: ICS_CALENDAR_ID,
   [GOOGLE_MEET_TYPE]: GOOGLE_MEET_ID,
 } as const;
+

@@ -1,0 +1,18 @@
+import BaseCalendarService from "@calcom/lib/CalendarService";
+import type { Calendar } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
+
+class ProtonCalendarService extends BaseCalendarService {
+  constructor(credential: CredentialPayload) {
+    super(credential, "proton_calendar", "https://caldav.proton.me");
+  }
+}
+
+/**
+ * Factory function that creates a Proton Calendar service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
+  return new ProtonCalendarService(credential);
+}
