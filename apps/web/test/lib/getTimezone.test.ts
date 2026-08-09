@@ -106,4 +106,16 @@ describe("getTimezone", () => {
     vi.setSystemTime(new Date("2020-06-01"));
     expect(handleOptionLabel(option, [])).toMatchInlineSnapshot(`"America/Los Angeles GMT -7:00"`);
   });
+
+  it("strips the leading zero for half-hour offsets, not just whole-hour zones (#29853)", () => {
+    // Asia/Kolkata is +05:30 all year, so it must render like whole-hour zones (no padded zero).
+    const kolkataOption = {
+      value: "Asia/Kolkata",
+      label: "(GMT+5:30) Kolkata",
+      offset: 5.5,
+      abbrev: "IST",
+      altName: "India Standard Time",
+    };
+    expect(handleOptionLabel(kolkataOption, [])).toBe("Asia/Kolkata GMT +5:30");
+  });
 });
