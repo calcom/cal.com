@@ -351,7 +351,24 @@ export const FormBuilder = function FormBuilder({
                         }}
                         tooltip={t("show_on_booking_page")}
                       />
+                      
                     )}
+                    <Input
+                      data-testid="parent-question-name"
+                      placeholder="Show only if question..."
+                      value={field.parentQuestionName || ""}
+                      onChange={(e) => {
+                        update(index, { ...field, parentQuestionName: e.target.value });
+                      }}
+                    />
+                    <Input
+                      data-testid="trigger-value"
+                      placeholder="...equals this value"
+                      value={field.triggerValue || ""}
+                      onChange={(e) => {
+                        update(index, { ...field, triggerValue: e.target.value });
+                      }}
+                    />
                     {isUserField && (
                       <Button
                         data-testid="delete-field-action"
