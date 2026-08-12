@@ -74,7 +74,9 @@ describe("getHandler", () => {
       },
     });
 
-    expect(result.bookings).toEqual(mockBookings);
+    expect(result.bookings).toEqual(
+      mockBookings.map((b) => ({ ...b, reputation: null }))
+    );
     expect(result.totalCount).toBe(1);
     expect(getAllUserBookings).toHaveBeenCalledWith(
       expect.objectContaining({

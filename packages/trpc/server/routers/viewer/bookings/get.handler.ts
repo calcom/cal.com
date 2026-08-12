@@ -3,6 +3,8 @@ import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
+import { getReputationByEmails } from "@calcom/lib/bookerReputation";
+import type { BookerReputation } from "@calcom/lib/bookerReputation";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -10,7 +12,11 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  MembershipRole,
+  SchedulingType,
+} from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 import type { Kysely, SelectQueryBuilder } from "kysely";
@@ -20,9 +26,15 @@ import type { TGetInputSchema } from "./get.schema";
 
 class PermissionCheckService {
   constructor(_prisma?: unknown) {}
-  async checkPermission(..._args: unknown[]) { return true; }
-  async hasPermission(..._args: unknown[]) { return true; }
-  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> { return []; }
+  async checkPermission(..._args: unknown[]) {
+    return true;
+  }
+  async hasPermission(..._args: unknown[]) {
+    return true;
+  }
+  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> {
+    return [];
+  }
 }
 
 type GetOptions = {
@@ -33,7 +45,12 @@ type GetOptions = {
   input: TGetInputSchema;
 };
 
-type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
+type InputByStatus =
+  | "upcoming"
+  | "recurring"
+  | "past"
+  | "cancelled"
+  | "unconfirmed";
 
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
@@ -60,7 +77,11 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
 
   const { bookings, recurringInfo, totalCount } = await getAllUserBookings({
     ctx: {
-      user: { id: user.id, email: user.email, orgId: user?.profile?.organizationId },
+      user: {
+        id: user.id,
+        email: user.email,
+        orgId: user?.profile?.organizationId,
+      },
       prisma: prisma,
       kysely: kysely,
     },
@@ -76,8 +97,27 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const hasMore = nextOffset < totalCount;
   const nextCursor = hasMore ? nextOffset.toString() : undefined;
 
+  // Attach booker reputation to each booking. Computed on-the-fly from
+  // Attendee.noShow history off the primary booker's email (attendees[0]).
+  // ADR-001 (email-keyed), ADR-002 (on-the-fly, no DB writes),
+  // ADR-006 (booking-level, not per-attendee), ADR-007 (resolver attaches).
+  // See specs/booker-reputation/design.md.
+  const bookerEmails = bookings
+    .map((b) => b.attendees?.[0]?.email)
+    .filter((email): email is string => Boolean(email));
+  const reputationByEmail = bookerEmails.length
+    ? await getReputationByEmails(Array.from(new Set(bookerEmails)))
+    : {};
+  const bookingsWithReputation = bookings.map((b) => {
+    const email = b.attendees?.[0]?.email;
+    const reputation: BookerReputation | null = email
+      ? reputationByEmail[email] ?? null
+      : null;
+    return { ...b, reputation };
+  });
+
   return {
-    bookings,
+    bookings: bookingsWithReputation,
     recurringInfo,
     totalCount,
     nextCursor,
@@ -115,18 +155,23 @@ export async function getBookings({
   skip: number;
 }) {
   const permissionCheckService = new PermissionCheckService();
-  const fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
+  const fallbackRoles: MembershipRole[] = [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ];
 
-  const teamIdsWithBookingPermission = await permissionCheckService.getTeamIdsWithPermission({
-    userId: user.id,
-    permission: "booking.read",
-    fallbackRoles,
-    orgId: user.orgId ?? undefined,
-  });
+  const teamIdsWithBookingPermission =
+    await permissionCheckService.getTeamIdsWithPermission({
+      userId: user.id,
+      permission: "booking.read",
+      fallbackRoles,
+      orgId: user.orgId ?? undefined,
+    });
 
   // Only fetch user IDs from teams if we need to validate userIds filter
   // PERFORMANCE: We no longer need to fetch all emails/IDs for the main query since we use subqueries
-  const needsUserIdsValidation = !!filters?.userIds && filters.userIds.length > 0;
+  const needsUserIdsValidation =
+    !!filters?.userIds && filters.userIds.length > 0;
 
   const [
     eventTypeIdsFromTeamIdsFilter,
@@ -143,7 +188,8 @@ export async function getBookings({
       : Promise.resolve([]),
   ]);
 
-  const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
+  const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] =
+    [];
 
   // If userIds filter is provided
   if (!!filters?.userIds && filters.userIds.length > 0) {
@@ -151,7 +197,8 @@ export async function getBookings({
       allAccessibleUserIds.includes(userId)
     );
 
-    const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
+    const isCurrentUser =
+      filters.userIds.length === 1 && user.id === filters.userIds[0];
 
     //  Scope depends on `user.orgId`:
     // - Throw an error if trying to filter by usersIds that are not within your ORG
@@ -159,7 +206,8 @@ export async function getBookings({
     if (!areUserIdsWithinUserOrgOrTeam && !isCurrentUser) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "You do not have permissions to fetch bookings for specified userIds",
+        message:
+          "You do not have permissions to fetch bookings for specified userIds",
       });
     }
 
@@ -346,14 +394,28 @@ export async function getBookings({
     let fullQuery = addStatusesQueryFilters(query, bookingListingByStatus);
 
     // 2. Filter by Event Type IDs derived from Team IDs (if provided)
-    if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
-      fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
+    if (
+      eventTypeIdsFromTeamIdsFilter &&
+      eventTypeIdsFromTeamIdsFilter.length > 0
+    ) {
+      fullQuery = fullQuery.where(
+        "Booking.eventTypeId",
+        "in",
+        eventTypeIdsFromTeamIdsFilter
+      );
     }
 
     // 3. Filter by specific Event Type IDs (if provided)
     // If both teamIds filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
-    if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
-      fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter);
+    if (
+      eventTypeIdsFromEventTypeIdsFilter &&
+      eventTypeIdsFromEventTypeIdsFilter.length > 0
+    ) {
+      fullQuery = fullQuery.where(
+        "Booking.eventTypeId",
+        "in",
+        eventTypeIdsFromEventTypeIdsFilter
+      );
     }
 
     // 4. Filter by Attendee Name (if provided)
@@ -396,15 +458,27 @@ export async function getBookings({
 
     // 6. Filter by Booking Uid (if provided)
     if (filters?.bookingUid) {
-      fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
+      fullQuery = fullQuery.where(
+        "Booking.uid",
+        "=",
+        filters.bookingUid.trim()
+      );
     }
 
     // 7. Booking Start/End Time Range Filters
     if (filters?.afterStartDate) {
-      fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
+      fullQuery = fullQuery.where(
+        "Booking.startTime",
+        ">=",
+        dayjs.utc(filters.afterStartDate).toDate()
+      );
     }
     if (filters?.beforeEndDate) {
-      fullQuery = fullQuery.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
+      fullQuery = fullQuery.where(
+        "Booking.endTime",
+        "<=",
+        dayjs.utc(filters.beforeEndDate).toDate()
+      );
     }
 
     return fullQuery;
@@ -421,31 +495,54 @@ export async function getBookings({
     .distinct()
     .selectAll("union_subquery")
     .$if(Boolean(filters?.afterUpdatedDate), (eb) =>
-      eb.where("union_subquery.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate())
+      eb.where(
+        "union_subquery.updatedAt",
+        ">=",
+        dayjs.utc(filters.afterUpdatedDate).toDate()
+      )
     )
     .$if(Boolean(filters?.beforeUpdatedDate), (eb) =>
-      eb.where("union_subquery.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate())
+      eb.where(
+        "union_subquery.updatedAt",
+        "<=",
+        dayjs.utc(filters.beforeUpdatedDate).toDate()
+      )
     )
     .$if(Boolean(filters?.afterCreatedDate), (eb) =>
-      eb.where("union_subquery.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate())
+      eb.where(
+        "union_subquery.createdAt",
+        ">=",
+        dayjs.utc(filters.afterCreatedDate).toDate()
+      )
     )
     .$if(Boolean(filters?.beforeCreatedDate), (eb) =>
-      eb.where("union_subquery.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate())
+      eb.where(
+        "union_subquery.createdAt",
+        "<=",
+        dayjs.utc(filters.beforeCreatedDate).toDate()
+      )
     )
     .orderBy(orderBy.key, orderBy.order)
     .limit(take)
     .offset(skip)
     .compile();
 
-  const bookingsFromUnion = (await kysely.executeQuery(getBookingsUnionCompiled)).rows;
+  const bookingsFromUnion = (
+    await kysely.executeQuery(getBookingsUnionCompiled)
+  ).rows;
 
-  log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled.sql);
+  log.debug(
+    `Get bookings for user ${user.id} SQL:`,
+    getBookingsUnionCompiled.sql
+  );
 
   const totalCount = Number(
     (
       await kysely
         .selectFrom(queryUnion.as("union_subquery"))
-        .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
+        .select(({ fn }) =>
+          fn.count("union_subquery.id").distinct().as("bookingCount")
+        )
         .executeTakeFirst()
     )?.bookingCount ?? 0
   );
@@ -610,7 +707,10 @@ export async function getBookings({
               .whereRef("Booking.userId", "=", "users.id")
           ).as("user"),
           jsonArrayFrom(
-            eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
+            eb
+              .selectFrom("Attendee")
+              .selectAll()
+              .whereRef("Attendee.bookingId", "=", "Booking.id")
           ).as("attendees"),
           jsonArrayFrom(
             eb
@@ -702,7 +802,13 @@ export async function getBookings({
           }
           return prev;
         },
-        { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [], AWAITING_HOST: [] } as {
+        {
+          ACCEPTED: [],
+          CANCELLED: [],
+          REJECTED: [],
+          PENDING: [],
+          AWAITING_HOST: [],
+        } as {
           [key in BookingStatus]: Date[];
         }
       );
@@ -728,7 +834,10 @@ export async function getBookings({
     })
   );
 
-  const checkIfUserIsHost = (userId: number, booking: (typeof plainBookings)[number]) => {
+  const checkIfUserIsHost = (
+    userId: number,
+    booking: (typeof plainBookings)[number]
+  ) => {
     if (booking.user?.id === userId) {
       return true;
     }
@@ -737,7 +846,9 @@ export async function getBookings({
       return false;
     }
 
-    const attendeeEmails = new Set(booking.attendees.map((attendee) => attendee.email));
+    const attendeeEmails = new Set(
+      booking.attendees.map((attendee) => attendee.email)
+    );
 
     return booking.eventType.hosts.some(({ user: hostUser }) => {
       return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
@@ -752,7 +863,9 @@ export async function getBookings({
         !booking.eventType?.seatsShowAttendees &&
         !checkIfUserIsHost(user.id, booking)
       ) {
-        booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+        booking.attendees = booking.attendees.filter(
+          (attendee) => attendee.email === user.email
+        );
       }
 
       let rescheduler = null;
@@ -775,11 +888,17 @@ export async function getBookings({
         rescheduler,
         eventType: {
           ...booking.eventType,
-          recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-          eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
+          recurringEvent: parseRecurringEvent(
+            booking.eventType?.recurringEvent
+          ),
+          eventTypeColor: parseEventTypeColor(
+            booking.eventType?.eventTypeColor
+          ),
           price: booking.eventType?.price || 0,
           currency: booking.eventType?.currency || "usd",
-          metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
+          metadata: EventTypeMetaDataSchema.parse(
+            booking.eventType?.metadata || {}
+          ),
         },
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
@@ -809,20 +928,24 @@ type EnrichedUserData = {
  * @returns Bookings with attendees enriched with user data (name, email, avatarUrl, username)
  */
 async function enrichAttendeesWithUserData<
-  TBooking extends { attendees: ReadonlyArray<{ id: number; email: string }> },
+  TBooking extends { attendees: ReadonlyArray<{ id: number; email: string }> }
 >(
   bookings: TBooking[],
   kysely: Kysely<DB>
 ): Promise<
   Array<
     Omit<TBooking, "attendees"> & {
-      attendees: Array<TBooking["attendees"][number] & { user: EnrichedUserData | null }>;
+      attendees: Array<
+        TBooking["attendees"][number] & { user: EnrichedUserData | null }
+      >;
     }
   >
 > {
   // Extract all unique attendee emails from bookings
   const allAttendees = bookings.flatMap((booking) => booking.attendees);
-  const uniqueAttendeeIds = Array.from(new Set(allAttendees.map((attendee) => attendee.id)));
+  const uniqueAttendeeIds = Array.from(
+    new Set(allAttendees.map((attendee) => attendee.id))
+  );
 
   // Query attendees with left join to users table
   const enrichedAttendees =
@@ -830,7 +953,13 @@ async function enrichAttendeesWithUserData<
       ? await kysely
           .selectFrom("Attendee")
           .leftJoin("users", "users.email", "Attendee.email")
-          .select(["Attendee.id", "users.name", "Attendee.email", "users.avatarUrl", "users.username"])
+          .select([
+            "Attendee.id",
+            "users.name",
+            "Attendee.email",
+            "users.avatarUrl",
+            "users.username",
+          ])
           .where("Attendee.id", "in", uniqueAttendeeIds)
           .execute()
       : [];
@@ -874,7 +1003,10 @@ async function enrichAttendeesWithUserData<
  * @param teamIds Array of team IDs to filter by
  * @returns Array of event type IDs or undefined if no teamIds provided
  */
-async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: number[]) {
+async function getEventTypeIdsFromTeamIdsFilter(
+  prisma: PrismaClient,
+  teamIds?: number[]
+) {
   if (!teamIds || teamIds.length === 0) {
     return undefined;
   }
@@ -883,7 +1015,9 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
     SELECT "child"."id"
     FROM "public"."EventType" AS "parent"
     LEFT JOIN "public"."EventType" "child" ON ("parent"."id") = ("child"."parentId")
-    WHERE "parent"."id" IN (SELECT "id" FROM "public"."EventType" WHERE "teamId" IN (${Prisma.join(teamIds)}))
+    WHERE "parent"."id" IN (SELECT "id" FROM "public"."EventType" WHERE "teamId" IN (${Prisma.join(
+      teamIds
+    )}))
       AND "child"."id" IS NOT NULL
     UNION
     SELECT "parent"."id"
@@ -916,7 +1050,10 @@ async function getAttendeeEmailsFromUserIdsFilter(
     })
     .then((users) => users.map((user) => user.email));
 
-  if (!attendeeEmailsFromUserIdsFilter || attendeeEmailsFromUserIdsFilter?.length === 0) {
+  if (
+    !attendeeEmailsFromUserIdsFilter ||
+    attendeeEmailsFromUserIdsFilter?.length === 0
+  ) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "The requested users do not exist.",
@@ -926,7 +1063,10 @@ async function getAttendeeEmailsFromUserIdsFilter(
   return attendeeEmailsFromUserIdsFilter;
 }
 
-async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, eventTypeIds?: number[]) {
+async function getEventTypeIdsFromEventTypeIdsFilter(
+  prisma: PrismaClient,
+  eventTypeIds?: number[]
+) {
   if (!eventTypeIds || eventTypeIds.length === 0) {
     return undefined;
   }
@@ -958,7 +1098,9 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
       .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
   ]);
 
-  const eventTypeIdsFromDb = Array.from(new Set([...directEventTypeIds, ...parentEventTypeIds]));
+  const eventTypeIdsFromDb = Array.from(
+    new Set([...directEventTypeIds, ...parentEventTypeIds])
+  );
 
   if (eventTypeIdsFromDb?.length === 0) {
     throw new TRPCError({
@@ -977,7 +1119,10 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
  * @param teamIds Array of team IDs to get members from
  * @returns {Promise<number[]>} UserIDs for members in the specified teams.
  */
-async function getUserIdsFromTeamIds(prisma: PrismaClient, teamIds: number[]): Promise<number[]> {
+async function getUserIdsFromTeamIds(
+  prisma: PrismaClient,
+  teamIds: number[]
+): Promise<number[]> {
   if (teamIds.length === 0) {
     return [];
   }
@@ -999,7 +1144,10 @@ async function getUserIdsFromTeamIds(prisma: PrismaClient, teamIds: number[]): P
   return Array.from(new Set(users.map((user) => user.id)));
 }
 
-function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {
+function addStatusesQueryFilters(
+  query: BookingsUnionQuery,
+  statuses: InputByStatus[]
+) {
   if (statuses?.length) {
     return query.where(({ eb, or, and }) =>
       or(
@@ -1008,7 +1156,10 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
             return and([
               eb("Booking.endTime", ">=", new Date()),
               or([
-                and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
+                and([
+                  eb("Booking.recurringEventId", "is not", null),
+                  eb("Booking.status", "=", "accepted"),
+                ]),
                 and([
                   eb("Booking.recurringEventId", "is", null),
                   eb("Booking.status", "not in", ["cancelled", "rejected"]),
@@ -1037,7 +1188,10 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
           }
 
           if (status === "unconfirmed") {
-            return and([eb("Booking.endTime", ">=", new Date()), eb("Booking.status", "=", "pending")]);
+            return and([
+              eb("Booking.endTime", ">=", new Date()),
+              eb("Booking.status", "=", "pending"),
+            ]);
           }
           return and([]);
         })
@@ -1082,13 +1236,21 @@ function addAdvancedAttendeeWhereClause(
 
     case "equals":
       fullQuery = fullQuery.where((eb) =>
-        eb(eb.fn<string>("lower", [`Attendee.${key}`]), "=", `${operand.toLowerCase()}`)
+        eb(
+          eb.fn<string>("lower", [`Attendee.${key}`]),
+          "=",
+          `${operand.toLowerCase()}`
+        )
       );
       break;
 
     case "notEquals":
       fullQuery = fullQuery.where((eb) =>
-        eb(eb.fn<string>("lower", [`Attendee.${key}`]), "!=", `${operand.toLowerCase()}`)
+        eb(
+          eb.fn<string>("lower", [`Attendee.${key}`]),
+          "!=",
+          `${operand.toLowerCase()}`
+        )
       );
       break;
 
@@ -1097,7 +1259,11 @@ function addAdvancedAttendeeWhereClause(
       break;
 
     case "notContains":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "not ilike", `%${operand}%`);
+      fullQuery = fullQuery.where(
+        `Attendee.${key}`,
+        "not ilike",
+        `%${operand}%`
+      );
       break;
 
     case "isEmpty":
@@ -1123,7 +1289,10 @@ function getOrderBy(
     sortCreated?: "asc" | "desc";
     sortUpdated?: "asc" | "desc";
   }
-): { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" } {
+): {
+  key: "startTime" | "endTime" | "createdAt" | "updatedAt";
+  order: "desc" | "asc";
+} {
   const bookingListingOrderby = {
     upcoming: { startTime: "asc" },
     recurring: { startTime: "asc" },
@@ -1133,7 +1302,10 @@ function getOrderBy(
   } as const;
 
   if (bookingListingByStatus?.length === 1 && !sort) {
-    return { key: "startTime", order: bookingListingOrderby[bookingListingByStatus[0]].startTime };
+    return {
+      key: "startTime",
+      order: bookingListingOrderby[bookingListingByStatus[0]].startTime,
+    };
   }
 
   if (sort?.sortStart) {
