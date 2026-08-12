@@ -46,6 +46,7 @@ import { useBookingDetailsSheetStore } from "../../modules/bookings/store/bookin
 import type { BookingAttendee } from "../../modules/bookings/types";
 import { AcceptBookingButton } from "./AcceptBookingButton";
 import { RejectBookingButton } from "./RejectBookingButton";
+import ReputationBadge from "./ReputationBadge";
 import { BookingActionsDropdown } from "./actions/BookingActionsDropdown";
 import {
   useBookingActionsStoreContext,
@@ -289,6 +290,12 @@ function BookingListItem(booking: BookingItemProps) {
           "bg-cal-muted before:bg-brand-default rounded-r-md before:absolute before:left-0 before:top-0 before:h-full before:w-1"
       )}>
       <div className="flex flex-col sm:flex-row">
+        {/* Booker reputation score (left-most column). Renders nothing when
+            reputation is null (empty attendees). See design.md / ADR-008.
+            M3 will add the suspicious-email badge adjacent to this one. */}
+        <div className="flex items-center ltr:pl-4 rtl:pr-4 sm:self-stretch">
+          <ReputationBadge reputation={booking.reputation} />
+        </div>
         <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">
           <div className="flex h-full items-center">
             {eventTypeColor && <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />}
