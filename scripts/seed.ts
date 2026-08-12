@@ -631,6 +631,128 @@ async function seedPerHostLocationsInAcmeOrg() {
   );
 }
 
+/**
+ * Seed demo bookings that exercise the booker-reputation score feature
+ * (specs/booker-reputation) so the reputation badge is visible on initial seed
+ * state for new contributors — no manual no-show marking needed.
+ *
+ * Attaches two EXTERNAL bookers to the existing seeded `pro` host's `30min`
+ * event type:
+ *   - "Flaky Booker"   -> 5 past ACCEPTED bookings, 4 marked no-show -> score 20 -> "frequent" (red)
+ *   - "Reliable Booker" -> 5 past ACCEPTED bookings, 0 no-show     -> score 100 -> "reliable" (green)
+ * Plus one upcoming ACCEPTED booking per booker so each badge renders on the
+ * host's Upcoming bookings tab (the score is historical-predictive, computed
+ * from the past bookings only — see packages/lib/bookerReputation/getReputation.ts).
+ *
+ * Idempotent: each demo booking has a deterministic UID; re-running the seed
+ * skips bookings that already exist.
+ */
+async function seedBookerReputationDemo() {
+  const proUser = await prisma.user.findUnique({ where: { email: "pro@example.com" } });
+  if (!proUser) {
+    console.log("ℹ️ Booker-reputation demo skipped (pro host not seeded yet)");
+    return;
+  }
+  const eventType = await prisma.eventType.findFirst({
+    where: { slug: "30min", userId: proUser.id },
+  });
+  if (!eventType) {
+    console.log("ℹ️ Booker-reputation demo skipped (pro '30min' event type not seeded yet)");
+    return;
+  }
+
+  // Low reputation: 5 past bookings, 4 no-show -> score = 100 * (1 - 4/5) = 20 -> "frequent" (red).
+  // High reputation: 5 past bookings, 0 no-show -> score = 100         -> "reliable" (green).
+  // Both above MIN_BOOKINGS (3) so a numeric score is surfaced (see design.md).
+  type DemoBooker = {
+    email: string;
+    name: string;
+    pastBookings: number;
+    noShowCount: number;
+    demoUidPrefix: string;
+  };
+  const bookers: DemoBooker[] = [
+    {
+      email: "flaky-booker@example.com",
+      name: "Flaky Booker",
+      pastBookings: 5,
+      noShowCount: 4,
+      demoUidPrefix: "seed-lowrep",
+    },
+    {
+      email: "reliable-booker@example.com",
+      name: "Reliable Booker",
+      pastBookings: 5,
+      noShowCount: 0,
+      demoUidPrefix: "seed-highrep",
+    },
+  ];
+
+  for (const booker of bookers) {
+    // Past ACCEPTED bookings form the reputation history (denominator + numerator
+    // — only past ACCEPTED bookings count; see ADR-003 / getReputation.ts). The
+    // first `noShowCount` of these are marked as no-shows.
+    for (let i = 0; i < booker.pastBookings; i++) {
+      const uid = `${booker.demoUidPrefix}-past-${i}`;
+      if (await prisma.booking.findUnique({ where: { uid } })) continue;
+      const start = dayjs().subtract(booker.pastBookings - i, "day").toDate();
+      await prisma.booking.create({
+        data: {
+          uid,
+          title: `30min with ${booker.name}`,
+          startTime: start,
+          endTime: dayjs(start).add(30, "minutes").toDate(),
+          status: BookingStatus.ACCEPTED,
+          iCalUID: "",
+          user: { connect: { id: proUser.id } },
+          eventType: { connect: { id: eventType.id } },
+          attendees: {
+            create: {
+              email: booker.email,
+              name: booker.name,
+              timeZone: "Europe/London",
+              noShow: i < booker.noShowCount,
+            },
+          },
+        },
+      });
+    }
+
+    // One upcoming ACCEPTED booking for this booker so the reputation badge
+    // shows on the host's Upcoming tab. noShow:false — an upcoming booking
+    // cannot yet be a no-show.
+    const upcomingUid = `${booker.demoUidPrefix}-upcoming`;
+    if (!(await prisma.booking.findUnique({ where: { uid: upcomingUid } }))) {
+      const start = dayjs().add(1, "week").toDate();
+      await prisma.booking.create({
+        data: {
+          uid: upcomingUid,
+          title: `30min with ${booker.name}`,
+          startTime: start,
+          endTime: dayjs(start).add(30, "minutes").toDate(),
+          status: BookingStatus.ACCEPTED,
+          iCalUID: "",
+          user: { connect: { id: proUser.id } },
+          eventType: { connect: { id: eventType.id } },
+          attendees: {
+            create: {
+              email: booker.email,
+              name: booker.name,
+              timeZone: "Europe/London",
+              noShow: false,
+            },
+          },
+        },
+      });
+    }
+
+    console.log(
+      `\t🏷️  Seeded booker-reputation demo: ${booker.email} — ${booker.noShowCount}/${booker.pastBookings} past no-shows` +
+        ` (score = ${Math.round(100 * (1 - booker.noShowCount / booker.pastBookings))})`
+    );
+  }
+}
+
 async function main() {
   await createUserAndEventType({
     user: {
@@ -1372,6 +1494,7 @@ async function main() {
 
   await ensureAcmeOwnerHasApiKeySeeded();
   await seedPerHostLocationsInAcmeOrg();
+  await seedBookerReputationDemo();
 }
 
 async function runSeed() {
