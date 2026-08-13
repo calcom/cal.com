@@ -182,6 +182,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
   }
 
+  if (confirmed && booking.status !== BookingStatus.PENDING) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Only pending bookings can be confirmed",
+    });
+  }
+
   // Atomically claim the booking and guard against double-booking.
   // A per-user advisory lock serializes concurrent confirmations so the overlap check
   // and the compare-and-swap status write cannot interleave: a second request waits
@@ -407,17 +414,28 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     );
     evt.conferenceCredentialId = conferenceCredentialId.conferenceCredentialId;
 
-    await handleConfirmation({
-      user: { ...user, credentials: allCredentials },
-      evt,
-      recurringEventId,
-      prisma,
-      bookingId,
-      booking,
-      emailsEnabled,
-      platformClientParams,
-      traceContext,
-    });
+    try {
+      await handleConfirmation({
+        user: { ...user, credentials: allCredentials },
+        evt,
+        recurringEventId,
+        prisma,
+        bookingId,
+        booking,
+        emailsEnabled,
+        platformClientParams,
+        traceContext,
+      });
+    } catch (err) {
+      // If we pre-claimed ACCEPTED via the advisory lock path and handleConfirmation
+      // fails, restore the booking to PENDING so the confirmation can be retried.
+      // When the booking was not pre-claimed this updateMany matches 0 rows (no-op).
+      await prisma.booking.updateMany({
+        where: { id: bookingId, status: BookingStatus.ACCEPTED },
+        data: { status: BookingStatus.PENDING },
+      });
+      throw err;
+    }
   } else {
     evt.rejectionReason = rejectionReason;
     let rejectedBookings: {
