@@ -182,6 +182,29 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
   }
 
+  // Check for conflicting accepted bookings before confirming a pending booking.
+  // Without this check, two concurrent confirmations of PENDING bookings for the
+  // same time slot can both succeed, creating a double-booking.
+  if (confirmed && booking.status === BookingStatus.PENDING && booking.userId) {
+    const conflictingBooking = await prisma.booking.findFirst({
+      where: {
+        userId: booking.userId,
+        status: BookingStatus.ACCEPTED,
+        id: { not: bookingId },
+        startTime: { lt: booking.endTime },
+        endTime: { gt: booking.startTime },
+      },
+      select: { id: true, uid: true },
+    });
+
+    if (conflictingBooking) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "A confirmed booking already exists that overlaps with this time slot",
+      });
+    }
+  }
+
   // If booking requires payment and is not paid, we don't allow confirmation
   if (confirmed && booking.payment.length > 0 && !booking.paid) {
     await prisma.booking.update({
