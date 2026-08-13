@@ -182,48 +182,64 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
   }
 
-  // Guard against double-booking: reject if an accepted booking already overlaps.
-  // Note: the check and the handleConfirmation status update are not fully atomic
-  // (full atomicity requires a DB-level unique constraint or advisory lock). This
-  // closes the most common race window without requiring a schema migration.
-  if (confirmed && booking.status === BookingStatus.PENDING && booking.userId) {
-    const conflictingBooking = await prisma.booking.findFirst({
-      where: {
-        userId: booking.userId,
-        status: BookingStatus.ACCEPTED,
-        id: { not: bookingId },
-        startTime: { lt: booking.endTime },
-        endTime: { gt: booking.startTime },
-      },
-      select: { id: true },
-    });
+  // Atomically claim the booking and guard against double-booking.
+  // A per-user advisory lock serializes concurrent confirmations so the overlap check
+  // and the compare-and-swap status write cannot interleave: a second request waits
+  // until the first transaction commits before reading, and will then see the ACCEPTED row.
+  if (confirmed && booking.status === BookingStatus.PENDING) {
+    const userId = booking.userId;
+    if (userId) {
+      await prisma.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(${BigInt(userId)})`;
 
-    if (conflictingBooking) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: "A confirmed booking already exists that overlaps with this time slot",
+        const conflictingBooking = await tx.booking.findFirst({
+          where: {
+            userId,
+            status: BookingStatus.ACCEPTED,
+            id: { not: bookingId },
+            startTime: { lt: booking.endTime },
+            endTime: { gt: booking.startTime },
+          },
+          select: { id: true },
+        });
+
+        if (conflictingBooking) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "A confirmed booking already exists that overlaps with this time slot",
+          });
+        }
+
+        const updated = await tx.booking.updateMany({
+          where: { id: bookingId, status: BookingStatus.PENDING },
+          data: { status: BookingStatus.ACCEPTED },
+        });
+
+        if (updated.count === 0) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Booking was already confirmed or rejected by another request",
+          });
+        }
       });
+
+      if (booking.payment.length > 0 && !booking.paid) {
+        // Payment path: status already ACCEPTED; return early.
+        return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
+      }
+      // Non-payment path: falls through to handleConfirmation below, which writes
+      // status=ACCEPTED again (idempotent) and attaches calendar references and metadata.
+    } else if (booking.payment.length > 0 && !booking.paid) {
+      // No userId: payment path without overlap check.
+      const updated = await prisma.booking.updateMany({
+        where: { id: bookingId, status: BookingStatus.PENDING },
+        data: { status: BookingStatus.ACCEPTED },
+      });
+      if (updated.count === 0) {
+        throw new TRPCError({ code: "CONFLICT", message: "Booking was already confirmed by another request" });
+      }
+      return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
     }
-  }
-
-  // If booking requires payment and is not paid, update status atomically with
-  // a conditional write so a concurrent confirmation cannot race past the check.
-  if (confirmed && booking.payment.length > 0 && !booking.paid) {
-    const updated = await prisma.booking.updateMany({
-      where: {
-        id: bookingId,
-        status: BookingStatus.PENDING,
-      },
-      data: {
-        status: BookingStatus.ACCEPTED,
-      },
-    });
-
-    if (updated.count === 0) {
-      throw new TRPCError({ code: "CONFLICT", message: "Booking was already confirmed by another request" });
-    }
-
-    return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
   }
 
   // Cache translations to avoid requesting multiple times.
