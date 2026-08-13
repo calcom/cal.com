@@ -43,7 +43,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
 
   const durations =
     multipleDuration.length > 0
-      ? [length, ...multipleDuration.filter((duration) => duration !== length)].sort()
+      ? [length, ...multipleDuration.filter((duration) => duration !== length)].sort((a, b) => a - b)
       : [length];
   return (
     <div
