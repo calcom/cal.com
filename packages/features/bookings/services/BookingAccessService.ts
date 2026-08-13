@@ -8,6 +8,7 @@ class PermissionCheckService {
   async checkPermission({
     userId,
     teamId,
+    permission: _permission,
     fallbackRoles,
   }: {
     userId: number;
@@ -15,6 +16,9 @@ class PermissionCheckService {
     permission: string;
     fallbackRoles?: MembershipRole[];
   }): Promise<boolean> {
+    // `_permission` is accepted for interface compatibility but this PR implements the
+    // role-based fallback path only. Querying the PBAC permission store for _permission
+    // is a follow-up task once the store abstraction is stable.
     if (!this.prismaClient) return false;
     const membership = await this.prismaClient.membership.findFirst({
       where: {
