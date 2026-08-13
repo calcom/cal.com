@@ -182,9 +182,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
   }
 
-  // Check for conflicting accepted bookings before confirming a pending booking.
-  // Without this check, two concurrent confirmations of PENDING bookings for the
-  // same time slot can both succeed, creating a double-booking.
+  // Guard against double-booking: reject if an accepted booking already overlaps.
+  // Note: the check and the handleConfirmation status update are not fully atomic
+  // (full atomicity requires a DB-level unique constraint or advisory lock). This
+  // closes the most common race window without requiring a schema migration.
   if (confirmed && booking.status === BookingStatus.PENDING && booking.userId) {
     const conflictingBooking = await prisma.booking.findFirst({
       where: {
@@ -194,7 +195,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         startTime: { lt: booking.endTime },
         endTime: { gt: booking.startTime },
       },
-      select: { id: true, uid: true },
+      select: { id: true },
     });
 
     if (conflictingBooking) {
@@ -205,16 +206,22 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     }
   }
 
-  // If booking requires payment and is not paid, we don't allow confirmation
+  // If booking requires payment and is not paid, update status atomically with
+  // a conditional write so a concurrent confirmation cannot race past the check.
   if (confirmed && booking.payment.length > 0 && !booking.paid) {
-    await prisma.booking.update({
+    const updated = await prisma.booking.updateMany({
       where: {
         id: bookingId,
+        status: BookingStatus.PENDING,
       },
       data: {
         status: BookingStatus.ACCEPTED,
       },
     });
+
+    if (updated.count === 0) {
+      throw new TRPCError({ code: "CONFLICT", message: "Booking was already confirmed by another request" });
+    }
 
     return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
   }
