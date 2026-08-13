@@ -85,13 +85,14 @@ export class SeatedAttendee extends BookingAttendee {
 
   @ApiPropertyOptional({
     type: String,
+    nullable: true,
     example: "2024-08-13T15:30:00Z",
     description: "The date and time when the attendee joined the seated booking.",
   })
   @IsDateString()
   @IsOptional()
   @Expose()
-  createdAt?: string;
+  createdAt?: string | null;
 }
 
 class BookingHost {
