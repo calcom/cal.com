@@ -33,6 +33,16 @@ describe("sanitizeValue", () => {
     expect(sanitizeValue("@SUM(A1:A10)")).toBe("'@SUM(A1:A10)");
   });
 
+  it("keeps the formula prefix on values that also need quoting", () => {
+    // A formula containing a comma must still get the ' prefix: quoting alone
+    // does not stop Excel/Sheets from evaluating it.
+    expect(sanitizeValue("=SUM(1,1)")).toBe('"\'=SUM(1,1)"');
+    expect(sanitizeValue('=HYPERLINK("http://evil.com","click")')).toBe(
+      '"\'=HYPERLINK(""http://evil.com"",""click"")"'
+    );
+    expect(sanitizeValue("=1\n+2")).toBe('"\'=1\n+2"');
+  });
+
   it("does not prefix non-formula values", () => {
     expect(sanitizeValue("hello")).toBe("hello");
     expect(sanitizeValue("123")).toBe("123");
