@@ -8,6 +8,8 @@ import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui/components/toast";
 
+import Loading from "./loading";
+
 const fetchReferralsToken = async () => {
   try {
     const response = await fetch("/api/user/referrals-token");
@@ -47,8 +49,12 @@ export const DubReferralsPage = () => {
     getToken();
   }, [t]);
 
-  if (!IS_DUB_REFERRALS_ENABLED || !token) {
+  if (!IS_DUB_REFERRALS_ENABLED) {
     return null;
+  }
+
+  if (!token) {
+    return <Loading />;
   }
 
   const theme = resolvedTheme === "dark" ? "dark" : "light";
