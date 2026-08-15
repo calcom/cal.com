@@ -32,6 +32,7 @@ const fetchReferralsToken = async () => {
 // The enabled referrals page implementation
 export const DubReferralsPage = () => {
   const [token, setToken] = useState<string | null>(null);
+  const [hasFetchFailed, setHasFetchFailed] = useState(false);
   const { t } = useLocale();
   const { resolvedTheme } = useTheme();
 
@@ -39,10 +40,15 @@ export const DubReferralsPage = () => {
     const getToken = async () => {
       try {
         const publicToken = await fetchReferralsToken();
-        setToken(publicToken);
+        if (publicToken) {
+          setToken(publicToken);
+        } else {
+          setHasFetchFailed(true);
+        }
       } catch (err) {
         console.error("Error fetching referrals token:", err);
         showToast(t("unexpected_error_try_again"), "error");
+        setHasFetchFailed(true);
       }
     };
 
@@ -53,6 +59,10 @@ export const DubReferralsPage = () => {
     return null;
   }
 
+  if (hasFetchFailed) {
+    return null;
+  }
+  
   if (!token) {
     return <Loading />;
   }
