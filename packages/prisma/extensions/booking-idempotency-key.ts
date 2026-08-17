@@ -30,11 +30,12 @@ export function bookingIdempotencyKeyExtension() {
         booking: {
           async create({ args, query }) {
             if (args.data.status === BookingStatus.ACCEPTED) {
+              const data = args.data as Record<string, any>;
               args.data.idempotencyKey = generateIdempotencyKey({
-                startTime: args.data.startTime,
-                endTime: args.data.endTime,
-                userId: args.data.userId ?? args.data.user?.connect?.id,
-                reassignedById: args.data.reassignedById ?? args.data.reassignById,
+                startTime: data.startTime,
+                endTime: data.endTime,
+                userId: data.userId ?? data.user?.connect?.id,
+                reassignedById: data.reassignedById ?? data.reassignById,
               });
             }
             return query(args);
@@ -49,34 +50,38 @@ export function bookingIdempotencyKeyExtension() {
               args.data.status === BookingStatus.ACCEPTED &&
               !args.data.idempotencyKey
             ) {
-              let startTime = args.data.startTime as Date | string | undefined;
-              let endTime = args.data.endTime as Date | string | undefined;
-              let userId =
-                typeof args.data.userId === "number"
-                  ? args.data.userId
-                  : args.data.user?.connect?.id;
-              let reassignedById =
-                typeof args.data.reassignedById === "number"
-                  ? args.data.reassignedById
-                  : args.data.reassignById;
+              const data = args.data as Record<string, any>;
 
-              // If startTime or endTime are missing from update payload, query DB for existing record
-              if (!startTime || !endTime) {
+              let startTime = data.startTime;
+              let endTime = data.endTime;
+              let userId = typeof data.userId === "number" ? data.userId : data.user?.connect?.id;
+              let reassignedById =
+                data.reassignedById !== undefined ? data.reassignedById : data.reassignById;
+
+              // Fetch stored identity fields when payload is partial to avoid producing mismatched idempotency keys
+              if (
+                startTime === undefined ||
+                endTime === undefined ||
+                userId === undefined ||
+                reassignedById === undefined
+              ) {
                 const existing = await client.booking.findUnique({
                   where: args.where,
                   select: {
                     startTime: true,
                     endTime: true,
                     userId: true,
-                    reassignedById: true,
+                    reassignById: true,
                   },
                 });
 
                 if (existing) {
                   startTime = startTime ?? existing.startTime;
                   endTime = endTime ?? existing.endTime;
-                  userId = userId ?? existing.userId;
-                  reassignedById = reassignedById ?? existing.reassignedById;
+                  userId = userId ?? existing.userId ?? undefined;
+                  if (reassignedById === undefined) {
+                    reassignedById = existing.reassignById;
+                  }
                 }
               }
 
