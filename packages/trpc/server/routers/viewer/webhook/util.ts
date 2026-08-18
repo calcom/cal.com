@@ -43,6 +43,10 @@ export const createWebhookProcedure = () => {
           throw new TRPCError({ code: "NOT_FOUND" });
         }
 
+        if (webhook.teamId && eventType.teamId && webhook.teamId !== eventType.teamId) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Webhook teamId must match eventType teamId" });
+        }
+
         if (eventType.teamId) {
           const membership = await prisma.membership.findFirst({
             where: {
