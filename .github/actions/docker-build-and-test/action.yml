@@ -9,12 +9,6 @@ inputs:
     description: "Suffix to add to image tags (e.g., -arm)"
     required: false
     default: ""
-  dockerhub-username:
-    description: "Docker Hub username"
-    required: true
-  dockerhub-token:
-    description: "Docker Hub token"
-    required: true
   github-token:
     description: "GitHub token for GHCR"
     required: true
@@ -42,13 +36,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Log in to the Docker Hub registry
-      uses: docker/login-action@v3
-      with:
-        username: ${{ inputs.dockerhub-username }}
-        password: ${{ inputs.dockerhub-token }}
-        logout: true
-
     - name: Log in to the Github Container registry
       uses: docker/login-action@v3
       with:
@@ -61,9 +48,7 @@ runs:
       uses: docker/metadata-action@v5
       with:
         images: |
-          docker.io/calendso/calendso
-          docker.io/calcom/cal.diy
-          ghcr.io/calcom/cal.diy
+          ghcr.io/strangewill/cal.com
         flavor: |
           latest=${{ !github.event.release.prerelease && inputs.use-as-latest == 'true' }}
           suffix=${{ inputs.platform-suffix }}

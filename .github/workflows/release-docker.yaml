@@ -25,7 +25,7 @@ on:
         description: "Tag to build (e.g., v6.0.5) - required if BUILD_FROM_BRANCH is false"
         required: false
       PUSH_IMAGE:
-        description: "Push the Docker image to DockerHub"
+        description: "Push the Docker image to GHCR"
         type: boolean
         default: true
 
@@ -95,15 +95,14 @@ jobs:
         with:
           platform: "linux/amd64"
           platform-suffix: ""
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           postgres-user: ${{ env.POSTGRES_USER }}
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
           push-image: ${{ (github.event_name == 'push' || inputs.PUSH_IMAGE) && 'true' || 'false' }}
-          use-as-latest: "true"
+          # Branch builds publish only <branch>-<sha> so they never move the latest tag.
+          use-as-latest: ${{ (github.event_name == 'push' || !inputs.BUILD_FROM_BRANCH) && 'true' || 'false' }}
 
       - name: Notify Slack on Success
         if: success() && secrets.CI_SLACK_WEBHOOK_URL != ''
@@ -144,8 +143,6 @@ jobs:
         with:
           platform: "arm64"
           platform-suffix: "-arm"
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           postgres-user: ${{ env.POSTGRES_USER }}
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
