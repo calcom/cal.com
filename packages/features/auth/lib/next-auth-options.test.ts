@@ -864,6 +864,8 @@ describe("Azure AD signIn callback", () => {
   });
 
   describe("OIDC identity provider conversion (signIn callback)", () => {
+    type OidcProfileFixture = { sub?: string; email?: string; email_verified?: boolean };
+
     it("CAL user with verified email converts to OIDC on OIDC login", async () => {
       mockPrismaUserFindFirst
         .mockResolvedValueOnce(null) // First call: lookup by identityProvider + providerAccountId
@@ -881,10 +883,10 @@ describe("Azure AD signIn callback", () => {
       const result = await signInCallback({
         user: { id: "1", email: "user@example.com", name: "User", emailVerified: null },
         account: { provider: "oidc", providerAccountId: "oidc-conv-1", type: "oauth" as const },
-        profile: { email_verified: true } as any,
+        profile: { email_verified: true } satisfies OidcProfileFixture,
         credentials: undefined,
         email: undefined,
-      } as any);
+      });
 
       expect(mockPrismaUserUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -910,10 +912,10 @@ describe("Azure AD signIn callback", () => {
       const result = await signInCallback({
         user: { id: "1", email: "user@example.com", name: "User", emailVerified: null },
         account: { provider: "google", providerAccountId: "google-conv-2", type: "oauth" as const },
-        profile: { email_verified: true } as any,
+        profile: { email_verified: true } satisfies OidcProfileFixture,
         credentials: undefined,
         email: undefined,
-      } as any);
+      });
 
       // With isVerified=true and non-CAL provider, auto-merge path is taken (returns true directly)
       expect(result).toBe(true);
@@ -932,10 +934,10 @@ describe("Azure AD signIn callback", () => {
       const result = await signInCallback({
         user: { id: "1", email: "user@example.com", name: "User", emailVerified: null },
         account: { provider: "oidc", providerAccountId: "oidc-conv-2", type: "oauth" as const },
-        profile: { email_verified: true } as any,
+        profile: { email_verified: true } satisfies OidcProfileFixture,
         credentials: undefined,
         email: undefined,
-      } as any);
+      });
 
       // With isVerified=true and non-CAL provider, auto-merge path is taken (returns true directly)
       expect(result).toBe(true);
@@ -957,10 +959,10 @@ describe("Azure AD signIn callback", () => {
       const result = await signInCallback({
         user: { id: "1", email: "user@example.com", name: "User", emailVerified: null },
         account: { provider: "oidc", providerAccountId: "oidc-hijack-1", type: "oauth" as const },
-        profile: { email_verified: true } as any,
+        profile: { email_verified: true } satisfies OidcProfileFixture,
         credentials: undefined,
         email: undefined,
-      } as any);
+      });
 
       expect(result).toBe("/auth/error?error=unverified-email");
     });
@@ -969,10 +971,10 @@ describe("Azure AD signIn callback", () => {
       const result = await signInCallback({
         user: { id: "1", email: "user@example.com", name: "User", emailVerified: null },
         account: { provider: "oidc", providerAccountId: "oidc-unverified-1", type: "oauth" as const },
-        profile: { sub: "oidc-user-1", email: "user@example.com" } as any,
+        profile: { sub: "oidc-user-1", email: "user@example.com" } satisfies OidcProfileFixture,
         credentials: undefined,
         email: undefined,
-      } as any);
+      });
 
       expect(result).toBe("/auth/error?error=unverified-email");
     });

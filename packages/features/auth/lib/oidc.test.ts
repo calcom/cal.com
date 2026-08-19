@@ -5,7 +5,6 @@ describe("oidc", () => {
   const originalEnv = { ...process.env };
 
   afterEach(() => {
-    // Restore original env completely
     for (const key of [
       "OIDC_CLIENT_ID",
       "OIDC_CLIENT_SECRET",
