@@ -43,12 +43,18 @@ runs:
         username: ${{ github.actor }}
         password: ${{ inputs.github-token }}
 
+    # GHCR rejects uppercase, and github.repository preserves the owner's casing.
+    - name: Resolve image name
+      id: image
+      shell: bash
+      run: echo "name=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v5
       with:
         images: |
-          ghcr.io/strangewill/cal.com
+          ${{ steps.image.outputs.name }}
         flavor: |
           latest=${{ !github.event.release.prerelease && inputs.use-as-latest == 'true' }}
           suffix=${{ inputs.platform-suffix }}
