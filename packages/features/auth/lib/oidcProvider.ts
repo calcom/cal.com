@@ -14,7 +14,7 @@ export interface OidcProfile extends Record<string, unknown> {
  * (Authentik, Keycloak, Authelia, Okta, etc). next-auth ships thin per-product
  * wrappers (e.g. providers/authentik.js) that all follow this same shape, but
  * no generic factory - this is that generic version, discovering endpoints via
- * `.well-known/openid-configuration` (RFC 8414) instead of hardcoding one vendor.
+ * `.well-known/openid-configuration` (OpenID Connect Discovery 1.0) instead of hardcoding one vendor.
  */
 export function createOidcProvider(
   options: Pick<OAuthUserConfig<OidcProfile>, "clientId" | "clientSecret"> & {
