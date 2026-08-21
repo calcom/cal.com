@@ -35,15 +35,11 @@ interface ISetLocationDialog {
     newLocation: string;
     credentialId: number | null;
   }) => Promise<void>;
-  selection?: LocationOption;
   booking: {
     location: string | null;
   };
-  defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
-  setSelectedLocation?: (param: LocationOption | undefined) => void;
-  setEditingLocationType?: (param: string) => void;
   teamId?: number;
 }
 
@@ -82,27 +78,13 @@ const LocationInput = (props: {
 export const EditLocationDialog = (props: ISetLocationDialog) => {
   const {
     saveLocation,
-    selection,
     booking,
     setShowLocationModal,
     isOpenDialog,
-    defaultValues,
-    setSelectedLocation,
-    setEditingLocationType,
     teamId,
   } = props;
   const { t } = useLocale();
   const locationsQuery = trpc.viewer.apps.locationOptions.useQuery({ teamId });
-
-  useEffect(() => {
-    if (selection) {
-      locationFormMethods.setValue("locationType", selection?.value);
-      if (selection?.address) {
-        locationFormMethods.setValue("locationAddress", selection?.address);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selection]);
 
   const locationFormSchema = z.object({
     locationType: z.string(),
@@ -170,16 +152,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   const eventLocationType = getLocationByType(selectedLocation);
 
-  const defaultLocation = defaultValues?.find(
-    (location: { type: EventLocationType["type"]; address?: string }) => {
-      if (location.type === LocationType.InPerson) {
-        return location.type === eventLocationType?.type && location.address === selectedAddrValue;
-      } else {
-        return location.type === eventLocationType?.type;
-      }
-    }
-  );
-
   /**
    * Depending on the location type that is selected, we show different input types or no input at all.
    */
@@ -202,9 +174,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               id="locationInput"
               placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
               required
-              defaultValue={
-                defaultLocation ? defaultLocation[eventLocationType.defaultValueVariable] : undefined
-              }
             />
             <ErrorMessage
               errors={locationFormMethods.formState.errors}
@@ -244,7 +213,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               });
               setIsLocationUpdating(false);
               setShowLocationModal(false);
-              setSelectedLocation?.(undefined);
               locationFormMethods.unregister([
                 "locationType",
                 "locationLink",
@@ -295,7 +263,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                           <LocationSelect
                             maxMenuHeight={300}
                             name="location"
-                            defaultValue={selection}
                             options={locationOptions}
                             isSearchable
                             onChange={(val) => {
@@ -312,7 +279,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                                   "locationPhoneNumber",
                                   "locationAddress",
                                 ]);
-                                setSelectedLocation?.(val);
                               }
                             }}
                           />
@@ -329,8 +295,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             <Button
               onClick={() => {
                 setShowLocationModal(false);
-                setSelectedLocation?.(undefined);
-                setEditingLocationType?.("");
                 locationFormMethods.unregister(["locationType", "locationLink"]);
               }}
               type="button"
