@@ -1372,9 +1372,12 @@ describe("Cancel Booking", () => {
     });
 
     const recurringEventId = "rec-sub-series";
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-    const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+    // getDate resolves against the runner's local date while mkBooking pins the time to
+    // 05:00:00.000Z, so a +1 day occurrence can already be in the past in negative UTC offsets.
+    // The pre-fix cleanup query would then skip it and this test would pass without the fix.
+    const { dateString: plus7DateString } = getDate({ dateIncrement: 7 });
+    const { dateString: plus8DateString } = getDate({ dateIncrement: 8 });
+    const { dateString: plus9DateString } = getDate({ dateIncrement: 9 });
     const firstId = 6080; // earliest upcoming occurrence — NOT being cancelled
     const middleId = 6081; // the occurrence we cancel (this + subsequent)
     const lastId = 6082;
@@ -1408,9 +1411,9 @@ describe("Cancel Booking", () => {
           },
         ],
         bookings: [
-          mkBooking(firstId, "rec-sub-1", plus1DateString),
-          mkBooking(middleId, "rec-sub-2", plus2DateString),
-          mkBooking(lastId, "rec-sub-3", plus3DateString),
+          mkBooking(firstId, "rec-sub-1", plus7DateString),
+          mkBooking(middleId, "rec-sub-2", plus8DateString),
+          mkBooking(lastId, "rec-sub-3", plus9DateString),
         ],
         organizer,
         apps: [TestData.apps["daily-video"]],
@@ -1429,7 +1432,7 @@ describe("Cancel Booking", () => {
         bookingId: firstId,
         subscriberUrl: "http://my-webhook.example.com",
         payload: "{}",
-        startAfter: new Date(`${plus1DateString}T05:30:00.000Z`),
+        startAfter: new Date(`${plus7DateString}T05:30:00.000Z`),
       },
     });
 
