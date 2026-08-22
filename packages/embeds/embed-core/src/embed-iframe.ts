@@ -391,19 +391,55 @@ export const methods = {
       }
     }
 
+    const getExplicitDisableAutoScroll = (config: UiConfig): boolean | undefined => {
+      if (
+        config.disableAutoScroll === true ||
+        config.disableAutofocus === true ||
+        config.disableScroll === true ||
+        config.autofocus === false ||
+        config.scroll === false
+      ) {
+        return true;
+      }
+      if (
+        config.disableAutoScroll === false ||
+        config.disableAutofocus === false ||
+        config.disableScroll === false ||
+        config.autofocus === true ||
+        config.scroll === true
+      ) {
+        return false;
+      }
+      return undefined;
+    };
+
+    const getExplicitCompact = (config: UiConfig): boolean | undefined => {
+      if (
+        config.compact === true ||
+        config.unpadded === true ||
+        config.padding === "none" ||
+        config.padding === "compact" ||
+        config.layout === "compact"
+      ) {
+        return true;
+      }
+      if (
+        config.compact === false ||
+        config.unpadded === false ||
+        config.padding !== undefined ||
+        config.layout !== undefined
+      ) {
+        return false;
+      }
+      return undefined;
+    };
+
     const disableAutoScroll =
-      uiConfig.disableAutoScroll ??
-      uiConfig.disableAutofocus ??
-      (uiConfig.autofocus === false ? true : undefined) ??
-      (uiConfig.scroll === false ? true : undefined) ??
-      uiConfig.disableScroll ??
+      getExplicitDisableAutoScroll(uiConfig) ??
       embedStore.uiConfig?.disableAutoScroll;
 
     const compact =
-      uiConfig.compact ??
-      uiConfig.unpadded ??
-      (uiConfig.padding === "none" || uiConfig.padding === "compact" ? true : undefined) ??
-      (uiConfig.layout === ("compact" as BookerLayouts) ? true : undefined) ??
+      getExplicitCompact(uiConfig) ??
       embedStore.uiConfig?.compact;
 
     uiConfig = {
@@ -545,14 +581,26 @@ function main() {
   embedStore.theme = window?.getEmbedTheme?.();
 
   const autoScrollFromParam = url.searchParams.get("ui.autoscroll");
-  const autoFocusFromParam = url.searchParams.get("ui.autofocus") ?? url.searchParams.get("disableAutofocus");
-  const scrollFromParam = url.searchParams.get("ui.scroll") ?? url.searchParams.get("disableScroll");
-  const shouldDisableAutoScroll =
+  const autoFocusFromParam = url.searchParams.get("ui.autofocus");
+  const disableAutoFocusParam = url.searchParams.get("disableAutofocus");
+  const scrollFromParam = url.searchParams.get("ui.scroll");
+  const disableScrollParam = url.searchParams.get("disableScroll");
+
+  const isAutoScrollDisabled =
     autoScrollFromParam === "false" ||
     autoFocusFromParam === "false" ||
-    url.searchParams.get("disableAutofocus") === "true" ||
+    disableAutoFocusParam === "true" ||
     scrollFromParam === "false" ||
-    url.searchParams.get("disableScroll") === "true";
+    disableScrollParam === "true";
+
+  const isAutoScrollEnabled =
+    autoScrollFromParam === "true" ||
+    autoFocusFromParam === "true" ||
+    disableAutoFocusParam === "false" ||
+    scrollFromParam === "true" ||
+    disableScrollParam === "false";
+
+  const shouldDisableAutoScroll = isAutoScrollDisabled && !isAutoScrollEnabled;
 
   const compactFromParam = url.searchParams.get("ui.compact") ?? url.searchParams.get("compact") ?? url.searchParams.get("ui.unpadded") ?? url.searchParams.get("unpadded");
   const isCompact = compactFromParam === "true" || url.searchParams.get("layout") === "compact";

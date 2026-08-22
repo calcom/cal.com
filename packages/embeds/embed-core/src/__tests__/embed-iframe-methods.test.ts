@@ -128,5 +128,23 @@ describe("embed-iframe.methods", async () => {
             expect(embedStore.uiConfig?.disableAutoScroll).toBe(true);
             expect(embedStore.uiConfig?.compact).toBe(true);
         });
+
+        it("should allow disabling then re-enabling autofocus/scroll and restoring default padding across two separate ui() calls", () => {
+            methods.ui({
+                disableAutofocus: true,
+                compact: true,
+            });
+            expect(embedStore.uiConfig?.disableAutoScroll).toBe(true);
+            expect(embedStore.uiConfig?.disableAutofocus).toBe(true);
+            expect(embedStore.uiConfig?.compact).toBe(true);
+
+            methods.ui({
+                autofocus: true,
+                padding: "default",
+            });
+            expect(embedStore.uiConfig?.disableAutoScroll).toBe(false);
+            expect(embedStore.uiConfig?.disableAutofocus).toBe(false);
+            expect(embedStore.uiConfig?.compact).toBe(false);
+        });
     });
 });
