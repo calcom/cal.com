@@ -449,4 +449,133 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
       durationLimits: null,
     });
   });
+
+  describe("Time Zone Normalization in Round Robin Availability (#22150)", () => {
+    it("normalizes busy slot intervals from different timezones to UTC and correctly resolves availability", async () => {
+      // Real-world time: 2025-01-06T14:00:00Z to 2025-01-06T15:00:00Z
+      // IST member (UTC+5:30): 19:30 - 20:30 IST
+      // EST member (UTC-5:00): 09:00 - 10:00 EST
+      // GMT member (UTC+0:00): 14:00 - 15:00 GMT
+      const memberIST = createMockUser({
+        id: 1,
+        timeZone: "Asia/Kolkata",
+        email: "ist@example.com",
+      });
+      const memberEST = createMockUser({
+        id: 2,
+        timeZone: "America/New_York",
+        email: "est@example.com",
+      });
+      const memberGMT = createMockUser({
+        id: 3,
+        timeZone: "Europe/London",
+        email: "gmt@example.com",
+      });
+
+      // Member 1 (IST) busy time in IST representation
+      mockBusyTimesService.getBusyTimes.mockResolvedValueOnce([
+        {
+          start: "2025-01-06T19:30:00+05:30",
+          end: "2025-01-06T20:30:00+05:30",
+          title: "IST Meeting",
+        },
+      ]);
+      const resIST = await service._getUserAvailability(
+        createParams({
+          dateFrom: dayjs("2025-01-06T00:00:00Z"),
+          dateTo: dayjs("2025-01-06T23:59:59Z"),
+        }),
+        { user: memberIST }
+      );
+
+      // Member 2 (EST) busy time in EST representation
+      mockBusyTimesService.getBusyTimes.mockResolvedValueOnce([
+        {
+          start: "2025-01-06T09:00:00-05:00",
+          end: "2025-01-06T10:00:00-05:00",
+          title: "EST Meeting",
+        },
+      ]);
+      const resEST = await service._getUserAvailability(
+        createParams({
+          dateFrom: dayjs("2025-01-06T00:00:00Z"),
+          dateTo: dayjs("2025-01-06T23:59:59Z"),
+        }),
+        { user: memberEST }
+      );
+
+      // Member 3 (GMT) busy time in GMT representation
+      mockBusyTimesService.getBusyTimes.mockResolvedValueOnce([
+        {
+          start: "2025-01-06T14:00:00Z",
+          end: "2025-01-06T15:00:00Z",
+          title: "GMT Meeting",
+        },
+      ]);
+      const resGMT = await service._getUserAvailability(
+        createParams({
+          dateFrom: dayjs("2025-01-06T00:00:00Z"),
+          dateTo: dayjs("2025-01-06T23:59:59Z"),
+        }),
+        { user: memberGMT }
+      );
+
+      // All busy times should normalize to the exact same UTC block: 2025-01-06T14:00:00.000Z - 2025-01-06T15:00:00.000Z
+      expect(resIST.busy[0].start).toBe("2025-01-06T14:00:00.000Z");
+      expect(resIST.busy[0].end).toBe("2025-01-06T15:00:00.000Z");
+
+      expect(resEST.busy[0].start).toBe("2025-01-06T14:00:00.000Z");
+      expect(resEST.busy[0].end).toBe("2025-01-06T15:00:00.000Z");
+
+      expect(resGMT.busy[0].start).toBe("2025-01-06T14:00:00.000Z");
+      expect(resGMT.busy[0].end).toBe("2025-01-06T15:00:00.000Z");
+
+      // Verify that none of the members are available during 14:00 - 15:00 UTC
+      const targetSlot = {
+        start: dayjs("2025-01-06T14:00:00.000Z"),
+        end: dayjs("2025-01-06T15:00:00.000Z"),
+      };
+
+      const isSlotAvailableInRanges = (ranges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[]) =>
+        ranges.some(
+          (r) =>
+            (r.start.isBefore(targetSlot.start) || r.start.isSame(targetSlot.start)) &&
+            (r.end.isAfter(targetSlot.end) || r.end.isSame(targetSlot.end))
+        );
+
+      expect(isSlotAvailableInRanges(resIST.dateRanges)).toBe(false);
+      expect(isSlotAvailableInRanges(resEST.dateRanges)).toBe(false);
+      expect(isSlotAvailableInRanges(resGMT.dateRanges)).toBe(false);
+    });
+
+    it("verifies single-timezone bookings remain unaffected", async () => {
+      const user = createMockUser({
+        id: 1,
+        timeZone: "America/New_York",
+      });
+
+      mockBusyTimesService.getBusyTimes.mockResolvedValueOnce([
+        {
+          start: "2025-01-06T14:00:00.000Z",
+          end: "2025-01-06T15:00:00.000Z",
+          title: "Standard Meeting",
+        },
+      ]);
+
+      const result = await service._getUserAvailability(
+        createParams({
+          dateFrom: dayjs("2025-01-06T00:00:00Z"),
+          dateTo: dayjs("2025-01-06T23:59:59Z"),
+        }),
+        { user }
+      );
+
+      expect(result.busy[0]).toEqual(
+        expect.objectContaining({
+          start: "2025-01-06T14:00:00.000Z",
+          end: "2025-01-06T15:00:00.000Z",
+        })
+      );
+    });
+  });
 });
