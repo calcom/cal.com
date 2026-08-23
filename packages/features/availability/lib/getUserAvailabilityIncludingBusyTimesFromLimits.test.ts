@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { EventType, GetUserAvailabilityInitialData } from "./getUserAvailability";
 import { UserAvailabilityService } from "./getUserAvailability";
 
@@ -451,6 +451,14 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
   });
 
   describe("Time Zone Normalization in Round Robin Availability (#22150)", () => {
+    beforeEach(() => {
+      vi.setSystemTime(new Date("2024-01-15T00:00:00Z"));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it("normalizes busy slot intervals from different timezones to UTC and correctly resolves availability", async () => {
       // Real-world time: 2025-01-06T14:00:00Z to 2025-01-06T15:00:00Z
       // IST member (UTC+5:30): 19:30 - 20:30 IST
