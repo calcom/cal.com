@@ -460,19 +460,60 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
         id: 1,
         timeZone: "Asia/Kolkata",
         email: "ist@example.com",
+        schedules: [
+          {
+            id: 1,
+            availability: [
+              {
+                days: [1, 2, 3, 4, 5],
+                startTime: new Date("1970-01-01T09:00:00Z"),
+                endTime: new Date("1970-01-01T17:00:00Z"),
+                date: null,
+              },
+            ],
+            timeZone: "Asia/Kolkata",
+          },
+        ],
       });
       const memberEST = createMockUser({
         id: 2,
         timeZone: "America/New_York",
         email: "est@example.com",
+        schedules: [
+          {
+            id: 1,
+            availability: [
+              {
+                days: [1, 2, 3, 4, 5],
+                startTime: new Date("1970-01-01T09:00:00Z"),
+                endTime: new Date("1970-01-01T17:00:00Z"),
+                date: null,
+              },
+            ],
+            timeZone: "America/New_York",
+          },
+        ],
       });
       const memberGMT = createMockUser({
         id: 3,
         timeZone: "Europe/London",
         email: "gmt@example.com",
+        schedules: [
+          {
+            id: 1,
+            availability: [
+              {
+                days: [1, 2, 3, 4, 5],
+                startTime: new Date("1970-01-01T09:00:00Z"),
+                endTime: new Date("1970-01-01T17:00:00Z"),
+                date: null,
+              },
+            ],
+            timeZone: "Europe/London",
+          },
+        ],
       });
 
-      // Member 1 (IST) busy time in IST representation
       mockBusyTimesService.getBusyTimes.mockResolvedValueOnce([
         {
           start: "2025-01-06T19:30:00+05:30",
@@ -488,7 +529,6 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
         { user: memberIST }
       );
 
-      // Member 2 (EST) busy time in EST representation
       mockBusyTimesService.getBusyTimes.mockResolvedValueOnce([
         {
           start: "2025-01-06T09:00:00-05:00",
@@ -504,7 +544,6 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
         { user: memberEST }
       );
 
-      // Member 3 (GMT) busy time in GMT representation
       mockBusyTimesService.getBusyTimes.mockResolvedValueOnce([
         {
           start: "2025-01-06T14:00:00Z",
@@ -520,7 +559,6 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
         { user: memberGMT }
       );
 
-      // All busy times should normalize to the exact same UTC block: 2025-01-06T14:00:00.000Z - 2025-01-06T15:00:00.000Z
       expect(resIST.busy[0].start).toBe("2025-01-06T14:00:00.000Z");
       expect(resIST.busy[0].end).toBe("2025-01-06T15:00:00.000Z");
 
@@ -530,7 +568,6 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
       expect(resGMT.busy[0].start).toBe("2025-01-06T14:00:00.000Z");
       expect(resGMT.busy[0].end).toBe("2025-01-06T15:00:00.000Z");
 
-      // Verify that none of the members are available during 14:00 - 15:00 UTC
       const targetSlot = {
         start: dayjs("2025-01-06T14:00:00.000Z"),
         end: dayjs("2025-01-06T15:00:00.000Z"),
