@@ -167,8 +167,12 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                           key={webhook.id}
                           webhook={webhook}
                           permissions={{
-                            canEditWebhook: !(isChildrenManagedEventType && webhook.eventTypeId !== eventType.id),
-                            canDeleteWebhook: !(isChildrenManagedEventType && webhook.eventTypeId !== eventType.id),
+                            canEditWebhook: !(
+                              isChildrenManagedEventType && webhook.eventTypeId !== eventType.id
+                            ),
+                            canDeleteWebhook: !(
+                              isChildrenManagedEventType && webhook.eventTypeId !== eventType.id
+                            ),
                           }}
                           onEditWebhookAction={() => {
                             setEditModalOpen(true);

@@ -40,9 +40,7 @@ describe("validateWebhookUrl", () => {
   it("handles validation result without error message", () => {
     mockValidateUrlForSSRFSync.mockReturnValue({ isValid: false });
 
-    expect(() => validateWebhookUrl("invalid-url")).toThrow(
-      "Webhook URL is not allowed: undefined"
-    );
+    expect(() => validateWebhookUrl("invalid-url")).toThrow("Webhook URL is not allowed: undefined");
   });
 });
 
@@ -62,9 +60,9 @@ describe("validateWebhookUrlIfChanged", () => {
   it("throws when new URL is different and invalid", () => {
     mockValidateUrlForSSRFSync.mockReturnValue({ isValid: false, error: "Only HTTPS URLs are allowed" });
 
-    expect(() =>
-      validateWebhookUrlIfChanged("http://new.com/webhook", "https://old.com/webhook")
-    ).toThrow(BadRequestException);
+    expect(() => validateWebhookUrlIfChanged("http://new.com/webhook", "https://old.com/webhook")).toThrow(
+      BadRequestException
+    );
   });
 
   it("does not validate when URL is unchanged", () => {

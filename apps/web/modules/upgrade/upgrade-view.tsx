@@ -19,11 +19,13 @@ export default function UpgradePage() {
   const { t } = useLocale();
 
   const router = useRouter();
-  const publishOrgMutation = { mutate: (..._args: unknown[]) => {}, mutateAsync: async () => ({}), isPending: false };
-
+  const publishOrgMutation = {
+    mutate: (..._args: unknown[]) => {},
+    mutateAsync: async () => ({}),
+    isPending: false,
+  };
 
   const upgradeData = { data: undefined as { canUpgrade?: boolean } | undefined };
-
 
   return (
     <Shell>

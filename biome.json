@@ -27,10 +27,7 @@
     }
   },
   "formatter": {
-    "includes": [
-      "**/*",
-      "!packages/ui/components/icon/dynamicIconImports.tsx"
-    ],
+    "includes": ["**/*", "!packages/ui/components/icon/dynamicIconImports.tsx"],
     "lineWidth": 110,
     "indentStyle": "space",
     "indentWidth": 2,
@@ -220,7 +217,13 @@
       }
     },
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.e2e-spec.ts", "**/*.integration-test.ts"],
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.e2e-spec.ts",
+        "**/*.integration-test.ts"
+      ],
       "linter": {
         "rules": {
           "complexity": {

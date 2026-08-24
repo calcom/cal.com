@@ -739,7 +739,7 @@ describe("CalDAV credential leak prevention", () => {
       googleChannelResourceUri: null,
       googleChannelExpiration: null,
       delegationCredentialId: null,
-        error: null,
+      error: null,
       lastErrorAt: null,
       watchAttempts: 0,
       unwatchAttempts: 0,

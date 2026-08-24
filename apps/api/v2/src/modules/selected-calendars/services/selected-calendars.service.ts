@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { CalendarsService } from "@/platform/calendars/services/calendars.service";
 import { CalendarsCacheService } from "@/platform/calendars/services/calendars-cache.service";
 import {

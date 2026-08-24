@@ -28,9 +28,9 @@ vi.mock("@calcom/ui/components/top-banner", () => ({
   ),
 }));
 
-function buildSession(overrides?: Partial<NonNullable<SessionContextValue["data"]>>): NonNullable<
-  SessionContextValue["data"]
-> {
+function buildSession(
+  overrides?: Partial<NonNullable<SessionContextValue["data"]>>
+): NonNullable<SessionContextValue["data"]> {
   return {
     expires: "2099-01-01T00:00:00.000Z",
     hasValidLicense: true,

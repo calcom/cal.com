@@ -448,7 +448,6 @@ describe("handleNewBooking", () => {
             },
           });
 
-
           expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
             calEvent: {
               location: "http://mock-dailyvideo.example.com",
@@ -631,7 +630,6 @@ describe("handleNewBooking", () => {
               ],
             },
           });
-
 
           expectSuccessfulBookingRescheduledEmails({
             booker,
@@ -818,7 +816,6 @@ describe("handleNewBooking", () => {
               },
             });
 
-  
             expectBookingRequestedEmails({
               booker,
               organizer,
@@ -1038,7 +1035,6 @@ describe("handleNewBooking", () => {
               },
             });
 
-  
             expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
               calEvent: {
                 location: "http://mock-dailyvideo.example.com",
@@ -1270,7 +1266,6 @@ describe("handleNewBooking", () => {
               },
             });
 
-  
             expectSuccessfulCalendarEventUpdationInCalendar(calendarMock, {
               externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
               calEvent: {
@@ -1483,7 +1478,6 @@ describe("handleNewBooking", () => {
               },
             });
 
-  
             expectBookingRequestedEmails({
               booker,
               organizer,
@@ -1716,7 +1710,6 @@ describe("handleNewBooking", () => {
               },
             });
 
-  
             expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
               calEvent: {
                 location: "http://mock-dailyvideo.example.com",
@@ -1790,10 +1783,7 @@ describe("handleNewBooking", () => {
               email: "organizer@example.com",
               id: 101,
               schedules: [TestData.schedules.IstWorkHours],
-              credentials: [
-                getGoogleCalendarCredential(),
-                getStripeAppCredential(),
-              ],
+              credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
               selectedCalendars: [TestData.selectedCalendars.google],
             });
 
@@ -1803,72 +1793,72 @@ describe("handleNewBooking", () => {
 
             const subscriberUrl = "http://my-webhook.example.com";
             const scenarioData = getScenarioData({
-                webhooks: [
-                  {
-                    userId: organizer.id,
-                    eventTriggers: ["BOOKING_CREATED"],
-                    subscriberUrl,
-                    active: true,
-                    eventTypeId: 1,
-                    appId: null,
-                  },
-                ],
-                eventTypes: [
-                  {
-                    id: 1,
-                    slotInterval: 15,
-                    length: 15,
-                    price: 100,
-                    requiresConfirmation: false,
-                    metadata: {
-                      apps: {
-                        stripe: {
-                          price: 100,
-                          enabled: true,
-                          currency: "usd",
-                        },
+              webhooks: [
+                {
+                  userId: organizer.id,
+                  eventTriggers: ["BOOKING_CREATED"],
+                  subscriberUrl,
+                  active: true,
+                  eventTypeId: 1,
+                  appId: null,
+                },
+              ],
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 15,
+                  length: 15,
+                  price: 100,
+                  requiresConfirmation: false,
+                  metadata: {
+                    apps: {
+                      stripe: {
+                        price: 100,
+                        enabled: true,
+                        currency: "usd",
                       },
                     },
-                    users: [{ id: 101 }],
                   },
-                ],
-                bookings: [
-                  {
-                    uid: uidOfBookingToBeRescheduled,
-                    eventTypeId: 1,
-                    user: { id: organizer.id },
-                    status: BookingStatus.ACCEPTED,
-                    startTime: `${plus1DateString}T05:00:00.000Z`,
-                    endTime: `${plus1DateString}T05:15:00.000Z`,
-                    references: [
-                      getMockBookingReference({
-                        type: appStoreMetadata.dailyvideo.type,
-                        uid: "MOCK_ID",
-                        meetingId: "MOCK_ID",
-                        meetingPassword: "MOCK_PASS",
-                        meetingUrl: "http://mock-dailyvideo.example.com",
-                        credentialId: 0,
-                      }),
-                      getMockBookingReference({
-                        type: appStoreMetadata.googlecalendar.type,
-                        uid: "MOCK_ID",
-                        meetingId: "MOCK_ID",
-                        meetingPassword: "MOCK_PASSWORD",
-                        meetingUrl: "https://UNUSED_URL",
-                        externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
-                        credentialId: 1,
-                      }),
-                    ],
-                    iCalUID,
-                  },
-                ],
-                organizer,
-                apps: [
-                  TestData.apps["google-calendar"],
-                  TestData.apps["daily-video"],
-                  TestData.apps["stripe-payment"],
-                ],
-              });
+                  users: [{ id: 101 }],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  user: { id: organizer.id },
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  references: [
+                    getMockBookingReference({
+                      type: appStoreMetadata.dailyvideo.type,
+                      uid: "MOCK_ID",
+                      meetingId: "MOCK_ID",
+                      meetingPassword: "MOCK_PASS",
+                      meetingUrl: "http://mock-dailyvideo.example.com",
+                      credentialId: 0,
+                    }),
+                    getMockBookingReference({
+                      type: appStoreMetadata.googlecalendar.type,
+                      uid: "MOCK_ID",
+                      meetingId: "MOCK_ID",
+                      meetingPassword: "MOCK_PASSWORD",
+                      meetingUrl: "https://UNUSED_URL",
+                      externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                      credentialId: 1,
+                    }),
+                  ],
+                  iCalUID,
+                },
+              ],
+              organizer,
+              apps: [
+                TestData.apps["google-calendar"],
+                TestData.apps["daily-video"],
+                TestData.apps["stripe-payment"],
+              ],
+            });
             await createBookingScenario(scenarioData);
 
             const existingBooking = await prismaMock.booking.findFirst({
@@ -1968,10 +1958,7 @@ describe("handleNewBooking", () => {
               email: "organizer@example.com",
               id: 101,
               schedules: [TestData.schedules.IstWorkHours],
-              credentials: [
-                getGoogleCalendarCredential(),
-                getStripeAppCredential(),
-              ],
+              credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
               selectedCalendars: [TestData.selectedCalendars.google],
             });
 

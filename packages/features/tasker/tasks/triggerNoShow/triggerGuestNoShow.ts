@@ -2,12 +2,7 @@ import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import {
-  calculateMaxStartTime,
-  log,
-  prepareNoShowTrigger,
-  sendWebhookPayload,
-} from "./common";
+import { calculateMaxStartTime, log, prepareNoShowTrigger, sendWebhookPayload } from "./common";
 
 type UpdatedAttendee = {
   id: number;

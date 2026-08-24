@@ -69,7 +69,6 @@ export const CreateEventTypePlatformWrapper = ({
   const createEventTypeQuery = useCreateEventType({ onSuccess, onError });
   const { t } = useLocale();
 
-
   return (
     <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <CreateEventTypeForm

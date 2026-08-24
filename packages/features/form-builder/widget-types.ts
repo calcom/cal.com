@@ -10,7 +10,7 @@ export type CommonProps<
     | {
         value: string;
         optionValue: string;
-      }
+      },
 > = {
   placeholder?: string;
   readOnly?: boolean;
@@ -28,7 +28,7 @@ export type SelectLikeComponentProps<
     | {
         value: string;
         optionValue: string;
-      } = string
+      } = string,
 > = {
   options: {
     label: string;

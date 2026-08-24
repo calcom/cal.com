@@ -158,5 +158,4 @@ export class AtomsEventTypesController {
       data: eventType,
     };
   }
-
 }

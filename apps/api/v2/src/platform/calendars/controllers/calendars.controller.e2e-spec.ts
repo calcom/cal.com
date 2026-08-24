@@ -35,7 +35,10 @@ jest.mock("@calcom/platform-libraries/app-store", () => {
 
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
-import { CreateIcsFeedOutput, CreateIcsFeedOutputResponseDto } from "@/platform/calendars/input/create-ics.output";
+import {
+  CreateIcsFeedOutput,
+  CreateIcsFeedOutputResponseDto,
+} from "@/platform/calendars/input/create-ics.output";
 import { ConnectedCalendarsData } from "@/platform/calendars/outputs/connected-calendars.output";
 import { DeletedCalendarCredentialsOutputResponseDto } from "@/platform/calendars/outputs/delete-calendar-credentials.output";
 import { CalendarsService } from "@/platform/calendars/services/calendars.service";

@@ -95,14 +95,7 @@ export function getVideoOptionsActions(context: BookingActionContext): ActionTyp
 }
 
 export function getEditEventActions(context: BookingActionContext): ActionType[] {
-  const {
-    booking,
-    isBookingInPast,
-    isDisabledRescheduling,
-    getSeatReferenceUid,
-    isAttendee,
-    t,
-  } = context;
+  const { booking, isBookingInPast, isDisabledRescheduling, getSeatReferenceUid, isAttendee, t } = context;
   const seatReferenceUid = getSeatReferenceUid();
 
   const isReassignableRoundRobin =

@@ -11,7 +11,10 @@ export class UrlShortenerFactory {
   static async create({
     userId,
     teamId,
-  }: { userId?: number | null; teamId?: number | null } = {}): Promise<IUrlShortenerProvider> {
+  }: {
+    userId?: number | null;
+    teamId?: number | null;
+  } = {}): Promise<IUrlShortenerProvider> {
     if (SinkShortener.isConfigured()) {
       const featuresRepository = new FeaturesRepository(prisma);
 

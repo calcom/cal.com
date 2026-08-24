@@ -35,7 +35,6 @@ export function collectPageParameters(
   };
 }
 
-
 export const nextCollectBasicSettings: CollectOpts = {
   drivers: [
     process.env.CALCOM_TELEMETRY_DISABLED === "1" || process.env.NEXT_PUBLIC_IS_E2E === "1"

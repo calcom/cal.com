@@ -124,11 +124,11 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
           ) : (
             <div className="flex">
               {t("add_variable")}
-              {
-                isOpen ? ( <ChevronUpIcon className="ml-1 mt-[2px] h-4 w-4" />) : (
-                  <ChevronDownIcon className="ml-1 mt-[2px] h-4 w-4" />
-                )
-              }
+              {isOpen ? (
+                <ChevronUpIcon className="ml-1 mt-[2px] h-4 w-4" />
+              ) : (
+                <ChevronDownIcon className="ml-1 mt-[2px] h-4 w-4" />
+              )}
             </div>
           )}
         </div>
@@ -149,12 +149,16 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
               className="border-subtle bg-default focus:ring-subtle w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1"
             />
           </div>
-          <div className="max-h-64 overflow-y-auto overflow-x-hidden rounded-md md:max-h-80" ref={dropdownContainerRef}>
+          <div
+            className="max-h-64 overflow-y-auto overflow-x-hidden rounded-md md:max-h-80"
+            ref={dropdownContainerRef}>
             {filteredVariables.length === 0 ? (
               <div className="text-subtle px-4 py-2 text-center text-sm">{t("no_variables_found")}</div>
             ) : (
               filteredVariables.map((variable, index) => (
-                <DropdownMenuItem key={variable} className="w-full rounded-md p-1 hover:ring-0 focus:outline-none">
+                <DropdownMenuItem
+                  key={variable}
+                  className="w-full rounded-md p-1 hover:ring-0 focus:outline-none">
                   <button
                     ref={(el) => (itemRefs.current[index] = el)}
                     key={variable}

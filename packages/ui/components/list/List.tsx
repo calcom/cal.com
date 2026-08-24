@@ -56,13 +56,7 @@ export function ListItem(props: ListItemProps) {
     props.children
   );
 
-  return href ? (
-    <Link href={href}>
-      {element}
-    </Link>
-  ) : (
-    element
-  );
+  return href ? <Link href={href}>{element}</Link> : element;
 }
 
 export type ListLinkItemProps = {

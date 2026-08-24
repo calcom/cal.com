@@ -22,5 +22,4 @@ export class ConferencingAtomsService {
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
     });
   }
-
 }

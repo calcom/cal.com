@@ -10,9 +10,7 @@ import {
   TestData,
   getDate,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import {
-  expectBookingCancelledWebhookToHaveBeenFired,
-} from "@calcom/testing/lib/bookingScenario/expects";
+import { expectBookingCancelledWebhookToHaveBeenFired } from "@calcom/testing/lib/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi } from "vitest";
@@ -371,7 +369,11 @@ describe("Cancel Booking", () => {
     );
     mockSuccessfulVideoMeetingCreation({
       metadataLookupKey: "dailyvideo",
-      videoMeetingData: { id: "MOCK_ID", password: "MOCK_PASS", url: `http://mock-dailyvideo.example.com/meeting-1` },
+      videoMeetingData: {
+        id: "MOCK_ID",
+        password: "MOCK_PASS",
+        url: `http://mock-dailyvideo.example.com/meeting-1`,
+      },
     });
     mockCalendarToHaveNoBusySlots("googlecalendar", {
       create: { id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID" },

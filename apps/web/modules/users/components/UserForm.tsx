@@ -72,7 +72,10 @@ export function UserForm({
   onSubmit: (data: FormValues) => void;
   submitLabel?: string;
 }) {
-  const { t, i18n: { language } } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
 
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
@@ -261,7 +264,11 @@ export function UserForm({
               <>{t("time_format")}</>
             </Label>
             <Select
-              value={timeFormatOptions.find((option) => option.value === (typeof value === "object" ? value?.value : value)) || value}
+              value={
+                timeFormatOptions.find(
+                  (option) => option.value === (typeof value === "object" ? value?.value : value)
+                ) || value
+              }
               options={timeFormatOptions}
               onChange={(event) => {
                 if (event) form.setValue("timeFormat", { ...event });
@@ -279,7 +286,11 @@ export function UserForm({
               <>{t("start_of_week")}</>
             </Label>
             <Select
-              value={weekStartOptions.find((option) => option.value === (typeof value === "object" ? value?.value : value)) || value}
+              value={
+                weekStartOptions.find(
+                  (option) => option.value === (typeof value === "object" ? value?.value : value)
+                ) || value
+              }
               options={weekStartOptions}
               onChange={(event) => {
                 if (event) form.setValue("weekStart", { ...event });

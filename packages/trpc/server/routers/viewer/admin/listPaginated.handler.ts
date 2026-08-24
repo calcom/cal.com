@@ -17,15 +17,15 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
   const { users, total, nextCursor } = await userRepository.listUsers({
     searchTerm,
     limit,
-    cursor
-  })
+    cursor,
+  });
 
   return {
     rows: users,
     nextCursor,
     meta: {
-      totalRowCount: total
-    }
+      totalRowCount: total,
+    },
   };
 };
 

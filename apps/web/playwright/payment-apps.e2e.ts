@@ -2,7 +2,11 @@ import prisma from "@calcom/prisma";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
-import { IS_STRIPE_ENABLED, selectFirstAvailableTimeSlotNextMonth, submitAndWaitForResponse } from "./lib/testUtils";
+import {
+  IS_STRIPE_ENABLED,
+  selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
+} from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());

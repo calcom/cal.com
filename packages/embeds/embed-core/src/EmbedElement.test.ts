@@ -13,7 +13,7 @@ type EmbedElementWithPrivateMethodsAccess = {
   boundResizeHandler: () => void;
   boundPrefersDarkThemeChangedHandler: (e: MediaQueryListEvent) => void;
   boundEnsureContainerTakesSkeletonHeightWhenVisible: () => void;
-}
+};
 
 (function defineEmbedTestElement() {
   class TestEmbedElement extends EmbedElement {
@@ -44,45 +44,41 @@ function mockWindowEventListeners() {
   const colorSchemeQuery = getColorSchemeDarkQuery();
   let nextAnimationFrameId = 1;
 
-  vi
-    .spyOn(window, "addEventListener")
-    .mockImplementation((event: string, callback: EventListenerOrEventListenerObject) => {
+  vi.spyOn(window, "addEventListener").mockImplementation(
+    (event: string, callback: EventListenerOrEventListenerObject) => {
       eventListenerCallbacks.set(event, callback);
-    });
+    }
+  );
 
-  vi
-    .spyOn(window, "removeEventListener")
-    .mockImplementation((event: string, callback: EventListenerOrEventListenerObject) => {
+  vi.spyOn(window, "removeEventListener").mockImplementation(
+    (event: string, callback: EventListenerOrEventListenerObject) => {
       const registeredCallback = eventListenerCallbacks.get(event);
       expect(registeredCallback).toBe(callback);
       eventListenerCallbacks.delete(event);
-    });
+    }
+  );
 
-  vi
-    .spyOn(window, "requestAnimationFrame")
-    .mockImplementation((callback: FrameRequestCallback) => {
-      const id = nextAnimationFrameId++;
-      animationFrameCallbacks.set(id, callback);
-      return id;
-    });
+  vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback: FrameRequestCallback) => {
+    const id = nextAnimationFrameId++;
+    animationFrameCallbacks.set(id, callback);
+    return id;
+  });
 
-  vi
-    .spyOn(window, "cancelAnimationFrame")
-    .mockImplementation((id: number) => {
-      animationFrameCallbacks.delete(id);
-    });
+  vi.spyOn(window, "cancelAnimationFrame").mockImplementation((id: number) => {
+    animationFrameCallbacks.delete(id);
+  });
 
-  vi
-    .spyOn(colorSchemeQuery, "addEventListener")
-    .mockImplementation((event: string, callback: EventListenerOrEventListenerObject) => {
+  vi.spyOn(colorSchemeQuery, "addEventListener").mockImplementation(
+    (event: string, callback: EventListenerOrEventListenerObject) => {
       colorSchemeListenerCallbacks.set(event, callback);
-    });
+    }
+  );
 
-  vi
-    .spyOn(colorSchemeQuery, "removeEventListener")
-    .mockImplementation((event: string, callback: EventListenerOrEventListenerObject) => {
+  vi.spyOn(colorSchemeQuery, "removeEventListener").mockImplementation(
+    (event: string, callback: EventListenerOrEventListenerObject) => {
       colorSchemeListenerCallbacks.delete(event);
-    });
+    }
+  );
 
   return {
     expectListenerToBeRegistered: (event: string, callback: EventListenerOrEventListenerObject) => {
@@ -438,29 +434,41 @@ describe("EmbedElement", () => {
 
     describe("Cleanup Behavior", () => {
       it("should clean up all resources when element is disconnected", () => {
-        const { expectListenerToBeRegistered, expectListenerToBeUnregistered, expectAnimationFrameListenerToBeRegistered, expectAnimationFrameListenerToBeUnregistered, expectColorSchemeListenerToBeRegistered, expectColorSchemeListenerToBeUnregistered } = mockWindowEventListeners();
+        const {
+          expectListenerToBeRegistered,
+          expectListenerToBeUnregistered,
+          expectAnimationFrameListenerToBeRegistered,
+          expectAnimationFrameListenerToBeUnregistered,
+          expectColorSchemeListenerToBeRegistered,
+          expectColorSchemeListenerToBeUnregistered,
+        } = mockWindowEventListeners();
 
         element = createTestEmbedElement({
           dataset: { pageType: "user.event.booking.slots" },
         });
 
-
-
         const internalEmbed = element as unknown as EmbedElementWithPrivateMethodsAccess;
 
         const boundResizeHandler = internalEmbed.boundResizeHandler;
         const boundPrefersDarkThemeChangedHandler = internalEmbed.boundPrefersDarkThemeChangedHandler;
-        const boundEnsureContainerTakesSkeletonHeightWhenVisible = internalEmbed.boundEnsureContainerTakesSkeletonHeightWhenVisible;
+        const boundEnsureContainerTakesSkeletonHeightWhenVisible =
+          internalEmbed.boundEnsureContainerTakesSkeletonHeightWhenVisible;
 
         expectListenerToBeRegistered("resize", boundResizeHandler);
         expectColorSchemeListenerToBeRegistered(boundPrefersDarkThemeChangedHandler);
-        expectAnimationFrameListenerToBeRegistered(element.skeletonContainerHeightTimer!, boundEnsureContainerTakesSkeletonHeightWhenVisible);
+        expectAnimationFrameListenerToBeRegistered(
+          element.skeletonContainerHeightTimer!,
+          boundEnsureContainerTakesSkeletonHeightWhenVisible
+        );
 
         document.body.removeChild(element);
 
         expectListenerToBeUnregistered("resize", boundResizeHandler);
         expectColorSchemeListenerToBeUnregistered(boundPrefersDarkThemeChangedHandler);
-        expectAnimationFrameListenerToBeUnregistered(element.skeletonContainerHeightTimer!, boundEnsureContainerTakesSkeletonHeightWhenVisible);
+        expectAnimationFrameListenerToBeUnregistered(
+          element.skeletonContainerHeightTimer!,
+          boundEnsureContainerTakesSkeletonHeightWhenVisible
+        );
       });
     });
   });

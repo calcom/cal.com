@@ -15,10 +15,7 @@ jest.mock(
   { virtual: true }
 );
 
-import {
-  GOOGLE_CALENDAR_TYPE,
-  OFFICE_365_CALENDAR_TYPE,
-} from "@calcom/platform-constants";
+import { GOOGLE_CALENDAR_TYPE, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { UnifiedCalendarsFreebusyService } from "./unified-calendars-freebusy.service";

@@ -8,7 +8,7 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("Change Password Test", () => {
   test("change password", async ({ page, users }) => {
     const pro = await users.create();
-    const currentPassword = getDefaultPassword(String(pro.username))
+    const currentPassword = getDefaultPassword(String(pro.username));
     await pro.apiLogin();
     // Go to http://localhost:3000/settings/security
     await page.goto("/settings/security/password");

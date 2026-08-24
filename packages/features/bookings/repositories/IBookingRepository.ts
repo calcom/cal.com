@@ -45,9 +45,7 @@ export interface IBookingRepository {
 
   update(params: { where: BookingWhereUniqueInput; data: BookingUpdateData }): Promise<Booking>;
 
-  findManyIncludeReferences(params: {
-    where: BookingWhereInput;
-  }): Promise<BookingWithReferences[]>;
+  findManyIncludeReferences(params: { where: BookingWhereInput }): Promise<BookingWithReferences[]>;
 
   getBookingForCalEventBuilderFromUid(bookingUid: string): Promise<BookingForCalEventBuilder | null>;
 }

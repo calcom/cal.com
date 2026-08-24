@@ -79,7 +79,7 @@ export const getBulkTeamEventTypes = async (teamId: number) => {
 };
 
 export const filterEventTypesWhereLocationUpdateIsAllowed = <
-  T extends { parentId: number | null; metadata: unknown }
+  T extends { parentId: number | null; metadata: unknown },
 >(
   eventTypes: T[]
 ): T[] => {

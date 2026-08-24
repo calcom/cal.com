@@ -165,7 +165,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ).profile
     : null;
 
-  const organizationRepository = { findCalVideoLogoByOrgId: async (_args: { id: number }) => null as string | null };
+  const organizationRepository = {
+    findCalVideoLogoByOrgId: async (_args: { id: number }) => null as string | null,
+  };
 
   const calVideoLogo = profile?.organization
     ? await organizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })

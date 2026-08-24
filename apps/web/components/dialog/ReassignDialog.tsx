@@ -77,21 +77,39 @@ export const ReassignDialog = ({
   const debouncedSearch = useDebounce(searchTerm, 500);
 
   const managedEventQuery: {
-    data: { pages: { items: { id: number; name: string | null; email: string; status: string }[] }[] } | undefined;
+    data:
+      | { pages: { items: { id: number; name: string | null; email: string; status: string }[] }[] }
+      | undefined;
     fetchNextPage: () => void;
     hasNextPage: boolean;
     isFetching: boolean;
     isFetchingNextPage: boolean;
-  } = { data: undefined, fetchNextPage: () => {}, hasNextPage: false, isFetching: false, isFetchingNextPage: false };
+  } = {
+    data: undefined,
+    fetchNextPage: () => {},
+    hasNextPage: false,
+    isFetching: false,
+    isFetchingNextPage: false,
+  };
 
-  const roundRobinQuery: typeof managedEventQuery = { data: undefined, fetchNextPage: () => {}, hasNextPage: false, isFetching: false, isFetchingNextPage: false };
+  const roundRobinQuery: typeof managedEventQuery = {
+    data: undefined,
+    fetchNextPage: () => {},
+    hasNextPage: false,
+    isFetching: false,
+    isFetchingNextPage: false,
+  };
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = isManagedEvent
     ? managedEventQuery
     : roundRobinQuery;
 
   const allRows = useMemo(() => {
-    return data?.pages.flatMap((page: { items: { id: number; name: string | null; email: string; status: string }[] }) => page.items) ?? [];
+    return (
+      data?.pages.flatMap(
+        (page: { items: { id: number; name: string | null; email: string; status: string }[] }) => page.items
+      ) ?? []
+    );
   }, [data]);
 
   const teamMemberOptions = useMemo(() => {
@@ -115,17 +133,29 @@ export const ReassignDialog = ({
     },
   });
 
-  const roundRobinReassignMutation = { mutate: (..._args: unknown[]) => {}, mutateAsync: async () => ({}), isPending: false };
+  const roundRobinReassignMutation = {
+    mutate: (..._args: unknown[]) => {},
+    mutateAsync: async () => ({}),
+    isPending: false,
+  };
 
+  const managedEventReassignMutation = {
+    mutate: (..._args: unknown[]) => {},
+    mutateAsync: async () => ({}),
+    isPending: false,
+  };
 
-  const managedEventReassignMutation = { mutate: (..._args: unknown[]) => {}, mutateAsync: async () => ({}), isPending: false };
+  const roundRobinManualReassignMutation = {
+    mutate: (..._args: unknown[]) => {},
+    mutateAsync: async () => ({}),
+    isPending: false,
+  };
 
-
-  const roundRobinManualReassignMutation = { mutate: (..._args: unknown[]) => {}, mutateAsync: async () => ({}), isPending: false };
-
-
-  const managedEventManualReassignMutation = { mutate: (..._args: unknown[]) => {}, mutateAsync: async () => ({}), isPending: false };
-
+  const managedEventManualReassignMutation = {
+    mutate: (..._args: unknown[]) => {},
+    mutateAsync: async () => ({}),
+    isPending: false,
+  };
 
   const [confirmationModal, setConfirmationModal] = useState<{
     show: boolean;

@@ -67,9 +67,7 @@ const moveSeatedBookingToNewTimeSlot = async (
     cancellationReason: rescheduleReason,
   });
 
-  evt = CalendarEventBuilder.fromEvent(evt)
-    .withVideoCallDataFromReferences(newBooking.references)
-    .build();
+  evt = CalendarEventBuilder.fromEvent(evt).withVideoCallDataFromReferences(newBooking.references).build();
 
   const copyEvent = cloneDeep(evt);
 

@@ -13,7 +13,8 @@ export type TEventInputSchemaInput = {
 
 export type TEventInputSchema = GetPublicEventInput;
 
-export const ZEventInputSchema: z.ZodType<TEventInputSchema, z.ZodTypeDef, TEventInputSchemaInput> = z.object({
+export const ZEventInputSchema: z.ZodType<TEventInputSchema, z.ZodTypeDef, TEventInputSchemaInput> = z.object(
+  {
     username: z.string(),
     eventSlug: z.string(),
     isTeamEvent: z.boolean().optional(),
@@ -23,4 +24,5 @@ export const ZEventInputSchema: z.ZodType<TEventInputSchema, z.ZodTypeDef, TEven
      * Based on this decision like whether to allow unpublished organization's event to be served or not can be made.
      */
     fromRedirectOfNonOrgLink: z.boolean().optional().default(false),
-});
+  }
+);

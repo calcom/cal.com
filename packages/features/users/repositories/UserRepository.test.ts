@@ -257,7 +257,6 @@ describe("listUsers", () => {
     });
 
     const { users, total } = await new UserRepository(prismock).listUsers({
-
       searchTerm: "nonexistent-term-xyz",
       cursor: null,
       limit: 10,

@@ -129,9 +129,7 @@ test.describe("Embed Pages", () => {
   });
 
   test.describe("useSlotsViewOnSmallScreen", () => {
-    test("should enable slots view on small screen when parameter is 'true'", async ({
-      page,
-    }) => {
+    test("should enable slots view on small screen when parameter is 'true'", async ({ page }) => {
       await page.evaluate(() => {
         window.name = "cal-embed=";
       });
@@ -144,9 +142,7 @@ test.describe("Embed Pages", () => {
       expect(useSlotsViewOnSmallScreen).toBe(true);
     });
 
-    test("should default to false when parameter is not present", async ({
-      page,
-    }) => {
+    test("should default to false when parameter is not present", async ({ page }) => {
       await page.evaluate(() => {
         window.name = "cal-embed=";
       });

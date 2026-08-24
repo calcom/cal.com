@@ -20,7 +20,7 @@ async function postHandler(request: NextRequest) {
 
     // Get current org domain from request headers
     const currentOrgDomain = null;
-  const isValidOrgDomain = false;
+    const isValidOrgDomain = false;
 
     const result = await checkUsername(username, currentOrgDomain || orgSlug);
 

@@ -456,7 +456,11 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   };
 
   const shouldLockIndicator = (_field: string): null => null;
-  const shouldLockDisableProps = (_field: string) => ({ disabled: false, LockedIcon: false as const, isLocked: false });
+  const shouldLockDisableProps = (_field: string) => ({
+    disabled: false,
+    LockedIcon: false as const,
+    isLocked: false,
+  });
 
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");

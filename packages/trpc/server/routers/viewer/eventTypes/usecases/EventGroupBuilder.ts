@@ -102,10 +102,7 @@ export class EventGroupBuilder {
             throw new Error(`Permissions not found for team ${membership.team.id}`);
           }
 
-          const teamSlug = createTeamSlug(
-            membership.team.slug,
-            !!membership.team.parentId
-          );
+          const teamSlug = createTeamSlug(membership.team.slug, !!membership.team.parentId);
 
           return createTeamEventGroup(membership, effectiveRole, teamSlug, permissions);
         })

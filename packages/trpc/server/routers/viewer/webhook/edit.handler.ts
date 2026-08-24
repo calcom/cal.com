@@ -49,7 +49,7 @@ export const editHandler = async ({ input, ctx }: EditOptions) => {
     }
   }
 
-  const updatedWebhook= await prisma.webhook.update({
+  const updatedWebhook = await prisma.webhook.update({
     where: {
       id,
     },

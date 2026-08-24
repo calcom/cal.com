@@ -27,7 +27,6 @@ import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
-
 const useBrandColors = (
   currentTheme: string | null,
   {

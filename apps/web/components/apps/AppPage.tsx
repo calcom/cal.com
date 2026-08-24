@@ -422,7 +422,7 @@ export const AppPage = ({
           <>
             <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
             <span className="text-default">
-                {price === 0 ? (
+              {price === 0 ? (
                 t("free_to_use_apps")
               ) : (
                 <>

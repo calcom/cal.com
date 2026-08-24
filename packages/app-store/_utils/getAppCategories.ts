@@ -18,14 +18,14 @@ type AppCategoryEntry = {
 };
 
 export const APP_CATEGORY_ENTRIES: Record<ActiveAppCategoryKeys, Omit<AppCategoryEntry, "name">> = {
-  analytics:    { href: "", icon: "chart-bar",   "data-testid": "analytics"    },
-  automation:   { href: "", icon: "share-2",     "data-testid": "automation"   },
-  calendar:     { href: "", icon: "calendar",    "data-testid": "calendar"     },
-  conferencing: { href: "", icon: "video",       "data-testid": "conferencing" },
-  crm:          { href: "", icon: "contact",     "data-testid": "crm"          },
-  messaging:    { href: "", icon: "mail",        "data-testid": "messaging"    },
-  payment:      { href: "", icon: "credit-card", "data-testid": "payment"      },
-  other:        { href: "", icon: "grid-3x3",    "data-testid": "other"        },
+  analytics: { href: "", icon: "chart-bar", "data-testid": "analytics" },
+  automation: { href: "", icon: "share-2", "data-testid": "automation" },
+  calendar: { href: "", icon: "calendar", "data-testid": "calendar" },
+  conferencing: { href: "", icon: "video", "data-testid": "conferencing" },
+  crm: { href: "", icon: "contact", "data-testid": "crm" },
+  messaging: { href: "", icon: "mail", "data-testid": "messaging" },
+  payment: { href: "", icon: "credit-card", "data-testid": "payment" },
+  other: { href: "", icon: "grid-3x3", "data-testid": "other" },
 };
 
 export const CATEGORY_ORDER = [
@@ -39,12 +39,13 @@ export const CATEGORY_ORDER = [
   "other",
 ] as const satisfies readonly ActiveAppCategoryKeys[];
 
-
 const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryEntry[] =>
-  CATEGORY_ORDER.map((name): AppCategoryEntry => ({
-    name,
-    ...APP_CATEGORY_ENTRIES[name],
-    href: getHref(baseURL, name, useQueryParam),
-  }));
+  CATEGORY_ORDER.map(
+    (name): AppCategoryEntry => ({
+      name,
+      ...APP_CATEGORY_ENTRIES[name],
+      href: getHref(baseURL, name, useQueryParam),
+    })
+  );
 
 export default getAppCategories;

@@ -25,13 +25,7 @@ function PageWrapper(props: PageWrapperProps) {
   return (
     <>
       <AppProviders {...providerProps}>
-        <>
-          {props.requiresLicense ? (
-            <>{props.children}</>
-          ) : (
-            <>{props.children}</>
-          )}
-        </>
+        <>{props.requiresLicense ? <>{props.children}</> : <>{props.children}</>}</>
       </AppProviders>
     </>
   );

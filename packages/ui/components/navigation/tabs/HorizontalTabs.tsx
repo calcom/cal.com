@@ -49,15 +49,9 @@ const HorizontalTabs = ({
         className="no-scrollbar flex space-x-0.5 overflow-x-scroll rounded-md"
         aria-label="Tabs"
         ref={navRef}
-        {...props}
-      >
+        {...props}>
         {tabs.map((tab) => (
-          <HorizontalTabItem
-            {...tab}
-            key={tab.href}
-            linkShallow={linkShallow}
-            linkScroll={linkScroll}
-          />
+          <HorizontalTabItem {...tab} key={tab.href} linkShallow={linkShallow} linkScroll={linkScroll} />
         ))}
       </nav>
       {actions && actions}

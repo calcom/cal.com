@@ -58,8 +58,6 @@ import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/t
     OAuthClientRepository,
     Logger,
   ],
-  exports: [
-    OrganizationsRepository,
-  ],
+  exports: [OrganizationsRepository],
 })
 export class OrganizationsModule {}

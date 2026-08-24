@@ -122,7 +122,7 @@ async function getCalendarService(delegationUserCredential: DelegationUserCreden
     return null;
   }
 
-  const googleCalendarService= createGoogleCalendarServiceWithGoogleType(
+  const googleCalendarService = createGoogleCalendarServiceWithGoogleType(
     credentialForCalendarService as CredentialForCalendarServiceWithEmail
   );
 

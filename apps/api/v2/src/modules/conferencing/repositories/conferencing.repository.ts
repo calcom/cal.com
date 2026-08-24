@@ -7,7 +7,10 @@ import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class ConferencingRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   private readonly credentialSelect = {
     id: true,

@@ -15,7 +15,10 @@ const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
 
 // TODO: To be unit tested
 export async function moveUserToMatchingOrg({ email }: { email: string }) {
-  const organizationRepository = { findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail: async (_args: { email: string }) => null as { id: number } | null };
+  const organizationRepository = {
+    findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail: async (_args: { email: string }) =>
+      null as { id: number } | null,
+  };
   const org = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email });
 
   if (!org) {
@@ -114,11 +117,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (IS_STRIPE_ENABLED && userMetadataParsed.stripeCustomerId) {
-        const billingService = { updateCustomer: async (_args: { customerId: string; email: string }) => {} };
-        await billingService.updateCustomer({
-          customerId: userMetadataParsed.stripeCustomerId,
-          email: updatedEmail,
-        });
+      const billingService = { updateCustomer: async (_args: { customerId: string; email: string }) => {} };
+      await billingService.updateCustomer({
+        customerId: userMetadataParsed.stripeCustomerId,
+        email: updatedEmail,
+      });
     }
 
     // The user is trying to update the email to an already existing unverified secondary email of his

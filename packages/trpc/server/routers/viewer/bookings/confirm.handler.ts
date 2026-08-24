@@ -477,7 +477,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });
-
   }
 
   const message = confirmed ? "Booking confirmed" : "Booking rejected";

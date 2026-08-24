@@ -5,7 +5,6 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 import type { TUpdateWrongAssignmentReportStatusInputSchema } from "./updateWrongAssignmentReportStatus.schema";
 
-
 type UpdateWrongAssignmentReportStatusOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -30,7 +29,6 @@ export const updateWrongAssignmentReportStatusHandler = async ({
       message: "Report not found",
     });
   }
-
 
   const updatedReport = await repo.updateStatus({
     id: reportId,

@@ -60,9 +60,15 @@ describe("reportBookingHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(BookingRepository).mockImplementation(function() { return mockBookingRepo; });
-    vi.mocked(PrismaBookingReportRepository).mockImplementation(function() { return mockReportRepo; });
-    vi.mocked(BookingAccessService).mockImplementation(function() { return mockBookingAccessService; });
+    vi.mocked(BookingRepository).mockImplementation(function () {
+      return mockBookingRepo;
+    });
+    vi.mocked(PrismaBookingReportRepository).mockImplementation(function () {
+      return mockReportRepo;
+    });
+    vi.mocked(BookingAccessService).mockImplementation(function () {
+      return mockBookingAccessService;
+    });
     mockReportRepo.createReport.mockResolvedValue({ id: "new-report" });
   });
 
@@ -77,7 +83,7 @@ describe("reportBookingHandler", () => {
             bookingUid: "test-booking-uid",
             reason: BookingReportReason.SPAM,
           },
-          })
+        })
       ).rejects.toThrow(TRPCError);
 
       await expect(
@@ -87,7 +93,7 @@ describe("reportBookingHandler", () => {
             bookingUid: "test-booking-uid",
             reason: BookingReportReason.SPAM,
           },
-          })
+        })
       ).rejects.toMatchObject({
         code: "FORBIDDEN",
         message: "You don't have access to this booking",
@@ -105,7 +111,7 @@ describe("reportBookingHandler", () => {
             bookingUid: "test-booking-uid",
             reason: BookingReportReason.SPAM,
           },
-          })
+        })
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
         message: "Booking not found",
@@ -128,7 +134,7 @@ describe("reportBookingHandler", () => {
             bookingUid: "test-booking-uid",
             reason: BookingReportReason.SPAM,
           },
-          })
+        })
       ).rejects.toMatchObject({
         code: "BAD_REQUEST",
         message: "This booking has already been reported",

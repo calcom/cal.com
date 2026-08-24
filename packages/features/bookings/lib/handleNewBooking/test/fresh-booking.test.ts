@@ -824,7 +824,6 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             calendarId: "organizer@google-calendar.com",
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -2948,7 +2947,8 @@ describe("handleNewBooking", () => {
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
-          });          const organizer = getOrganizer({
+          });
+          const organizer = getOrganizer({
             name: "Organizer",
             email: "organizer@example.com",
             id: 101,
@@ -3086,7 +3086,8 @@ describe("handleNewBooking", () => {
             7. Booking should still stay in pending state
       `,
 
-        async ({ emails }) => {          const handleNewBooking = getNewBookingHandler();
+        async ({ emails }) => {
+          const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",

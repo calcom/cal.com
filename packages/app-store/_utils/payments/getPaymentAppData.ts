@@ -57,7 +57,16 @@ export function getPaymentAppData(
   for (const appId of paymentAppIds) {
     const appData = getEventTypeAppData(eventType, appId, forcedGet);
     if (appData && paymentAppData === null) {
-      const data = appData as { enabled?: boolean; price?: number; currency?: string; paymentOption?: string; credentialId?: number; refundPolicy?: string; refundDaysCount?: number; refundCountCalendarDays?: boolean };
+      const data = appData as {
+        enabled?: boolean;
+        price?: number;
+        currency?: string;
+        paymentOption?: string;
+        credentialId?: number;
+        refundPolicy?: string;
+        refundDaysCount?: number;
+        refundCountCalendarDays?: boolean;
+      };
       paymentAppData = {
         enabled: data.enabled ?? false,
         price: data.price ?? 0,

@@ -27,11 +27,7 @@ import { RedisModule } from "@/modules/redis/redis.module";
     MembershipsModule,
     OAuthClientModule,
   ],
-  controllers: [
-    WebhooksController,
-    EventTypeWebhooksController,
-    OAuthClientWebhooksController,
-  ],
+  controllers: [WebhooksController, EventTypeWebhooksController, OAuthClientWebhooksController],
   providers: [
     TeamsEventTypesRepository,
     WebhooksService,

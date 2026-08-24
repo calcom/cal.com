@@ -281,7 +281,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     <>{t("time_format")}</>
                   </Label>
                   <Select
-                    value={timeFormatOptions.find((option) => option.value === (typeof value === "object" ? value?.value : value)) || value}
+                    value={
+                      timeFormatOptions.find(
+                        (option) => option.value === (typeof value === "object" ? value?.value : value)
+                      ) || value
+                    }
                     options={timeFormatOptions}
                     onChange={(event) => {
                       if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
@@ -303,7 +307,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     <>{t("start_of_week")}</>
                   </Label>
                   <Select
-                    value={weekStartOptions.find((option) => option.value === (typeof value === "object" ? value?.value : value)) || value}
+                    value={
+                      weekStartOptions.find(
+                        (option) => option.value === (typeof value === "object" ? value?.value : value)
+                      ) || value
+                    }
                     options={weekStartOptions}
                     onChange={(event) => {
                       if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });

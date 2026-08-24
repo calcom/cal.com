@@ -12,7 +12,7 @@ import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName
 import type { TTriggerNoShowPayloadSchema, TWebhook } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
-type OriginalRescheduledBooking=
+type OriginalRescheduledBooking =
   | {
       rescheduledBy?: string | null;
     }
@@ -140,7 +140,7 @@ export async function getParticipantsWithEmail(
 
 export const log = logger.getSubLogger({ prefix: ["triggerNoShowTask"] });
 
-export const prepareNoShowTrigger= async (
+export const prepareNoShowTrigger = async (
   payload: string
 ): Promise<
   | {

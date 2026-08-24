@@ -222,7 +222,6 @@ const handleMarkNoShow = async ({
       responsePayload.setMessage(t("booking_no_show_updated"));
     }
 
-
     return responsePayload.getPayload();
   } catch (error) {
     if (error instanceof Error) {

@@ -34,7 +34,6 @@ vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => 
   },
 }));
 
-
 vi.mock("@calcom/prisma", () => ({
   default: {},
   prisma: {},

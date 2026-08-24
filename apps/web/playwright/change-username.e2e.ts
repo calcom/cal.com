@@ -83,5 +83,4 @@ test.describe("Change username on settings", () => {
 
     await expect(page).toHaveURL(/.*checkout.stripe.com/);
   });
-
 });

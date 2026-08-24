@@ -7,7 +7,7 @@ import { Button, buttonClasses } from "./Button";
 
 const observeMock = vi.fn();
 
-window.ResizeObserver = vi.fn().mockImplementation(function() {
+window.ResizeObserver = vi.fn().mockImplementation(function () {
   return {
     disconnect: vi.fn(),
     observe: observeMock,

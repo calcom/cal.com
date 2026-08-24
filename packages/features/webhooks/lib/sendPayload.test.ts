@@ -108,6 +108,4 @@ describe("sendPayload", () => {
       expect(options.headers["X-Cal-Webhook-Version"]).toBe("2021-10-20");
     });
   });
-
-
 });

@@ -80,17 +80,13 @@ type Dependencies = {
 
 async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const prismaClient = prisma;
-  const {
-    userRepository,
-    bookingRepository,
-    bookingReferenceRepository,
-    attendeeRepository,
-  } = dependencies || {
-    userRepository: new UserRepository(prismaClient),
-    bookingRepository: new BookingRepository(prismaClient),
-    bookingReferenceRepository: new BookingReferenceRepository({ prismaClient }),
-    attendeeRepository: new PrismaBookingAttendeeRepository(prismaClient),
-  };
+  const { userRepository, bookingRepository, bookingReferenceRepository, attendeeRepository } =
+    dependencies || {
+      userRepository: new UserRepository(prismaClient),
+      bookingRepository: new BookingRepository(prismaClient),
+      bookingReferenceRepository: new BookingReferenceRepository({ prismaClient }),
+      attendeeRepository: new PrismaBookingAttendeeRepository(prismaClient),
+    };
   const body = input.bookingData;
   const {
     id,
@@ -103,12 +99,12 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     skipCancellationReasonValidation = false,
     skipCalendarSyncTaskCancellation = false,
   } = bookingCancelInput.parse(body);
-  let bookingToDelete: BookingToDelete
+  let bookingToDelete: BookingToDelete;
   try {
     bookingToDelete = await getBookingToDelete(id, uid);
   } catch (error) {
-    if (isPrismaError(error) && error.code === "P2025") // Record not found
-    {
+    if (isPrismaError(error) && error.code === "P2025") {
+      // Record not found
       throw new HttpError({
         statusCode: 404,
         message: "Booking not found.",
@@ -124,7 +120,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     platformRescheduleUrl,
     arePlatformEmailsEnabled,
   } = input;
-
 
   /**
    * Important: We prevent cancelling an already cancelled booking.
@@ -158,7 +153,12 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     isCancellationUserHost
   );
 
-  if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
+  if (
+    !platformClientId &&
+    !cancellationReason?.trim() &&
+    isReasonRequired &&
+    !skipCancellationReasonValidation
+  ) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required",

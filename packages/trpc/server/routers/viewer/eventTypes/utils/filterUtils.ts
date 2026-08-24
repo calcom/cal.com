@@ -34,10 +34,7 @@ export function shouldIncludeTeamMembership(
   return filters?.teamIds?.includes(membership.team.id) ?? false;
 }
 
-export function createTeamSlug(
-  teamSlug: string | null,
-  hasParent: boolean
-): string | null {
+export function createTeamSlug(teamSlug: string | null, hasParent: boolean): string | null {
   if (!teamSlug) return null;
 
   return hasParent ? teamSlug : `team/${teamSlug}`;

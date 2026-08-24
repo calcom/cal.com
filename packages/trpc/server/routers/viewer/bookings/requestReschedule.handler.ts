@@ -94,7 +94,6 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     log.error("Error while deleting scheduled webhook triggers", JSON.stringify({ error }));
   });
 
-
   const [mainAttendee] = bookingToReschedule.attendees;
   // @NOTE: Should we assume attendees language?
   const tAttendees = await getTranslation(mainAttendee.locale ?? "en", "common");
@@ -236,9 +235,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     uid: bookingToReschedule.uid,
     location: bookingToReschedule.location,
     destinationCalendar: bookingToReschedule.destinationCalendar,
-    cancellationReason: [tAttendees("please_reschedule"), cancellationReason]
-    .filter(Boolean)
-    .join(" "),
+    cancellationReason: [tAttendees("please_reschedule"), cancellationReason].filter(Boolean).join(" "),
     iCalUID: bookingToReschedule.iCalUID,
     ...(bookingToReschedule.smsReminderNumber && {
       smsReminderNumber: bookingToReschedule.smsReminderNumber,
@@ -284,5 +281,4 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     })
   );
   await Promise.all(promises);
-
 };

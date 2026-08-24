@@ -91,7 +91,6 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
           ...(seatReferenceUid ? { seatReferenceUid } : {}),
         },
         userId: user.id,
-
       });
       didCancel = true;
     } catch (error) {

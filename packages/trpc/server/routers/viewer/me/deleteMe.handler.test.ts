@@ -5,7 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 
 import { deleteMeHandler } from "./deleteMe.handler";
 import type { DeleteMeOptions } from "./deleteMe.handler";
-  
+
 const makeMockCtx = (role: "USER" | "ADMIN" = "USER") =>
   ({
     user: {
@@ -14,7 +14,7 @@ const makeMockCtx = (role: "USER" | "ADMIN" = "USER") =>
       email: "test@example.com",
       role,
     },
-  } as DeleteMeOptions["ctx"]);
+  }) as DeleteMeOptions["ctx"];
 
 describe("deleteMeHandler", () => {
   describe("Password presence validation", () => {
@@ -44,9 +44,7 @@ describe("deleteMeHandler", () => {
           ctx: makeMockCtx("USER"),
           input: { password: "weak" },
         })
-      ).rejects.toThrow(
-        new HttpError({ statusCode: 400, message: ErrorCode.PasswordPolicyViolation })
-      );
+      ).rejects.toThrow(new HttpError({ statusCode: 400, message: ErrorCode.PasswordPolicyViolation }));
     });
 
     it("should throw error for a weak password (ADMIN role)", async () => {
@@ -55,9 +53,7 @@ describe("deleteMeHandler", () => {
           ctx: makeMockCtx("ADMIN"),
           input: { password: "weak" },
         })
-      ).rejects.toThrow(
-        new HttpError({ statusCode: 400, message: ErrorCode.PasswordPolicyViolation })
-      );
+      ).rejects.toThrow(new HttpError({ statusCode: 400, message: ErrorCode.PasswordPolicyViolation }));
     });
   });
 });

@@ -16,7 +16,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-export const handleNoShowFee= async ({
+export const handleNoShowFee = async ({
   booking,
   payment,
 }: {

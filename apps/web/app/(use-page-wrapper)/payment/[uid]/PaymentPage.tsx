@@ -17,12 +17,40 @@ import dynamic from "next/dynamic";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 
-
 type PaymentPageProps = {
-  payment: { id: number; success: boolean; refunded: boolean; amount: number; currency: string; paymentOption: string | null; data: Record<string, unknown>; appId?: string | null };
+  payment: {
+    id: number;
+    success: boolean;
+    refunded: boolean;
+    amount: number;
+    currency: string;
+    paymentOption: string | null;
+    data: Record<string, unknown>;
+    appId?: string | null;
+  };
   clientSecret?: string | null;
-  booking: { id: number; uid: string; title: string; startTime: string; endTime: string; status: string; paid: boolean; description?: string | null; location?: string | null };
-  eventType: { id: number; title: string; length: number; price: number; currency: string; metadata: Record<string, unknown> | null; successRedirectUrl?: string | null; forwardParamsSuccessRedirect?: boolean | null; recurringEvent?: unknown };
+  booking: {
+    id: number;
+    uid: string;
+    title: string;
+    startTime: string;
+    endTime: string;
+    status: string;
+    paid: boolean;
+    description?: string | null;
+    location?: string | null;
+  };
+  eventType: {
+    id: number;
+    title: string;
+    length: number;
+    price: number;
+    currency: string;
+    metadata: Record<string, unknown> | null;
+    successRedirectUrl?: string | null;
+    forwardParamsSuccessRedirect?: boolean | null;
+    recurringEvent?: unknown;
+  };
   profile: { theme?: string | null; hideBranding?: boolean };
   user?: { name?: string | null; username?: string | null } | null;
 };

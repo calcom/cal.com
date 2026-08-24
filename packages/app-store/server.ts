@@ -61,10 +61,10 @@ export async function getLocationGroupedOptions(
     });
   }
 
-  const credentialRepository = new PrismaCredentialRepository(prisma);  
-  const nonDelegationCredentials = await credentialRepository.findNonDelegationCredentialsByAppCategories({  
+  const credentialRepository = new PrismaCredentialRepository(prisma);
+  const nonDelegationCredentials = await credentialRepository.findNonDelegationCredentialsByAppCategories({
     idToSearchObject,
-    appCategories: defaultVideoAppCategories,  
+    appCategories: defaultVideoAppCategories,
   });
 
   let credentials;
@@ -80,7 +80,7 @@ export async function getLocationGroupedOptions(
     );
     credentials = allCredentials;
   } else {
-    credentials = nonDelegationCredentials;  
+    credentials = nonDelegationCredentials;
   }
 
   const integrations = await getEnabledAppsFromCredentials(credentials, { filterOnCredentials: true });

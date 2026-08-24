@@ -3,8 +3,12 @@ import type { TrpcSessionUser } from "../../../types";
 import type { TValidateLicenseInputSchema } from "./validateLicense.schema";
 
 class LicenseKeyService {
-  async checkLicense() { return true; }
-  static async validateLicenseKey(_key?: string) { return true; }
+  async checkLicense() {
+    return true;
+  }
+  static async validateLicenseKey(_key?: string) {
+    return true;
+  }
 }
 
 type ValidateLicenseOptions = {

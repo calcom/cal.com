@@ -38,8 +38,16 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
 };
 
 const TextWidget = (props: TextLikeComponentPropsRAQB) => {
-  const { value, noLabel, setValue, readOnly, placeholder, customProps, type = "text", ...remainingProps } =
-    props;
+  const {
+    value,
+    noLabel,
+    setValue,
+    readOnly,
+    placeholder,
+    customProps,
+    type = "text",
+    ...remainingProps
+  } = props;
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setValue(val);

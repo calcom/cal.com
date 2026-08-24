@@ -65,7 +65,7 @@ it("can find lucky user with maximize availability", async () => {
         includeNoShowInRRCalculation: false,
       },
       allRRHosts: [],
-          })
+    })
   ).resolves.toStrictEqual(users[1]);
 });
 
@@ -120,7 +120,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
         includeNoShowInRRCalculation: false,
       },
       allRRHosts: [],
-          })
+    })
   ).resolves.toStrictEqual(users[1]);
 
   const userLowest = buildUser({
@@ -176,7 +176,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
         includeNoShowInRRCalculation: false,
       },
       allRRHosts: [],
-          })
+    })
   ).resolves.toStrictEqual(usersWithPriorities[2]);
 
   const userLow = buildUser({
@@ -237,7 +237,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
         includeNoShowInRRCalculation: false,
       },
       allRRHosts: [],
-          })
+    })
   ).resolves.toStrictEqual(usersWithSamePriorities[1]);
 });
 
@@ -338,7 +338,7 @@ describe("maximize availability and weights", () => {
           includeNoShowInRRCalculation: false,
         },
         allRRHosts,
-              })
+      })
     ).resolves.toStrictEqual(users[1]);
 
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
@@ -456,7 +456,7 @@ describe("maximize availability and weights", () => {
           includeNoShowInRRCalculation: false,
         },
         allRRHosts,
-              })
+      })
     ).resolves.toStrictEqual(users[0]);
 
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
@@ -574,7 +574,7 @@ describe("maximize availability and weights", () => {
           includeNoShowInRRCalculation: false,
         },
         allRRHosts,
-              })
+      })
     ).resolves.toStrictEqual(users[0]);
 
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
@@ -679,7 +679,7 @@ describe("maximize availability and weights", () => {
           includeNoShowInRRCalculation: false,
         },
         allRRHosts,
-              })
+      })
     ).resolves.toStrictEqual(users[1]);
 
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
@@ -799,7 +799,7 @@ describe("maximize availability and weights", () => {
           includeNoShowInRRCalculation: false,
         },
         allRRHosts,
-              })
+      })
     ).resolves.toStrictEqual(users[1]);
 
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
@@ -877,7 +877,7 @@ describe("maximize availability and weights", () => {
           includeNoShowInRRCalculation: false,
         },
         allRRHosts,
-              })
+      })
     ).resolves.toStrictEqual(users[0]);
   });
 
@@ -973,7 +973,7 @@ describe("maximize availability and weights", () => {
           includeNoShowInRRCalculation: false,
         },
         allRRHosts,
-              })
+      })
     ).resolves.toStrictEqual(users[1]);
 
     prismaMock.booking.findMany.mockResolvedValueOnce([]);
@@ -1002,7 +1002,7 @@ describe("maximize availability and weights", () => {
           includeNoShowInRRCalculation: false,
         },
         allRRHosts,
-              })
+      })
     ).resolves.toStrictEqual(users[0]);
 
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
@@ -1257,7 +1257,7 @@ it("returns the single user correctly without fetching data when only one user a
         includeNoShowInRRCalculation: false,
       },
       allRRHosts: [],
-          })
+    })
   ).resolves.toStrictEqual(singleUser);
 
   // Verify no expensive operations were called

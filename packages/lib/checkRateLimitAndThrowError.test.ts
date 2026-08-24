@@ -80,8 +80,6 @@ describe("checkRateLimitAndThrowError", () => {
     const identifier = "test-identifier";
     const rateLimitingType = "core";
 
-    await expect(
-      checkRateLimitAndThrowError({ rateLimitingType, identifier })
-    ).rejects.toThrow("0 seconds");
+    await expect(checkRateLimitAndThrowError({ rateLimitingType, identifier })).rejects.toThrow("0 seconds");
   });
 });

@@ -54,7 +54,11 @@ export class CalUnifiedCalendarsController {
     const connections = await this.unifiedCalendarService.getConnections(userId);
     // Defense-in-depth: only forward the public fields so that any future service
     // regression that accidentally includes credential.key cannot leak to the client.
-    const safeConnections = connections.map(({ connectionId, type, email }) => ({ connectionId, type, email }));
+    const safeConnections = connections.map(({ connectionId, type, email }) => ({
+      connectionId,
+      type,
+      email,
+    }));
     return {
       status: SUCCESS_STATUS,
       data: { connections: safeConnections },
@@ -196,7 +200,12 @@ export class CalUnifiedCalendarsController {
     @GetUser("id") userId: number,
     @Query("calendarId") calendarId?: string
   ): Promise<void> {
-    await this.unifiedCalendarService.deleteConnectionEvent(userId, credentialId, calendarId ?? "primary", eventId);
+    await this.unifiedCalendarService.deleteConnectionEvent(
+      userId,
+      credentialId,
+      calendarId ?? "primary",
+      eventId
+    );
   }
 
   @ApiParam({ name: "connectionId", type: String })
@@ -376,7 +385,13 @@ export class CalUnifiedCalendarsController {
     @Query() query: FreebusyUnifiedInput
   ): Promise<GetBusyTimesOutput> {
     const timezone = query.timeZone ?? "UTC";
-    const data = await this.unifiedCalendarService.getFreeBusy(calendar, userId, query.from, query.to, timezone);
+    const data = await this.unifiedCalendarService.getFreeBusy(
+      calendar,
+      userId,
+      query.from,
+      query.to,
+      timezone
+    );
     return { status: SUCCESS_STATUS, data };
   }
 }

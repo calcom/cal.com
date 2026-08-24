@@ -13,7 +13,7 @@ import {
 } from "@calcom/prisma/zod-utils";
 import type { z } from "zod";
 
-export type Fields= z.infer<typeof eventTypeBookingFields>;
+export type Fields = z.infer<typeof eventTypeBookingFields>;
 
 if (typeof window !== "undefined" && !process.env.INTEGRATION_TEST_MODE) {
   // This file imports some costly dependencies, so we want to make sure it's not imported on the client side.
@@ -26,7 +26,6 @@ if (typeof window !== "undefined" && !process.env.INTEGRATION_TEST_MODE) {
 function upperCaseToCamelCase(upperCaseString: string) {
   return upperCaseString[0].toUpperCase() + upperCaseString.slice(1).toLowerCase();
 }
-
 
 /**
  * This fn is the key to ensure on the fly mapping of customInputs to bookingFields and ensuring that all the systems fields are present and correctly ordered in bookingFields

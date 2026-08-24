@@ -107,7 +107,6 @@ describe("PayloadBuilderFactory", () => {
         expect(builder).toBe(defaultBuilders.meeting);
       });
     });
-
   });
 
   describe("Fallback Behavior", () => {

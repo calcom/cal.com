@@ -36,7 +36,6 @@ test.describe("Signup Main Page Test", async () => {
     await button.click();
     await page.waitForURL("/auth/sso/google");
   });
-
 });
 
 test.describe("Email Signup Flow Test", async () => {
@@ -225,5 +224,4 @@ test.describe("Email Signup Flow Test", async () => {
     await checkbox.uncheck();
     await expect(submitButton).toBeEnabled();
   });
-
 });

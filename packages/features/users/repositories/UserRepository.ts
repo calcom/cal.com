@@ -1419,7 +1419,7 @@ export class UserRepository {
     });
   }
 
-  async deleteMany({ userIds }: {userIds: number[]}){
+  async deleteMany({ userIds }: { userIds: number[] }) {
     await this.prismaClient.user.deleteMany({
       where: {
         id: { in: userIds },
@@ -1488,15 +1488,15 @@ export class UserRepository {
     });
   }
 
-  async findByEmailWithInvitedTo({ email }: { email: string } ) {
+  async findByEmailWithInvitedTo({ email }: { email: string }) {
     return this.prismaClient.user.findUnique({
       where: {
-        email: email.toLowerCase()
+        email: email.toLowerCase(),
       },
       select: {
-        invitedTo: true
-      }
-    })
+        invitedTo: true,
+      },
+    });
   }
 
   async findByUsernameAndOrganizationId({
@@ -1504,20 +1504,20 @@ export class UserRepository {
     organizationId,
     excludeEmail,
   }: {
-    username: string,
-    organizationId: number | null,
-    excludeEmail: string
+    username: string;
+    organizationId: number | null;
+    excludeEmail: string;
   }) {
     return this.prismaClient.user.findFirst({
       where: {
         username,
         organizationId,
-        NOT: { email: excludeEmail }
+        NOT: { email: excludeEmail },
       },
       select: {
-        id: true
-      }
-    })
+        id: true,
+      },
+    });
   }
 
   async lockByEmail({ email }: { email: string }) {
@@ -1602,26 +1602,26 @@ export class UserRepository {
     const trimmedSearchTerm = searchTerm?.trim();
     const searchFilters: Prisma.UserWhereInput = trimmedSearchTerm
       ? {
-        AND: [
-          // To bypass the excludeLockedUsersExtension
-          bothLockedAndUnlockedWhere,
-          {
-            OR: [
-              { email: { contains: trimmedSearchTerm, mode: "insensitive" } },
-              { username: { contains: trimmedSearchTerm, mode: "insensitive" } },
-              {
-                profiles: {
-                  some: {
-                    username: { contains: trimmedSearchTerm, mode: "insensitive" },
+          AND: [
+            // To bypass the excludeLockedUsersExtension
+            bothLockedAndUnlockedWhere,
+            {
+              OR: [
+                { email: { contains: trimmedSearchTerm, mode: "insensitive" } },
+                { username: { contains: trimmedSearchTerm, mode: "insensitive" } },
+                {
+                  profiles: {
+                    some: {
+                      username: { contains: trimmedSearchTerm, mode: "insensitive" },
+                    },
                   },
                 },
-              },
-            ],
-          },
-        ],
-      }
-      // To bypass the excludeLockedUsersExtension
-      : bothLockedAndUnlockedWhere;
+              ],
+            },
+          ],
+        }
+      : // To bypass the excludeLockedUsersExtension
+        bothLockedAndUnlockedWhere;
 
     const hasLimit = limit !== undefined && limit !== null;
     const take = hasLimit ? limit + 1 : undefined; // +1 lets us detect "has more" for the cursor

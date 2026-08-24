@@ -176,7 +176,6 @@ describe("Trigger Host No Show:", () => {
           message: `Host with email ${organizer.email} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
       });
-
     },
     timeout
   );
@@ -344,7 +343,6 @@ describe("Trigger Host No Show:", () => {
           message: `Host with email ${organizer.email} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
       });
-
     },
     timeout
   );
@@ -552,7 +550,6 @@ describe("Trigger Host No Show:", () => {
           message: `Host with email ${organizer.email} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
       });
-
     },
     timeout
   );
@@ -707,7 +704,6 @@ describe("Trigger Host No Show:", () => {
           message: `Host with email ${organizer.email} didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
       });
-
     },
     timeout
   );
@@ -861,7 +857,6 @@ describe("Trigger Host No Show:", () => {
           payload: expect.any(Object),
         })
       ).toThrow();
-
     },
     timeout
   );

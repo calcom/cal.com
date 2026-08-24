@@ -6,11 +6,11 @@
  * while rewriting imports to use @coss/ui paths.
  */
 
-import { promises as fs } from 'node:fs';
-import https from 'node:https';
-import path from 'node:path';
+import { promises as fs } from "node:fs";
+import https from "node:https";
+import path from "node:path";
 
-const REGISTRY_BASE_URL = 'https://coss.com/ui/r';
+const REGISTRY_BASE_URL = "https://coss.com/ui/r";
 const UI_JSON_URL = `${REGISTRY_BASE_URL}/ui.json`;
 
 // Security limits
@@ -38,13 +38,11 @@ async function resolvePaths(): Promise<{ targetDirs: TargetDirs; targetRoot: str
   const cwd = process.cwd();
 
   // Check if we're running from within packages/coss-ui or from monorepo root
-  const isInPackage = cwd.endsWith('packages/coss-ui') || cwd.endsWith('packages\\coss-ui');
-  const targetRoot = isInPackage
-    ? path.resolve(cwd, 'src')
-    : path.resolve(cwd, 'packages/coss-ui/src');
+  const isInPackage = cwd.endsWith("packages/coss-ui") || cwd.endsWith("packages\\coss-ui");
+  const targetRoot = isInPackage ? path.resolve(cwd, "src") : path.resolve(cwd, "packages/coss-ui/src");
 
   const targetDirs: TargetDirs = {
-    components: path.join(targetRoot, 'components'),
+    components: path.join(targetRoot, "components"),
   };
 
   await fs.mkdir(targetDirs.components, { recursive: true });
@@ -53,7 +51,8 @@ async function resolvePaths(): Promise<{ targetDirs: TargetDirs; targetRoot: str
 
 async function fetchJSON<T>(url: string): Promise<T> {
   return new Promise((resolve, reject) => {
-    const req = https.get(url, (res) => {
+    const req = https
+      .get(url, (res) => {
         // Validate HTTP status code
         if (res.statusCode !== 200) {
           clearTimeout(timeout);
@@ -63,15 +62,15 @@ async function fetchJSON<T>(url: string): Promise<T> {
         }
 
         // Validate content type
-        const contentType = res.headers['content-type'] || '';
-        if (!contentType.includes('application/json')) {
+        const contentType = res.headers["content-type"] || "";
+        if (!contentType.includes("application/json")) {
           console.warn(`⚠️  Unexpected content-type: ${contentType} for ${url}`);
         }
 
-        let data = '';
+        let data = "";
         let size = 0;
 
-        res.on('data', (chunk: Buffer | string) => {
+        res.on("data", (chunk: Buffer | string) => {
           size += chunk.length;
           if (size > MAX_RESPONSE_SIZE) {
             clearTimeout(timeout);
@@ -82,7 +81,7 @@ async function fetchJSON<T>(url: string): Promise<T> {
           data += chunk.toString();
         });
 
-        res.on('end', () => {
+        res.on("end", () => {
           clearTimeout(timeout);
           try {
             const json = JSON.parse(data) as T;
@@ -92,7 +91,7 @@ async function fetchJSON<T>(url: string): Promise<T> {
           }
         });
       })
-      .on('error', (error: Error) => {
+      .on("error", (error: Error) => {
         clearTimeout(timeout);
         reject(new Error(`Failed to fetch ${url}: ${error.message}`));
       });
@@ -112,10 +111,10 @@ function validateComponentName(name: string): boolean {
 }
 
 function getComponentName(registryDependency: string): string {
-  if (!registryDependency.startsWith('@coss/')) {
+  if (!registryDependency.startsWith("@coss/")) {
     throw new Error(`Invalid registry dependency format: ${registryDependency}`);
   }
-  const componentName = registryDependency.replace('@coss/', '');
+  const componentName = registryDependency.replace("@coss/", "");
   if (!validateComponentName(componentName)) {
     throw new Error(`Invalid component name: ${componentName}`);
   }
@@ -129,19 +128,19 @@ function getFileName(filePath: string): string {
     throw new Error(`Invalid file name: ${fileName}`);
   }
   // Ensure it's a .tsx file
-  if (!fileName.endsWith('.tsx')) {
+  if (!fileName.endsWith(".tsx")) {
     throw new Error(`File must be a .tsx file: ${fileName}`);
   }
   // Prevent path traversal attempts
-  if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
+  if (fileName.includes("..") || fileName.includes("/") || fileName.includes("\\")) {
     throw new Error(`Invalid file name (path traversal detected): ${fileName}`);
   }
   return fileName;
 }
 
 function validateContent(content: string): void {
-  if (!content || typeof content !== 'string') {
-    throw new Error('Content must be a non-empty string');
+  if (!content || typeof content !== "string") {
+    throw new Error("Content must be a non-empty string");
   }
   if (content.length > MAX_RESPONSE_SIZE) {
     throw new Error(`Content too large (max ${MAX_RESPONSE_SIZE} bytes)`);
@@ -176,16 +175,16 @@ async function processComponent(registryDependency: string, targetDirs: TargetDi
     const componentJson = await fetchJSON<ComponentJson>(componentUrl);
 
     // Validate JSON structure
-    if (!componentJson || typeof componentJson !== 'object') {
-      throw new Error('Invalid component JSON structure');
+    if (!componentJson || typeof componentJson !== "object") {
+      throw new Error("Invalid component JSON structure");
     }
 
     if (!Array.isArray(componentJson.files)) {
-      throw new Error('Component files must be an array');
+      throw new Error("Component files must be an array");
     }
 
     const componentFile = componentJson.files.find(
-      (file) => file.type === 'registry:ui' && file.path.endsWith('.tsx')
+      (file) => file.type === "registry:ui" && file.path.endsWith(".tsx")
     );
 
     if (!componentFile) {
@@ -195,7 +194,7 @@ async function processComponent(registryDependency: string, targetDirs: TargetDi
 
     // Validate file structure
     if (!componentFile.path || !componentFile.content) {
-      throw new Error('Component file missing path or content');
+      throw new Error("Component file missing path or content");
     }
 
     const fileName = getFileName(componentFile.path);
@@ -204,7 +203,7 @@ async function processComponent(registryDependency: string, targetDirs: TargetDi
     const content = rewriteImports(componentFile.content);
     const filePath = path.join(targetDirs.components, fileName);
 
-    await fs.writeFile(filePath, content, 'utf8');
+    await fs.writeFile(filePath, content, "utf8");
 
     console.log(`✅ Pulled ${fileName}`);
     return true;
@@ -215,7 +214,7 @@ async function processComponent(registryDependency: string, targetDirs: TargetDi
 }
 
 async function main(): Promise<void> {
-  console.log('🚀 Pulling coss ui components...\n');
+  console.log("🚀 Pulling coss ui components...\n");
 
   try {
     const { targetDirs, targetRoot } = await resolvePaths();
@@ -226,20 +225,18 @@ async function main(): Promise<void> {
     const uiJson = await fetchJSON<ComponentJson>(UI_JSON_URL);
 
     // Validate index structure
-    if (!uiJson || typeof uiJson !== 'object') {
-      throw new Error('Invalid UI index JSON structure');
+    if (!uiJson || typeof uiJson !== "object") {
+      throw new Error("Invalid UI index JSON structure");
     }
 
     if (!Array.isArray(uiJson.registryDependencies)) {
-      throw new Error('registryDependencies must be an array');
+      throw new Error("registryDependencies must be an array");
     }
 
     const registryDependencies = uiJson.registryDependencies || [];
     console.log(`Found ${registryDependencies.length} components\n`);
 
-    const results = await Promise.all(
-      registryDependencies.map((dep) => processComponent(dep, targetDirs))
-    );
+    const results = await Promise.all(registryDependencies.map((dep) => processComponent(dep, targetDirs)));
 
     const successCount = results.filter((r) => r === true).length;
     const failCount = results.filter((r) => r === false).length;
@@ -250,7 +247,7 @@ async function main(): Promise<void> {
       console.log(`❌ Failed: ${failCount} components`);
     }
   } catch (error) {
-    console.error('❌ Fatal error:', (error as Error).message);
+    console.error("❌ Fatal error:", (error as Error).message);
     process.exit(1);
   }
 }

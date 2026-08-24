@@ -32,9 +32,7 @@ describe("getRawEventType", () => {
     users: [],
   };
 
-  const createTestUser = async (overrides?: {
-    username?: string;
-  }) => {
+  const createTestUser = async (overrides?: { username?: string }) => {
     const timestamp = Date.now() + Math.random();
     const username = overrides?.username ?? `testuser-${timestamp}`;
     const user = await prisma.user.create({
@@ -127,9 +125,7 @@ describe("getRawEventType", () => {
         prisma: prisma as unknown as PrismaClient,
       });
 
-      expect(result?.requiresCancellationReason).toBe(
-        CancellationReasonRequirement.MANDATORY_ATTENDEE_ONLY
-      );
+      expect(result?.requiresCancellationReason).toBe(CancellationReasonRequirement.MANDATORY_ATTENDEE_ONLY);
     });
 
     test.skip("should return null when user doesn't have access to event type", async () => {

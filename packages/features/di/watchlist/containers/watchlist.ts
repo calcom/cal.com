@@ -28,12 +28,18 @@ import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
 
 class PermissionCheckService {
   constructor(_prisma?: unknown) {}
-  async checkPermission(..._args: unknown[]) { return true; }
-  async hasPermission(..._args: unknown[]) { return true; }
-  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> { return []; }
+  async checkPermission(..._args: unknown[]) {
+    return true;
+  }
+  async hasPermission(..._args: unknown[]) {
+    return true;
+  }
+  async getTeamIdsWithPermission(..._args: unknown[]): Promise<number[]> {
+    return [];
+  }
 }
 
-export const watchlistContainer= createContainer();
+export const watchlistContainer = createContainer();
 
 prismaModuleLoader.loadModule(watchlistContainer);
 loggerModuleLoader.loadModule(watchlistContainer);

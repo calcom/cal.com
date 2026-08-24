@@ -14,9 +14,7 @@ import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, RedisModule],
-  controllers: [
-    UserVerifiedResourcesController,
-  ],
+  controllers: [UserVerifiedResourcesController],
   providers: [
     VerifiedResourcesService,
     UsersVerifiedResourcesRepository,

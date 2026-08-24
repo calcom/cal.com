@@ -100,7 +100,11 @@ class BookingHost {
   @Expose()
   email!: string;
 
-  @ApiProperty({ type: String, example: "jane100@example.com", description: "Clean email for display purposes" })
+  @ApiProperty({
+    type: String,
+    example: "jane100@example.com",
+    description: "Clean email for display purposes",
+  })
   @IsString()
   @Expose()
   displayEmail!: string;
@@ -288,11 +292,11 @@ class BaseBookingOutput_2024_08_13 {
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
-    @ApiProperty({ type: [BookingAttendee] })
-    @ValidateNested({ each: true })
-    @Type(() => BookingAttendee)
-    @Expose()
-    attendees!: BookingAttendee[];
+  @ApiProperty({ type: [BookingAttendee] })
+  @ValidateNested({ each: true })
+  @Type(() => BookingAttendee)
+  @Expose()
+  attendees!: BookingAttendee[];
 
   @ApiPropertyOptional({
     type: [String],
@@ -406,7 +410,11 @@ class ReassignedToDto {
   @Expose()
   email!: string;
 
-  @ApiProperty({ type: String, example: "john.doe@example.com", description: "Clean email for display purposes" })
+  @ApiProperty({
+    type: String,
+    example: "john.doe@example.com",
+    description: "Clean email for display purposes",
+  })
   @IsString()
   @Expose()
   displayEmail!: string;

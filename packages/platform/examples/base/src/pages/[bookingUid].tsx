@@ -20,8 +20,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   });
 
   if (!Array.isArray(booking)) {
-    const startTime = dayjs(booking?.start).format(12 === 12 ? "h:mma" : "HH:mm");
-    const endTime = dayjs(booking?.end).format(12 === 12 ? "h:mma" : "HH:mm");
+    const startTime = dayjs(booking?.start).format("h:mma");
+    const endTime = dayjs(booking?.end).format("h:mma");
     const date = dayjs(booking?.start).toDate();
     const dateToday = dayjs(booking?.start).date();
     const year = dayjs(booking?.start).year();
@@ -62,7 +62,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   <h4>What</h4>
                 </div>
                 <div>
-                  <p>{typeof booking.title === 'string' ? booking.title : 'Untitled Event'}</p>
+                  <p>{typeof booking.title === "string" ? booking.title : "Untitled Event"}</p>
                 </div>
               </div>
               <div className="flex gap-[70px]">

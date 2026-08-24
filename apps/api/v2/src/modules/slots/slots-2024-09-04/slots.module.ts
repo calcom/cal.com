@@ -14,13 +14,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [
-    PrismaModule,
-    EventTypesModule_2024_06_14,
-    StripeModule,
-    MembershipsModule,
-    AvailableSlotsModule,
-  ],
+  imports: [PrismaModule, EventTypesModule_2024_06_14, StripeModule, MembershipsModule, AvailableSlotsModule],
   providers: [
     SlotsRepository_2024_09_04,
     SlotsService_2024_09_04,

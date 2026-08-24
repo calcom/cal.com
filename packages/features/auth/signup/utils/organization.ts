@@ -77,5 +77,4 @@ export async function joinAnyChildTeamOnOrgInvite({
       },
     }),
   ]);
-
 }

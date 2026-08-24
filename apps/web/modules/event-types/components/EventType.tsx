@@ -16,7 +16,6 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
 import { EventTypeSingleLayout } from "./EventTypeLayout";
 
-
 export type Host = {
   isFixed: boolean;
   userId: number;

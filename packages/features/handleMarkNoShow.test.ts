@@ -92,7 +92,6 @@ vi.mock("@calcom/features/webhooks/lib/WebhookService", () => ({
   },
 }));
 
-
 vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
   default: vi.fn().mockResolvedValue(null),
 }));
@@ -266,7 +265,6 @@ const expectBookingNoShowHostState = (bookingUid: string, expectedNoShowHost: bo
   expect(booking).toBeDefined();
   expect(booking?.noShowHost).toBe(expectedNoShowHost);
 };
-
 
 describe("handleMarkNoShow", () => {
   beforeEach(() => {

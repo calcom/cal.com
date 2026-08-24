@@ -170,9 +170,7 @@ export async function getUsersCredentials(user: { id: number; email: string }) {
   return getUsersCredentialsIncludeServiceAccountKey(user);
 }
 
-export async function getCredentialForSelectedCalendar({
-  credentialId,
-}: Partial<SelectedCalendar>) {
+export async function getCredentialForSelectedCalendar({ credentialId }: Partial<SelectedCalendar>) {
   if (credentialId) {
     const credentialRepository = new CredentialRepository(prisma);
     const credential = await credentialRepository.findByIdWithDelegationCredential(credentialId);

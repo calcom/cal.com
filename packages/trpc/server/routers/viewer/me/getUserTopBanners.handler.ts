@@ -46,17 +46,13 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
   // const isInvalidCalendarCredential = checkInvalidGoogleCalendarCredentials({ ctx });
   const appsWithInavlidCredentials = checkInvalidAppCredentials({ ctx });
 
-  const [
-    teamUpgradeBanner,
-    orgUpgradeBanner,
-    verifyEmailBanner,
-    invalidAppCredentialBanners,
-  ] = await Promise.allSettled([
-    upgradeableTeamMememberships,
-    upgradeableOrgMememberships,
-    shouldEmailVerify,
-    appsWithInavlidCredentials,
-  ]);
+  const [teamUpgradeBanner, orgUpgradeBanner, verifyEmailBanner, invalidAppCredentialBanners] =
+    await Promise.allSettled([
+      upgradeableTeamMememberships,
+      upgradeableOrgMememberships,
+      shouldEmailVerify,
+      appsWithInavlidCredentials,
+    ]);
 
   return {
     teamUpgradeBanner: teamUpgradeBanner.status === "fulfilled" ? teamUpgradeBanner.value : [],

@@ -18,10 +18,7 @@ export function isEditableTarget(target: EventTarget | null): boolean {
   return false;
 }
 
-export function checkSheetActive(
-  sheetContent: HTMLElement | null,
-  activeElement: Element | null
-): boolean {
+export function checkSheetActive(sheetContent: HTMLElement | null, activeElement: Element | null): boolean {
   if (!activeElement || activeElement === document.body) {
     return true;
   }

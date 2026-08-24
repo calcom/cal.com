@@ -89,5 +89,4 @@ test.describe("Duplicate API Calls Prevention", () => {
     expect(trpcCalls).toBeLessThanOrEqual(1);
     expect(apiV2Calls).toBeLessThanOrEqual(1);
   });
-
 });

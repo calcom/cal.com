@@ -384,5 +384,4 @@ describe("handleNewBooking - Spam Detection", () => {
       timeout
     );
   });
-
 });

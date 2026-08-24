@@ -197,7 +197,6 @@ describe("Trigger Guest No Show:", () => {
           message: `Guest didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
       });
-
     },
     timeout
   );
@@ -388,7 +387,6 @@ describe("Trigger Guest No Show:", () => {
           message: `Guest didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
       });
-
     },
     timeout
   );
@@ -618,7 +616,6 @@ describe("Trigger Guest No Show:", () => {
           message: `Guest didn't join the call or didn't join before ${maxStartTimeHumanReadable}`,
         },
       });
-
     },
     timeout
   );
@@ -770,7 +767,6 @@ describe("Trigger Guest No Show:", () => {
           payload: expect.any(Object),
         })
       ).toThrow();
-
     },
     timeout
   );

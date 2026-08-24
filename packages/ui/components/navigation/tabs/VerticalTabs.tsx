@@ -30,7 +30,10 @@ const NavTabs = function ({
 }: NavTabProps) {
   return (
     <nav
-      className={classNames(`no-scrollbar flex flex-col stack-y-1 overflow-scroll ${className}`, sticky && "sticky")}
+      className={classNames(
+        `no-scrollbar flex flex-col stack-y-1 overflow-scroll ${className}`,
+        sticky && "sticky"
+      )}
       style={{
         maxWidth: "256px",
         ...(sticky ? { top: stickyOffset } : {}),

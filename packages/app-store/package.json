@@ -24,12 +24,10 @@
     "lint:report": "biome lint --reporter json . > ../../lint-results/app-store.json"
   },
   "dependencies": {
-    "@calcom/dailyvideo": "workspace:*",
     "@calcom/dayjs": "workspace:*",
     "@calcom/features": "workspace:*",
     "@calcom/i18n": "workspace:*",
     "@calcom/lib": "workspace:*",
-    "@calcom/office365video": "workspace:*",
     "@calcom/ui": "workspace:*",
     "@calcom/zoomvideo": "workspace:*",
     "lodash": "4.18.1",

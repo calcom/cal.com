@@ -65,13 +65,15 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
     attendeePromises.push(
-      getTranslation(attendee.locale ?? "en", "common").then((tAttendee: Awaited<ReturnType<typeof getTranslation>>) => ({
-        email: attendee.email,
-        name: attendee.name,
-        timeZone: attendee.timeZone,
-        language: { translate: tAttendee, locale: attendee.locale ?? "en" },
-        phoneNumber: attendee.phoneNumber || undefined,
-      }))
+      getTranslation(attendee.locale ?? "en", "common").then(
+        (tAttendee: Awaited<ReturnType<typeof getTranslation>>) => ({
+          email: attendee.email,
+          name: attendee.name,
+          timeZone: attendee.timeZone,
+          language: { translate: tAttendee, locale: attendee.locale ?? "en" },
+          phoneNumber: attendee.phoneNumber || undefined,
+        })
+      )
     );
   }
 

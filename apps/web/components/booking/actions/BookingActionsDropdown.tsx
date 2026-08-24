@@ -178,7 +178,6 @@ export function BookingActionsDropdown({
     return "upcoming";
   };
 
-
   const userEmail = booking.loggedInUser.userEmail;
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
   const isAttendee = !!userSeat;
@@ -276,12 +275,12 @@ export function BookingActionsDropdown({
       action.id === "reschedule_request"
         ? () => setIsOpenRescheduleDialog(true)
         : action.id === "change_location"
-            ? () => setIsOpenLocationDialog(true)
-            : action.id === "add_members"
-              ? () => setIsOpenAddGuestsDialog(true)
-              : action.id === "reassign"
-                ? () => setIsOpenReassignDialog(true)
-                : undefined,
+          ? () => setIsOpenLocationDialog(true)
+          : action.id === "add_members"
+            ? () => setIsOpenAddGuestsDialog(true)
+            : action.id === "reassign"
+              ? () => setIsOpenReassignDialog(true)
+              : undefined,
   })) as ActionType[];
 
   const baseAfterEventActions = getAfterEventActions(actionContext);

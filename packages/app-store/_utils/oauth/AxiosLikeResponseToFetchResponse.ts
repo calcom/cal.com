@@ -6,7 +6,7 @@ export class AxiosLikeResponseToFetchResponse<
     status: number;
     statusText: string;
     data: unknown;
-  }
+  },
 > extends Response {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body: any;

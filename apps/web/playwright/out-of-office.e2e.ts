@@ -191,7 +191,6 @@ test.describe("Out of office", () => {
       await expect(page.locator('[data-testid="date-range-options-y"]')).toBeVisible(); //Year to Date
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible(); //Custom
     });
-
   });
 });
 

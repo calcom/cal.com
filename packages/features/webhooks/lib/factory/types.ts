@@ -1,8 +1,4 @@
-import type {
-  BookingNoShowUpdatedPayload,
-  EventPayloadType,
-  OOOEntryPayloadType,
-} from "../dto/types";
+import type { BookingNoShowUpdatedPayload, EventPayloadType, OOOEntryPayloadType } from "../dto/types";
 
 export interface FormSubmittedPayload {
   formId: string;

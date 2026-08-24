@@ -103,7 +103,9 @@ const attendeeRescheduleSeatedBooking = async (
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
   const copyEventWithVideoCallData = newTimeSlotBooking.references
-    ? CalendarEventBuilder.fromEvent(copyEvent).withVideoCallDataFromReferences(newTimeSlotBooking.references).build()
+    ? CalendarEventBuilder.fromEvent(copyEvent)
+        .withVideoCallDataFromReferences(newTimeSlotBooking.references)
+        .build()
     : copyEvent;
 
   await sendRescheduledSeatEmailAndSMS(
