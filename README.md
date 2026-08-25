@@ -653,7 +653,7 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 
 ### RepoCloud
 
-[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Calcom/)
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Cal.diy/)
 
 <!-- LICENSE -->
 
