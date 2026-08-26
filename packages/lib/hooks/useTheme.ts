@@ -1,18 +1,18 @@
+import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
+import { localStorage } from "@calcom/lib/webstorage";
 import { useTheme as useNextTheme } from "next-themes";
 import { useEffect } from "react";
 
-import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
-import { localStorage } from "@calcom/lib/webstorage";
-
 /**
  * It should be called once per route if you intend to use a theme different from `system` theme. `system` theme is automatically supported using <ThemeProvider />
- * If needed you can also set system theme by passing 'system' as `themeToSet`
- * It handles embed configured theme automatically
- * To just read the values pass `getOnly` as `true` and `themeToSet` as `null`
+ * - If needed you can also set system theme by passing 'system' as `themeToSet`
+ * - It handles embed configured theme automatically
+ * - To just read the values pass `getOnly` as `true` and `themeToSet` as `null`
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export default function useTheme(themeToSet: "system" | (string & {}) | undefined | null, getOnly = false) {
-  if (typeof window !== "undefined") {
+  // runs when we have a theme (light or dark) rather than system
+  if (typeof window !== "undefined" && themeToSet !== null) {
     const themeFromLocalStorage = localStorage.getItem("app-theme");
     themeToSet = themeToSet ?? themeFromLocalStorage ?? "system";
   }
@@ -28,7 +28,12 @@ export default function useTheme(themeToSet: "system" | (string & {}) | undefine
     // Embed theme takes precedence over theme configured in app.
     // If embedTheme isn't set i.e. it's not explicitly configured with a theme, then it would use the theme configured in appearance.
     // If embedTheme is set to "auto" then we consider it as null which then uses system theme.
-    const finalThemeToSet = embedTheme ? (embedTheme === "auto" ? "system" : embedTheme) : themeToSet;
+    // If themeToSet is received as 'null' from database(profile.theme) and here null means System default theme  then finalThemeToSet fall back to "system", thereby calling setTheme("system")
+    const finalThemeToSet = embedTheme
+      ? embedTheme === "auto"
+        ? "system"
+        : embedTheme
+      : (themeToSet ?? "system");
 
     if (!finalThemeToSet || finalThemeToSet === activeTheme) return;
 

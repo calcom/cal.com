@@ -1,9 +1,8 @@
+import { EmbedTheme } from "@calcom/features/embed/lib/constants";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { z } from "zod";
 
-import { EmbedTheme } from "@calcom/features/embed/lib/constants";
-
-const enum ThemeSupport {
+enum ThemeSupport {
   // e.g. Login Page
   None = "none",
   // Entire App except Booking Pages
@@ -108,6 +107,7 @@ export function getThemeProviderProps({
       nonce: props.nonce,
       enableColorScheme: false,
       enableSystem: themeSupport !== ThemeSupport.None,
+      defaultTheme: "system",
     };
   }
 
@@ -140,6 +140,7 @@ export function getThemeProviderProps({
     enableColorScheme: false,
     // Enables theme switching based on system preference if true
     enableSystem: themeSupport !== ThemeSupport.None,
+    defaultTheme: "system", // necessary so that <ThemeProvider> doesn't fallback to 'light' when theme not provided
     // next-themes doesn't listen to changes on storageKey. So we need to force a re-render when storageKey changes
     // This is how login to dashboard soft navigation changes theme from light to dark
     key: storageKey,
