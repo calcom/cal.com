@@ -60,7 +60,6 @@ const getBaseBookingEventPayload = (booking: {
   status?: BookingStatus;
   paymentRequired: boolean;
   isRecurring: boolean;
-  videoCallUrl?: string;
 }) => {
   return {
     title: booking.title,
@@ -70,7 +69,6 @@ const getBaseBookingEventPayload = (booking: {
     status: booking.status,
     paymentRequired: booking.paymentRequired,
     isRecurring: booking.isRecurring,
-    videoCallUrl: booking.videoCallUrl,
   };
 };
 

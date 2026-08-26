@@ -10,7 +10,7 @@ interface FilterBarProps<TData> {
 }
 
 export function FilterBar<TData>({ table }: FilterBarProps<TData>) {
-  const displayedFilterCount = useDisplayedFilterCount({});
+  const displayedFilterCount = useDisplayedFilterCount();
 
   return (
     <>
