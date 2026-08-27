@@ -353,21 +353,23 @@ export const FormBuilder = function FormBuilder({
                       />
                       
                     )}
-                    <Label htmlFor={`parent-question-name-${index}`}>Show only if question</Label>
+                    <Label htmlFor={`parent-question-name-${index}`}>
+                      {t("show_only_if_question")}
+                    </Label>
                     <Input
                       id={`parent-question-name-${index}`}
                       data-testid="parent-question-name"
-                      placeholder="e.g. How did you hear about us?"
+                      placeholder={t("conditional_question_placeholder")}
                       value={field.parentQuestionName || ""}
                       onChange={(e) => {
                         fieldsForm.setValue(`fields.${index}.parentQuestionName`, e.target.value);
                       }}
                     />
-                    <Label htmlFor={`trigger-value-${index}`}>Equals this value</Label>
+                    <Label htmlFor={`trigger-value-${index}`}>{t("equals_this_value")}</Label>
                     <Input
                       id={`trigger-value-${index}`}
                       data-testid="trigger-value"
-                      placeholder="e.g. Web"
+                      placeholder={t("conditional_trigger_value_placeholder")}
                       value={field.triggerValue || ""}
                       onChange={(e) => {
                         fieldsForm.setValue(`fields.${index}.triggerValue`, e.target.value);
