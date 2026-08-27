@@ -360,7 +360,7 @@ export const FormBuilder = function FormBuilder({
                       placeholder="e.g. How did you hear about us?"
                       value={field.parentQuestionName || ""}
                       onChange={(e) => {
-                        update(index, { ...field, parentQuestionName: e.target.value });
+                        fieldsForm.setValue(`fields.${index}.parentQuestionName`, e.target.value);
                       }}
                     />
                     <Label htmlFor={`trigger-value-${index}`}>Equals this value</Label>
@@ -370,7 +370,7 @@ export const FormBuilder = function FormBuilder({
                       placeholder="e.g. Web"
                       value={field.triggerValue || ""}
                       onChange={(e) => {
-                        update(index, { ...field, triggerValue: e.target.value });
+                        fieldsForm.setValue(`fields.${index}.triggerValue`, e.target.value);
                       }}
                     />
                     {isUserField && (
