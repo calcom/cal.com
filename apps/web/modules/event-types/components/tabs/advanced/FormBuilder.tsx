@@ -377,7 +377,6 @@ export const FormBuilder = function FormBuilder({
                       <Button
                         data-testid="delete-field-action"
                         color="destructive"
-                        disabled={!isUserField}
                         variant="icon"
                         onClick={() => {
                           removeField(index);
