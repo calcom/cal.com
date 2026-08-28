@@ -28,6 +28,26 @@ type CredentialUpdateInput = {
 export class CredentialRepository {
   constructor(private prismaClient: PrismaClient) {}
 
+  async findPaymentAppCredentials({
+    credentialId,
+    userId,
+  }: {
+    credentialId?: number | null;
+    userId: number;
+  }) {
+    return this.prismaClient.credential.findMany({
+      where: {
+        ...(credentialId ? { id: credentialId } : { userId }),
+        app: { categories: { hasSome: ["payment"] } },
+      },
+      select: {
+        key: true,
+        appId: true,
+        app: { select: { categories: true, dirName: true } },
+      },
+    });
+  }
+
   async findByCredentialId(id: number) {
     return this.prismaClient.credential.findUnique({
       where: { id },
