@@ -1,0 +1,1 @@
+export function hasSyncConflict(e1Time: number, e2Time: number, thresholdMs = 1000): boolean { return Math.abs(e1Time - e2Time) < thresholdMs; }
