@@ -1,0 +1,1 @@
+export function pickNextHost(hosts: string[], lastPickedIndex: number): { host: string; nextIndex: number } { const nextIndex = (lastPickedIndex + 1) % hosts.length; return { host: hosts[nextIndex], nextIndex }; }
