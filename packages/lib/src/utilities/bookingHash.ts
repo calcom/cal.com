@@ -1,0 +1,1 @@
+import crypto from 'crypto'; export function verifyBookingHash(payload: string, hash: string, secret: string): boolean { const expected = crypto.createHmac('sha256', secret).update(payload).digest('hex'); return expected === hash; }
