@@ -1,0 +1,1 @@
+export function getRemainingSeats(capacity: number, booked: number): number { return Math.max(0, capacity - booked); }
