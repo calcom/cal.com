@@ -1,0 +1,1 @@
+export function getReminderTriggerTime(bookingTime: number, offsetMinutes: number): number { return bookingTime - offsetMinutes * 60000; }
