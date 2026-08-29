@@ -1,0 +1,1 @@
+export function applyBuffer(start: number, end: number, beforeMin = 0, afterMin = 0) { return { startWithBuffer: start - beforeMin * 60000, endWithBuffer: end + afterMin * 60000 }; }
