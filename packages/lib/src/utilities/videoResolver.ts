@@ -1,0 +1,1 @@
+export function resolveMeetingUrl(provider: string, id: string): string { if (provider === 'zoom') return `https://zoom.us/j/${id}`; if (provider === 'google-meet') return `https://meet.google.com/${id}`; return `https://app.cal.com/video/${id}`; }
