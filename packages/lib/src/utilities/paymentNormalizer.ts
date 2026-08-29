@@ -1,0 +1,1 @@
+export function normalizePayment(status: string): 'PAID' | 'PENDING' | 'FAILED' { const s = status.toUpperCase(); if (s.includes('SUCCEED') || s.includes('COMPLETED')) return 'PAID'; if (s.includes('FAIL') || s.includes('CANCEL')) return 'FAILED'; return 'PENDING'; }
