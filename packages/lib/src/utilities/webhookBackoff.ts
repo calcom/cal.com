@@ -1,0 +1,1 @@
+export function getWebhookDelay(attempt: number, baseMs = 1000, maxMs = 30000): number { return Math.min(maxMs, baseMs * Math.pow(2, attempt)); }
