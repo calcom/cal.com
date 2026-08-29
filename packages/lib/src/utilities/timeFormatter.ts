@@ -1,0 +1,1 @@
+export function formatLocalTime(date: Date, timeZone: string, locale = 'en-US'): string { return date.toLocaleTimeString(locale, { timeZone, hour: '2-digit', minute: '2-digit' }); }
