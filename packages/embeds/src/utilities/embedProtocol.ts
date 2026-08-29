@@ -1,0 +1,1 @@
+export function formatEmbedMessage(type: string, data: any) { return JSON.stringify({ origin: 'cal.com', type, data }); }
