@@ -1,0 +1,1 @@
+export function genIcsUid(bookingId: string, domain = 'cal.com'): string { return `${bookingId}-${Date.now()}@${domain}`; }
