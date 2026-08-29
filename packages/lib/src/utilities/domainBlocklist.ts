@@ -1,0 +1,1 @@
+export function isBlockedDomain(email: string, blocklist: string[]): boolean { const domain = email.split('@')[1]?.toLowerCase(); return blocklist.includes(domain); }
