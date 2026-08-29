@@ -1,0 +1,1 @@
+export function needsRefresh(expiresAt: number, bufferMs = 300000): boolean { return Date.now() + bufferMs >= expiresAt; }
