@@ -1,0 +1,1 @@
+export function resolveEventSlug(base: string, existing: string[]): string { if (!existing.includes(base)) return base; let i = 1; while (existing.includes(`${base}-${i}`)) i++; return `${base}-${i}`; }
