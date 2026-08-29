@@ -1,0 +1,1 @@
+export function getUtcOffsetMinutes(date: Date, timeZone: string): number { const invDate = new Date(date.toLocaleString('en-US', { timeZone })); return (invDate.getTime() - date.getTime()) / 60000; }
