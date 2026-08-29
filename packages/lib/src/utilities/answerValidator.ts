@@ -1,0 +1,1 @@
+export function validateAnswers(answers: Record<string, any>, requiredFields: string[]): boolean { return requiredFields.every(f => answers[f] !== undefined && answers[f] !== null && String(answers[f]).trim() !== ''); }
