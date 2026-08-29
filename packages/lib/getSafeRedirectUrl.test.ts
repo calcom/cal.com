@@ -22,6 +22,11 @@ describe("isSafeUrlToLoadResourceFrom", () => {
     expect(isSafeUrlToLoadResourceFrom("https://cal.com/path")).toBe(true);
   });
 
+  it("should return true for URLs with leading or trailing whitespace", () => {
+    expect(isSafeUrlToLoadResourceFrom("  https://acme.cal.com/path  ")).toBe(true);
+    expect(isSafeUrlToLoadResourceFrom("  http://localhost:3000  ")).toBe(true);
+  });
+
   it("should return true for URLs with same TLD+1 as EMBED_LIB_URL", () => {
     expect(isSafeUrlToLoadResourceFrom("https://test.embed.com/path")).toBe(true);
     expect(isSafeUrlToLoadResourceFrom("http://embed.com/script.js")).toBe(true);

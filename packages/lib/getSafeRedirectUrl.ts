@@ -7,6 +7,8 @@ export const getSafeRedirectUrl = (url = "") => {
     return null;
   }
 
+  url = url.trim();
+
   //It is important that this fn is given absolute URL because urls that don't start with HTTP can still deceive browser into redirecting to another domain
   if (url.search(/^https?:\/\//) === -1) {
     throw new Error("Pass an absolute URL");
@@ -25,7 +27,7 @@ export const getSafeRedirectUrl = (url = "") => {
 // There is a copy of this fn at packages/embed/embed-core/src/preview.ts as that can't import this function. Keep it in sync
 export function isSafeUrlToLoadResourceFrom(urlString: string) {
   try {
-    const url = new URL(urlString);
+    const url = new URL(urlString.trim());
     if (url.protocol !== "http:" && url.protocol !== "https:") {
       return false;
     }
