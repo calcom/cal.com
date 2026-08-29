@@ -1,0 +1,1 @@
+export function clampDuration(requestedMin: number, min = 15, max = 120): number { return Math.min(max, Math.max(min, requestedMin)); }
