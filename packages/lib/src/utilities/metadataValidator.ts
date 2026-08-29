@@ -1,0 +1,1 @@
+export function isValidMetadata(data: any): boolean { return typeof data === 'object' && data !== null && !Array.isArray(data); }
