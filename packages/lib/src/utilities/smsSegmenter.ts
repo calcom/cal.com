@@ -1,0 +1,1 @@
+export function getSmsSegments(text: string): number { return Math.ceil(text.length / 160) || 1; }
