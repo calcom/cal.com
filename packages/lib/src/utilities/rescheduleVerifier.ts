@@ -1,0 +1,1 @@
+export function isRescheduleAllowed(bookingStartTime: number, minNoticeMs = 3600000): boolean { return bookingStartTime - Date.now() >= minNoticeMs; }
