@@ -37,7 +37,8 @@ export class CredentialRepository {
   }) {
     return this.prismaClient.credential.findMany({
       where: {
-        ...(credentialId ? { id: credentialId } : { userId }),
+        userId,
+        ...(credentialId && { id: credentialId }),
         app: { categories: { hasSome: ["payment"] } },
       },
       select: {

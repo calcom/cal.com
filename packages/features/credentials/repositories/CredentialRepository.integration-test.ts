@@ -60,4 +60,25 @@ describe("CredentialRepository.findPaymentAppCredentials (integration)", () => {
       repository.findPaymentAppCredentials({ credentialId: secondaryPaymentCredentialId, userId })
     ).resolves.toEqual([expect.objectContaining({ key: { account: "secondary" } })]);
   });
+
+  it("prevents IDOR: returns empty array when fetching another user's credentialId", async () => {
+  const userB = await prisma.user.create({
+    data: { 
+      email: `user-b-${crypto.randomUUID()}@test.cal.com`, 
+      username: `user-b-${crypto.randomUUID()}` 
+    },
+    select: { id: true },
+  });
+
+  try {
+    const crossUserCredentials = await repository.findPaymentAppCredentials({
+      credentialId: secondaryPaymentCredentialId,
+      userId: userB.id,
+    });
+
+    expect(crossUserCredentials).toEqual([]);
+  } finally {
+    await prisma.user.delete({ where: { id: userB.id } });
+  }
+});
 });
