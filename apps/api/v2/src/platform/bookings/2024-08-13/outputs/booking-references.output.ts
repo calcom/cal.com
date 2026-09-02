@@ -12,16 +12,9 @@ export class BookingReference {
 
   @IsString()
   @ApiProperty({
-    description: "The event uid of the booking",
+    description: "The uid of the booking reference",
   })
-  eventUid!: string;
-
-  @IsString()
-  @ApiProperty({
-    description: "The id of the calendar the event is created in",
-    nullable: true,
-  })
-  destinationCalendarId!: string | null;
+  uid!: string;
 
   @IsNumber()
   @ApiProperty({

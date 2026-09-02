@@ -11,7 +11,7 @@ import {
   CalendarAppDelegationCredentialConfigurationError,
   CalendarAppDelegationCredentialClientIdNotAuthorizedError,
   CalendarAppDelegationCredentialNotSetupError,
-} from "@calcom/platform-libraries/app-store";
+} from "@calcom/platform-libraries";
 import { Response } from "@calcom/platform-types";
 
 type CalendarError =

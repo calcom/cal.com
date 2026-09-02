@@ -212,3 +212,15 @@ export async function verifyPhoneNumber(
 ): Promise<boolean> {
   throw new Error("Phone verification is not available in community edition");
 }
+
+export {
+  CalendarAppError,
+  CalendarAppDelegationCredentialInvalidGrantError,
+  CalendarAppDelegationCredentialError,
+  CalendarAppDelegationCredentialConfigurationError,
+  CalendarAppDelegationCredentialClientIdNotAuthorizedError,
+  CalendarAppDelegationCredentialNotSetupError,
+  getApps,
+  getUsersCredentialsIncludeServiceAccountKey
+} from "./app-store";
+export type { CredentialDataWithTeamName } from "./app-store";

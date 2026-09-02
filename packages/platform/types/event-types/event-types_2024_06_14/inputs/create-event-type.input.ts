@@ -186,13 +186,6 @@ export class CalVideoSettings {
   })
   disableTranscriptionForOrganizer?: boolean;
 
-  @IsOptional()
-  @IsBoolean()
-  @DocsPropertyOptional({
-    description: "Send emails with the transcription of the Cal Video after the meeting ends.",
-    default: true,
-  })
-  sendTranscriptionEmails?: boolean;
 }
 
 @CantHaveRecurrenceAndBookerActiveBookingsLimit()

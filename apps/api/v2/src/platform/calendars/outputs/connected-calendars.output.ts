@@ -219,21 +219,24 @@ class DestinationCalendar {
   externalId!: string;
 
   @IsEmail()
-  @ApiProperty({ type: String, nullable: true })
-  primaryEmail!: string | null;
+  @IsOptional()
+  @ApiPropertyOptional({ type: String, nullable: true })
+  primaryEmail?: string | null;
 
   @IsInt()
-  @ApiProperty({ nullable: true })
-  userId!: number | null;
+  @IsOptional()
+  @ApiPropertyOptional({ type: Number, nullable: true })
+  userId?: number | null;
 
   @IsOptional()
   @IsInt()
-  @ApiProperty({ type: Number, nullable: true })
-  eventTypeId!: number | null;
+  @ApiPropertyOptional({ type: Number, nullable: true })
+  eventTypeId?: number | null;
 
   @IsInt()
-  @ApiProperty({ type: Number, nullable: true })
-  credentialId!: number | null;
+  @IsOptional()
+  @ApiPropertyOptional({ type: Number, nullable: true })
+  credentialId?: number | null;
 
   @IsString()
   @IsOptional()

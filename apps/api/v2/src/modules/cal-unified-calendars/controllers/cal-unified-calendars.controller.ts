@@ -235,7 +235,7 @@ export class CalUnifiedCalendarsController {
   @ApiParam({
     name: "eventUid",
     description:
-      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
+      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references (use the `uid` property from the booking reference object)",
     type: String,
   })
   @Get(["/:calendar/events/:eventUid", "/:calendar/event/:eventUid"])
@@ -263,7 +263,7 @@ export class CalUnifiedCalendarsController {
   @ApiParam({
     name: "eventUid",
     description:
-      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references",
+      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For user events: GET /v2/bookings/{bookingUid}/references (use the `uid` property from the booking reference object)",
     type: String,
   })
   @Patch(["/:calendar/events/:eventUid", "/:calendar/event/:eventUid"])

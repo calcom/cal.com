@@ -1,6 +1,6 @@
 import { slugifyLenient } from "@calcom/platform-libraries";
-import type { CredentialDataWithTeamName } from "@calcom/platform-libraries/app-store";
-import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
+import type { CredentialDataWithTeamName } from "@calcom/platform-libraries";
+import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries";
 import {
   EventTypeMetaDataSchema,
   EventTypeMetadata,
@@ -676,16 +676,10 @@ export class InputEventTypesService_2024_06_14 {
       return {};
     }
 
-    // Extract sendTranscriptionEmails from calVideoSettings and map to canSendCalVideoTranscriptionEmails
-    const { sendTranscriptionEmails, ...restCalVideoSettings } = calVideoSettings;
-
-    const hasOtherSettings = Object.keys(restCalVideoSettings).length > 0;
+    const hasOtherSettings = Object.keys(calVideoSettings).length > 0;
 
     return {
-      ...(hasOtherSettings ? { calVideoSettings: restCalVideoSettings } : {}),
-      ...(sendTranscriptionEmails !== undefined
-        ? { canSendCalVideoTranscriptionEmails: sendTranscriptionEmails }
-        : {}),
+      ...(hasOtherSettings ? { calVideoSettings: calVideoSettings } : {}),
     };
   }
 }
