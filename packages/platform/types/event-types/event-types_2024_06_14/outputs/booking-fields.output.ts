@@ -1,5 +1,9 @@
 import { Logger } from "@nestjs/common";
-import { ApiProperty, ApiProperty as DocsProperty } from "@nestjs/swagger";
+import {
+  ApiProperty,
+  ApiProperty as DocsProperty,
+  ApiPropertyOptional as DocsPropertyOptional,
+} from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsBoolean, IsOptional, IsString } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
@@ -602,7 +606,7 @@ export class EmailFieldOutput_2024_06_14 {
 
   @IsBoolean()
   @IsOptional()
-  @DocsProperty({
+  @DocsPropertyOptional({
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.",

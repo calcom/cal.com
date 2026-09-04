@@ -9367,16 +9367,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
-        "required": [
-          "isDefault",
-          "type",
-          "slug",
-          "label",
-          "required",
-          "placeholder",
-          "disableOnPrefill",
-          "hidden"
-        ]
+        "required": ["isDefault", "type", "slug", "label", "required", "placeholder", "hidden"]
       },
       "MultiSelectFieldOutput_2024_06_14": {
         "type": "object",
