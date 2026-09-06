@@ -141,8 +141,14 @@ export const BookingFields = ({
         const fieldViews = field.views;
 
         if (field.parentQuestionName && field.triggerValue !== undefined) {
+          const parent = fields.find((parentField) => parentField.name === field.parentQuestionName);
           const parentValue = responses?.[field.parentQuestionName];
-          hidden = hidden || String(parentValue ?? "") !== String(field.triggerValue);
+          hidden =
+            hidden ||
+            !parent ||
+            !!parent.hidden ||
+            !!parent.parentQuestionName ||
+            String(parentValue ?? "") !== String(field.triggerValue);
         }
 
         if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {

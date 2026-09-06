@@ -447,7 +447,7 @@ export const FormBuilder = function FormBuilder({
           parentFieldOptions={(fieldDialog.fieldIndex === -1
             ? fields
             : fields.slice(0, fieldDialog.fieldIndex)
-          ).map((field) => ({
+          ).filter((field) => !field.parentQuestionName).map((field) => ({
             value: field.name,
             label: field.label?.trim() || (field.defaultLabel ? t(field.defaultLabel) : field.name),
           }))}

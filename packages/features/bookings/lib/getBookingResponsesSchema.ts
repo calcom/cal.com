@@ -459,8 +459,14 @@ function preprocess<T extends z.ZodType>({
           hidden = hidden || numOptions <= 1;
         }
         if (bookingField.parentQuestionName && bookingField.triggerValue !== undefined) {
+          const parent = bookingFields.find((field) => field.name === bookingField.parentQuestionName);
           const parentValue = responses[bookingField.parentQuestionName];
-          hidden = hidden || String(parentValue ?? "") !== String(bookingField.triggerValue);
+          hidden =
+            hidden ||
+            !parent ||
+            !!parent.hidden ||
+            !!parent.parentQuestionName ||
+            String(parentValue ?? "") !== String(bookingField.triggerValue);
         }
         let isRequired = false;
         // If the field is hidden, then it can never be required

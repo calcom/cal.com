@@ -718,6 +718,56 @@ describe("getBookingResponsesSchema", () => {
       });
     });
 
+    describe("conditional fields - nesting is out of scope", () => {
+      test("does not require a grandchild when its parent is conditional", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            { name: "name", type: "name", required: true },
+            { name: "email", type: "email", required: true },
+            { name: "a", type: "text", required: false },
+            { name: "b", type: "text", required: false, parentQuestionName: "a", triggerValue: "yes" },
+            { name: "c", type: "text", required: true, parentQuestionName: "b", triggerValue: "yes" },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          a: "no",
+          b: "yes",
+          c: "",
+        });
+
+        expect(parsedResponses.success).toBe(true);
+      });
+
+      test("does not require a field with a dangling parent reference", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            { name: "name", type: "name", required: true },
+            { name: "email", type: "email", required: true },
+            {
+              name: "orphan",
+              type: "text",
+              required: true,
+              parentQuestionName: "does-not-exist",
+              triggerValue: "yes",
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          orphan: "",
+        });
+
+        expect(parsedResponses.success).toBe(true);
+      });
+    });
+
     describe("excluded email/domain validation", () => {
       test("should fail if the email is present in excluded emails", async () => {
         const excludedEmails = "spammer@cal.com, hotmail.com, yahoo.com, gmail.com";
