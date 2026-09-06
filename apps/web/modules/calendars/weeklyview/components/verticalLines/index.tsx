@@ -8,8 +8,12 @@ export const VerticalLines = ({ days, borderColor }: { days: dayjs.Dayjs[]; bord
     let userLanguage = "en"; // Default to 'en' if navigator is not defined
 
     if (typeof window !== "undefined" && typeof navigator !== "undefined") {
-      const userLocale = navigator.language;
-      userLanguage = new Intl.Locale(userLocale).language;
+      try {
+        const userLocale = navigator.language;
+        userLanguage = new Intl.Locale(userLocale).language;
+      } catch {
+        userLanguage = (navigator.language || "en").split("-")[0].toLowerCase();
+      }
     }
     return ["ar", "he", "fa", "ur"].includes(userLanguage);
   };
