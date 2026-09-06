@@ -158,6 +158,36 @@ describe("processWorkingHours", () => {
     vi.useRealTimers();
   });
 
+  // The existing DST-change coverage above uses a 9 AM start, where 12- and 24-hour
+  // formatting coincide. An afternoon start is the case that exposes the difference.
+  it("It has the correct working hours on date of DST change for an afternoon schedule", () => {
+    const item = {
+      days: [0], // 2026-03-08 (the spring-forward date in America/New_York) is a Sunday
+      startTime: new Date(Date.UTC(2023, 5, 12, 13, 0)), // 1 PM
+      endTime: new Date(Date.UTC(2023, 5, 12, 18, 0)), // 6 PM
+    };
+
+    const timeZone = "America/New_York";
+
+    const results = Object.values(
+      processWorkingHours(
+        {},
+        {
+          item,
+          timeZone,
+          dateFrom: dayjs.utc("2026-03-08T00:00:00.000Z"),
+          dateTo: dayjs.utc("2026-03-09T00:00:00.000Z"),
+          travelSchedules: [],
+        }
+      )
+    );
+
+    // DST starts at 02:00 local, so the whole afternoon is EDT (UTC-4): 13:00-18:00 => 17:00-22:00 UTC.
+    expect(
+      results.map((range) => ({ start: range.start.toISOString(), end: range.end.toISOString() }))
+    ).toStrictEqual([{ start: "2026-03-08T17:00:00.000Z", end: "2026-03-08T22:00:00.000Z" }]);
+  });
+
   // TEMPORAIRLY SKIPPING THIS TEST - Started failing after 29th Oct
   it.skip("should return the correct working hours in the month were DST ends", () => {
     const item = {
