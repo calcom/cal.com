@@ -766,6 +766,66 @@ describe("getBookingResponsesSchema", () => {
 
         expect(parsedResponses.success).toBe(true);
       });
+
+      test("does not require a child when its parent is scoped to another view", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            { name: "name", type: "name", required: true },
+            { name: "email", type: "email", required: true },
+            { name: "rescheduleReason", type: "textarea", required: false, views: [{ id: "reschedule" }] },
+            {
+              name: "sick-note",
+              type: "text",
+              required: true,
+              parentQuestionName: "rescheduleReason",
+              triggerValue: "sick",
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "",
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          rescheduleReason: "sick",
+          "sick-note": "",
+        });
+
+        expect(parsedResponses.success).toBe(true);
+      });
+
+      test("does not require a child when its parent has one option", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            { name: "name", type: "name", required: true },
+            { name: "email", type: "email", required: true },
+            {
+              name: "plan",
+              type: "select",
+              required: false,
+              hideWhenJustOneOption: true,
+              options: [{ label: "Only", value: "only" }],
+            },
+            {
+              name: "plan-detail",
+              type: "text",
+              required: true,
+              parentQuestionName: "plan",
+              triggerValue: "only",
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+
+        const parsedResponses = await schema.safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          plan: "only",
+          "plan-detail": "",
+        });
+
+        expect(parsedResponses.success).toBe(true);
+      });
     });
 
     describe("excluded email/domain validation", () => {

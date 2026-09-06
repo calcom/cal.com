@@ -121,6 +121,14 @@ export const BookingFields = ({
     };
   };
 
+  const isParentVisible = (parent: Fields[number]) => {
+    if (parent.views && !parent.views.find((view) => view.id === currentView)) return false;
+    if (parent.hidden) return false;
+    if (parent.hideWhenJustOneOption && (parent.options?.length ?? 0) <= 1) return false;
+    if (parent.name === SystemField.Enum.guests && isDynamicGroupBooking) return false;
+    return true;
+  };
+
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
     // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form
@@ -146,8 +154,8 @@ export const BookingFields = ({
           hidden =
             hidden ||
             !parent ||
-            !!parent.hidden ||
             !!parent.parentQuestionName ||
+            (parent ? !isParentVisible(parent) : false) ||
             String(parentValue ?? "") !== String(field.triggerValue);
         }
 
