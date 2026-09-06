@@ -665,6 +665,59 @@ describe("getBookingResponsesSchema", () => {
       expect(parsedResponses.success).toBe(true);
     });
 
+    describe("conditional fields", () => {
+      const buildSchema = () =>
+        getBookingResponsesSchema({
+          bookingFields: [
+            { name: "name", type: "name", required: true },
+            { name: "email", type: "email", required: true },
+            { name: "how-did-you-hear", type: "text", required: false },
+            {
+              name: "referral-name",
+              type: "text",
+              required: true,
+              parentQuestionName: "how-did-you-hear",
+              triggerValue: "Referral",
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+
+      test("does not require a hidden conditional field", async () => {
+        const parsedResponses = await buildSchema().safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          "how-did-you-hear": "Google",
+          "referral-name": "",
+        });
+
+        expect(parsedResponses.success).toBe(true);
+      });
+
+      test("requires a conditional field when its parent matches", async () => {
+        const parsedResponses = await buildSchema().safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          "how-did-you-hear": "Referral",
+          "referral-name": "",
+        });
+
+        expect(parsedResponses.success).toBe(false);
+        expect(parsedResponses.error?.issues[0]?.message).toBe(`{referral-name}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`);
+      });
+
+      test("accepts a conditional field value when its parent matches", async () => {
+        const parsedResponses = await buildSchema().safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          "how-did-you-hear": "Referral",
+          "referral-name": "Jane Doe",
+        });
+
+        expect(parsedResponses.success).toBe(true);
+      });
+    });
+
     describe("excluded email/domain validation", () => {
       test("should fail if the email is present in excluded emails", async () => {
         const excludedEmails = "spammer@cal.com, hotmail.com, yahoo.com, gmail.com";

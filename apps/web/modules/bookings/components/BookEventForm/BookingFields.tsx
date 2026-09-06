@@ -42,6 +42,7 @@ export const BookingFields = ({
   const { t, i18n } = useLocale();
   const { watch, setValue, formState } = useFormContext();
   const locationResponse = watch("responses.location");
+  const responses = watch("responses");
   const currentView = rescheduleUid ? "reschedule" : "";
   // Identify all phone fields (except location field)
   const otherPhoneFieldNames = useMemo(
@@ -138,6 +139,11 @@ export const BookingFields = ({
 
         let hidden = !!field.hidden;
         const fieldViews = field.views;
+
+        if (field.parentQuestionName && field.triggerValue !== undefined) {
+          const parentValue = responses?.[field.parentQuestionName];
+          hidden = hidden || String(parentValue ?? "") !== String(field.triggerValue);
+        }
 
         if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
           return null;

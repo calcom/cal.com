@@ -983,8 +983,6 @@ export const baseFieldSchema = z.object({
         label: z.string(),
         value: z.string(),
         price: z.coerce.number().min(0).optional(),
-        parentQuestionName: z.string().optional(),
-        triggerValue: z.string().optional(),
       })
     )
     .optional(),

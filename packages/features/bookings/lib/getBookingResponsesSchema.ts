@@ -458,6 +458,10 @@ function preprocess<T extends z.ZodType>({
         if (bookingField.hideWhenJustOneOption) {
           hidden = hidden || numOptions <= 1;
         }
+        if (bookingField.parentQuestionName && bookingField.triggerValue !== undefined) {
+          const parentValue = responses[bookingField.parentQuestionName];
+          hidden = hidden || String(parentValue ?? "") !== String(bookingField.triggerValue);
+        }
         let isRequired = false;
         // If the field is hidden, then it can never be required
         if (!hidden && isFieldApplicableToCurrentView) {
