@@ -39,7 +39,7 @@ export function Tooltip({
     </TooltipPrimitive.Content>
   );
 
-  if (!content) return <>{children}</>;
+  if (content === undefined || content === null || content === "") return <>{children}</>;
 
   const trigger = React.isValidElement(children) ? children : <span>{children}</span>;
 
