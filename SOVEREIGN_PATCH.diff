@@ -1,0 +1,6 @@
+```diff
+- intake dossier:
+-   - content...
++ redirect helper:
++   - URL: /help/redirect
+```
