@@ -521,7 +521,7 @@ describe("createEvent", () => {
           },
           "summary": "Test Meeting",
         },
-        "sendUpdates": "none",
+        "sendUpdates": "all",
       }
     `);
 
@@ -865,6 +865,9 @@ describe("createEvent", () => {
     expect(patchCall.eventId).toBe("mock-event-with-hangout");
     expect(patchCall.requestBody.location).toBe(mockHangoutLink);
     expect(patchCall.requestBody.description).toBeDefined();
+    // The follow-up Meet-link patch must be silent so the attendee does not
+    // receive a second "Updated invitation" after the initial invite.
+    expect(patchCall.sendUpdates).toBe("none");
 
     log.info("createEvent with hangoutLink patch test passed");
   });
