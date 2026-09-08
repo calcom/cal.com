@@ -284,7 +284,10 @@ class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           requestBody: payload,
           conferenceDataVersion: 1,
-          sendUpdates: "none",
+          // Notify guests here so the attendee receives a single, proper Google
+          // Calendar "Invitation". The follow-up patch that writes the Meet link
+          // is sent silently (sendUpdates: "none") to avoid a second email.
+          sendUpdates: "all",
         });
         event = eventResponse.data;
         if (event.recurrence) {
@@ -300,6 +303,10 @@ class GoogleCalendarService implements Calendar {
           // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
           eventId: event.id || "",
+          // Silent update: the attendee was already notified by the insert
+          // above. Without this the patch defaults to notifying guests, which
+          // sends a redundant "Updated invitation" a few seconds after booking.
+          sendUpdates: "none",
           requestBody: {
             description: getRichDescription({
               ...calEvent,
