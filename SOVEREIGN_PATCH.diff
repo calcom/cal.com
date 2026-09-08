@@ -1,0 +1,1 @@
+Prompt: [Performance / Cache] Implement fetchOutlookEventsWithDelta with Microsoft Graph @odata.deltaLink caching in packages/app-store/office365calendar/lib/CalendarService.ts
