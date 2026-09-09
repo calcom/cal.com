@@ -363,8 +363,8 @@ describe("processDateOverrides", () => {
   it("should end a 23:59 date override at midnight in the travel timezone", () => {
     const item = {
       date: new Date(Date.UTC(2023, 5, 12, 8, 0)),
-      startTime: new Date(Date.UTC(2023, 5, 12, 9, 0)), // 9 AM
-      endTime: new Date(Date.UTC(2023, 5, 12, 23, 59)), // 11:59 PM, the maximum the UI allows
+      startTime: new Date(Date.UTC(2023, 5, 12, 9, 0)),
+      endTime: new Date(Date.UTC(2023, 5, 12, 23, 59)), // 11:59 PM, the maximum the availability UI allows
     };
 
     const timeZone = "America/New_York";
