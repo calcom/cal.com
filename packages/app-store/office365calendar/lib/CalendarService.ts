@@ -802,3 +802,9 @@ class Office365CalendarService implements Calendar {
 export default function BuildCalendarService(credential: CredentialForCalendarServiceWithTenantId): Calendar {
   return new Office365CalendarService(credential);
 }
+
+export async function fetchOutlookEventsWithDelta(accessToken: string, cachedDeltaToken?: string) {
+  const base = "https://graph.microsoft.com/v1.0/me/calendarView/delta";
+  const url = cachedDeltaToken ? `${base}?$deltatoken=${encodeURIComponent(cachedDeltaToken)}` : base;
+  return fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+}
