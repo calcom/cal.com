@@ -189,6 +189,13 @@ describe("Slots 2024-09-04 Endpoints", () => {
         name: `slots-2024-09-04-custom-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: false,
+        schedule: [
+          {
+            days: ["Tuesday", "Thursday"],
+            startTime: "10:00",
+            endTime: "13:00",
+          },
+        ],
       });
 
       customScheduledEventType = await eventTypesRepositoryFixture.create(
@@ -278,7 +285,19 @@ describe("Slots 2024-09-04 Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(slots).toBeDefined();
           const days = Object.keys(slots);
-          expect(days.length).toEqual(5);
+          expect(days.length).toEqual(2);
+          expect(slots).toEqual({
+            "2050-09-06": [
+              { start: "2050-09-06T10:00:00.000+02:00" },
+              { start: "2050-09-06T11:00:00.000+02:00" },
+              { start: "2050-09-06T12:00:00.000+02:00" },
+            ],
+            "2050-09-08": [
+              { start: "2050-09-08T10:00:00.000+02:00" },
+              { start: "2050-09-08T11:00:00.000+02:00" },
+              { start: "2050-09-08T12:00:00.000+02:00" },
+            ],
+          });
         });
     });
 

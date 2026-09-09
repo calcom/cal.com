@@ -68,7 +68,6 @@ export function detectEventTypeScheduleForUser({
   )[0];
   const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
 
-  // If eventType has a custom scheduleId or schedule.id, find the matching schedule from user's schedules
   const targetScheduleId = eventType?.schedule?.id ?? eventType?.scheduleId;
   const matchingUserSchedule = targetScheduleId
     ? user.schedules.find((schedule) => schedule.id === targetScheduleId)
