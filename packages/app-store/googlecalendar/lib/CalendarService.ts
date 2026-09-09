@@ -284,10 +284,11 @@ class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           requestBody: payload,
           conferenceDataVersion: 1,
-          // Notify guests here so the attendee receives a single, proper Google
-          // Calendar "Invitation". The follow-up patch that writes the Meet link
-          // is sent silently (sendUpdates: "none") to avoid a second email.
-          sendUpdates: "all",
+          // For Google Meet events, notify guests here so the attendee receives a
+          // single, proper "Invitation" (the follow-up patch that writes the Meet
+          // link is then sent silently). Non-Meet events keep their prior "none"
+          // so this change does not alter their notification behavior.
+          sendUpdates: calEvent.location === MeetLocationType ? "all" : "none",
         });
         event = eventResponse.data;
         if (event.recurrence) {
