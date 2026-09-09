@@ -521,7 +521,7 @@ describe("createEvent", () => {
           },
           "summary": "Test Meeting",
         },
-        "sendUpdates": "all",
+        "sendUpdates": "none",
       }
     `);
 
@@ -837,7 +837,7 @@ describe("createEvent", () => {
         language: { translate: (...args: any[]) => args[0], locale: "en" },
       },
       attendees: [],
-      location: "Test Location",
+      location: MeetLocationType,
       calendarDescription: "Test meeting description",
       destinationCalendar: [
         {
@@ -868,6 +868,9 @@ describe("createEvent", () => {
     // The follow-up Meet-link patch must be silent so the attendee does not
     // receive a second "Updated invitation" after the initial invite.
     expect(patchCall.sendUpdates).toBe("none");
+    // For a Meet event, the initial insert carries the single invitation.
+    const insertCall = eventsInsertMock.mock.calls[0][0];
+    expect(insertCall.sendUpdates).toBe("all");
 
     log.info("createEvent with hangoutLink patch test passed");
   });
