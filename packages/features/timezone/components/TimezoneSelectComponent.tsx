@@ -104,6 +104,7 @@ export function TimezoneSelectComponent({
       styles={{
         control: (base) =>
           Object.assign({}, base, {
+            cursor: "pointer",
             minHeight: size === "sm" ? "28px" : "36px",
             height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
           }),

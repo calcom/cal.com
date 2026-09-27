@@ -219,7 +219,7 @@ export const EventMeta = ({
             )}
             <EventDetails event={event} />
             <EventMetaBlock
-              className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
+              className="[&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"
               icon="globe">
               {bookerState === "booking" ? (
