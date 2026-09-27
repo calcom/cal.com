@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
 const prismaMock = vi.hoisted(() => ({
@@ -38,7 +39,7 @@ vi.mock("./_utils/getEnabledAppsFromCredentials", () => ({
 
 import { getLocationGroupedOptions } from "./server";
 
-const t = ((key: string) => key) as unknown as import("i18next").TFunction;
+const t = ((key: string) => key) as unknown as TFunction;
 
 function makeVideoApp({
   slug,
