@@ -13,14 +13,14 @@ const cityTimezonesMock = [
   { city: "Toronto", timezone: "America/Toronto" },
 ];
 
-const runtimeMock = async (isPending: boolean) => {
+const runtimeMock = async (isPending: boolean, cities = cityTimezonesMock) => {
   const updatedTrcp = {
     viewer: {
       timezones: {
         cityTimezones: {
           useQuery() {
             return {
-              data: cityTimezonesMock,
+              data: cities,
               isPending,
             };
           },
@@ -60,7 +60,7 @@ const onChangeMock = vi.fn();
 type RenderSelectProps = Omit<SelectProps, "isMulti"> & { isMulti?: boolean };
 
 const renderSelect = (newProps: RenderSelectProps & { variant?: "default" | "minimal" }) => {
-  render(
+  return render(
     <form aria-label="test-form">
       <label htmlFor="test">Test</label>
       <TimezoneSelect {...(newProps as SelectProps)} inputId="test" />
@@ -194,5 +194,31 @@ describe("Test TimezoneSelect", () => {
         expect(optionEl).toBeNull();
       }
     });
+  });
+
+  // Asserts the value the component hands to the select rather than what ends
+  // up on screen. react-timezone-select resolves an unknown id by picking a
+  // same-offset zone, so the rendered output looks right even when the stored
+  // id is never canonicalized -- only the prop itself pins that down.
+  // Placed last because it swaps the module registry.
+  test("Should hand the select a canonical id for a stored pre-rename IANA id", async () => {
+    const captured: { value: unknown } = { value: undefined };
+    vi.resetModules();
+    vi.doMock("react-timezone-select", () => ({
+      default: ({ value }: { value: unknown }) => {
+        captured.value = value;
+        return <div data-testid="mock-timezone-select" />;
+      },
+    }));
+
+    const { TimezoneSelectComponent } = await import(
+      "@calcom/features/timezone/components/TimezoneSelectComponent"
+    );
+    render(<TimezoneSelectComponent value="Europe/Kiev" isPending={false} />);
+
+    expect(captured.value).toBe("Europe/Kyiv");
+
+    vi.doUnmock("react-timezone-select");
+    vi.resetModules();
   });
 });
