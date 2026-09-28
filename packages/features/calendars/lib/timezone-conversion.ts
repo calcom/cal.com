@@ -1,4 +1,5 @@
 import logger from "@calcom/lib/logger";
+import { canonicalizeTimezone } from "@calcom/lib/timezone";
 
 const log = logger.getSubLogger({ prefix: ["timezoneConversion"] });
 
@@ -28,11 +29,15 @@ export function convertOffsetToIanaTimezone(timezone: string): string | null {
 export function normalizeTimezone(timezone: string | undefined): string {
   if (!timezone) return "UTC";
 
+  // Map pre-rename IANA links (e.g. Europe/Kiev) to canonical ids first,
+  // so downstream consumers only ever see current names.
+  const canonical = canonicalizeTimezone(timezone);
+
   try {
-    Intl.DateTimeFormat(undefined, { timeZone: timezone });
-    return timezone;
+    Intl.DateTimeFormat(undefined, { timeZone: canonical });
+    return canonical;
   } catch {
-    const converted = convertOffsetToIanaTimezone(timezone);
+    const converted = convertOffsetToIanaTimezone(canonical);
     if (converted) {
       log.info(`Converted offset timezone to IANA format`, { original: timezone, converted });
       return converted;

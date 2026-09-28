@@ -1,7 +1,12 @@
 "use client";
 
 import type { Timezones } from "@calcom/lib/timezone";
-import { addTimezonesToDropdown, filterBySearchText, handleOptionLabel } from "@calcom/lib/timezone";
+import {
+  addTimezonesToDropdown,
+  canonicalizeTimezone,
+  filterBySearchText,
+  handleOptionLabel,
+} from "@calcom/lib/timezone";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
 import { useCallback, useMemo, useState } from "react";
@@ -51,6 +56,15 @@ export function TimezoneSelectComponent({
   );
 
   const reactSelectProps = useMemo(() => getReactSelectProps({ components: components || {} }), [components]);
+
+  // Stored ids may use pre-rename IANA links (e.g. Europe/Kiev) while the
+  // dropdown only offers canonical ids (e.g. Europe/Kyiv). Map them so the
+  // select resolves to the right option instead of falling back to raw text.
+  const canonicalValue = useMemo((): ITimezone => {
+    if (typeof value === "string") return canonicalizeTimezone(value);
+    if (value && typeof value === "object") return { ...value, value: canonicalizeTimezone(value.value) };
+    return value;
+  }, [value]);
 
   const timezones = useMemo(
     () => ({

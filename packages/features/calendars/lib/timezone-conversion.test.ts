@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-
 import { convertOffsetToIanaTimezone, normalizeTimezone } from "./timezone-conversion";
 
 vi.mock("@calcom/lib/logger", () => ({
@@ -103,6 +102,24 @@ describe("timezone-conversion", () => {
 
     it("falls back to UTC for non-zero minutes offset", () => {
       expect(normalizeTimezone("GMT+05:30")).toBe("UTC");
+    });
+
+    it("maps pre-rename Europe/Kiev to canonical Europe/Kyiv", () => {
+      expect(normalizeTimezone("Europe/Kiev")).toBe("Europe/Kyiv");
+    });
+
+    it("maps pre-rename Asia/Rangoon to canonical Asia/Yangon", () => {
+      expect(normalizeTimezone("Asia/Rangoon")).toBe("Asia/Yangon");
+    });
+
+    it("maps pre-rename Asia/Saigon to canonical Asia/Ho_Chi_Minh", () => {
+      expect(normalizeTimezone("Asia/Saigon")).toBe("Asia/Ho_Chi_Minh");
+    });
+
+    it("returns canonical ids as-is", () => {
+      expect(normalizeTimezone("Europe/Kyiv")).toBe("Europe/Kyiv");
+      expect(normalizeTimezone("Asia/Yangon")).toBe("Asia/Yangon");
+      expect(normalizeTimezone("Asia/Ho_Chi_Minh")).toBe("Asia/Ho_Chi_Minh");
     });
   });
 });
