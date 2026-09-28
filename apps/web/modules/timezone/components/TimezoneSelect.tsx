@@ -1,8 +1,8 @@
 "use client";
 
-import type { Timezones } from "@calcom/lib/timezone";
 import { TimezoneSelectComponent } from "@calcom/features/timezone/components/TimezoneSelectComponent";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
+import type { Timezones } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
 import { useMemo } from "react";
 import type { Props as SelectProps } from "react-timezone-select";
@@ -27,6 +27,11 @@ const SELECT_SEARCH_DATA: Timezones = [
   { label: "South Africa Standard Time", timezone: "Africa/Johannesburg" },
   { label: "Brazil Time", timezone: "America/Sao_Paulo" },
   { label: "Hawaii-Aleutian Standard Time", timezone: "Pacific/Honolulu" },
+  // Pre-rename IANA ids kept searchable so users typing the old names
+  // still find the canonical zones (see RENAMED_TIMEZONE_ALIASES).
+  { label: "Kiev", timezone: "Europe/Kyiv" },
+  { label: "Rangoon", timezone: "Asia/Yangon" },
+  { label: "Saigon", timezone: "Asia/Ho_Chi_Minh" },
 ];
 
 export type TimezoneSelectProps = SelectProps & {
