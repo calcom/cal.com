@@ -87,6 +87,7 @@ describe("EventTypeListItem", () => {
     expect(screen.getByText("30 Min Meeting")).toBeInTheDocument();
     expect(screen.getByText("Quick meeting")).toBeInTheDocument();
     expect(screen.getByText(/30m/)).toBeInTheDocument();
+    expect(screen.getByLabelText("30 minutes")).toBeInTheDocument();
   });
 
   it("should render as link when getEventTypeUrl is provided", () => {

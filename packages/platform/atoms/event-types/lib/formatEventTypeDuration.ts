@@ -23,3 +23,20 @@ export function formatEventTypeDuration(minutes: number): string {
 
   return `${hours}h ${remainingMinutes}m`;
 }
+
+/**
+ * Formats event type duration for screen readers (e.g., "30 minutes", "1 hour", "1 hour 30 minutes").
+ * Avoids single-letter abbreviation mispronunciation ("30m" as "30 metres", "1h" as "one age").
+ */
+export function formatEventTypeDurationAccessible(minutes: number): string {
+  if (minutes === 0) return "0 minutes";
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  const hourStr = hours > 0 ? `${hours} ${hours === 1 ? "hour" : "hours"}` : "";
+  const minStr =
+    remainingMinutes > 0 ? `${remainingMinutes} ${remainingMinutes === 1 ? "minute" : "minutes"}` : "";
+
+  if (hourStr && minStr) return `${hourStr} ${minStr}`;
+  return hourStr || minStr;
+}

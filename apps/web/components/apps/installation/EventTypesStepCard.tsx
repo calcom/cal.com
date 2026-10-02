@@ -3,6 +3,7 @@ import type { FC } from "react";
 import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
+import { getDurationAccessibleLabel } from "@calcom/lib/formatEventDuration";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -35,6 +36,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
   team,
   userName,
 }) => {
+  const { t } = useLocale();
   const parsedMetaData = EventTypeMetaDataSchema.safeParse(metadata);
   const multipleDuration =
     parsedMetaData.success && parsedMetaData.data?.multipleDuration
@@ -76,8 +78,12 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
           <div className="mt-2 flex flex-row flex-wrap gap-2">
             {Boolean(durations.length) &&
               durations.map((duration) => (
-                <Badge key={`event-type-${id}-duration-${duration}`} variant="gray" startIcon="clock">
-                  {duration}m
+                <Badge
+                  key={`event-type-${id}-duration-${duration}`}
+                  variant="gray"
+                  startIcon="clock"
+                  aria-label={getDurationAccessibleLabel(duration, t)}>
+                  <span aria-hidden="true">{duration}m</span>
                 </Badge>
               ))}
           </div>
