@@ -64,11 +64,10 @@ export const BookEventFormWrapperComponent = ({
           />
         </Badge>
         {(selectedDuration || eventLength) && (
-          <Badge
-            variant="grayWithoutHover"
-            startIcon="clock"
-            size="lg"
-            aria-label={getDurationAccessibleLabel(selectedDuration || eventLength, t)}>
+          <Badge variant="grayWithoutHover" startIcon="clock" size="lg">
+            <span className="sr-only">
+              {getDurationAccessibleLabel(selectedDuration || eventLength, t)}
+            </span>
             <span aria-hidden="true">{getDurationFormatted(selectedDuration || eventLength, t)}</span>
           </Badge>
         )}

@@ -73,7 +73,8 @@ export const EventDuration = ({
     const formatted = getDurationFormatted(event.length, t);
     const accessibleLabel = getDurationAccessibleLabel(event.length, t);
     return (
-      <span aria-label={accessibleLabel}>
+      <span>
+        <span className="sr-only">{accessibleLabel}</span>
         <span aria-hidden="true">{formatted}</span>
       </span>
     );
@@ -89,7 +90,8 @@ export const EventDuration = ({
     const formatted = getDurationFormatted(dur, t);
     const accessibleLabel = getDurationAccessibleLabel(dur, t);
     return (
-      <span aria-label={accessibleLabel}>
+      <span>
+        <span className="sr-only">{accessibleLabel}</span>
         <span aria-hidden="true">{formatted}</span>
       </span>
     );
@@ -118,11 +120,11 @@ export const EventDuration = ({
               key={index}
               onClick={() => setSelectedDuration(duration)}
               ref={(el) => (itemRefs.current[duration] = el)}
-              aria-label={getDurationAccessibleLabel(duration, t)}
               className={classNames(
                 selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
                 "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition"
               )}>
+              <span className="sr-only">{getDurationAccessibleLabel(duration, t)}</span>
               <div className="w-max" aria-hidden="true">
                 {getDurationFormatted(duration, t)}
               </div>

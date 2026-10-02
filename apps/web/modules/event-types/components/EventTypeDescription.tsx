@@ -69,20 +69,16 @@ export const EventTypeDescription = ({
           {metadata?.multipleDuration ? (
             metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
-                <Badge
-                  variant="gray"
-                  startIcon="clock"
-                  aria-label={getDurationAccessibleLabel(dur, t)}>
+                <Badge variant="gray" startIcon="clock">
+                  <span className="sr-only">{getDurationAccessibleLabel(dur, t)}</span>
                   <span aria-hidden="true">{dur}m</span>
                 </Badge>
               </li>
             ))
           ) : (
             <li>
-              <Badge
-                variant="gray"
-                startIcon="clock"
-                aria-label={getDurationAccessibleLabel(eventType.length, t)}>
+              <Badge variant="gray" startIcon="clock">
+                <span className="sr-only">{getDurationAccessibleLabel(eventType.length, t)}</span>
                 <span aria-hidden="true">{eventType.length}m</span>
               </Badge>
             </li>

@@ -24,6 +24,7 @@ import {
 } from "../lib/formatEventTypeDuration";
 
 const EventTypeContent = ({ eventType }: { eventType: AtomEventTypeListItem }) => {
+  const { t } = useLocale();
   return (
     <div>
       <div className="space-x-2 rtl:space-x-reverse">
@@ -31,10 +32,8 @@ const EventTypeContent = ({ eventType }: { eventType: AtomEventTypeListItem }) =
       </div>
       <div className="text-subtle mt-1">
         {eventType.description && <span className="block">{eventType.description}</span>}
-        <Badge
-          variant="gray"
-          className="text-xs"
-          aria-label={formatEventTypeDurationAccessible(eventType.length)}>
+        <Badge variant="gray" className="text-xs">
+          <span className="sr-only">{formatEventTypeDurationAccessible(eventType.length, t)}</span>
           <span aria-hidden="true">{formatEventTypeDuration(eventType.length)}</span>
         </Badge>
       </div>

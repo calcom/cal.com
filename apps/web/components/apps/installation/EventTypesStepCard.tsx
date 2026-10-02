@@ -78,11 +78,8 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
           <div className="mt-2 flex flex-row flex-wrap gap-2">
             {Boolean(durations.length) &&
               durations.map((duration) => (
-                <Badge
-                  key={`event-type-${id}-duration-${duration}`}
-                  variant="gray"
-                  startIcon="clock"
-                  aria-label={getDurationAccessibleLabel(duration, t)}>
+                <Badge key={`event-type-${id}-duration-${duration}`} variant="gray" startIcon="clock">
+                  <span className="sr-only">{getDurationAccessibleLabel(duration, t)}</span>
                   <span aria-hidden="true">{duration}m</span>
                 </Badge>
               ))}

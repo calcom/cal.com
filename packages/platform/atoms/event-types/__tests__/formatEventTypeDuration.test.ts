@@ -71,4 +71,17 @@ describe("formatEventTypeDurationAccessible", () => {
     expect(formatEventTypeDurationAccessible(90)).toBe("1 hour 30 minutes");
     expect(formatEventTypeDurationAccessible(75)).toBe("1 hour 15 minutes");
   });
+
+  it("should support translation function", () => {
+    const mockT = (key: string, options?: { count?: number }) => {
+      const count = options?.count ?? 0;
+      if (key === "minute") return count === 1 ? `${count} minuto` : `${count} minutos`;
+      if (key === "hour") return count === 1 ? `${count} hora` : `${count} horas`;
+      return key;
+    };
+    expect(formatEventTypeDurationAccessible(90, mockT)).toBe("1 hora 30 minutos");
+    expect(formatEventTypeDurationAccessible(60, mockT)).toBe("1 hora");
+    expect(formatEventTypeDurationAccessible(1, mockT)).toBe("1 minuto");
+    expect(formatEventTypeDurationAccessible(0, mockT)).toBe("0 minutos");
+  });
 });
