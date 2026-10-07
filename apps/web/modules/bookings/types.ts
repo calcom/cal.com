@@ -66,6 +66,7 @@ export type WrappedBookerPropsMain = {
         integrationTitle?: string;
         externalId: string;
         primary: boolean | null;
+        isSelected?: boolean;
       }[];
       credentialId: number;
       delegationCredentialId?: string | null;
