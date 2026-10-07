@@ -4,7 +4,7 @@ import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 
-import { appDataSchema } from "../zod";
+import type { appDataSchema } from "../zod";
 import EventTypeAppSettingsInterface from "./EventTypeAppSettingsInterface";
 import { loadSetupConfiguration } from "../lib/setupConfiguration";
 

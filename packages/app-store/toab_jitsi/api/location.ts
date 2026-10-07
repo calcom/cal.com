@@ -28,7 +28,8 @@ export default async function locationHandler(req: NextApiRequest, res: NextApiR
     return res.status(403).json({ message: "You cannot configure this event type" });
   }
 
-  const locations = Array.isArray(eventType.locations) ? eventType.locations : [];
+  let locations: unknown[] = [];
+  if (Array.isArray(eventType.locations)) locations = eventType.locations;
   const moderatorLocationEnabled = locations.some(
     (location) =>
       typeof location === "object" &&

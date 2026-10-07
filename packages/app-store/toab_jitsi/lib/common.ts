@@ -35,7 +35,8 @@ async function getModeratorConfig(): Promise<ModeratorConfig> {
 }
 
 function normalizeHost(host: string): string {
-  const withScheme = /^https?:\/\//i.test(host) ? host : `https://${host}`;
+  let withScheme = host;
+  if (!/^https?:\/\//i.test(host)) withScheme = `https://${host}`;
   return withScheme.replace(/\/+$/, "");
 }
 

@@ -54,10 +54,11 @@ export default function EventTypeAppSettingsInterface({
           setAppDataRef.current("serverUrl", undefined);
         }
       } catch (loadError) {
-        if (isCurrent)
-          setError(
-            loadError instanceof Error ? loadError.message : "Could not load TOAB Jitsi configuration"
-          );
+        if (isCurrent) {
+          let message = "Could not load TOAB Jitsi configuration";
+          if (loadError instanceof Error) message = loadError.message;
+          setError(message);
+        }
       } finally {
         if (isCurrent) setIsLoading(false);
       }
@@ -70,7 +71,8 @@ export default function EventTypeAppSettingsInterface({
 
   const serverSelectionDisabled = disabled || isLoading || locationEnabled !== true || !!error;
   const selectedServer = servers.find((server) => server.id === selectedServerId);
-  const triggerLabel = isLoading ? "Loading servers..." : selectedServer?.name || "Choose a server...";
+  let triggerLabel = selectedServer?.name || "Choose a server...";
+  if (isLoading) triggerLabel = "Loading servers...";
 
   return (
     <div className="flex w-full flex-col gap-4 text-sm">

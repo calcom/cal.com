@@ -1,8 +1,8 @@
 // Next.js API route reference: https://nextjs.org/docs/pages/building-your-application/routing/api-routes
 import { locationResponseSchema, setupResponseSchema } from "../zod";
 
-export type SetupConfiguration = ReturnType<typeof setupResponseSchema.parse>;
-export type LocationConfiguration = ReturnType<typeof locationResponseSchema.parse>;
+type SetupConfiguration = ReturnType<typeof setupResponseSchema.parse>;
+type LocationConfiguration = ReturnType<typeof locationResponseSchema.parse>;
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const cachedConfigurations = new Map<number, { value: SetupConfiguration; expiresAt: number }>();
@@ -41,3 +41,5 @@ export async function loadLocationConfiguration(eventTypeId: number): Promise<Lo
   if (!response.ok) throw new Error("Could not check the TOAB Jitsi event type location");
   return locationResponseSchema.parse(await response.json());
 }
+
+export type { LocationConfiguration, SetupConfiguration };

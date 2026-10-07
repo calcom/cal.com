@@ -57,12 +57,13 @@ export default async function configHandler(req: NextApiRequest, res: NextApiRes
     );
     return res.status(200).json({ userId: user.id, servers });
   } catch (error: unknown) {
-    console.error("[toab_jitsi] config load failed", {
-      eventTypeId,
-      message: error instanceof Error ? error.message : String(error),
-    });
+    let errorMessage = String(error);
+    if (error instanceof Error) errorMessage = error.message;
+    console.error("[toab_jitsi] config load failed", { eventTypeId, message: errorMessage });
     const serverError = getServerErrorFromUnknown(error);
-    return res.status(serverError.statusCode >= 500 ? 502 : serverError.statusCode).json({
+    let statusCode = serverError.statusCode;
+    if (statusCode >= 500) statusCode = 502;
+    return res.status(statusCode).json({
       message: "Unable to load TOAB Jitsi servers from Moderator",
     });
   }
