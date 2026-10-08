@@ -8,6 +8,7 @@ import {
   mockCalendarToHaveNoBusySlots,
   TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
@@ -83,12 +84,12 @@ describe("Booking Concurrency & Overlap Protection", () => {
       },
     });
 
-    // Attempting to book the overlapping slot must be rejected with 409 BookingConflict
+    // Attempting to book the overlapping slot sequentially is caught by availability validation
     await expect(
       handleNewBooking({
         bookingData: bookingData2,
       })
-    ).rejects.toThrow();
+    ).rejects.toThrow("no_available_users_found_error");
 
     // Verify only ONE booking exists for this organizer in DB
     const allBookings = await prismaMock.booking.findMany({
@@ -172,9 +173,11 @@ describe("Booking Concurrency & Overlap Protection", () => {
     const fulfilled = results.filter((r) => r.status === "fulfilled");
     const rejected = results.filter((r) => r.status === "rejected");
 
-    // Exactly one must succeed, and the other must be rejected
+    // Exactly one must succeed, and the other must be rejected specifically with BookingConflict
     expect(fulfilled).toHaveLength(1);
     expect(rejected).toHaveLength(1);
+    const rejectedResult = rejected[0] as PromiseRejectedResult;
+    expect(rejectedResult.reason?.message).toContain(ErrorCode.BookingConflict);
 
     // Database must have only 1 booking for this slot
     const bookingsInDb = await prismaMock.booking.findMany({
@@ -258,8 +261,11 @@ describe("Booking Concurrency & Overlap Protection", () => {
     const fulfilled = results.filter((r) => r.status === "fulfilled");
     const rejected = results.filter((r) => r.status === "rejected");
 
+    // Exactly one must succeed, and the other must be rejected specifically with BookingConflict
     expect(fulfilled).toHaveLength(1);
     expect(rejected).toHaveLength(1);
+    const rejectedResult3 = rejected[0] as PromiseRejectedResult;
+    expect(rejectedResult3.reason?.message).toContain(ErrorCode.BookingConflict);
 
     const bookingsInDb = await prismaMock.booking.findMany({
       where: {
@@ -342,8 +348,11 @@ describe("Booking Concurrency & Overlap Protection", () => {
     const fulfilled = results.filter((r) => r.status === "fulfilled");
     const rejected = results.filter((r) => r.status === "rejected");
 
+    // Exactly one must succeed, and the other must be rejected specifically with BookingConflict
     expect(fulfilled).toHaveLength(1);
     expect(rejected).toHaveLength(1);
+    const rejectedResult4 = rejected[0] as PromiseRejectedResult;
+    expect(rejectedResult4.reason?.message).toContain(ErrorCode.BookingConflict);
 
     const bookingsInDb = await prismaMock.booking.findMany({
       where: {

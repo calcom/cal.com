@@ -148,17 +148,33 @@ async function saveBooking(
         await tx.booking.update(originalBookingUpdateDataForCancellation);
       }
 
-      try {
-        if (organizerUser?.id && tx.$executeRaw) {
-          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`booking_host_${organizerUser.id}`}))`;
-        }
-      } catch {
-        // Fallback for mock environments (e.g. Prismock in unit tests)
+      if (organizerUser?.id && tx.$executeRaw) {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`booking_host_${organizerUser.id}`}))`;
       }
 
       if (newBookingData.startTime && newBookingData.endTime && organizerUser?.id) {
         const newBefore = eventTypeData?.beforeEventBuffer || 0;
         const newAfter = eventTypeData?.afterEventBuffer || 0;
+
+        let maxBufferMinutes = 1440;
+        try {
+          const maxHostBuffer = await tx.eventType.aggregate({
+            where: { userId: organizerUser.id },
+            _max: {
+              beforeEventBuffer: true,
+              afterEventBuffer: true,
+            },
+          });
+          maxBufferMinutes = Math.max(
+            1440,
+            maxHostBuffer._max?.beforeEventBuffer || 0,
+            maxHostBuffer._max?.afterEventBuffer || 0,
+            newBefore,
+            newAfter
+          );
+        } catch {
+          maxBufferMinutes = Math.max(1440, newBefore, newAfter);
+        }
 
         const candidateBookings = await tx.booking.findMany({
           where: {
@@ -166,12 +182,12 @@ async function saveBooking(
             status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
             startTime: {
               lt: dayjs(newBookingData.endTime)
-                .add(newAfter + 180, "minute")
+                .add(newAfter + maxBufferMinutes, "minute")
                 .toDate(),
             },
             endTime: {
               gt: dayjs(newBookingData.startTime)
-                .subtract(newBefore + 180, "minute")
+                .subtract(newBefore + maxBufferMinutes, "minute")
                 .toDate(),
             },
             ...(originalRescheduledBooking?.id ? { id: { not: originalRescheduledBooking.id } } : {}),
