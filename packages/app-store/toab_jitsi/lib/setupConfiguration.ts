@@ -4,9 +4,9 @@ import { locationResponseSchema, setupResponseSchema } from "../zod";
 type SetupConfiguration = ReturnType<typeof setupResponseSchema.parse>;
 type LocationConfiguration = ReturnType<typeof locationResponseSchema.parse>;
 
-const CACHE_TTL_MS = 5 * 60 * 1000;
-const cachedConfigurations = new Map<number, { value: SetupConfiguration; expiresAt: number }>();
-const pendingRequests = new Map<number, Promise<SetupConfiguration>>();
+const CACHE_TTL_MS: number = 5 * 60 * 1000;
+const cachedConfigurations: Map<number, { value: SetupConfiguration; expiresAt: number }> = new Map();
+const pendingRequests: Map<number, Promise<SetupConfiguration>> = new Map();
 
 /** Load and cache server configuration for an event type for up to five minutes. */
 export function loadSetupConfiguration(eventTypeId: number): Promise<SetupConfiguration> {
@@ -25,7 +25,7 @@ export function loadSetupConfiguration(eventTypeId: number): Promise<SetupConfig
   );
 
   pendingRequests.set(eventTypeId, request);
-  const clearPendingRequest = () => {
+  const clearPendingRequest = (): void => {
     if (pendingRequests.get(eventTypeId) === request) pendingRequests.delete(eventTypeId);
   };
   void request.then((value) => {

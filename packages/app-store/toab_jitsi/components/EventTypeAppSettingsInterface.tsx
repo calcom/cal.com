@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import type { ReactElement } from "react";
 import { useEffect, useRef, useState } from "react";
 import { loadLocationConfiguration, loadSetupConfiguration } from "../lib/setupConfiguration";
 
@@ -23,7 +24,7 @@ export default function EventTypeAppSettingsInterface({
   eventType,
   getAppData,
   setAppData,
-}: EventTypeAppSettingsComponentProps) {
+}: EventTypeAppSettingsComponentProps): ReactElement {
   const { t } = useLocale();
   const selectedServerId = getAppData("serverId");
   const getAppDataRef = useRef(getAppData);
@@ -38,7 +39,7 @@ export default function EventTypeAppSettingsInterface({
   useEffect(() => {
     let isCurrent = true;
     /** Load server and location settings, then keep the component state in sync. */
-    async function loadConfiguration() {
+    async function loadConfiguration(): Promise<void> {
       setIsLoading(true);
       setError(undefined);
       try {
@@ -68,10 +69,10 @@ export default function EventTypeAppSettingsInterface({
       }
     }
     void loadConfiguration();
-    return () => {
+    return (): void => {
       isCurrent = false;
     };
-  }, [eventType.id]);
+  }, [eventType.id, t]);
 
   const serverSelectionDisabled = disabled || isLoading || locationEnabled !== true || !!error;
   const selectedServer = servers.find((server) => server.id === selectedServerId);
@@ -112,7 +113,7 @@ export default function EventTypeAppSettingsInterface({
                 key={server.id}
                 disabled={serverSelectionDisabled}
                 className="cursor-pointer"
-                onSelect={() => {
+                onSelect={(): void => {
                   if (serverSelectionDisabled) return;
                   setAppData("serverId", server.id);
                   setAppData("serverUrl", server.serverUrl);

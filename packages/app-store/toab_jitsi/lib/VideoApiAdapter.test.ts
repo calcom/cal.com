@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
+type MockFunction = ReturnType<typeof vi.fn>;
+const mocks: {
+  eventTypeFindUnique: MockFunction;
+  bookingFindUnique: MockFunction;
+  moderatorRequest: MockFunction;
+} = vi.hoisted(() => ({
   eventTypeFindUnique: vi.fn(),
   bookingFindUnique: vi.fn(),
   moderatorRequest: vi.fn(),
@@ -20,7 +25,10 @@ import type { PartialReference } from "@calcom/types/EventManager";
 import config from "../config.json";
 import VideoApiAdapter from "./VideoApiAdapter";
 
-const eventTypeWithServer = {
+const eventTypeWithServer: {
+  locations: Array<{ type: string }>;
+  metadata: { apps: Record<string, { userId: number; serverId: number; serverUrl: string }> };
+} = {
   locations: [{ type: "integrations:toab_jitsi" }],
   metadata: {
     apps: {

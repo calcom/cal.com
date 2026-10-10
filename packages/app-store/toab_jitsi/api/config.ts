@@ -6,8 +6,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { moderatorRequest } from "../lib/common";
 
-const moderatorUserSchema = z.object({ id: z.number().int().positive() });
-const moderatorServerSchema = z.array(
+const moderatorUserSchema: z.ZodType<{ id: number }> = z.object({ id: z.number().int().positive() });
+const moderatorServerSchema: z.ZodType<
+  Array<{ id: number; name: string; serverUrl: string; serverType: "CUSTOM" | "DEFAULT" }>
+> = z.array(
   z.object({
     id: z.number().int().positive(),
     name: z.string(),
@@ -17,7 +19,10 @@ const moderatorServerSchema = z.array(
 );
 
 /** Load the owner’s or first configured team host’s Moderator server choices. */
-export default async function configHandler(req: NextApiRequest, res: NextApiResponse) {
+export default async function configHandler(
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<NextApiResponse> {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
 
   const sessionUserId = Number(req.session?.user?.id);

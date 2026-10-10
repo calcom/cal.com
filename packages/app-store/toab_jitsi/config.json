@@ -6,9 +6,7 @@
   "logo": "icon.svg",
   "url": "https://toab-jitsi.com/",
   "variant": "conferencing",
-  "categories": [
-    "conferencing"
-  ],
+  "categories": ["conferencing"],
   "publisher": "Anirban Das",
   "email": "AnirbanStifler@gmail.com",
   "description": "Add TOAB Jitsi video meetings to your Cal.com bookings.",

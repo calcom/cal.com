@@ -12,7 +12,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   app,
   eventType,
   onAppInstallSuccess,
-}) {
+}: Parameters<EventTypeAppCardComponent>[0]) {
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
 
@@ -26,9 +26,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
       onAppInstallSuccess={onAppInstallSuccess}
       hideSettingsIcon
       app={app}
-      switchOnClick={(e) => {
-        updateEnabled(e);
-      }}
+      switchOnClick={updateEnabled}
       switchChecked={enabled}
       teamId={eventType.team?.id || undefined}>
       <EventTypeAppSettingsInterface

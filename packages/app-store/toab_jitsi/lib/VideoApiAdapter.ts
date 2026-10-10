@@ -1,7 +1,7 @@
 // Cal.com video adapter contract: https://github.com/calcom/cal.diy/blob/main/packages/types/VideoApiAdapter.d.ts
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 import { z } from "zod";
@@ -9,8 +9,14 @@ import config from "../config.json";
 import { appDataSchema } from "../zod";
 import { moderatorRequest } from "./common";
 
-const locationsSchema = z.array(z.object({ type: z.string() }));
-const conferenceResponseSchema = z.object({
+const locationsSchema: z.ZodType<Array<{ type: string }>> = z.array(z.object({ type: z.string() }));
+const conferenceResponseSchema: z.ZodType<{
+  bookingUid: string;
+  bookingId?: number | null;
+  roomId: string;
+  serverId: number;
+  videoUri: string;
+}> = z.object({
   bookingUid: z.string(),
   bookingId: z.number().int().nullish(),
   roomId: z.string().min(1),
@@ -21,7 +27,7 @@ const conferenceResponseSchema = z.object({
 /** Build the Cal.com video adapter that creates and cancels Moderator conferences. */
 const JitsiModeratorApiAdapter = (): VideoApiAdapter => ({
   /** Return no precomputed availability; Cal.com handles slot discovery. */
-  getAvailability: async () => [],
+  getAvailability: async (): Promise<EventBusyDate[]> => [],
 
   /** Create a Moderator conference for a Cal.com booking. */
   createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {

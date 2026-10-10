@@ -3,11 +3,12 @@ import { z } from "zod";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { appKeysSchema } from "../zod";
 
-const tokenResponseSchema = z.object({
-  access_token: z.string().min(1),
-  expires_in: z.number().positive(),
-  token_type: z.string().optional(),
-});
+const tokenResponseSchema: z.ZodType<{ access_token: string; expires_in: number; token_type?: string }> =
+  z.object({
+    access_token: z.string().min(1),
+    expires_in: z.number().positive(),
+    token_type: z.string().optional(),
+  });
 
 type ModeratorConfig = {
   moderatorHost: string;
@@ -71,6 +72,13 @@ async function getAccessToken(config: ModeratorConfig): Promise<string> {
   return token.access_token;
 }
 
+/** Combine an optional caller cancellation signal with a fresh request timeout. */
+function createRequestSignal(signal?: AbortSignal | null): AbortSignal {
+  const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  if (signal) return AbortSignal.any([signal, timeoutSignal]);
+  return timeoutSignal;
+}
+
 /** Make an authenticated Moderator request, retrying once after an expired token. */
 export async function moderatorRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const config = await getModeratorConfig();
@@ -81,17 +89,12 @@ export async function moderatorRequest<T>(path: string, init: RequestInit = {}):
   const requestUrl = `${normalizeHost(config.moderatorHost)}${path}`;
   const isCalComDelete = init.method === "DELETE" && path.startsWith("/api/calcom/conferences/");
   if (isCalComDelete) console.info("[toab_jitsi] sending Moderator DELETE", { path });
-  const signal = init.signal
-    ? AbortSignal.any([init.signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)])
-    : AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  const signal = createRequestSignal(init.signal);
   let response = await fetch(requestUrl, { ...init, headers, signal });
   if (response.status === 401) {
     cachedToken = undefined;
     headers.set("Authorization", `Bearer ${await getAccessToken(config)}`);
-    const retrySignal = init.signal
-      ? AbortSignal.any([init.signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)])
-      : AbortSignal.timeout(REQUEST_TIMEOUT_MS);
-    response = await fetch(requestUrl, { ...init, headers, signal: retrySignal });
+    response = await fetch(requestUrl, { ...init, headers, signal: createRequestSignal(init.signal) });
   }
   if (isCalComDelete) console.info("[toab_jitsi] Moderator DELETE response", { status: response.status });
   if (!response.ok) throw new Error(`Moderator API request failed (${response.status})`);

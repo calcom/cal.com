@@ -1,15 +1,16 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-const fetchMock = vi.hoisted(() => vi.fn());
+const fetchMock: ReturnType<typeof vi.fn> = vi.hoisted(() => vi.fn());
 
-const setupResponse = {
+const setupResponse: {
+  userId: number;
+  servers: Array<{ id: number; name: string; serverUrl: string; serverType: "CUSTOM" | "DEFAULT" }>;
+} = {
   userId: 42,
-  servers: [
-    { id: 7, name: "Preferred", serverUrl: "https://meet.example.com", serverType: "CUSTOM" },
-  ],
+  servers: [{ id: 7, name: "Preferred", serverUrl: "https://meet.example.com", serverType: "CUSTOM" }],
 };
 
-function jsonResponse(body: unknown, ok = true): Response {
+function jsonResponse(body: unknown, ok: boolean = true): Response {
   return {
     ok,
     json: async () => body,
@@ -43,10 +44,7 @@ describe("TOAB Jitsi setup configuration loaders", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/integrations/toab_jitsi/config?eventTypeId=201");
 
     resolveResponse?.(jsonResponse(setupResponse));
-    await expect(Promise.all([firstRequest, secondRequest])).resolves.toEqual([
-      setupResponse,
-      setupResponse,
-    ]);
+    await expect(Promise.all([firstRequest, secondRequest])).resolves.toEqual([setupResponse, setupResponse]);
     await expect(loadSetupConfiguration(201)).resolves.toEqual(setupResponse);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
@@ -70,7 +68,9 @@ describe("TOAB Jitsi setup configuration loaders", () => {
   });
 
   test("does not cache failed setup requests", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({}, false)).mockResolvedValueOnce(jsonResponse(setupResponse));
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({}, false))
+      .mockResolvedValueOnce(jsonResponse(setupResponse));
     const { loadSetupConfiguration } = await import("./setupConfiguration");
 
     await expect(loadSetupConfiguration(203)).rejects.toThrow("Could not load TOAB Jitsi configuration");
@@ -86,10 +86,7 @@ describe("TOAB Jitsi setup configuration loaders", () => {
 
     await expect(loadLocationConfiguration(204)).resolves.toEqual({ moderatorLocationEnabled: false });
     await expect(loadLocationConfiguration(204)).resolves.toEqual({ moderatorLocationEnabled: true });
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "/api/integrations/toab_jitsi/location?eventTypeId=204"
-    );
+    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/integrations/toab_jitsi/location?eventTypeId=204");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 

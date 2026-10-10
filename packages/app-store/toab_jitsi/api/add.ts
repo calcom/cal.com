@@ -9,7 +9,12 @@ const handler: AppDeclarativeHandler = {
   slug: appConfig.slug,
   supportsMultipleInstalls: false,
   handlerType: "add",
-  createCredential: ({ appType, user, slug, teamId }) =>
+  createCredential: ({
+    appType,
+    user,
+    slug,
+    teamId,
+  }: Parameters<AppDeclarativeHandler["createCredential"]>[0]) =>
     createDefaultInstallation({ appType, user, slug, key: {}, teamId }),
 };
 
