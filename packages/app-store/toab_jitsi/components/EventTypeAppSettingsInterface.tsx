@@ -1,4 +1,5 @@
 import type { EventTypeAppSettingsComponentProps } from "@calcom/app-store/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Dropdown,
   DropdownItem,
@@ -16,12 +17,14 @@ type Server = {
   serverType: "CUSTOM" | "DEFAULT";
 };
 
+/** Render server selection and location/configuration feedback for an event type. */
 export default function EventTypeAppSettingsInterface({
   disabled,
   eventType,
   getAppData,
   setAppData,
 }: EventTypeAppSettingsComponentProps) {
+  const { t } = useLocale();
   const selectedServerId = getAppData("serverId");
   const getAppDataRef = useRef(getAppData);
   const setAppDataRef = useRef(setAppData);
@@ -34,6 +37,7 @@ export default function EventTypeAppSettingsInterface({
 
   useEffect(() => {
     let isCurrent = true;
+    /** Load server and location settings, then keep the component state in sync. */
     async function loadConfiguration() {
       setIsLoading(true);
       setError(undefined);
@@ -55,7 +59,7 @@ export default function EventTypeAppSettingsInterface({
         }
       } catch (loadError) {
         if (isCurrent) {
-          let message = "Could not load TOAB Jitsi configuration";
+          let message = t("toab_jitsi_config_load_error");
           if (loadError instanceof Error) message = loadError.message;
           setError(message);
         }
@@ -71,14 +75,14 @@ export default function EventTypeAppSettingsInterface({
 
   const serverSelectionDisabled = disabled || isLoading || locationEnabled !== true || !!error;
   const selectedServer = servers.find((server) => server.id === selectedServerId);
-  let triggerLabel = selectedServer?.name || "Choose a server...";
-  if (isLoading) triggerLabel = "Loading servers...";
+  let triggerLabel = selectedServer?.name || t("toab_jitsi_choose_server");
+  if (isLoading) triggerLabel = t("toab_jitsi_loading_servers");
 
   return (
     <div className="flex w-full flex-col gap-4 text-sm">
       {locationEnabled === false && (
         <p role="alert" className="text-red-600">
-          Select “TOAB Jitsi Video” as this event type’s location to use this integration.
+          {t("toab_jitsi_location_alert")}
         </p>
       )}
       {error && (
@@ -87,7 +91,9 @@ export default function EventTypeAppSettingsInterface({
         </p>
       )}
       <div className="flex w-full flex-col gap-2">
-        <label className="font-medium text-default text-sm leading-none">Select Conference Server</label>
+        <label className="font-medium text-default text-sm leading-none">
+          {t("toab_jitsi_select_conference_server")}
+        </label>
         <Dropdown>
           <DropdownMenuTrigger asChild>
             <button

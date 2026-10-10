@@ -3,6 +3,7 @@ import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 // Next.js API route reference: https://nextjs.org/docs/pages/building-your-application/routing/api-routes
+/** Report whether TOAB Jitsi is selected as this event type’s location. */
 export default async function locationHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
 

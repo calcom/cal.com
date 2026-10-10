@@ -1,6 +1,6 @@
 # TOAB Jitsi for Cal.com
 
-Add TOAB Jitsi video meetings to Cal.com bookings using the organizer’s preferred conference server managed by [TOAB Moderator](https://toab_jitsi.com/).
+Add TOAB Jitsi video meetings to Cal.com bookings using the organizer’s preferred conference server managed by [TOAB Moderator](https://toab-jitsi.com/).
 
 ## Install and configure
 

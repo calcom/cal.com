@@ -1,13 +1,13 @@
-import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
-import { useEffect } from "react";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-
+import { useEffect } from "react";
+import { loadSetupConfiguration } from "../lib/setupConfiguration";
 import type { appDataSchema } from "../zod";
 import EventTypeAppSettingsInterface from "./EventTypeAppSettingsInterface";
-import { loadSetupConfiguration } from "../lib/setupConfiguration";
 
+/** Render the TOAB Jitsi app card and prefetch configuration while it is installed. */
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   app,
   eventType,
@@ -30,14 +30,14 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
         updateEnabled(e);
       }}
       switchChecked={enabled}
-      teamId={eventType.team?.id || undefined}
-    >
+      teamId={eventType.team?.id || undefined}>
       <EventTypeAppSettingsInterface
         disabled={disabled}
         eventType={eventType}
         slug={app.slug}
         getAppData={getAppData}
-        setAppData={setAppData} />
+        setAppData={setAppData}
+      />
     </AppCard>
   );
 };

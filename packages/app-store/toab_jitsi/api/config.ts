@@ -16,6 +16,7 @@ const moderatorServerSchema = z.array(
   })
 );
 
+/** Load the owner’s or first configured team host’s Moderator server choices. */
 export default async function configHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
 
@@ -31,7 +32,16 @@ export default async function configHandler(req: NextApiRequest, res: NextApiRes
 
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
-    select: { userId: true, teamId: true },
+    select: {
+      userId: true,
+      teamId: true,
+      owner: { select: { email: true } },
+      hosts: {
+        orderBy: [{ createdAt: "asc" }, { userId: "asc" }],
+        take: 1,
+        select: { user: { select: { email: true } } },
+      },
+    },
   });
   if (!eventType) return res.status(404).json({ message: "Event type not found" });
 
@@ -40,17 +50,19 @@ export default async function configHandler(req: NextApiRequest, res: NextApiRes
   } else if (eventType.userId !== sessionUserId) {
     return res.status(403).json({ message: "You cannot configure this event type" });
   }
-  if (!eventType.userId) return res.status(422).json({ message: "Event type has no organizer" });
+  let organizerEmail: string | undefined;
+  if (eventType.teamId) {
+    organizerEmail = eventType.hosts[0]?.user.email;
+  } else {
+    organizerEmail = eventType.owner?.email;
+  }
+  if (!organizerEmail) {
+    return res.status(404).json({ message: "Event organizer host has no email address" });
+  }
 
   try {
-    const organizer = await prisma.user.findUnique({
-      where: { id: eventType.userId },
-      select: { email: true },
-    });
-    if (!organizer?.email) return res.status(404).json({ message: "Event organizer has no email address" });
-
     const user = moderatorUserSchema.parse(
-      await moderatorRequest<unknown>(`/api/users/search?email=${encodeURIComponent(organizer.email)}`)
+      await moderatorRequest<unknown>(`/api/users/search?email=${encodeURIComponent(organizerEmail)}`)
     );
     const servers = moderatorServerSchema.parse(
       await moderatorRequest<unknown>(`/api/servers?userId=${user.id}`)

@@ -8,6 +8,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 const cachedConfigurations = new Map<number, { value: SetupConfiguration; expiresAt: number }>();
 const pendingRequests = new Map<number, Promise<SetupConfiguration>>();
 
+/** Load and cache server configuration for an event type for up to five minutes. */
 export function loadSetupConfiguration(eventTypeId: number): Promise<SetupConfiguration> {
   const cached = cachedConfigurations.get(eventTypeId);
   if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.value);
@@ -16,26 +17,26 @@ export function loadSetupConfiguration(eventTypeId: number): Promise<SetupConfig
   const pendingRequest = pendingRequests.get(eventTypeId);
   if (pendingRequest) return pendingRequest;
 
-  const request = fetch(`/api/integrations/toab_jitsi/config?eventTypeId=${eventTypeId}`).then(async (response) => {
-    if (!response.ok) throw new Error("Could not load TOAB Jitsi configuration");
-    return setupResponseSchema.parse(await response.json());
-  });
+  const request = fetch(`/api/integrations/toab_jitsi/config?eventTypeId=${eventTypeId}`).then(
+    async (response) => {
+      if (!response.ok) throw new Error("Could not load TOAB Jitsi configuration");
+      return setupResponseSchema.parse(await response.json());
+    }
+  );
 
   pendingRequests.set(eventTypeId, request);
   const clearPendingRequest = () => {
     if (pendingRequests.get(eventTypeId) === request) pendingRequests.delete(eventTypeId);
   };
-  void request.then(
-    (value) => {
-      cachedConfigurations.set(eventTypeId, { value, expiresAt: Date.now() + CACHE_TTL_MS });
-      clearPendingRequest();
-    },
-    clearPendingRequest
-  );
+  void request.then((value) => {
+    cachedConfigurations.set(eventTypeId, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+    clearPendingRequest();
+  }, clearPendingRequest);
 
   return request;
 }
 
+/** Fetch and validate whether TOAB Jitsi is enabled for an event type. */
 export async function loadLocationConfiguration(eventTypeId: number): Promise<LocationConfiguration> {
   const response = await fetch(`/api/integrations/toab_jitsi/location?eventTypeId=${eventTypeId}`);
   if (!response.ok) throw new Error("Could not check the TOAB Jitsi event type location");

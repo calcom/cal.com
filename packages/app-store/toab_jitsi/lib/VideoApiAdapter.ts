@@ -18,9 +18,12 @@ const conferenceResponseSchema = z.object({
   videoUri: z.string().url(),
 });
 
+/** Build the Cal.com video adapter that creates and cancels Moderator conferences. */
 const JitsiModeratorApiAdapter = (): VideoApiAdapter => ({
+  /** Return no precomputed availability; Cal.com handles slot discovery. */
   getAvailability: async () => [],
 
+  /** Create a Moderator conference for a Cal.com booking. */
   createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {
     if (!eventData.eventTypeId) throw new Error("TOAB Jitsi requires an event type");
     if (!eventData.uid) throw new Error("Cal.com did not provide a booking UID for TOAB Jitsi");
@@ -67,30 +70,32 @@ const JitsiModeratorApiAdapter = (): VideoApiAdapter => ({
     };
   },
 
+  /** Cancel the Moderator conference associated with a Cal.com booking UID. */
   deleteMeeting: async (bookingUid: string): Promise<void> => {
-      const booking = await prisma.booking.findUnique({
-        where: { uid: bookingUid },
-        select: { eventType: { select: { metadata: true } } },
-      });
-      if (!booking) throw new Error("Cal.com booking not found while cancelling TOAB Jitsi conference");
+    const booking = await prisma.booking.findUnique({
+      where: { uid: bookingUid },
+      select: { eventType: { select: { metadata: true } } },
+    });
+    if (!booking) throw new Error("Cal.com booking not found while cancelling TOAB Jitsi conference");
 
-      const eventTypeMetadata = booking.eventType?.metadata;
-      let appDataValue: Prisma.JsonValue | undefined;
-      if (eventTypeMetadata && typeof eventTypeMetadata === "object" && !Array.isArray(eventTypeMetadata)) {
-        const apps = (eventTypeMetadata as Prisma.JsonObject).apps;
-        if (apps && typeof apps === "object" && !Array.isArray(apps)) {
-          appDataValue = (apps as Prisma.JsonObject)[config.slug];
-        }
+    const eventTypeMetadata = booking.eventType?.metadata;
+    let appDataValue: Prisma.JsonValue | undefined;
+    if (eventTypeMetadata && typeof eventTypeMetadata === "object" && !Array.isArray(eventTypeMetadata)) {
+      const apps = (eventTypeMetadata as Prisma.JsonObject).apps;
+      if (apps && typeof apps === "object" && !Array.isArray(apps)) {
+        appDataValue = (apps as Prisma.JsonObject)[config.slug];
       }
-      const userId = appDataSchema.parse(appDataValue ?? {}).userId;
-      if (!userId) throw new Error("TOAB Jitsi organizer user ID is missing from event type settings");
+    }
+    const userId = appDataSchema.parse(appDataValue ?? {}).userId;
+    if (!userId) throw new Error("TOAB Jitsi organizer user ID is missing from event type settings");
 
-      await moderatorRequest<void>(
-        `/api/calcom/conferences/${encodeURIComponent(bookingUid)}?userId=${userId}`,
-        { method: "DELETE" }
-      )
+    await moderatorRequest<void>(
+      `/api/calcom/conferences/${encodeURIComponent(bookingUid)}?userId=${userId}`,
+      { method: "DELETE" }
+    );
   },
 
+  /** Rebuild video call data from the existing Cal.com meeting reference. */
   updateMeeting: async (bookingRef: PartialReference): Promise<VideoCallData> => ({
     type: config.type,
     id: bookingRef.meetingId as string,
