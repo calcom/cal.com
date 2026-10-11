@@ -11,7 +11,7 @@
 
 ```mermaid
 graph TD
-    Start([Khách gửi form]) --> RouteCreate[POST /api/book/event.ts]
+    Start([Khách gửi form]) --> RouteCreate[POST /api/book/event<br/>apps/web/pages/api/book/event.ts]
     RouteCreate --> Service[RegularBookingService.createBooking]
     Service --> Validation{"Kiểm tra event, người dùng,<br/>giới hạn và khả dụng"}
     Validation -->|Lỗi [Đọc từ code]| CreateError[Từ chối booking]
