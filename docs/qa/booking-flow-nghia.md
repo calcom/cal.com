@@ -35,6 +35,17 @@ graph TD
 
 Booking status là enum trong [`packages/prisma/schema.prisma`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/prisma/schema.prisma): `CANCELLED`, `ACCEPTED`, `REJECTED`, `PENDING`, `AWAITING_HOST`. Khi đổi lịch, booking cũ có `status = CANCELLED` và `rescheduled = true`; booking mới lưu UID booking cũ trong `fromReschedule`.
 
+### Models liên quan
+
+Các model dưới đây được khai báo trong [`packages/prisma/schema.prisma`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/prisma/schema.prisma).
+
+| Luồng | Model | Dữ liệu liên quan |
+|---|---|---|
+| Đặt | `Booking` | `uid`, thời gian, `status`, `eventTypeId`, `userId`; booking có nhiều `Attendee`. |
+| Đặt | `Attendee`, `EventType`, `User` | Attendee gắn với booking; EventType chứa cấu hình lịch/giới hạn; User là organizer/owner hoặc host. |
+| Đổi | `Booking`, `EventType`, `User` | Booking cũ và mới; `rescheduled`, `fromReschedule`; EventType cung cấp `minimumRescheduleNotice`; User được dùng để xác định organizer. |
+| Hủy | `Booking`, `EventType`, `User`, `BookingSeat` | Booking lưu `status`, `cancellationReason`, `cancelledBy`; EventType cấu hình `disableCancelling` và `requiresCancellationReason`; User được kiểm tra vai trò host/owner; BookingSeat liên quan booking có chỗ ngồi. |
+
 ## 2. Đường dẫn và hành vi theo luồng
 
 Các link mã nguồn dưới đây đều trỏ tới SHA `a43ab82`.
@@ -45,7 +56,8 @@ Các link mã nguồn dưới đây đều trỏ tới SHA `a43ab82`.
 
 | Hàm/file | Điều kiện kích hoạt | Kết quả trong code |
 |---|---|---|
-| `RegularBookingService.createBooking` → `checkBookingAndDurationLimits` trong [`checkBookingAndDurationLimits.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits.ts) | Event type có booking limit/duration limit và booking vượt giới hạn được cấu hình. | Hàm kiểm tra ném lỗi giới hạn; kết quả HTTP được quyết định ở lớp xử lý lỗi phía trên. **[Đọc từ code]** |
+| `checkBookingAndDurationLimits` → `checkBookingLimits` trong [`checkBookingLimits.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/checkBookingLimits.ts) | Booking vượt số booking tối đa trong khoảng giới hạn cấu hình. | HTTP `403`, thông báo `booking_limit_reached`. **[Đọc từ code]** |
+| `checkBookingAndDurationLimits` → `checkDurationLimits` trong [`checkDurationLimits.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/checkDurationLimits.ts) | Tổng thời lượng booking trong khoảng cấu hình đã chạm/vượt giới hạn. | HTTP `403`, thông báo `duration_limit_reached`. **[Đọc từ code]** |
 | `RegularBookingService.createBooking` → `ensureAvailableUsers` trong [`ensureAvailableUsers.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleNewBooking/ensureAvailableUsers.ts) | Không có user khả dụng trong thời gian được yêu cầu (ví dụ ngoài giờ khả dụng hoặc xung đột busy time). | Ném `ErrorCode.NoAvailableUsersFound`; không gán HTTP status tại hàm này. **[Đọc từ code]** |
 | `checkIfBookerEmailIsBlocked` trong [`checkIfBookerEmailIsBlocked.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleNewBooking/checkIfBookerEmailIsBlocked.ts) | Email khách sau khi chuẩn hóa nằm trong `BLACKLISTED_GUEST_EMAILS` (hoặc user yêu cầu xác minh email khi không phải reschedule). | Ném `BookerEmailBlocked`, `BookerEmailRequiresLogin`, hoặc lỗi xác minh tương ứng tùy user/verification code; không gán HTTP status tại hàm này. **[Đọc từ code]** |
 | `RegularBookingService` khi ghi booking, [`RegularBookingService.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/service/RegularBookingService.ts) | Prisma báo lỗi unique constraint `P2002`. | HTTP `409`, mã `BookingConflict`. **[Đọc từ code]** |
