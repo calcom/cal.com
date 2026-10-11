@@ -33,7 +33,7 @@ graph TD
     DB_Cancel --> CancelState["Hủy booking B: CANCELLED,<br/>có cancellationReason<br/>[Đã chạy thử theo tài liệu Issue 01]"]
 ```
 
-Booking status là enum trong [`packages/prisma/schema.prisma`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/prisma/schema.prisma): `CANCELLED`, `ACCEPTED`, `REJECTED`, `PENDING`, `AWAITING_HOST`. `RESCHEDULED` không phải giá trị status. Khi đổi lịch, booking cũ có `status = CANCELLED` và `rescheduled = true`; booking mới lưu UID booking cũ trong `fromReschedule`.
+Booking status là enum trong [`packages/prisma/schema.prisma`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/prisma/schema.prisma): `CANCELLED`, `ACCEPTED`, `REJECTED`, `PENDING`, `AWAITING_HOST`. Khi đổi lịch, booking cũ có `status = CANCELLED` và `rescheduled = true`; booking mới lưu UID booking cũ trong `fromReschedule`.
 
 ## 2. Đường dẫn và hành vi theo luồng
 
@@ -61,7 +61,7 @@ Request đổi lịch đi cùng luồng tạo booking, nhưng có `rescheduleUid
 | `validateRescheduleRestrictions` trong [`RegularBookingService.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/service/RegularBookingService.ts) | Request có `rescheduleUid`, có `minimumRescheduleNotice`, người gửi **không phải organizer**, và booking nằm trong khoảng cấm đổi sát giờ. | HTTP `403`, thông báo `Rescheduling is not allowed within the minimum notice period before the event`. Organizer được loại khỏi kiểm tra này. **[Đọc từ code]** |
 | `ensureAvailableUsers` trong [`ensureAvailableUsers.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleNewBooking/ensureAvailableUsers.ts) | Không có user khả dụng cho giờ mới. | Ném `NoAvailableUsersFound`; không gán HTTP status tại hàm này. **[Đọc từ code]** |
 | `RegularBookingService` khi ghi booking, [`RegularBookingService.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/service/RegularBookingService.ts) | Ghi booking mới gặp Prisma `P2002`. | HTTP `409`, mã `BookingConflict`. **[Đọc từ code]** |
-| `RegularBookingService` + `createBooking.ts` | Đổi lịch thành công. | Booking cũ có `status = CANCELLED` và `rescheduled = true`; booking mới có `fromReschedule = uid` của booking cũ. `RESCHEDULED` không phải enum status. **[Đọc từ code]** |
+| `RegularBookingService` + `createBooking.ts` | Đổi lịch thành công. | Booking cũ có `status = CANCELLED` và `rescheduled = true`; booking mới có `fromReschedule = uid` của booking cũ. **[Đọc từ code]** |
 | Luồng booking A → B trong Issue 01 | Đổi lịch booking A sang B. | B có `fromReschedule = uid A`; A có `rescheduled = true` và status `CANCELLED`. **[Đã chạy thử]** — nguồn: tài liệu Issue 01. |
 
 ### 2.3. Hủy lịch
