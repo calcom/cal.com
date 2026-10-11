@@ -3,6 +3,9 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { jwtVerify, SignJWT } from "jose";
 
 export const signJwt = async (payload: { email: string }): Promise<string> => {
+  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+    throw new Error("Missing CALENDSO_ENCRYPTION_KEY environment variable");
+  }
   const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
@@ -15,6 +18,9 @@ export const signJwt = async (payload: { email: string }): Promise<string> => {
 };
 
 export const verifyTotpJwt = async (jwt: string): Promise<Awaited<ReturnType<typeof jwtVerify>>> => {
+  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+    throw new Error("Missing CALENDSO_ENCRYPTION_KEY environment variable");
+  }
   const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
   return jwtVerify(jwt, secret, {
     issuer: WEBSITE_URL,

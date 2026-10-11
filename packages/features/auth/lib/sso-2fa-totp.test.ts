@@ -471,4 +471,18 @@ describe("authorizeCredentials: SSO 2FA TOTP and Password Authentication", () =>
 
     expect(totpAuthenticatorCheck).not.toHaveBeenCalled();
   });
+
+  it("Test 12: signJwt and verifyTotpJwt throw error when CALENDSO_ENCRYPTION_KEY is missing", async () => {
+    delete process.env.CALENDSO_ENCRYPTION_KEY;
+
+    const { signJwt, verifyTotpJwt } = await import("./signJwt");
+
+    await expect(signJwt({ email: "user@example.com" })).rejects.toThrow(
+      "Missing CALENDSO_ENCRYPTION_KEY environment variable"
+    );
+
+    await expect(verifyTotpJwt("some.dummy.jwt")).rejects.toThrow(
+      "Missing CALENDSO_ENCRYPTION_KEY environment variable"
+    );
+  });
 });
