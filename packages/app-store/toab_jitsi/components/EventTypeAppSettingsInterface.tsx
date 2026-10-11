@@ -1,4 +1,6 @@
 import type { EventTypeAppSettingsComponentProps } from "@calcom/app-store/types";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Dropdown,
@@ -64,10 +66,7 @@ export default function EventTypeAppSettingsInterface({
       } catch (loadError) {
         if (isCurrent) {
           let message = t("toab_jitsi_config_load_error");
-          if (
-            loadError instanceof Error &&
-            loadError.message === "Could not check the TOAB Jitsi event type location"
-          ) {
+          if (loadError instanceof ErrorWithCode && loadError.code === ErrorCode.InternalServerError) {
             message = t("toab_jitsi_location_check_error");
           }
           setError(message);
