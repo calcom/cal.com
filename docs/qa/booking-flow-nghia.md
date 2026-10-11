@@ -14,22 +14,22 @@ graph TD
     Start([Khách gửi form]) --> RouteCreate[POST /api/book/event<br/>apps/web/pages/api/book/event.ts]
     RouteCreate --> Service[RegularBookingService.createBooking]
     Service --> Validation{"Kiểm tra event, người dùng,<br/>giới hạn và khả dụng"}
-    Validation -->|Lỗi [Đọc từ code]| CreateError[Từ chối booking]
-    Validation -->|Hợp lệ [Đọc từ code]| Create[handleNewBooking/createBooking.ts]
+    Validation -->|Lỗi| CreateError[Từ chối booking]
+    Validation -->|Hợp lệ| Create[handleNewBooking/createBooking.ts]
     Create --> NewBooking[(Booking mới)]
     NewBooking --> CreatedState["Trạng thái ban đầu phụ thuộc cấu hình<br/>[Đọc từ code; chưa kiểm chứng bằng Issue 01]"]
 
     CreatedState --> RescheduleRequest[Request có rescheduleUid]
     RescheduleRequest --> RescheduleValidation["RegularBookingService<br/>kiểm tra reschedule và khả dụng"]
-    RescheduleValidation -->|Lỗi [Đọc từ code]| RescheduleError[Từ chối đổi lịch]
-    RescheduleValidation -->|Hợp lệ [Đọc từ code]| DB_Reschedule[(Cập nhật booking cũ và tạo booking mới)]
+    RescheduleValidation -->|Lỗi| RescheduleError[Từ chối đổi lịch]
+    RescheduleValidation -->|Hợp lệ| DB_Reschedule[(Cập nhật booking cũ và tạo booking mới)]
     DB_Reschedule --> RescheduleState["Booking cũ: status = CANCELLED,<br/>rescheduled = true; booking mới: fromReschedule = uid cũ<br/>[Đã chạy thử theo tài liệu Issue 01]"]
 
     RescheduleState --> CancelRequest[Request hủy booking B]
     CancelRequest --> CancelRoute[apps/web/app/api/cancel/route.ts]
     CancelRoute --> CancelHandler[handleCancelBooking.ts]
-    CancelHandler -->|Lỗi [Đọc từ code]| CancelError[Từ chối hủy]
-    CancelHandler -->|Hợp lệ [Đọc từ code]| DB_Cancel[(Booking status = CANCELLED, lưu cancellationReason)]
+    CancelHandler -->|Lỗi| CancelError[Từ chối hủy]
+    CancelHandler -->|Hợp lệ| DB_Cancel[(Booking status = CANCELLED, lưu cancellationReason)]
     DB_Cancel --> CancelState["Hủy booking B: CANCELLED,<br/>có cancellationReason<br/>[Đã chạy thử theo tài liệu Issue 01]"]
 ```
 
