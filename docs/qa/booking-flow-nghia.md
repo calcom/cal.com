@@ -25,7 +25,7 @@ graph TD
     RescheduleValidation -->|Hợp lệ [Đọc từ code]| DB_Reschedule[(Cập nhật booking cũ và tạo booking mới)]
     DB_Reschedule --> RescheduleState["Booking cũ: status = CANCELLED,<br/>rescheduled = true; booking mới: fromReschedule = uid cũ<br/>[Đã chạy thử theo tài liệu Issue 01]"]
 
-    CreatedState --> CancelRequest[Request hủy booking]
+    RescheduleState --> CancelRequest[Request hủy booking B]
     CancelRequest --> CancelRoute[apps/web/app/api/cancel/route.ts]
     CancelRoute --> CancelHandler[handleCancelBooking.ts]
     CancelHandler -->|Lỗi [Đọc từ code]| CancelError[Từ chối hủy]
