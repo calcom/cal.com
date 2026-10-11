@@ -15,10 +15,10 @@ graph TD
     Start([Khách hàng Submit Form]) --> API_Create(API: Create Booking)
     
     %% Create Flow
-    API_Create --> CheckCreate{Kiểm tra điều kiện <br> [Đọc từ code]}
+    API_Create --> CheckCreate{Kiểm tra điều kiện <br> (Đọc từ code)}
     CheckCreate -->|Lỗi: Trùng giờ, Spam, <br> Email bị Blacklist| RejectCreate[Từ chối: Throw Error]
     CheckCreate -->|Hợp lệ| DB_Create[(Database: Bảng Booking)]
-    DB_Create -->|Tạo mới: status = PENDING/ACCEPTED <br> [Đã chạy thử]| WebhookEmail([Kích hoạt Webhook / Gửi Email])
+    DB_Create -->|Tạo mới: status = PENDING/ACCEPTED <br> (Đã chạy thử)| WebhookEmail([Kích hoạt Webhook / Gửi Email])
     
     %% Phân nhánh sau khi tạo
     WebhookEmail --> Action_Reschedule(Khách hàng Yêu cầu Đổi lịch)
@@ -26,17 +26,17 @@ graph TD
     
     %% Reschedule Flow
     Action_Reschedule --> API_Reschedule(API: rescheduleBooking)
-    API_Reschedule --> CheckReschedule{Kiểm tra điều kiện <br> [Đọc từ code]}
+    API_Reschedule --> CheckReschedule{Kiểm tra điều kiện <br> (Đọc từ code)}
     CheckReschedule -->|Lỗi: Vi phạm minimumRescheduleNotice, <br> Kín slot| RejectReschedule[Từ chối: Throw Error]
     CheckReschedule -->|Hợp lệ| DB_Reschedule[(Database: Bảng Booking)]
-    DB_Reschedule -->|Cập nhật record cũ: status = RESCHEDULED, rescheduled = true <br> Tạo record mới: fromReschedule = uid cũ <br> [Đã chạy thử]| SuccessReschedule([Hoàn tất Đổi lịch])
+    DB_Reschedule -->|Cập nhật record cũ: status = RESCHEDULED, rescheduled = true <br> Tạo record mới: fromReschedule = uid cũ <br> (Đã chạy thử)| SuccessReschedule([Hoàn tất Đổi lịch])
     
     %% Cancel Flow
     Action_Cancel --> API_Cancel(API: cancelBooking)
-    API_Cancel --> CheckCancel{Kiểm tra quyền & Trạng thái <br> [Đọc từ code]}
+    API_Cancel --> CheckCancel{Kiểm tra quyền & Trạng thái <br> (Đọc từ code)}
     CheckCancel -->|Lỗi: Đã hủy trước đó, <br> Thiếu thẩm quyền| RejectCancel[Từ chối: Throw Error]
     CheckCancel -->|Hợp lệ| DB_Cancel[(Database: Bảng Booking)]
-    DB_Cancel -->|Cập nhật: status = CANCELLED <br> Lưu: cancellationReason & cancelledBy <br> [Đã chạy thử]| SuccessCancel([Hoàn tất Hủy lịch])
+    DB_Cancel -->|Cập nhật: status = CANCELLED <br> Lưu: cancellationReason & cancelledBy <br> (Đã chạy thử)| SuccessCancel([Hoàn tất Hủy lịch])
 ```
 
 ---
