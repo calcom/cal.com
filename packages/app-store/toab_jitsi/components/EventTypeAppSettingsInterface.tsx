@@ -11,6 +11,11 @@ import type { ReactElement } from "react";
 import { useEffect, useRef, useState } from "react";
 import { loadLocationConfiguration, loadSetupConfiguration } from "../lib/setupConfiguration";
 
+const SERVER_TYPE_TRANSLATION_KEYS = {
+  CUSTOM: "toab_jitsi_custom_server",
+  DEFAULT: "toab_jitsi_default_server",
+} as const;
+
 type Server = {
   id: number;
   name: string;
@@ -18,7 +23,6 @@ type Server = {
   serverType: "CUSTOM" | "DEFAULT";
 };
 
-/** Render server selection and location/configuration feedback for an event type. */
 export default function EventTypeAppSettingsInterface({
   disabled,
   eventType,
@@ -38,7 +42,6 @@ export default function EventTypeAppSettingsInterface({
 
   useEffect(() => {
     let isCurrent = true;
-    /** Load server and location settings, then keep the component state in sync. */
     async function loadConfiguration(): Promise<void> {
       setIsLoading(true);
       setError(undefined);
@@ -61,7 +64,12 @@ export default function EventTypeAppSettingsInterface({
       } catch (loadError) {
         if (isCurrent) {
           let message = t("toab_jitsi_config_load_error");
-          if (loadError instanceof Error) message = loadError.message;
+          if (
+            loadError instanceof Error &&
+            loadError.message === "Could not check the TOAB Jitsi event type location"
+          ) {
+            message = t("toab_jitsi_location_check_error");
+          }
           setError(message);
         }
       } finally {
@@ -119,7 +127,7 @@ export default function EventTypeAppSettingsInterface({
                   setAppData("serverUrl", server.serverUrl);
                 }}>
                 <DropdownItem className="w-full">
-                  {server.name} ({server.serverType.toLowerCase()})
+                  {server.name} ({t(SERVER_TYPE_TRANSLATION_KEYS[server.serverType])})
                 </DropdownItem>
               </DropdownMenuItem>
             ))}
