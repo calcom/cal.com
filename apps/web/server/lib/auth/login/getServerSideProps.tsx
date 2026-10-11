@@ -6,6 +6,15 @@ import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 
+/**
+ * Server-side props handler for the login page.
+ *
+ * Verifies any active session, validates incoming SSO TOTP query tokens,
+ * and fetches CSRF and OAuth provider configuration.
+ *
+ * @param context - Next.js server-side props execution context.
+ * @returns Props object or redirect instructions for the LoginView component.
+ */
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, query } = context;
 

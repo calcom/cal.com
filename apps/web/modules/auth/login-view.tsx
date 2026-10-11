@@ -99,6 +99,10 @@ function BackgroundGrid() {
   );
 }
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
+/**
+ * Login view component rendering primary credential inputs, social login options,
+ * and conditional two-factor authentication / backup code verification prompts.
+ */
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,

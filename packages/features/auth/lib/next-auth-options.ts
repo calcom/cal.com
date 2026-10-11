@@ -146,8 +146,11 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
 };
 
 /**
- * Authorize function for credentials provider
- * Extracted for testability
+ * Authorize function for credentials provider handling email/password and SSO 2FA verification.
+ * Extracted for testability.
+ *
+ * @param credentials - User credentials including email, password, totpCode, backupCode, and totpToken.
+ * @returns Authenticated user object or throws an ErrorCode.
  */
 export async function authorizeCredentials(
   credentials: Record<"email" | "password" | "totpCode" | "backupCode" | "totpToken", string> | undefined
