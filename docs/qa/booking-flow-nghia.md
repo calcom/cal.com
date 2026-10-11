@@ -1,74 +1,84 @@
-# Tài liệu khảo sát: Luồng Đặt - Đổi - Hủy Booking (Model-Based)
+# Tài liệu khảo sát: Luồng đặt, đổi và hủy booking (Model-Based)
 
 **Người phụ trách:** Nguyễn Hoàng Hiếu Nghĩa (@2212426-create)
 **Nhánh khảo sát:** `qa/model-based-booking`
-**Mã SHA khảo sát:** `a43ab82`
-**Tài liệu liên kết:** [Tài liệu Issue 01](https://github.com/BoyTay/cal.diy/blob/main/docs/qa/issue-01.md)
+**SHA dùng để đối chiếu mã nguồn:** [`a43ab82`](https://github.com/BoyTay/cal.diy/tree/a43ab82)
+**Tài liệu bằng chứng:** [Issue 01 – Booking onboarding architecture](https://github.com/BoyTay/cal.diy/blob/qa/model-based-booking/docs/qa/issue-01-booking-onboarding-architecture.md)
 
----
+> `[Đọc từ code]` nghĩa là điều kiện/kết quả được xác định bằng cách đọc mã nguồn tại SHA `a43ab82`. `[Đã chạy thử]` chỉ dùng cho kết quả Issue 01 ghi nhận từ lần chạy thực tế; nguồn được nêu ngay cạnh kết quả.
 
-## 1. Sơ đồ luồng dữ liệu (Data Flow)
-*Ghi chú: Các nhánh điều kiện [Đọc từ code] được phân tích từ mã nguồn; các trạng thái cập nhật [Đã chạy thử] đã được kiểm chứng hành vi thực tế qua localhost:3000.*
+## 1. Sơ đồ luồng
 
 ```mermaid
 graph TD
-    Start([Khách hàng Submit Form]) --> API_Create(API: Create Booking)
-    
-    %% Create Flow
-    API_Create --> CheckCreate{"Kiểm tra điều kiện <br> [Đọc từ code]"}
-    CheckCreate -->|"Lỗi: Trùng giờ, Spam, <br> Email bị Blacklist"| RejectCreate["Từ chối: Throw Error"]
-    CheckCreate -->|Hợp lệ| DB_Create[(Database: Bảng Booking)]
-    DB_Create -->|"Tạo mới: status = PENDING/ACCEPTED <br> [Đã chạy thử]"| WebhookEmail([Kích hoạt Webhook / Gửi Email])
-    
-    %% Phân nhánh sau khi tạo
-    WebhookEmail --> Action_Reschedule(Khách hàng Yêu cầu Đổi lịch)
-    WebhookEmail --> Action_Cancel(Khách hàng Yêu cầu Hủy)
-    
-    %% Reschedule Flow
-    Action_Reschedule --> API_Reschedule(API: rescheduleBooking)
-    API_Reschedule --> CheckReschedule{"Kiểm tra điều kiện <br> [Đọc từ code]"}
-    CheckReschedule -->|"Lỗi: Vi phạm minimumRescheduleNotice, <br> Kín slot"| RejectReschedule["Từ chối: Throw Error"]
-    CheckReschedule -->|Hợp lệ| DB_Reschedule[(Database: Bảng Booking)]
-    DB_Reschedule -->|"Cập nhật record cũ: status = RESCHEDULED, rescheduled = true <br> Tạo record mới: fromReschedule = uid cũ <br> [Đã chạy thử]"| SuccessReschedule([Hoàn tất Đổi lịch])
-    
-    %% Cancel Flow
-    Action_Cancel --> API_Cancel(API: cancelBooking)
-    API_Cancel --> CheckCancel{"Kiểm tra quyền & Trạng thái <br> [Đọc từ code]"}
-    CheckCancel -->|"Lỗi: Đã hủy trước đó, <br> Thiếu thẩm quyền"| RejectCancel["Từ chối: Throw Error"]
-    CheckCancel -->|Hợp lệ| DB_Cancel[(Database: Bảng Booking)]
-    DB_Cancel -->|"Cập nhật: status = CANCELLED <br> Lưu: cancellationReason & cancelledBy <br> [Đã chạy thử]"| SuccessCancel([Hoàn tất Hủy lịch])
+    Start([Khách gửi form]) --> RouteCreate[POST /api/book/event.ts]
+    RouteCreate --> Service[RegularBookingService.createBooking]
+    Service --> Validation{"Kiểm tra event, người dùng,<br/>giới hạn và khả dụng"}
+    Validation -->|Lỗi [Đọc từ code]| CreateError[Từ chối booking]
+    Validation -->|Hợp lệ [Đọc từ code]| Create[handleNewBooking/createBooking.ts]
+    Create --> NewBooking[(Booking mới)]
+    NewBooking --> CreatedState["Trạng thái ban đầu phụ thuộc cấu hình<br/>[Đọc từ code; chưa kiểm chứng bằng Issue 01]"]
+
+    CreatedState --> RescheduleRequest[Request có rescheduleUid]
+    RescheduleRequest --> RescheduleValidation["RegularBookingService<br/>kiểm tra reschedule và khả dụng"]
+    RescheduleValidation -->|Lỗi [Đọc từ code]| RescheduleError[Từ chối đổi lịch]
+    RescheduleValidation -->|Hợp lệ [Đọc từ code]| DB_Reschedule[(Cập nhật booking cũ và tạo booking mới)]
+    DB_Reschedule --> RescheduleState["Booking cũ: status = CANCELLED,<br/>rescheduled = true; booking mới: fromReschedule = uid cũ<br/>[Đã chạy thử theo tài liệu Issue 01]"]
+
+    CreatedState --> CancelRequest[Request hủy booking]
+    CancelRequest --> CancelRoute[apps/web/app/api/cancel/route.ts]
+    CancelRoute --> CancelHandler[handleCancelBooking.ts]
+    CancelHandler -->|Lỗi [Đọc từ code]| CancelError[Từ chối hủy]
+    CancelHandler -->|Hợp lệ [Đọc từ code]| DB_Cancel[(Booking status = CANCELLED, lưu cancellationReason)]
+    DB_Cancel --> CancelState["Hủy booking B: CANCELLED,<br/>có cancellationReason<br/>[Đã chạy thử theo tài liệu Issue 01]"]
 ```
 
----
+Booking status là enum trong [`packages/prisma/schema.prisma`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/prisma/schema.prisma): `CANCELLED`, `ACCEPTED`, `REJECTED`, `PENDING`, `AWAITING_HOST`. `RESCHEDULED` không phải giá trị status. Khi đổi lịch, booking cũ có `status = CANCELLED` và `rescheduled = true`; booking mới lưu UID booking cũ trong `fromReschedule`.
 
-## 2. Chi tiết Module, Route và Models Dữ liệu
+## 2. Đường dẫn và hành vi theo luồng
 
-### 2.1. Luồng Đặt (Create Booking)
-- **Module / Route xử lý:** `addBookingHandler`
-- **Đường dẫn mã nguồn:** [`packages/trpc/server/routers/viewer/bookings/addBooking.handler.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/trpc/server/routers/viewer/bookings/addBooking.handler.ts)
-- **Models dữ liệu liên quan:**
-  - `Booking`: Lưu bản ghi lõi (uid, startTime, endTime, status).
-  - `Attendee`: Bảng liên kết khách tham dự.
-- **Điều kiện từ chối/lỗi (Validation trong code):** 
-  - Trùng lặp/Xung đột thời gian với sự kiện đã có.
-  - Khách hàng sử dụng email nằm trong mảng `BLACKLISTED_GUEST_EMAILS`.
-  - Vi phạm giới hạn đặt lịch của Host (Booking limits).
+Các link mã nguồn dưới đây đều trỏ tới SHA `a43ab82`.
 
-### 2.2. Luồng Đổi (Reschedule Booking)
-- **Module / Route xử lý:** API xử lý reschedule thông qua `handleReschedule`.
-- **Đường dẫn mã nguồn:** [`packages/features/bookings/lib/handleReschedule.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleReschedule.ts)
-- **Models dữ liệu liên quan:**
-  - `Booking` (Cũ): Cập nhật `status = RESCHEDULED` và `rescheduled = true`.
-  - `Booking` (Mới): Khởi tạo mới, trường `fromReschedule` lưu UID của booking cũ.
-- **Điều kiện từ chối/lỗi (Validation trong code):** 
-  - Vi phạm thời gian thông báo tối thiểu (`minimumRescheduleNotice` trong event type).
-  - Khung giờ yêu cầu chuyển đến không khả dụng (busy).
+### 2.1. Đặt lịch
 
-### 2.3. Luồng Hủy (Cancel Booking)
-- **Module / Route xử lý:** API hủy booking `handleCancelBooking`.
-- **Đường dẫn mã nguồn:** [`packages/features/bookings/lib/handleCancelBooking.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleCancelBooking.ts)
-- **Models dữ liệu liên quan:**
-  - `Booking`: Cập nhật `status = CANCELLED`, lưu lý do vào `cancellationReason` và `cancelledBy`.
-- **Điều kiện từ chối/lỗi (Validation trong code):** 
-  - Lỗi `BOOKING_ALREADY_CANCELLED`: Bản ghi đã bị hủy từ trước.
-  - Lỗi phân quyền: Khách thao tác không có thẩm quyền trên UID này.
+**Luồng chính:** [`apps/web/pages/api/book/event.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/apps/web/pages/api/book/event.ts) → [`RegularBookingService.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/service/RegularBookingService.ts) → [`createBooking.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleNewBooking/createBooking.ts).
+
+| Hàm/file | Điều kiện kích hoạt | Kết quả trong code |
+|---|---|---|
+| `RegularBookingService.createBooking` → `checkBookingAndDurationLimits` trong [`checkBookingAndDurationLimits.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits.ts) | Event type có booking limit/duration limit và booking vượt giới hạn được cấu hình. | Hàm kiểm tra ném lỗi giới hạn; kết quả HTTP được quyết định ở lớp xử lý lỗi phía trên. **[Đọc từ code]** |
+| `RegularBookingService.createBooking` → `ensureAvailableUsers` trong [`ensureAvailableUsers.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleNewBooking/ensureAvailableUsers.ts) | Không có user khả dụng trong thời gian được yêu cầu (ví dụ ngoài giờ khả dụng hoặc xung đột busy time). | Ném `ErrorCode.NoAvailableUsersFound`; không gán HTTP status tại hàm này. **[Đọc từ code]** |
+| `checkIfBookerEmailIsBlocked` trong [`checkIfBookerEmailIsBlocked.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleNewBooking/checkIfBookerEmailIsBlocked.ts) | Email khách sau khi chuẩn hóa nằm trong `BLACKLISTED_GUEST_EMAILS` (hoặc user yêu cầu xác minh email khi không phải reschedule). | Ném `BookerEmailBlocked`, `BookerEmailRequiresLogin`, hoặc lỗi xác minh tương ứng tùy user/verification code; không gán HTTP status tại hàm này. **[Đọc từ code]** |
+| `RegularBookingService` khi ghi booking, [`RegularBookingService.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/service/RegularBookingService.ts) | Prisma báo lỗi unique constraint `P2002`. | HTTP `409`, mã `BookingConflict`. **[Đọc từ code]** |
+| `createBooking` trong [`createBooking.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleNewBooking/createBooking.ts) | Tất cả kiểm tra cho phép tạo booking. | Tạo bản ghi booking; trạng thái ban đầu phụ thuộc cấu hình xác nhận. Issue 01 không truy vấn DB để xác nhận trạng thái ngay sau khi đặt. **[Đọc từ code]** |
+| Luồng đặt trong Issue 01 | Đặt booking A; tài liệu Issue 01 ghi nhận booking đã được tạo. | Booking A được tạo. **[Đã chạy thử]** — nguồn: tài liệu Issue 01. |
+
+### 2.2. Đổi lịch
+
+Request đổi lịch đi cùng luồng tạo booking, nhưng có `rescheduleUid`. [`RegularBookingService.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/service/RegularBookingService.ts) tìm booking gốc qua `getOriginalRescheduledBooking`; `createBooking.ts` tạo booking mới và đặt `fromReschedule` bằng UID booking gốc.
+
+| Hàm/file | Điều kiện kích hoạt | Kết quả trong code |
+|---|---|---|
+| `validateRescheduleRestrictions` trong [`RegularBookingService.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/service/RegularBookingService.ts) | Request có `rescheduleUid`, có `minimumRescheduleNotice`, người gửi **không phải organizer**, và booking nằm trong khoảng cấm đổi sát giờ. | HTTP `403`, thông báo `Rescheduling is not allowed within the minimum notice period before the event`. Organizer được loại khỏi kiểm tra này. **[Đọc từ code]** |
+| `ensureAvailableUsers` trong [`ensureAvailableUsers.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleNewBooking/ensureAvailableUsers.ts) | Không có user khả dụng cho giờ mới. | Ném `NoAvailableUsersFound`; không gán HTTP status tại hàm này. **[Đọc từ code]** |
+| `RegularBookingService` khi ghi booking, [`RegularBookingService.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/service/RegularBookingService.ts) | Ghi booking mới gặp Prisma `P2002`. | HTTP `409`, mã `BookingConflict`. **[Đọc từ code]** |
+| `RegularBookingService` + `createBooking.ts` | Đổi lịch thành công. | Booking cũ có `status = CANCELLED` và `rescheduled = true`; booking mới có `fromReschedule = uid` của booking cũ. `RESCHEDULED` không phải enum status. **[Đọc từ code]** |
+| Luồng booking A → B trong Issue 01 | Đổi lịch booking A sang B. | B có `fromReschedule = uid A`; A có `rescheduled = true` và status `CANCELLED`. **[Đã chạy thử]** — nguồn: tài liệu Issue 01. |
+
+### 2.3. Hủy lịch
+
+Route: [`apps/web/app/api/cancel/route.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/apps/web/app/api/cancel/route.ts). Route gọi [`handleCancelBooking.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleCancelBooking.ts).
+
+| Hàm/file | Điều kiện kích hoạt | Kết quả trong code |
+|---|---|---|
+| `handleCancelBooking` trong [`handleCancelBooking.ts`](https://github.com/BoyTay/cal.diy/blob/a43ab82/packages/features/bookings/lib/handleCancelBooking.ts) | Booking đã có `status = CANCELLED`. | HTTP `400`, thông báo chính xác: `This booking has already been cancelled.` **[Đọc từ code]** |
+| `handleCancelBooking` | Booking không có `userId` hoặc user liên kết không tồn tại. | HTTP `400`, thông báo `User not found`. **[Đọc từ code]** |
+| `handleCancelBooking` | Event type đặt `disableCancelling = true`. | HTTP `400`, thông báo `This event type does not allow cancellations`. **[Đọc từ code]** |
+| `handleCancelBooking` | Lý do bị bỏ trống/blank, quy tắc `requiresCancellationReason` yêu cầu lý do cho caller, và không thuộc trường hợp platform/bỏ qua validation. | HTTP `400`, thông báo `Cancellation reason is required`. **[Đọc từ code]** |
+| `handleCancelBooking` | `endTime` của booking đã qua. | HTTP `400`, thông báo `Cannot cancel a booking that has already ended`. **[Đọc từ code]** |
+| `handleCancelBooking` | Booking có `seatsPerTimeSlot`, request không có `seatReferenceUid`, và user không phải host hoặc owner event type. | HTTP `401`, thông báo `User not a host of this event`. **[Đọc từ code]** |
+| `handleCancelBooking` | Các kiểm tra hủy đều hợp lệ. | Hủy booking, cập nhật `status = CANCELLED`, lưu lý do hủy nếu có. **[Đọc từ code]** |
+| Luồng hủy booking B trong Issue 01 | Hủy booking B sau khi đổi lịch. | B có status `CANCELLED` và `cancellationReason`. **[Đã chạy thử]** — nguồn: tài liệu Issue 01. |
+
+## 3. Kết quả Issue 01 dùng làm bằng chứng chạy thử
+
+Tài liệu [Issue 01](https://github.com/BoyTay/cal.diy/blob/qa/model-based-booking/docs/qa/issue-01-booking-onboarding-architecture.md) ghi nhận ba kết quả: đặt A; đổi A → B (B có `fromReschedule = uid A`, A có `rescheduled = true` và status `CANCELLED`); hủy B (status `CANCELLED`, có `cancellationReason`). Tài liệu đó không truy vấn database để xác nhận trạng thái ban đầu của A, vì vậy trạng thái ngay sau khi đặt được đánh dấu `[Đọc từ code]`, không phải `[Đã chạy thử]`.
