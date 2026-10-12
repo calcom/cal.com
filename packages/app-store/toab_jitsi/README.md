@@ -2,6 +2,10 @@
 
 Add TOAB Jitsi video meetings to Cal.com bookings using the organizer’s preferred conference server managed by [TOAB Moderator](https://toab-jitsi.com/).
 
+## Permissions and data access
+
+See [PERMISSIONS.md](./PERMISSIONS.md) for what the app reads, changes and sends to TOAB Moderator, and why it needs each one.
+
 ## Install and configure
 
 1. Install the TOAB Jitsi app in Cal.com.
