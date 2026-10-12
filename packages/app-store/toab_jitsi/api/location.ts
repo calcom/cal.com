@@ -1,13 +1,10 @@
-import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { canConfigureEventType } from "../lib/canConfigureEventType";
 
 // Next.js API route reference: https://nextjs.org/docs/pages/building-your-application/routing/api-routes
 /** Report whether TOAB Jitsi is selected as this event type’s location. */
-export default async function locationHandler(
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<NextApiResponse> {
+export default async function locationHandler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
 
   const sessionUserId = Number(req.session?.user?.id);
@@ -26,9 +23,7 @@ export default async function locationHandler(
   });
   if (!eventType) return res.status(404).json({ message: "Event type not found" });
 
-  if (eventType.teamId) {
-    await throwIfNotHaveAdminAccessToTeam({ teamId: eventType.teamId, userId: sessionUserId });
-  } else if (eventType.userId !== sessionUserId) {
+  if (!(await canConfigureEventType({ sessionUserId, eventType }))) {
     return res.status(403).json({ message: "You cannot configure this event type" });
   }
 

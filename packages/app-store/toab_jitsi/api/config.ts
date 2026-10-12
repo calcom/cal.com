@@ -1,9 +1,9 @@
 // Next.js API route reference: https://nextjs.org/docs/pages/building-your-application/routing/api-routes
-import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
+import { canConfigureEventType } from "../lib/canConfigureEventType";
 import { moderatorRequest } from "../lib/common";
 
 const moderatorUserSchema: z.ZodType<{ id: number }> = z.object({ id: z.number().int().positive() });
@@ -19,10 +19,7 @@ const moderatorServerSchema: z.ZodType<
 );
 
 /** Load the owner’s or first configured team host’s Moderator server choices. */
-export default async function configHandler(
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<NextApiResponse> {
+export default async function configHandler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
 
   const sessionUserId = Number(req.session?.user?.id);
@@ -50,9 +47,7 @@ export default async function configHandler(
   });
   if (!eventType) return res.status(404).json({ message: "Event type not found" });
 
-  if (eventType.teamId) {
-    await throwIfNotHaveAdminAccessToTeam({ teamId: eventType.teamId, userId: sessionUserId });
-  } else if (eventType.userId !== sessionUserId) {
+  if (!(await canConfigureEventType({ sessionUserId, eventType }))) {
     return res.status(403).json({ message: "You cannot configure this event type" });
   }
   let organizerEmail: string | undefined;
