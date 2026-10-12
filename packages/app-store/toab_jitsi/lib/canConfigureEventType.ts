@@ -1,7 +1,6 @@
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { HttpError } from "@calcom/lib/http-error";
 
-/** Check whether a user may configure TOAB Jitsi for an event type (owner or team admin). */
 export async function canConfigureEventType({
   sessionUserId,
   eventType,
