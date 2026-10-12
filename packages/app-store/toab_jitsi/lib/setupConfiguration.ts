@@ -1,4 +1,6 @@
 // Next.js API route reference: https://nextjs.org/docs/pages/building-your-application/routing/api-routes
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { locationResponseSchema, setupResponseSchema } from "../zod";
 
 type SetupConfiguration = ReturnType<typeof setupResponseSchema.parse>;
@@ -38,9 +40,16 @@ export function loadSetupConfiguration(eventTypeId: number): Promise<SetupConfig
 
 /** Fetch and validate whether TOAB Jitsi is enabled for an event type. */
 export async function loadLocationConfiguration(eventTypeId: number): Promise<LocationConfiguration> {
-  const response = await fetch(`/api/integrations/toab_jitsi/location?eventTypeId=${eventTypeId}`);
-  if (!response.ok) throw new Error("Could not check the TOAB Jitsi event type location");
-  return locationResponseSchema.parse(await response.json());
+  try {
+    const response = await fetch(`/api/integrations/toab_jitsi/location?eventTypeId=${eventTypeId}`);
+    if (!response.ok) throw new Error("Could not check the TOAB Jitsi event type location");
+    return locationResponseSchema.parse(await response.json());
+  } catch {
+    throw new ErrorWithCode(
+      ErrorCode.InternalServerError,
+      "Could not check the TOAB Jitsi event type location"
+    );
+  }
 }
 
 export type { LocationConfiguration, SetupConfiguration };

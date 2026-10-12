@@ -18,7 +18,6 @@ const moderatorServerSchema: z.ZodType<
   })
 );
 
-/** Load the owner’s or first configured team host’s Moderator server choices. */
 export default async function configHandler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
 

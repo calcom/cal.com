@@ -29,7 +29,6 @@ const REQUIRED_CONFIG_KEYS = [
 ] as const;
 const REQUEST_TIMEOUT_MS = 15_000;
 
-/** Read and validate the required TOAB Jitsi Moderator and Auth0 app settings. */
 async function getModeratorConfig(): Promise<ModeratorConfig> {
   const appKeys = appKeysSchema.parse(await getAppKeysFromSlug("toab_jitsi"));
   const config = appKeys;
@@ -42,14 +41,12 @@ async function getModeratorConfig(): Promise<ModeratorConfig> {
   return config as ModeratorConfig;
 }
 
-/** Normalize a host value to an origin without a trailing slash. */
 function normalizeHost(host: string): string {
   let withScheme = host;
   if (!/^https?:\/\//i.test(host)) withScheme = `https://${host}`;
   return withScheme.replace(/\/+$/, "");
 }
 
-/** Retrieve and cache an Auth0 client-credentials token for Moderator requests. */
 async function getAccessToken(config: ModeratorConfig): Promise<string> {
   if (cachedToken && cachedToken.expiresAt > Date.now() + 30_000) return cachedToken.value;
 
@@ -72,14 +69,12 @@ async function getAccessToken(config: ModeratorConfig): Promise<string> {
   return token.access_token;
 }
 
-/** Combine an optional caller cancellation signal with a fresh request timeout. */
 function createRequestSignal(signal?: AbortSignal | null): AbortSignal {
   const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
   if (signal) return AbortSignal.any([signal, timeoutSignal]);
   return timeoutSignal;
 }
 
-/** Make an authenticated Moderator request, retrying once after an expired token. */
 export async function moderatorRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const config = await getModeratorConfig();
   const headers = new Headers(init.headers);

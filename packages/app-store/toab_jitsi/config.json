@@ -1,6 +1,6 @@
 {
   "/*": "Don't modify slug - If required, do it using cli edit command",
-  "name": "TOAB Jitsi",
+  "name": "TOAB Jitsi App",
   "slug": "toab_jitsi",
   "type": "toab_jitsi_video",
   "logo": "icon.svg",
