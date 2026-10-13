@@ -32,6 +32,7 @@ export function TimezoneSelectComponent({
   isWebTimezoneSelect = true,
   ...props
 }: TimezoneSelectComponentProps) {
+  const isDisabled = props.isDisabled ?? isPending;
   const data = useMemo(() => props.data || [], [props.data]);
 
   /*
@@ -104,7 +105,7 @@ export function TimezoneSelectComponent({
                 styles={{
         control: (base) =>
           Object.assign({}, base, {
-            cursor: props.isDisabled ? "not-allowed" : "pointer",
+            cursor: isDisabled ? "not-allowed" : "pointer",
             minHeight: size === "sm" ? "28px" : "36px",
             height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
           }),
