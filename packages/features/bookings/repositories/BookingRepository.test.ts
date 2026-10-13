@@ -68,7 +68,10 @@ describe("BookingRepository", () => {
       userIdAndEmailMap: new Map([[7, "host@example.com"]]),
     };
 
-    const getPendingQueryWhere = () => mockPrismaClient.booking.findMany.mock.calls[2][0].where;
+    const getPendingQueryWhere = () =>
+      mockPrismaClient.booking.findMany.mock.calls
+        .map(([args]) => args.where)
+        .find((where) => where.status?.in?.includes("PENDING"));
 
     it("blocks on the host's pending bookings from any event type that blocks slots", async () => {
       await repository.findAllExistingBookingsForEventTypeBetween({ ...params, eventTypeId: 1 });
