@@ -246,8 +246,10 @@ class ICSFeedCalendarService implements Calendar {
 
         if (event.isRecurring()) {
           let maxIterations = 5000;
-          if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
-            console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
+          // getRecurrenceTypes() returns an object keyed by FREQ, e.g. { HOURLY: true }
+          const recurrenceTypes = Object.keys(event.getRecurrenceTypes());
+          if (recurrenceTypes.some((type) => ["HOURLY", "SECONDLY", "MINUTELY"].includes(type))) {
+            console.error(`Won't handle [${recurrenceTypes}] recurrence`);
             return;
           }
 

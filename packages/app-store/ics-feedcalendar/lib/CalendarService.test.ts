@@ -51,6 +51,9 @@ const FEED = [
   ),
   vevent("weekly-until", "20251201T100000", "20251201T103000", "RRULE:FREQ=WEEKLY;UNTIL=20260503T000000Z"),
   vevent("single", "20261029T100000", "20261029T110000"),
+  // Sub-daily rules are skipped
+  vevent("hourly", "20261028T100000", "20261028T103000", "RRULE:FREQ=HOURLY"),
+  vevent("minutely", "20261028T100000", "20261028T100500", "RRULE:FREQ=MINUTELY"),
   // Series old enough to need the skip-ahead (more than 5000 occurrences before the window)
   vevent("daily-2005", "20050103T090000", "20050103T093000", "RRULE:FREQ=DAILY"),
   vevent(
@@ -166,6 +169,10 @@ describe("ICS feed getAvailability", () => {
       ]);
       expect(await busyOn("every-2-weeks", "2026-10-26")).toEqual([]);
     });
+  });
+
+  it.each(["hourly", "minutely"])("returns no busy time for a %s series", async (title) => {
+    expect(await busyOn(title, "2026-10-29")).toEqual([]);
   });
 
   it("returns a non-recurring event", async () => {
