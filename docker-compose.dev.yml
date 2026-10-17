@@ -99,14 +99,17 @@ services:
     command: >
       sh -c "while [ ! -d node_modules/@nestjs ] ; do sleep 5 ; done ;
              node .yarn/releases/yarn-4.12.0.cjs prisma generate &&
-             node .yarn/releases/yarn-4.12.0.cjs workspace @calcom/api-v2 run dev"
+             node .yarn/releases/yarn-4.12.0.cjs workspace @calcom/api-v2 run dev:no-docker"
     ports:
       - "3002:3002"
+    env_file:
+      - .env
     volumes:
       - .:/app
       - web-node-modules:/app/node_modules
     environment:
       - NODE_ENV=development
+      - NODE_OPTIONS=--max-old-space-size=4096
       - API_PORT=3002
       - DATABASE_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
       - DATABASE_DIRECT_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
