@@ -18,13 +18,14 @@ import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR, WEBAPP_URL } from 
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
 import { useEvent, useScheduleForEvent } from "@calcom/web/modules/schedules/hooks/useEvent";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getProviders, signIn, useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 import { useBookings } from "../hooks/useBookings";
-import { useCalendars } from "../hooks/useCalendars";
+import { getLastVisibleDate, useCalendars } from "../hooks/useCalendars";
 import { useSlots } from "../hooks/useSlots";
 import { useVerifyCode } from "../hooks/useVerifyCode";
 import { useVerifyEmail } from "../hooks/useVerifyEmail";
@@ -125,7 +126,6 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
     extraOptions: routerQuery,
     prefillFormParams,
   });
-  const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
     email: bookerForm.formEmail,
     name: bookerForm.formName,
@@ -155,6 +155,16 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
     useApiV2: props.useApiV2,
     bookerLayout,
     ...(props.entity.orgSlug ? { orgSlug: props.entity.orgSlug } : {}),
+  });
+  const availableDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const calendars = useCalendars({
+    hasSession,
+    lastVisibleDate: getLastVisibleDate({
+      selectedDate,
+      layout: bookerLayout.layout,
+      extraDays: bookerLayout.extraDays,
+      availableDays,
+    }),
   });
   const bookings = useBookings({
     event,
