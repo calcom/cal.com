@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Authorize } from "./authorize-view";
+import { Authorize, parseOAuthScopes } from "./authorize-view";
 
 const mocks = vi.hoisted(() => ({
   mutate: vi.fn(),
@@ -88,5 +88,21 @@ describe.each([false, true])("OAuth authorization (trusted client: %s)", (isTrus
         state: "test-state",
       })
     );
+  });
+});
+
+describe("parseOAuthScopes", () => {
+  it.each([
+    ["READ_BOOKING READ_PROFILE", ["READ_BOOKING", "READ_PROFILE"]],
+    ["READ_BOOKING,READ_PROFILE", ["READ_BOOKING", "READ_PROFILE"]],
+    [" READ_BOOKING,  READ_PROFILE ", ["READ_BOOKING", "READ_PROFILE"]],
+    ["READ_BOOKING", ["READ_BOOKING"]],
+    [null, []],
+    [undefined, []],
+    ["", []],
+    [", ,", []],
+    ["READ_BOOKING UNRECOGNIZED_SCOPE", ["READ_BOOKING", "UNRECOGNIZED_SCOPE"]],
+  ])("parses scope input %j into %j", (input, expected) => {
+    expect(parseOAuthScopes(input)).toEqual(expected);
   });
 });
