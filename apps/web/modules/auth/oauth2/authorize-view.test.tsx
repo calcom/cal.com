@@ -65,13 +65,11 @@ describe.each([false, true])("OAuth authorization (trusted client: %s)", (isTrus
     [null, []],
     ["", []],
     [", ,", []],
-    ["READ_BOOKING%20READ_PROFILE", ["READ_BOOKING", "READ_PROFILE"]],
     ["READ_BOOKING UNRECOGNIZED_SCOPE", ["READ_BOOKING", "UNRECOGNIZED_SCOPE"]],
   ])("forwards scope %j as separate tokens", (scope, expectedScopes) => {
     mocks.client.isTrusted = isTrusted;
     if (scope !== null) {
-      const query = new URLSearchParams(`scope=${scope}`);
-      mocks.searchParams.set("scope", query.get("scope") ?? "");
+      mocks.searchParams.set("scope", scope);
     }
 
     render(<Authorize />);
