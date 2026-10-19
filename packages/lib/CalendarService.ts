@@ -737,7 +737,6 @@ export default abstract class BaseCalendarService implements Calendar {
         applyTravelDuration(event, getTravelDurationInSeconds(vevent, this.log));
 
         if (event.isRecurring()) {
-          let maxIterations = 365;
           if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
             logger.warn(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
             return;
@@ -745,11 +744,12 @@ export default abstract class BaseCalendarService implements Calendar {
 
           const start = dayjs(dateFrom);
           const end = dayjs(dateTo);
-          const startDate = ICAL.Time.fromDateTimeString(startISOString);
-          startDate.hour = event.startDate.hour;
-          startDate.minute = event.startDate.minute;
-          startDate.second = event.startDate.second;
-          const iterator = event.iterator(startDate);
+          // In ical.js, seeding the iterator with a new date overrides DTSTART.
+          // For weekly rules without BYDAY, the weekday comes from DTSTART, so passing a window date
+          // shifts the occurrences to the queried weekday and breaks COUNT rules.
+          // Iterate from the original event.startDate with a safe iteration cap.
+          let maxIterations = 2000;
+          const iterator = event.iterator();
           let current: ICAL.Time;
           let currentEvent: ReturnType<typeof event.getOccurrenceDetails> | undefined;
           let currentStart: ReturnType<typeof dayjs> | null = null;
@@ -792,7 +792,7 @@ export default abstract class BaseCalendarService implements Calendar {
             }
           }
           if (maxIterations <= 0) {
-            logger.warn("Could not find any occurrence for recurring event in 365 iterations");
+            logger.warn("Could not find any occurrence for recurring event in 2000 iterations");
           }
           return;
         }
