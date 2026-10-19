@@ -317,6 +317,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
+  let deletedPromotedSecondaryId: number | null = null;
+
   if (updatedUser && hasEmailBeenChanged) {
     // Skip sending verification email when user tries to change his primary email to a verified secondary email
     if (secondaryEmail?.emailVerified) {
@@ -350,6 +352,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       } else {
         // User removed the old primary email or did not retain it.
         // Delete the secondaryEmail record (which was just promoted to primary) from SecondaryEmail table.
+        deletedPromotedSecondaryId = secondaryEmail.id;
         await prisma.secondaryEmail.deleteMany({
           where: {
             id: secondaryEmail.id,
@@ -386,12 +389,17 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
 
-    const modifiedRecords = secondaryEmails.filter((secondaryEmail) => !secondaryEmail.isDeleted && secondaryEmail.id > 0);
+    const modifiedRecords = secondaryEmails.filter(
+      (secondaryEmail) =>
+        !secondaryEmail.isDeleted &&
+        secondaryEmail.id > 0 &&
+        secondaryEmail.id !== deletedPromotedSecondaryId
+    );
     if (modifiedRecords.length) {
       const secondaryEmailsFromDB = await prisma.secondaryEmail.findMany({
         where: {
           id: {
-            in: secondaryEmails.map((secondaryEmail) => secondaryEmail.id),
+            in: modifiedRecords.map((secondaryEmail) => secondaryEmail.id),
           },
           userId: updatedUser.id,
         },
@@ -400,10 +408,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       const keyedSecondaryEmailsFromDB = keyBy(secondaryEmailsFromDB, "id");
 
       const recordsToModifyQueue = modifiedRecords.map((updated) => {
-        let emailVerified = keyedSecondaryEmailsFromDB[updated.id].emailVerified;
+        let emailVerified = keyedSecondaryEmailsFromDB[updated.id]?.emailVerified ?? null;
         if (secondaryEmail?.id === updated.id) {
           emailVerified = primaryEmailVerified;
-        } else if (updated.email !== keyedSecondaryEmailsFromDB[updated.id].email) {
+        } else if (updated.email !== keyedSecondaryEmailsFromDB[updated.id]?.email) {
           emailVerified = null;
         }
 
