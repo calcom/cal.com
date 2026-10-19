@@ -3,11 +3,11 @@ import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyE
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
-import { getTranslation } from "@calcom/i18n/server";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -17,14 +17,16 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import type { JsonValue } from "@calcom/types/Json";
 import { TRPCError } from "@trpc/server";
-import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import { type TUpdateProfileInputSchema, updateUserMetadataAllowedKeys } from "./updateProfile.schema";
+import { updateProfileEmails } from "./updateProfileEmails";
 
 const getBillingProviderService = async (..._args: unknown[]) => ({
   createCustomer: async (..._a: unknown[]) => null,
   getCustomer: async (..._a: unknown[]) => null,
-  getSubscriptions: async (..._a: unknown[]): Promise<{ items: { data: { price: { id: string } }[] }; status: string }[]> => [],
+  getSubscriptions: async (
+    ..._a: unknown[]
+  ): Promise<{ items: { data: { price: { id: string } }[] }; status: string }[]> => [],
   updateCustomer: async (..._a: unknown[]) => null,
 });
 const updateNewTeamMemberEventTypes = async (..._args: unknown[]) => {};
@@ -46,7 +48,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
-  const { travelSchedules, ...rest } = input;
+  const { travelSchedules, removePreviousPrimaryEmail, ...rest } = input;
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
@@ -262,12 +264,23 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   let updatedUser: UpdatedUserResult;
 
   try {
-    updatedUser = await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data,
-      ...updatedUserSelect,
+    updatedUser = await prisma.$transaction(async (tx) => {
+      const savedUser = await tx.user.update({
+        where: { id: user.id },
+        data,
+        ...updatedUserSelect,
+      });
+      await updateProfileEmails({
+        tx,
+        userId: user.id,
+        secondaryEmails,
+        promotedEmail:
+          savedUser.email !== user.email && secondaryEmail?.emailVerified ? secondaryEmail : undefined,
+        previousPrimaryEmail: user.email,
+        previousPrimaryEmailVerified: primaryEmailVerified,
+        removePreviousPrimaryEmail,
+      });
+      return savedUser;
     });
   } catch (e) {
     // Catch unique constraint failure on email field.
@@ -317,77 +330,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  if (updatedUser && hasEmailBeenChanged) {
-    // Skip sending verification email when user tries to change his primary email to a verified secondary email
-    if (secondaryEmail?.emailVerified) {
-      secondaryEmails.push({
-        id: secondaryEmail.id,
-        email: user.email,
-        isDeleted: false,
-      });
-    } else {
-      await sendChangeOfEmailVerification({
-        user: {
-          username: updatedUser.username ?? "Nameless User",
-          emailFrom: user.email,
-          // We know email has been changed here so we can use input
-
-          emailTo: input.email ?? "",
-        },
-      });
-    }
-  }
-
-  if (secondaryEmails.length) {
-    const recordsToDelete = secondaryEmails
-      .filter((secondaryEmail) => secondaryEmail.isDeleted)
-      .map((secondaryEmail) => secondaryEmail.id);
-    if (recordsToDelete.length) {
-      await prisma.secondaryEmail.deleteMany({
-        where: {
-          id: {
-            in: recordsToDelete,
-          },
-          userId: updatedUser.id,
-        },
-      });
-    }
-
-    const modifiedRecords = secondaryEmails.filter((secondaryEmail) => !secondaryEmail.isDeleted);
-    if (modifiedRecords.length) {
-      const secondaryEmailsFromDB = await prisma.secondaryEmail.findMany({
-        where: {
-          id: {
-            in: secondaryEmails.map((secondaryEmail) => secondaryEmail.id),
-          },
-          userId: updatedUser.id,
-        },
-      });
-
-      const keyedSecondaryEmailsFromDB = keyBy(secondaryEmailsFromDB, "id");
-
-      const recordsToModifyQueue = modifiedRecords.map((updated) => {
-        let emailVerified = keyedSecondaryEmailsFromDB[updated.id].emailVerified;
-        if (secondaryEmail?.id === updated.id) {
-          emailVerified = primaryEmailVerified;
-        } else if (updated.email !== keyedSecondaryEmailsFromDB[updated.id].email) {
-          emailVerified = null;
-        }
-
-        return prisma.secondaryEmail.update({
-          where: {
-            id: updated.id,
-            userId: updatedUser.id,
-          },
-          data: {
-            email: updated.email,
-            emailVerified,
-          },
-        });
-      });
-
-      await prisma.$transaction(recordsToModifyQueue);
-    }
+  if (updatedUser && hasEmailBeenChanged && !secondaryEmail?.emailVerified) {
+    await sendChangeOfEmailVerification({
+      user: {
+        username: updatedUser.username ?? "Nameless User",
+        emailFrom: user.email,
+        emailTo: input.email ?? "",
+      },
+    });
   }
 
   return {

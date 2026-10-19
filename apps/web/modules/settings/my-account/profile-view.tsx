@@ -481,6 +481,7 @@ type SecondaryEmailApiPayload = {
 
 type ExtendedFormValues = Omit<FormValues, "secondaryEmails"> & {
   secondaryEmails: SecondaryEmailApiPayload[];
+  removePreviousPrimaryEmail?: boolean;
 };
 
 const ProfileForm = ({
@@ -586,6 +587,12 @@ const ProfileForm = ({
     return {
       ...updatedValues,
       secondaryEmails,
+      // The old primary has no SecondaryEmail ID, so deletion needs an explicit signal.
+      removePreviousPrimaryEmail:
+        updatedValues.email !== user.email &&
+        !updatedValues.secondaryEmails.some(
+          (email) => email.email.toLowerCase() === user.email.toLowerCase()
+        ),
     };
   };
 

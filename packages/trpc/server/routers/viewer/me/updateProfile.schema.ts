@@ -17,6 +17,7 @@ export type TUpdateProfileInputSchemaInput = {
   username?: string;
   name?: string;
   email?: string;
+  removePreviousPrimaryEmail?: boolean;
   bio?: string;
   avatarUrl?: string | null;
   timeZone?: string;
@@ -51,6 +52,7 @@ export type TUpdateProfileInputSchema = {
   username?: string;
   name?: string;
   email?: string;
+  removePreviousPrimaryEmail?: boolean;
   bio?: string;
   avatarUrl?: string | null;
   timeZone?: string;
@@ -89,6 +91,7 @@ export const ZUpdateProfileInputSchema: z.ZodType<
   username: z.string().optional(),
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
   email: z.string().optional(),
+  removePreviousPrimaryEmail: z.boolean().optional(),
   bio: z.string().optional(),
   avatarUrl: z.string().nullable().optional(),
   timeZone: timeZoneSchema.optional(),
