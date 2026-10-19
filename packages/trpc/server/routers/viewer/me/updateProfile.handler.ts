@@ -322,18 +322,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if (updatedUser && hasEmailBeenChanged) {
     // Skip sending verification email when user tries to change his primary email to a verified secondary email
     if (secondaryEmail?.emailVerified) {
-      // Disconnect any event types that were explicitly bound to this secondary email,
-      // as it has now become the user's primary email.
-      await prisma.eventType.updateMany({
-        where: {
-          userId: user.id,
-          secondaryEmailId: secondaryEmail.id,
-        },
-        data: {
-          secondaryEmailId: null,
-        },
-      });
-
       // Check whether user explicitly deleted or retained the old primary email
       const isOldEmailExplicitlyDeleted = secondaryEmails.some(
         (e) => e.email.toLowerCase() === user.email.toLowerCase() && e.isDeleted
@@ -429,6 +417,20 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
       await prisma.$transaction(recordsToModifyQueue);
     }
+  }
+
+  if (updatedUser && hasEmailBeenChanged && secondaryEmail?.emailVerified) {
+    // Disconnect any event types that were explicitly bound to this secondary email,
+    // as it has now become the user's primary email.
+    await prisma.eventType.updateMany({
+      where: {
+        userId: user.id,
+        secondaryEmailId: secondaryEmail.id,
+      },
+      data: {
+        secondaryEmailId: null,
+      },
+    });
   }
 
   return {
