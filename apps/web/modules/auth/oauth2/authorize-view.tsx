@@ -16,6 +16,10 @@ import { Select } from "@calcom/ui/components/form";
 import { InfoIcon, PlusIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
+/**
+ * Renders the OAuth 2.0 authorization screen allowing users to inspect requested scopes
+ * and grant or deny access to third-party client applications.
+ */
 export function Authorize() {
   const { t } = useLocale();
   const { status } = useSession();
@@ -38,7 +42,7 @@ export function Authorize() {
     value: string;
     label: string;
   } | null>();
-  const scopes = scope ? scope.toString().split(",") : [];
+  const scopes = scope ? scope.toString().split(/[,\s]+/).filter(Boolean) : [];
 
   const {
     data: client,
