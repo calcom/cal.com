@@ -317,14 +317,37 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
+  let deletedPromotedSecondaryId: number | null = null;
+
   if (updatedUser && hasEmailBeenChanged) {
     // Skip sending verification email when user tries to change his primary email to a verified secondary email
     if (secondaryEmail?.emailVerified) {
-      secondaryEmails.push({
-        id: secondaryEmail.id,
-        email: user.email,
-        isDeleted: false,
-      });
+      // Check whether user explicitly deleted or retained the old primary email
+      const isOldEmailExplicitlyDeleted = secondaryEmails.some(
+        (e) => e.email.toLowerCase() === user.email.toLowerCase() && e.isDeleted
+      );
+      const isOldEmailExplicitlyRetained = secondaryEmails.some(
+        (e) => e.email.toLowerCase() === user.email.toLowerCase() && !e.isDeleted
+      );
+
+      if (!isOldEmailExplicitlyDeleted && isOldEmailExplicitlyRetained) {
+        // Swap: repurpose the secondaryEmail record to store the old primary email
+        secondaryEmails.push({
+          id: secondaryEmail.id,
+          email: user.email,
+          isDeleted: false,
+        });
+      } else {
+        // User removed the old primary email or did not retain it.
+        // Delete the secondaryEmail record (which was just promoted to primary) from SecondaryEmail table.
+        deletedPromotedSecondaryId = secondaryEmail.id;
+        await prisma.secondaryEmail.deleteMany({
+          where: {
+            id: secondaryEmail.id,
+            userId: user.id,
+          },
+        });
+      }
     } else {
       await sendChangeOfEmailVerification({
         user: {
@@ -341,7 +364,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   if (secondaryEmails.length) {
     const recordsToDelete = secondaryEmails
       .filter((secondaryEmail) => secondaryEmail.isDeleted)
-      .map((secondaryEmail) => secondaryEmail.id);
+      .map((secondaryEmail) => secondaryEmail.id)
+      .filter((id) => id > 0);
     if (recordsToDelete.length) {
       await prisma.secondaryEmail.deleteMany({
         where: {
@@ -353,12 +377,17 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
 
-    const modifiedRecords = secondaryEmails.filter((secondaryEmail) => !secondaryEmail.isDeleted);
+    const modifiedRecords = secondaryEmails.filter(
+      (secondaryEmail) =>
+        !secondaryEmail.isDeleted &&
+        secondaryEmail.id > 0 &&
+        secondaryEmail.id !== deletedPromotedSecondaryId
+    );
     if (modifiedRecords.length) {
       const secondaryEmailsFromDB = await prisma.secondaryEmail.findMany({
         where: {
           id: {
-            in: secondaryEmails.map((secondaryEmail) => secondaryEmail.id),
+            in: modifiedRecords.map((secondaryEmail) => secondaryEmail.id),
           },
           userId: updatedUser.id,
         },
@@ -367,10 +396,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       const keyedSecondaryEmailsFromDB = keyBy(secondaryEmailsFromDB, "id");
 
       const recordsToModifyQueue = modifiedRecords.map((updated) => {
-        let emailVerified = keyedSecondaryEmailsFromDB[updated.id].emailVerified;
+        let emailVerified = keyedSecondaryEmailsFromDB[updated.id]?.emailVerified ?? null;
         if (secondaryEmail?.id === updated.id) {
           emailVerified = primaryEmailVerified;
-        } else if (updated.email !== keyedSecondaryEmailsFromDB[updated.id].email) {
+        } else if (updated.email !== keyedSecondaryEmailsFromDB[updated.id]?.email) {
           emailVerified = null;
         }
 
@@ -388,6 +417,20 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
       await prisma.$transaction(recordsToModifyQueue);
     }
+  }
+
+  if (updatedUser && hasEmailBeenChanged && secondaryEmail?.emailVerified) {
+    // Disconnect any event types that were explicitly bound to this secondary email,
+    // as it has now become the user's primary email.
+    await prisma.eventType.updateMany({
+      where: {
+        userId: user.id,
+        secondaryEmailId: secondaryEmail.id,
+      },
+      data: {
+        secondaryEmailId: null,
+      },
+    });
   }
 
   return {
