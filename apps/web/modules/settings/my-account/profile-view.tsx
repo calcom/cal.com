@@ -578,6 +578,29 @@ const ProfileForm = ({
     const deletedEmails = (user?.secondaryEmails || []).filter(
       (secondaryEmail) => !updatedValues.secondaryEmails.find((val) => val.id && val.id === secondaryEmail.id)
     );
+
+    // If primary email changed, track whether the old primary email was retained or deleted
+    if (updatedValues.email && user?.email && updatedValues.email.toLowerCase() !== user.email.toLowerCase()) {
+      const isOldPrimaryRetained = updatedValues.secondaryEmails.some(
+        (val) => val.email.toLowerCase() === user.email.toLowerCase()
+      );
+      if (isOldPrimaryRetained) {
+        updatedEmails.push({
+          id: 0,
+          email: user.email,
+          emailVerified: user.emailVerified?.toString() || null,
+          emailPrimary: false,
+        });
+      } else {
+        deletedEmails.push({
+          id: 0,
+          email: user.email,
+          emailVerified: null,
+          emailPrimary: false,
+        });
+      }
+    }
+
     const secondaryEmails = [
       ...updatedEmails.map((email) => ({ ...email, isDeleted: false })),
       ...deletedEmails.map((email) => ({ ...email, isDeleted: true })),
