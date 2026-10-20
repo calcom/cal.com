@@ -38,6 +38,38 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
   return event;
 };
 
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Returns a seed for event.iterator() that is a whole number of periods after DTSTART and ends at least one period
+ * before windowStartMs, or undefined to iterate from DTSTART. ical.js takes the seed as DTSTART, so it may only move
+ * by whole periods (this keeps the weekday and the INTERVAL phase), and it is always emitted as the first occurrence
+ * even when BYDAY would exclude it, so it must lie before the window. Rules with COUNT depend on the occurrences
+ * before the window and MONTHLY/YEARLY rules have no fixed period, so they are never seeded.
+ */
+const getSkipAheadSeed = (
+  vevent: ICAL.Component,
+  event: ICAL.Event,
+  windowStartMs: number
+): ICAL.Time | undefined => {
+  const rrules = vevent.getAllProperties("rrule");
+  if (rrules.length !== 1 || vevent.hasProperty("rdate")) return undefined;
+
+  const rrule = rrules[0].getFirstValue<ICAL.Recur>();
+  if (rrule.count || !["DAILY", "WEEKLY"].includes(rrule.freq)) return undefined;
+
+  const daysPerInterval = rrule.freq === "WEEKLY" ? 7 : 1;
+  const periodDays = (rrule.toJSON().interval ?? 1) * daysPerInterval;
+  const occurrenceEndMs = event.startDate.toUnixTime() * 1000 + event.duration.toSeconds() * 1000;
+  // floating times are read as UTC here, off by at most a day, which the extra period absorbs
+  const periods = Math.floor((windowStartMs - occurrenceEndMs) / (periodDays * DAY_IN_MS)) - 1;
+  if (periods <= 0) return undefined;
+
+  const seed = event.startDate.clone();
+  seed.adjust(periods * periodDays, 0, 0, 0);
+  return seed;
+};
+
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 class ICSFeedCalendarService implements Calendar {
@@ -138,7 +170,6 @@ class ICSFeedCalendarService implements Calendar {
 
   async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
-    const startISOString = new Date(dateFrom).toISOString();
 
     const calendars = await this.fetchCalendars();
 
@@ -214,19 +245,17 @@ class ICSFeedCalendarService implements Calendar {
         applyTravelDuration(event, getTravelDurationInSeconds(vevent));
 
         if (event.isRecurring()) {
-          let maxIterations = 365;
-          if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
-            console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
+          let maxIterations = 5000;
+          // getRecurrenceTypes() returns an object keyed by FREQ, e.g. { HOURLY: true }
+          const recurrenceTypes = Object.keys(event.getRecurrenceTypes());
+          if (recurrenceTypes.some((type) => ["HOURLY", "SECONDLY", "MINUTELY"].includes(type))) {
+            console.error(`Won't handle [${recurrenceTypes}] recurrence`);
             return;
           }
 
           const start = dayjs(dateFrom);
           const end = dayjs(dateTo);
-          const startDate = ICAL.Time.fromDateTimeString(startISOString);
-          startDate.hour = event.startDate.hour;
-          startDate.minute = event.startDate.minute;
-          startDate.second = event.startDate.second;
-          const iterator = event.iterator(startDate);
+          const iterator = event.iterator(getSkipAheadSeed(vevent, event, start.valueOf()));
           let current: ICAL.Time;
           let currentEvent;
           let currentStart = null;
@@ -269,7 +298,7 @@ class ICSFeedCalendarService implements Calendar {
             }
           }
           if (maxIterations <= 0) {
-            console.warn("could not find any occurrence for recurring event in 365 iterations");
+            console.warn("could not find any occurrence for recurring event in 5000 iterations");
           }
           return;
         }
