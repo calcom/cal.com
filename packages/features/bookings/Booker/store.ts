@@ -8,6 +8,7 @@ import { createWithEqualityFn } from "zustand/traditional";
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerLayout, BookerState } from "./types";
 import { getQueryParam, removeQueryParam, updateQueryParam } from "./utils/query-param";
+import { getValidDate, getValidMonth } from "./utils/validate-date";
 
 const _iso_3166_1_alpha_2_codes = [
   "ad",
@@ -454,7 +455,18 @@ export const createBookerStore = () =>
       }
       return set({ layout });
     },
-    selectedDate: getQueryParam("date") || null,
+    selectedDate: (() => {
+      const rawDate = getQueryParam("date");
+      const validDate = getValidDate(rawDate);
+      if (typeof window !== "undefined" && rawDate && rawDate !== validDate) {
+        if (!validDate) {
+          removeQueryParam("date");
+        } else {
+          updateQueryParam("date", validDate);
+        }
+      }
+      return validDate;
+    })(),
     setSelectedDate: ({ date: selectedDate, omitUpdatingParams = false, preventMonthSwitching = false }) => {
       // unset selected date
       if (!selectedDate) {
@@ -517,12 +529,18 @@ export const createBookerStore = () =>
     setVerificationCode: (code: string | null) => {
       set({ verificationCode: code });
     },
-    month:
-      getQueryParam("month") ||
-      (getQueryParam("date") && dayjs(getQueryParam("date")).isValid()
-        ? dayjs(getQueryParam("date")).format("YYYY-MM")
-        : null) ||
-      dayjs().format("YYYY-MM"),
+    month: (() => {
+      const rawMonth = getQueryParam("month");
+      let validMonth = getValidMonth(rawMonth);
+      if (!validMonth) {
+        const validDate = getValidDate(getQueryParam("date"));
+        validMonth = validDate ? dayjs(validDate).format("YYYY-MM") : dayjs().format("YYYY-MM");
+      }
+      if (typeof window !== "undefined" && rawMonth && rawMonth !== validMonth) {
+        updateQueryParam("month", validMonth);
+      }
+      return validMonth;
+    })(),
     setMonth: (month: string | null) => {
       if (!month) {
         removeQueryParam("month");
