@@ -38,7 +38,7 @@ export function Authorize() {
     value: string;
     label: string;
   } | null>();
-  const scopes = scope ? scope.toString().split(",") : [];
+  const scopes = scope ? scope.split(/[, ]+/).filter(Boolean) : [];
 
   const {
     data: client,
