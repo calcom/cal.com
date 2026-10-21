@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { objectsToCsv, sanitizeValue } from "./csvUtils";
 
 describe("csvUtils", () => {
@@ -35,7 +36,7 @@ describe("csvUtils", () => {
       expect(sanitizeValue("+1-1")).toBe("'+1-1");
     });
 
-    it("neutralizes formula injection with - prefix", () => {
+    it("neutralizes formula injection with - prefix on string values", () => {
       expect(sanitizeValue("-SUM(A1:A10)")).toBe("'-SUM(A1:A10)");
     });
 
@@ -82,10 +83,40 @@ describe("csvUtils", () => {
       expect(csv).toContain('"hello\rworld"');
     });
 
-    it("preserves finite numeric values without adding formula prefixes", () => {
-      const data = [{ id: 1, balance: -5, delta: 10.5 }];
+    it("preserves finite numeric values (positive, negative, float) without adding formula prefixes", () => {
+      const data = [{ id: 1, balance: -5, delta: 10.5, zero: 0 }];
       const csv = objectsToCsv(data);
-      expect(csv).toBe("id,balance,delta\n1,-5,10.5");
+      expect(csv).toBe("id,balance,delta,zero\n1,-5,10.5,0");
+    });
+
+    it("distinguishes numbers from numeric-looking strings starting with minus sign", () => {
+      const data = [
+        {
+          numVal: -42,
+          strVal: "-42",
+          formulaStr: "-cmd|' /C calc'!A0",
+        },
+      ];
+      const csv = objectsToCsv(data);
+      expect(csv).toBe("numVal,strVal,formulaStr\n-42,'-42,'-cmd|' /C calc'!A0");
+    });
+
+    it("preserves CSV record boundaries and quotes with embedded special characters across multiple rows", () => {
+      const data = [
+        { title: "Standard Event", notes: "No special chars" },
+        { title: "Event with, comma", notes: "First line\nSecond line" },
+        { title: 'Event with "quotes"', notes: "CR\rinside" },
+      ];
+      const csv = objectsToCsv(data);
+      const lines = csv.split("\n");
+
+      expect(lines[0]).toBe("title,notes");
+      expect(lines[1]).toBe("Standard Event,No special chars");
+      // Multi-line and quoted values
+      expect(csv).toContain('"Event with, comma"');
+      expect(csv).toContain('"First line\nSecond line"');
+      expect(csv).toContain('"Event with ""quotes"""');
+      expect(csv).toContain('"CR\rinside"');
     });
 
     it("returns empty string when data array is empty", () => {
