@@ -16,7 +16,11 @@ export const redactError = <T extends Error | unknown>(error: T) => {
   log.debug("Type of Error: ", error.constructor);
   if (shouldRedact(error) && IS_PRODUCTION) {
     log.error("Error: ", JSON.stringify(error));
-    return new Error("An error occurred while querying the database.");
+    const redacted = new Error("An error occurred while querying the database.");
+    if ("code" in error && typeof error.code === "string") {
+      (redacted as Error & { code?: string }).code = error.code;
+    }
+    return redacted;
   }
   return error;
 };
