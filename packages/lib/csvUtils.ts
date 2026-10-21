@@ -23,6 +23,7 @@ export const objectsToCsv = (data: Record<string, unknown>[]): string => {
       headers
         .map((header) => {
           const value = row[header];
+          if (typeof value === "number" && Number.isFinite(value)) return String(value);
           return sanitizeValue(value?.toString() ?? "");
         })
         .join(",")

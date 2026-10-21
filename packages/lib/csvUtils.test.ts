@@ -82,6 +82,12 @@ describe("csvUtils", () => {
       expect(csv).toContain('"hello\rworld"');
     });
 
+    it("preserves finite numeric values without adding formula prefixes", () => {
+      const data = [{ id: 1, balance: -5, delta: 10.5 }];
+      const csv = objectsToCsv(data);
+      expect(csv).toBe("id,balance,delta\n1,-5,10.5");
+    });
+
     it("returns empty string when data array is empty", () => {
       expect(objectsToCsv([])).toBe("");
     });
