@@ -9,6 +9,10 @@ function shouldRedact(error: Error) {
   return /Prisma/i.test(n);
 }
 
+export interface RedactedPrismaError extends Error {
+  code?: string;
+}
+
 export const redactError = <T extends Error | unknown>(error: T) => {
   if (!(error instanceof Error)) {
     return error;
@@ -16,9 +20,9 @@ export const redactError = <T extends Error | unknown>(error: T) => {
   log.debug("Type of Error: ", error.constructor);
   if (shouldRedact(error) && IS_PRODUCTION) {
     log.error("Error: ", JSON.stringify(error));
-    const redacted = new Error("An error occurred while querying the database.");
+    const redacted: RedactedPrismaError = new Error("An error occurred while querying the database.");
     if ("code" in error && typeof error.code === "string") {
-      (redacted as Error & { code?: string }).code = error.code;
+      redacted.code = error.code;
     }
     return redacted;
   }
