@@ -828,14 +828,9 @@ export const InfiniteEventTypeList = ({
                           )}
                           <DropdownMenuSeparator />
                           <div className="flex h-9 cursor-pointer flex-row items-center justify-between rounded-b-lg px-4 py-2 transition hover:bg-subtle">
-                            <Skeleton
-                              as={Label}
-                              htmlFor="hiddenSwitch"
-                              className="mt-2 inline cursor-pointer self-center pr-2">
-                              {type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
-                            </Skeleton>
                             <Switch
-                              id="hiddenSwitch"
+                              label={type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+                              labelOnLeading
                               name="Hidden"
                               checked={!type.hidden}
                               onCheckedChange={() => {
