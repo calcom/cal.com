@@ -831,6 +831,7 @@ export const InfiniteEventTypeList = ({
                             <Switch
                               label={type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                               labelOnLeading
+                              disabled={lockedByOrg}
                               name="Hidden"
                               checked={!type.hidden}
                               onCheckedChange={() => {
