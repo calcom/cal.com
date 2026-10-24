@@ -633,15 +633,17 @@ export const createBookerStore = (
       });
 
       if (!isPlatform || allowUpdatingUrlParams) {
+        const queryMonth = getQueryParam("month");
+        const queryDate = getQueryParam("date");
         const normalizedQueryParams = normalizeBookerQueryParams({
-          month: getQueryParam("month"),
-          date: getQueryParam("date"),
+          month: queryMonth,
+          date: queryDate,
         });
 
-        if (getQueryParam("month") !== normalizedQueryParams.month) {
+        if ((queryMonth !== null || queryDate !== null) && queryMonth !== normalizedQueryParams.month) {
           updateQueryParam("month", normalizedQueryParams.month);
         }
-        if (getQueryParam("date") !== normalizedQueryParams.date) {
+        if (queryDate !== normalizedQueryParams.date) {
           if (normalizedQueryParams.date) {
             updateQueryParam("date", normalizedQueryParams.date);
           } else {
