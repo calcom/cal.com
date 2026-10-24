@@ -640,8 +640,9 @@ export const createBookerStore = (
           date: queryDate,
         });
 
-        if ((queryMonth !== null || queryDate !== null) && queryMonth !== normalizedQueryParams.month) {
-          updateQueryParam("month", normalizedQueryParams.month);
+        const monthToSync = month || normalizedQueryParams.month;
+        if ((queryMonth !== null || queryDate !== null) && queryMonth !== monthToSync) {
+          updateQueryParam("month", monthToSync);
         }
         if (queryDate !== normalizedQueryParams.date) {
           if (normalizedQueryParams.date) {
