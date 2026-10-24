@@ -279,6 +279,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                   userTimeFormat={userTimeFormat}
                   timePickerClassNames={classNames?.timePicker}
                   weekday={weekday}
+                  rangeIndex={fields.length > 1 ? index + 1 : undefined}
                   {...field}
                 />
               )}
@@ -318,7 +319,11 @@ export const DayRanges = <TFieldValues extends FieldValues>({
               <RemoveTimeButton
                 index={index}
                 remove={remove}
-                ariaLabel={weekday ? t("remove_time_slot_of_day", { day: weekday }) : undefined}
+                ariaLabel={
+                  weekday
+                    ? t("remove_time_slot_of_day", { day: weekday, index: index + 1 })
+                    : t("remove_time_slot_index", { index: index + 1 })
+                }
                 className="text-default border-none"
               />
             )}
@@ -366,12 +371,14 @@ const TimeRangeField = ({
   onChange,
   disabled,
   weekday,
+  rangeIndex,
   userTimeFormat,
   timePickerClassNames,
 }: {
   className?: string;
   disabled?: boolean;
   weekday?: string;
+  rangeIndex?: number;
   userTimeFormat: number | null;
   timePickerClassNames?: {
     container?: string;
@@ -382,6 +389,19 @@ const TimeRangeField = ({
   };
 } & ControllerRenderProps) => {
   const { t } = useLocale();
+  const timePickerLabels = rangeIndex
+    ? {
+        start: weekday
+          ? t("start_time_of_day_index", { day: weekday, index: rangeIndex })
+          : t("start_time_index", { index: rangeIndex }),
+        end: weekday
+          ? t("end_time_of_day_index", { day: weekday, index: rangeIndex })
+          : t("end_time_index", { index: rangeIndex }),
+      }
+    : {
+        start: weekday ? t("start_time_of_day", { day: weekday }) : t("start_time"),
+        end: weekday ? t("end_time_of_day", { day: weekday }) : t("end_time"),
+      };
   const innerClassNames: SelectInnerClassNames = {
     control: timePickerClassNames?.container,
     singleValue: timePickerClassNames?.value,
@@ -396,7 +416,7 @@ const TimeRangeField = ({
       <LazySelect
         userTimeFormat={userTimeFormat}
         className="block w-[90px] sm:w-[100px]"
-        aria-label={weekday ? t("start_time_of_day", { day: weekday }) : t("start_time")}
+        aria-label={timePickerLabels.start}
         isDisabled={disabled}
         value={value.start}
         menuPlacement="bottom"
@@ -416,7 +436,7 @@ const TimeRangeField = ({
       <LazySelect
         userTimeFormat={userTimeFormat}
         className="block w-[90px] rounded-md sm:w-[100px]"
-        aria-label={weekday ? t("end_time_of_day", { day: weekday }) : t("end_time")}
+        aria-label={timePickerLabels.end}
         isDisabled={disabled}
         value={value.end}
         min={value.start}
