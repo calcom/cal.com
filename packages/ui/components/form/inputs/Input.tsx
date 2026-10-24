@@ -26,7 +26,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(
     return (
       <InputField
         type={isPasswordVisible ? "text" : "password"}
-        placeholder={props.placeholder || "â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢"}
+        placeholder={props.placeholder || "•••••••••••••"}
         ref={ref}
         {...props}
         className={classNames(
